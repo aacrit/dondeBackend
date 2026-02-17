@@ -1,0 +1,598 @@
+{
+  "name": "Donde - Recommendation Engine - Working 0204",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "donde-recommend",
+        "responseMode": "responseNode",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "ad69714a-bf0b-4c20-8924-dbbd969e77ef",
+      "name": "Webhook - Donde Recommend",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        128
+      ],
+      "webhookId": "donde-recommendation-v2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "neighborhood",
+              "value": "={{ $json.body.neighborhood || 'Anywhere' }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "occasion",
+              "value": "={{ $json.body.occasion }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "price_level",
+              "value": "={{ $json.body.price_level }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "special_request",
+              "value": "={{ $json.body.special_request || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "27d66236-cf84-46ac-9075-9f1353839195",
+      "name": "Parse User Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "restaurants",
+        "returnAll": true,
+        "matchType": "allFilters"
+      },
+      "id": "285e0702-6ec4-42d1-b27c-72779aa69830",
+      "name": "Supabase - Get Restaurants",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -16
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "JZitKDg2Yi5Q0fPk",
+          "name": "Supabase - Donde"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "occasion_scores",
+        "returnAll": true
+      },
+      "id": "3839b32f-865a-441f-8e94-c1f9efcc6cd8",
+      "name": "Supabase - Get Occasion Scores",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        224
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "JZitKDg2Yi5Q0fPk",
+          "name": "Supabase - Donde"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "tags",
+        "returnAll": true
+      },
+      "id": "6ccd0922-9180-4b06-ab0b-95a7f249bc51",
+      "name": "Supabase - Get Tags",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        384
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "JZitKDg2Yi5Q0fPk",
+          "name": "Supabase - Donde"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "neighborhoods",
+        "returnAll": true
+      },
+      "id": "568d73dd-2009-4faf-a02c-be64542a2121",
+      "name": "Supabase - Get Neighborhoods",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        544
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "JZitKDg2Yi5Q0fPk",
+          "name": "Supabase - Donde"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "id",
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "id": "797c4045-7891-4d62-851c-c2257f7e00bb",
+      "name": "Wait for All Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        272,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// MERGE DATA FROM ALL 4 SUPABASE QUERIES\n// ============================================\n\n// Get data from each Supabase node by name\nconst restaurants   = $('Supabase - Get Restaurants').all().map(i => i.json);\nconst allScores     = $('Supabase - Get Occasion Scores').all().map(i => i.json);\nconst allTags       = $('Supabase - Get Tags').all().map(i => i.json);\nconst neighborhoods = $('Supabase - Get Neighborhoods').all().map(i => i.json);\n\n// Get user inputs\nconst userNeighborhood = $('Parse User Input').item.json.neighborhood;\nconst occasion         = $('Parse User Input').item.json.occasion;\nconst specialRequest   = $('Parse User Input').item.json.special_request;\nconst priceLevel       = $('Parse User Input').item.json.price_level;\n\n// ---- BUILD LOOKUP MAPS ----\n\n// Neighborhood ID -> name\nconst neighborhoodMap = {};\nneighborhoods.forEach(n => {\n  neighborhoodMap[n.id] = n.name;\n});\n\n// Restaurant ID -> scores\nconst scoresMap = {};\nallScores.forEach(s => {\n  scoresMap[s.restaurant_id] = s;\n});\n\n// Restaurant ID -> tags array\nconst tagsMap = {};\nallTags.forEach(t => {\n  if (!tagsMap[t.restaurant_id]) tagsMap[t.restaurant_id] = [];\n  tagsMap[t.restaurant_id].push(t.tag_text);\n});\n\n// ---- MERGE INTO FULL PROFILES ----\nlet profiles = restaurants.map(r => {\n  const neighborhoodName = neighborhoodMap[r.neighborhood_id] || 'Unknown';\n  const scores = scoresMap[r.id] || {};\n  const tags = tagsMap[r.id] || [];\n\n  return {\n    ...r,\n    neighborhood_name: neighborhoodName,\n    date_friendly_score: scores.date_friendly_score || null,\n    group_friendly_score: scores.group_friendly_score || null,\n    family_friendly_score: scores.family_friendly_score || null,\n    romantic_rating: scores.romantic_rating || null,\n    business_lunch_score: scores.business_lunch_score || null,\n    solo_dining_score: scores.solo_dining_score || null,\n    hole_in_wall_factor: scores.hole_in_wall_factor || null,\n    tags: tags\n  };\n});\n\n// ---- FILTER BY NEIGHBORHOOD (if not \"Anywhere\") ----\nif (userNeighborhood && userNeighborhood !== 'Anywhere') {\n  profiles = profiles.filter(p =>\n    p.neighborhood_name.toLowerCase() === userNeighborhood.toLowerCase()\n  );\n}\n\n// ---- FILTER: Only restaurants with review summaries ----\nprofiles = profiles.filter(p => p.google_review_summary != null);\n\n// ---- HANDLE NO RESULTS ----\nif (profiles.length === 0) {\n  return [{\n    json: {\n      no_results: true,\n      prompt: '',\n      top_restaurants: [],\n      occasion: occasion\n    }\n  }];\n}\n\n// ---- MAP OCCASION TO SCORE FIELD ----\nconst occasionScoreMap = {\n  'Date Night': 'date_friendly_score',\n  'Group Hangout': 'group_friendly_score',\n  'Family Dinner': 'family_friendly_score',\n  'Business Lunch': 'business_lunch_score',\n  'Solo Dining': 'solo_dining_score',\n  'Special Occasion': 'romantic_rating'\n};\nconst scoreField = occasionScoreMap[occasion] || 'date_friendly_score';\n\n// ---- SORT BY OCCASION SCORE (descending) ----\nprofiles.sort((a, b) => {\n  const scoreA = parseInt(a[scoreField]) || 0;\n  const scoreB = parseInt(b[scoreField]) || 0;\n  if (scoreB !== scoreA) return scoreB - scoreA;\n  // Tiebreak by google_rating\n  return (parseFloat(b.google_rating) || 0) - (parseFloat(a.google_rating) || 0);\n});\n\n// Take top 10\nconst top10 = profiles.slice(0, 10);\n\n// ---- BUILD GEMINI PROMPT ----\nconst restaurantList = top10.map((d, i) => {\n  const summary = typeof d.google_review_summary === 'object'\n    ? JSON.stringify(d.google_review_summary)\n    : (d.google_review_summary || 'N/A');\n\n  return `${i+1}. ${d.name}\\n   Address: ${d.address}\\n   Neighborhood: ${d.neighborhood_name}\\n   Price: ${d.price_level}\\n   Google Rating: ${d.google_rating}/5 (${d.google_review_count} reviews)\\n   ${occasion} Score: ${d[scoreField]}/10\\n   Atmosphere: ${d.noise_level || 'N/A'}, ${d.lighting_ambiance || 'N/A'}\\n   Review Summary: ${summary}\\n   Editor's Note: ${d.editors_note || 'N/A'}\\n   Best For: ${d.best_for_oneliner || 'N/A'}\\n   Tags: ${d.tags.length > 0 ? d.tags.join(', ') : 'N/A'}`;\n}).join('\\n\\n---\\n\\n');\n\nconst prompt = `You are Donde, a warm and knowledgeable Chicago restaurant concierge. A user is looking for the perfect dining spot.\n\nUSER REQUEST:\n- Occasion: ${occasion}\n- Budget: ${priceLevel}\n- Neighborhood: ${userNeighborhood}\n- Special Request: ${specialRequest || 'None'}\n\nTOP 10 CANDIDATES (ranked by ${occasion} score):\n\n${restaurantList}\n\nYOUR TASK:\nPick THE ONE BEST restaurant for this person. Consider their occasion, special request, and overall fit.\n\nRespond ONLY in this exact JSON format (no markdown, no backticks):\n{\n  \"restaurant_index\": 0,\n  \"recommendation\": \"A warm, personal 80-120 word paragraph explaining WHY this restaurant is the perfect match for their request. Mention specific things about the food, atmosphere, and what makes it special for their occasion.\",\n  \"insider_tip\": \"One specific, actionable insider tip (e.g., ask for the corner booth, try the off-menu horchata, go on Tuesday for half-price bottles)\"\n}`;\n\nreturn [{\n  json: {\n    no_results: false,\n    prompt: prompt,\n    top_restaurants: top10,\n    occasion: occasion,\n    scoreField: scoreField\n  }\n}];"
+      },
+      "id": "fae01f71-67c8-4db4-9852-777e0f551984",
+      "name": "Merge Data + Rank + Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $json.no_results }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "736c2976-b40b-4d02-a421-097bafcf952b",
+      "name": "Has Results?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        704,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyBORC960xxftOaQe8Z_fWY6u3dt_7fTUGw",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": {{ JSON.stringify($json.prompt) }}\n    }]\n  }],\n  \"generationConfig\": {\n    \"response_mime_type\": \"application/json\",\n    \"temperature\": 0.7\n  }\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "b5a3df99-4b0c-4b6a-973e-ad498432d453",
+      "name": "Gemini - Pick Best Restaurant",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// BUILD THE RICH JSON RESPONSE FOR THE UI\n// ============================================\n\nconst geminiResponse = $input.item.json;\nconst prevData = $('Merge Data + Rank + Build Prompt').item.json;\nconst topRestaurants = prevData.top_restaurants;\n\ntry {\n  // Parse Gemini response\n  const responseText = geminiResponse.candidates[0].content.parts[0].text;\n  let parsed;\n\n  try {\n    parsed = JSON.parse(responseText);\n  } catch (e) {\n    // Strip markdown backticks if Gemini wrapped the JSON\n    const cleaned = responseText.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n    parsed = JSON.parse(cleaned);\n  }\n\n  const idx = parseInt(parsed.restaurant_index) || 0;\n  const chosen = topRestaurants[idx] || topRestaurants[0];\n\n  return [{\n    json: {\n      success: true,\n      recommendation: parsed.recommendation || 'A great choice for your occasion!',\n      insider_tip: parsed.insider_tip || null,\n      restaurant: {\n        id: chosen.id,\n        name: chosen.name,\n        address: chosen.address,\n        google_place_id: chosen.google_place_id,\n        google_rating: chosen.google_rating,\n        google_review_count: chosen.google_review_count,\n        price_level: chosen.price_level,\n        phone: chosen.phone,\n        website: chosen.website,\n        noise_level: chosen.noise_level,\n        lighting_ambiance: chosen.lighting_ambiance,\n        dress_code: chosen.dress_code,\n        outdoor_seating: chosen.outdoor_seating,\n        live_music: chosen.live_music,\n        pet_friendly: chosen.pet_friendly,\n        parking_availability: chosen.parking_availability,\n        sentiment_breakdown: chosen.sentiment_breakdown,\n        sentiment_score: chosen.sentiment_score,\n        editors_note: chosen.editors_note,\n        best_for_oneliner: chosen.best_for_oneliner,\n        neighborhood_name: chosen.neighborhood_name\n      },\n      scores: {\n        date_friendly_score: chosen.date_friendly_score,\n        group_friendly_score: chosen.group_friendly_score,\n        family_friendly_score: chosen.family_friendly_score,\n        romantic_rating: chosen.romantic_rating,\n        business_lunch_score: chosen.business_lunch_score,\n        solo_dining_score: chosen.solo_dining_score,\n        hole_in_wall_factor: chosen.hole_in_wall_factor\n      },\n      tags: Array.isArray(chosen.tags) ? chosen.tags.filter(t => t && t !== 'null') : [],\n      timestamp: new Date().toISOString()\n    }\n  }];\n\n} catch (error) {\n  // Fallback: return the top-ranked restaurant without Gemini enrichment\n  const fallback = topRestaurants[0];\n  return [{\n    json: {\n      success: true,\n      recommendation: fallback.editors_note || 'A top pick for your occasion based on our scores!',\n      insider_tip: null,\n      restaurant: {\n        id: fallback.id,\n        name: fallback.name,\n        address: fallback.address,\n        google_place_id: fallback.google_place_id,\n        google_rating: fallback.google_rating,\n        google_review_count: fallback.google_review_count,\n        price_level: fallback.price_level,\n        phone: fallback.phone,\n        website: fallback.website,\n        noise_level: fallback.noise_level,\n        lighting_ambiance: fallback.lighting_ambiance,\n        dress_code: fallback.dress_code,\n        outdoor_seating: fallback.outdoor_seating,\n        live_music: fallback.live_music,\n        pet_friendly: fallback.pet_friendly,\n        parking_availability: fallback.parking_availability,\n        sentiment_breakdown: fallback.sentiment_breakdown,\n        sentiment_score: fallback.sentiment_score,\n        editors_note: fallback.editors_note,\n        best_for_oneliner: fallback.best_for_oneliner,\n        neighborhood_name: fallback.neighborhood_name\n      },\n      scores: {\n        date_friendly_score: fallback.date_friendly_score,\n        group_friendly_score: fallback.group_friendly_score,\n        family_friendly_score: fallback.family_friendly_score,\n        romantic_rating: fallback.romantic_rating,\n        business_lunch_score: fallback.business_lunch_score,\n        solo_dining_score: fallback.solo_dining_score,\n        hole_in_wall_factor: fallback.hole_in_wall_factor\n      },\n      tags: Array.isArray(fallback.tags) ? fallback.tags.filter(t => t && t !== 'null') : [],\n      timestamp: new Date().toISOString()\n    }\n  }];\n}"
+      },
+      "id": "6c3820bb-2a18-4531-aebe-cfd4b48529de",
+      "name": "Build Rich Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "9b5649ab-b298-4d23-accd-089b4f106e60",
+      "name": "Send Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1392,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\":false,\"recommendation\":\"No restaurants found matching your criteria. Try a different neighborhood or price range!\",\"restaurant\":{},\"scores\":{},\"tags\":[]}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "6105a8c7-1148-4aa6-a66c-4a4049b8a7a6",
+      "name": "Send No-Results Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        928,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "user_queries",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldValue": "={{ $('Parse User Input').item.json.occasion }}"
+            },
+            {
+              "fieldValue": "={{ $('Parse User Input').item.json.price_level }}"
+            },
+            {
+              "fieldValue": "={{ $('Parse User Input').item.json.special_request }}"
+            }
+          ]
+        }
+      },
+      "id": "2fb1cc04-f9e5-4e79-b46e-5c8a13ce6de1",
+      "name": "Supabase - Log Query",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        720
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "JZitKDg2Yi5Q0fPk",
+          "name": "Supabase - Donde"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "OPTIONS",
+        "path": "donde-recommend",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "07946250-0c41-4b28-9732-a8fa2c52b139",
+      "name": "CORS Preflight",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        720
+      ],
+      "webhookId": "donde-cors-preflight"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 204,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "9adffa59-bf95-4fd4-8186-b13d1cd5d59e",
+      "name": "CORS Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -240,
+        720
+      ]
+    }
+  ],
+  "pinData": {
+    "Gemini - Pick Best Restaurant": [
+      {
+        "json": {
+          "candidates": [
+            {
+              "content": {
+                "parts": [
+                  {
+                    "text": "{\n  \"restaurant_index\": 6,\n  \"recommendation\": \"While Pilsen might not have a dedicated Thai street food spot on our list, I have a fantastic alternative that captures a similar vibrant, flavorful spirit: HaiSous Vietnamese Kitchen. Although it's a touch above a '$' budget, the exceptional quality and authenticity of their Vietnamese cuisine make it well worth it. HaiSous is renowned for its delicious, fresh ingredients and perfectly cooked dishes, truly evoking the bustling culinary culture of Southeast Asia. You'll find an incredible array of flavorful options, from savory meats to fresh seafood, all served in an inviting atmosphere that promises a memorable dining experience. It’s a wonderful choice to explore the rich traditions of the region.\",\n  \"insider_tip\": \"For a comprehensive culinary journey, try their Grand Tasting Menu. If you prefer specific dishes, don't miss the highly-praised octopus salad or the flavorful crab fried rice!\"\n}"
+                  }
+                ],
+                "role": "model"
+              },
+              "finishReason": "STOP",
+              "index": 0
+            }
+          ],
+          "usageMetadata": {
+            "promptTokenCount": 1918,
+            "candidatesTokenCount": 198,
+            "totalTokenCount": 4437,
+            "promptTokensDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 1918
+              }
+            ],
+            "thoughtsTokenCount": 2321
+          },
+          "modelVersion": "gemini-2.5-flash",
+          "responseId": "8FSRaZK5EfWKkdUPuoHskQY"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook - Donde Recommend": {
+      "main": [
+        [
+          {
+            "node": "Parse User Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse User Input": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Get Restaurants",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase - Get Occasion Scores",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase - Get Tags",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase - Get Neighborhoods",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase - Log Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Get Restaurants": {
+      "main": [
+        [
+          {
+            "node": "Wait for All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Get Occasion Scores": {
+      "main": [
+        [
+          {
+            "node": "Wait for All Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Supabase - Get Tags": {
+      "main": [
+        [
+          {
+            "node": "Wait for All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Get Neighborhoods": {
+      "main": [
+        [
+          {
+            "node": "Wait for All Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Wait for All Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Data + Rank + Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Data + Rank + Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "Has Results?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Results?": {
+      "main": [
+        [
+          {
+            "node": "Gemini - Pick Best Restaurant",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send No-Results Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - Pick Best Restaurant": {
+      "main": [
+        [
+          {
+            "node": "Build Rich Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Rich Response": {
+      "main": [
+        [
+          {
+            "node": "Send Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CORS Preflight": {
+      "main": [
+        [
+          {
+            "node": "CORS Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "23764977-be3b-45fb-b9c0-a336cb5ce4f9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3ac4b04d2be991323392602cbf815c5e6661b46c00bdd5ec1576f7ce5b92c491"
+  },
+  "id": "v3pFHfXnV93xlkAvmw5nf",
+  "tags": []
+}

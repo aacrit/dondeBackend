@@ -1,0 +1,278 @@
+{
+  "name": "Agent 2: Enhanced Details Enricher - Final 02025",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "39d6eca6-f238-4d3a-9080-4c82bb904072",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "restaurants",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "noise_level",
+              "condition": "is",
+              "keyValue": "null"
+            }
+          ]
+        }
+      },
+      "id": "3e658f21-b1cc-405b-bd86-b339c31dd85e",
+      "name": "Fetch Restaurants Needing Enrichment",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "JZitKDg2Yi5Q0fPk",
+          "name": "Supabase - Donde"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 20,
+        "options": {}
+      },
+      "id": "6c4bf6f3-3d35-4077-9eec-0d02ec21e814",
+      "name": "Split in Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get current batch of restaurants\nconst restaurants = $input.all();\n\n// Build detailed prompt for Gemini\nconst restaurantList = restaurants.map(r => {\n  return `Restaurant: ${r.json.name}\nAddress: ${r.json.address || 'N/A'}\nGoogle Rating: ${r.json.google_rating || 'N/A'}\nPrice Level: ${r.json.price_level || 'N/A'}\nTypes: ${r.json.types?.join(', ') || 'N/A'}`;\n}).join('\\n\\n---\\n\\n');\n\nconst prompt = `Analyze the following restaurants and provide enrichment data for each.\n\nFor each restaurant, provide:\n1. noise_level: \"Quiet\", \"Moderate\", or \"Loud\"\n2. ambiance: Brief description (e.g., \"Casual family-friendly\", \"Upscale romantic\")\n3. dietary_options: Array of options like [\"Vegetarian\", \"Vegan\", \"Gluten-Free\"]\n4. good_for: Array of occasions like [\"Groups\", \"Dates\", \"Families\", \"Solo\"]\n5. parking_info: Description of parking availability\n6. accessibility_features: Array like [\"Wheelchair accessible\", \"Elevator\"]\n\nReturn ONLY valid JSON in this exact format (no markdown, no explanation):\n{\n  \"restaurants\": [\n    {\n      \"name\": \"Restaurant Name\",\n      \"noise_level\": \"Moderate\",\n      \"ambiance\": \"Description here\",\n      \"dietary_options\": [\"Vegetarian\"],\n      \"good_for\": [\"Groups\"],\n      \"parking_info\": \"Street parking available\",\n      \"accessibility_features\": [\"Wheelchair accessible\"]\n    }\n  ]\n}\n\nRestaurants to analyze:\n\n${restaurantList}`;\n\nreturn [{\n  json: {\n    prompt: prompt,\n    batch_size: restaurants.length,\n    restaurant_ids: restaurants.map(r => r.json.id)\n  }\n}];"
+      },
+      "id": "fffdb0a9-c55d-40fa-9c5f-3fe144ec1453",
+      "name": "Prepare Gemini Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "=AIzaSyBORC960xxftOaQe8Z_fWY6u3dt_7fTUGw"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": $json.prompt\n        }\n      ]\n    }\n  ]\n} }}",
+        "options": {}
+      },
+      "id": "8382bc3b-3ddc-45c4-b2c2-8fcfc41c1d87",
+      "name": "Call Gemini API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        816,
+        16
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CcMszeXu31nTYVaK",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the API response\nconst response = $input.first();\nconst restaurants = $('Split in Batches').all();\n\n// Extract text from Gemini's response\nlet responseText;\ntry {\n  responseText = response.json.candidates[0].content.parts[0].text;\n} catch (error) {\n  console.error('Failed to extract Gemini response:', error);\n  return [];\n}\n\n// Parse JSON from response\nlet enrichmentData;\ntry {\n  const cleaned = responseText.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  enrichmentData = JSON.parse(cleaned);\n} catch (error) {\n  console.error('Failed to parse JSON:', error);\n  console.log('Raw response:', responseText);\n  return [];\n}\n\n// Match enrichment data to original restaurants\nconst enriched = [];\nconst now = new Date().toISOString();\n\nfor (let i = 0; i < restaurants.length; i++) {\n  const restaurant = restaurants[i].json;\n  const geminiData = enrichmentData.restaurants[i] || {};\n  \n  // Build update object matching Supabase schema\n  const updateData = {\n    id: restaurant.id,  // Required for WHERE clause\n    \n    // Text fields\n    noise_level: geminiData.noise_level || null,\n    parking_availability: geminiData.parking_info || null,\n    \n    // Array fields - ensure proper format\n    ambiance: geminiData.ambiance ? [geminiData.ambiance] : null,\n    dietary_options: Array.isArray(geminiData.dietary_options) \n      ? geminiData.dietary_options \n      : [],\n    accessibility_features: Array.isArray(geminiData.accessibility_features)\n      ? geminiData.accessibility_features\n      : [],\n    good_for: Array.isArray(geminiData.good_for)\n      ? geminiData.good_for\n      : [],\n    \n    // Timestamps\n    updated_at: now,\n    last_data_refresh: now\n  };\n  \n  enriched.push({ json: updateData });\n}\n\nconsole.log(`✅ Enriched ${enriched.length} restaurants`);\nreturn enriched;"
+      },
+      "id": "83873bea-f23c-4531-85bf-57e9b8389895",
+      "name": "Parse Gemini Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "restaurants",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "dataToSend": "autoMapInputData"
+      },
+      "id": "c5f8369f-0b0b-4f9c-8370-a0dbb18caf71",
+      "name": "Update Restaurant",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        16
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "JZitKDg2Yi5Q0fPk",
+          "name": "Supabase - Donde"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "unit": "seconds"
+      },
+      "id": "3e00270f-288d-4393-ab5d-02981e4d908a",
+      "name": "Wait (Rate Limit)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        16
+      ],
+      "webhookId": "rate-limit-agent2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Restaurants Needing Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Restaurants Needing Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Split in Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split in Batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Prepare Gemini Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Gemini Prompt": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini API": {
+      "main": [
+        [
+          {
+            "node": "Parse Gemini Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Gemini Response": {
+      "main": [
+        [
+          {
+            "node": "Update Restaurant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Restaurant": {
+      "main": [
+        [
+          {
+            "node": "Wait (Rate Limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait (Rate Limit)": {
+      "main": [
+        [
+          {
+            "node": "Split in Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "f4836f37-879d-40eb-91d8-09e95c131370",
+  "meta": {
+    "instanceId": "3ac4b04d2be991323392602cbf815c5e6661b46c00bdd5ec1576f7ce5b92c491"
+  },
+  "id": "_A0JR9SSqFNYva_PN0MPd",
+  "tags": []
+}

@@ -1,0 +1,409 @@
+{
+  "name": "Agent 3B: Sentiment Analysis & Breakdown",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "574d8aeb-828c-407d-bd07-9bdf02776e25",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "restaurants",
+        "returnAll": true,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sentiment_breakdown",
+              "condition": "is",
+              "keyValue": "null"
+            }
+          ]
+        }
+      },
+      "id": "5f7403b7-bd43-46d2-8c5f-1a14d10f2ddd",
+      "name": "Fetch Restaurants Needing Sentiment",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "JZitKDg2Yi5Q0fPk",
+          "name": "Supabase - Donde"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check how many restaurants need sentiment processing\nconst items = $input.all();\n\nif (items.length === 0) {\n  console.log('=== NO RESTAURANTS NEED SENTIMENT ANALYSIS ===');\n  console.log('All restaurants already have sentiment_score populated.');\n  return [{ json: { skip_all: true, count: 0 } }];\n}\n\nconsole.log(`Found ${items.length} restaurants needing sentiment analysis`);\n\n// Separate into two groups:\n// Group A: Have google_review_summary with embedded sentiment (can extract directly)\n// Group B: Have google_review_summary but need Gemini to generate sentiment_breakdown\n\nconst results = [];\n\nfor (const item of items) {\n  const restaurant = item.json;\n  let reviewSummary = restaurant.google_review_summary;\n  \n  // Parse if it's a string\n  if (typeof reviewSummary === 'string') {\n    try {\n      reviewSummary = JSON.parse(reviewSummary);\n    } catch (e) {\n      console.log(`Could not parse google_review_summary for ${restaurant.name}`);\n      reviewSummary = null;\n    }\n  }\n  \n  results.push({\n    json: {\n      id: restaurant.id,\n      name: restaurant.name,\n      google_rating: restaurant.google_rating,\n      google_review_count: restaurant.google_review_count,\n      noise_level: restaurant.noise_level,\n      lighting_ambiance: restaurant.lighting_ambiance,\n      price_level: restaurant.price_level,\n      // Extract what Agent 3 already saved inside the JSONB\n      existing_summary: reviewSummary ? (reviewSummary.summary || null) : null,\n      existing_sentiment_score: reviewSummary ? (reviewSummary.sentiment_score || null) : null,\n      existing_top_aspects: reviewSummary ? (reviewSummary.top_aspects || []) : [],\n      existing_red_flags: reviewSummary ? (reviewSummary.red_flags || []) : [],\n      existing_standout_positives: reviewSummary ? (reviewSummary.standout_positives || []) : [],\n      existing_review_count: reviewSummary ? (reviewSummary.review_count || 0) : 0,\n      existing_total_ratings: reviewSummary ? (reviewSummary.total_ratings || 0) : 0,\n      // Flag whether we need Gemini or can just extract\n      needs_gemini: !reviewSummary || !reviewSummary.sentiment_score\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "de1c13ab-13cf-40f7-bf7e-b1d7ef9b986b",
+      "name": "Classify and Extract Existing Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "skip-check",
+              "leftValue": "={{ $json.skip_all }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "aeec7f3e-52dc-4a62-8581-1231ef5e17b3",
+      "name": "Any Restaurants to Process?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "id": "c555a1a1-0f0b-48b5-b63f-699252ec3998",
+      "name": "Split in Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build a Gemini prompt to generate detailed sentiment_breakdown text\n// for each restaurant in this batch.\n// We leverage the data Agent 3 already stored in google_review_summary.\n\nconst restaurants = $input.all();\n\n// Helper to safely escape text\nfunction esc(text) {\n  if (typeof text !== 'string') return String(text || '');\n  return text.replace(/\\\\/g, '\\\\\\\\').replace(/\"/g, '\\\\\"').replace(/\\n/g, ' ').replace(/\\r/g, '').replace(/\\t/g, ' ');\n}\n\nlet restaurantList = '';\n\nfor (let i = 0; i < restaurants.length; i++) {\n  const r = restaurants[i].json;\n  restaurantList += `\\n--- RESTAURANT ${i + 1} ---\\n`;\n  restaurantList += `ID: ${r.id}\\n`;\n  restaurantList += `Name: ${esc(r.name)}\\n`;\n  restaurantList += `Google Rating: ${r.google_rating || 'N/A'}/5\\n`;\n  restaurantList += `Total Ratings: ${r.existing_total_ratings || r.google_review_count || 'N/A'}\\n`;\n  restaurantList += `Price Level: ${r.price_level || 'N/A'}\\n`;\n  restaurantList += `Noise Level: ${r.noise_level || 'N/A'}\\n`;\n  restaurantList += `Lighting: ${r.lighting_ambiance || 'N/A'}\\n`;\n  restaurantList += `Existing Review Summary: ${esc(r.existing_summary) || 'None'}\\n`;\n  restaurantList += `Existing Sentiment Score: ${r.existing_sentiment_score || 'None'}\\n`;\n  restaurantList += `Top Aspects: ${r.existing_top_aspects.length > 0 ? r.existing_top_aspects.join(', ') : 'None'}\\n`;\n  restaurantList += `Red Flags: ${r.existing_red_flags.length > 0 ? r.existing_red_flags.join(', ') : 'None'}\\n`;\n  restaurantList += `Standout Positives: ${r.existing_standout_positives.length > 0 ? r.existing_standout_positives.join(', ') : 'None'}\\n`;\n}\n\nconst prompt = `You are a restaurant review analyst. For each restaurant below, I need you to generate detailed sentiment analysis data.\n\nFor each restaurant, analyze ALL the data provided (review summary, existing scores, top aspects, red flags, positives) and produce:\n\n1. sentiment_score: A numeric score from 1.0 to 5.0 (one decimal place). If an existing score is provided and seems reasonable based on the data, you can keep it. Otherwise, calculate a new one.\n\n2. sentiment_breakdown: A human-readable text paragraph (3-5 sentences) that describes the overall sentiment. Include:\n   - What diners love most about this place\n   - Any common complaints or concerns\n   - How the atmosphere contributes to the experience\n   - An overall sentiment verdict (e.g., \"Overwhelmingly positive\", \"Mixed but leaning positive\", etc.)\n\n3. has_red_flags: true if there are meaningful red flags (e.g., food safety, consistently bad service, cleanliness), false if red flags are minor or absent.\n\n4. review_count: The number of reviews analyzed. Use the provided total_ratings or review count.\n\nReturn ONLY valid JSON in this exact format (no markdown, no explanation):\n{\n  \"restaurants\": [\n    {\n      \"id\": \"restaurant-uuid-here\",\n      \"sentiment_score\": 4.2,\n      \"sentiment_breakdown\": \"Diners consistently praise the authentic flavors and generous portions. Service is described as warm and attentive, though a few reviewers noted longer wait times during peak hours. The cozy, dimly-lit atmosphere adds to the experience, making it a favorite for date nights. Overall sentiment is overwhelmingly positive with minor concerns about weekend crowds.\",\n      \"has_red_flags\": false,\n      \"review_count\": 127\n    }\n  ]\n}\n\nHere are the restaurants to analyze:\n${restaurantList}\n\nRemember: Respond ONLY with valid JSON, no additional text or markdown code blocks.`;\n\nreturn [{\n  json: {\n    prompt: prompt,\n    batch_size: restaurants.length,\n    restaurant_ids: restaurants.map(r => r.json.id),\n    restaurants_data: restaurants.map(r => r.json)\n  }\n}];"
+      },
+      "id": "fedbaec9-2207-4fcb-9be1-9b278e522ff3",
+      "name": "Build Sentiment Analysis Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "=AIzaSyBORC960xxftOaQe8Z_fWY6u3dt_7fTUGw"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": $json.prompt\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"temperature\": 0.3,\n    \"maxOutputTokens\": 8192\n  }\n} }}",
+        "options": {}
+      },
+      "id": "a8938e7c-7d89-4849-a4b4-fb4e364d288a",
+      "name": "Call Gemini for Sentiment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1328,
+        16
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CcMszeXu31nTYVaK",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the Gemini response and build update objects for Supabase\nconst response = $input.first();\nconst originalData = $('Build Sentiment Analysis Prompt').first().json.restaurants_data;\n\nlet responseText = '';\ntry {\n  responseText = response.json.candidates[0].content.parts[0].text;\n} catch (error) {\n  console.error('Failed to extract Gemini response text:', error.message);\n  console.log('Raw response:', JSON.stringify(response.json, null, 2));\n  \n  // Fallback: use existing data from Agent 3's JSONB to populate columns\n  const fallbackResults = originalData.map(r => ({\n    json: {\n      id: r.id,\n      sentiment_score: r.existing_sentiment_score || 3.0,\n      sentiment_breakdown: r.existing_summary \n        ? `Based on reviews: ${r.existing_summary}. Top aspects: ${(r.existing_top_aspects || []).join(', ') || 'N/A'}.`\n        : 'Sentiment analysis unavailable - manual review needed.',\n      has_red_flags: (r.existing_red_flags && r.existing_red_flags.length > 0 && r.existing_red_flags[0] !== 'analysis_error') ? true : false,\n      review_count: r.existing_review_count || r.existing_total_ratings || 0,\n      updated_at: new Date().toISOString()\n    }\n  }));\n  console.log(`Using fallback data for ${fallbackResults.length} restaurants`);\n  return fallbackResults;\n}\n\n// Clean and parse JSON from Gemini\nlet sentimentData;\ntry {\n  const cleaned = responseText.trim()\n    .replace(/^```json\\s*/i, '')\n    .replace(/^```\\s*/i, '')\n    .replace(/```\\s*$/i, '')\n    .trim();\n  sentimentData = JSON.parse(cleaned);\n} catch (error) {\n  console.error('Failed to parse Gemini JSON:', error.message);\n  console.log('Raw text:', responseText.substring(0, 500));\n  \n  // Fallback\n  const fallbackResults = originalData.map(r => ({\n    json: {\n      id: r.id,\n      sentiment_score: r.existing_sentiment_score || 3.0,\n      sentiment_breakdown: r.existing_summary \n        ? `Based on reviews: ${r.existing_summary}. Top aspects: ${(r.existing_top_aspects || []).join(', ') || 'N/A'}.`\n        : 'Sentiment analysis unavailable - manual review needed.',\n      has_red_flags: (r.existing_red_flags && r.existing_red_flags.length > 0 && r.existing_red_flags[0] !== 'analysis_error') ? true : false,\n      review_count: r.existing_review_count || r.existing_total_ratings || 0,\n      updated_at: new Date().toISOString()\n    }\n  }));\n  return fallbackResults;\n}\n\n// Extract the restaurants array from the response\nconst geminiRestaurants = sentimentData.restaurants || sentimentData || [];\nconst resultsArray = Array.isArray(geminiRestaurants) ? geminiRestaurants : [geminiRestaurants];\n\n// Build a lookup map by restaurant ID\nconst geminiMap = new Map();\nfor (const item of resultsArray) {\n  if (item.id) {\n    geminiMap.set(item.id, item);\n  }\n}\n\n// Match Gemini results to original restaurants and build update objects\nconst updateItems = [];\nconst now = new Date().toISOString();\n\nfor (const restaurant of originalData) {\n  const geminiResult = geminiMap.get(restaurant.id);\n  \n  if (geminiResult) {\n    // Validate sentiment_score is in range\n    let score = parseFloat(geminiResult.sentiment_score);\n    if (isNaN(score) || score < 1.0) score = 3.0;\n    if (score > 5.0) score = 5.0;\n    score = Math.round(score * 10) / 10; // One decimal place\n    \n    updateItems.push({\n      json: {\n        id: restaurant.id,\n        sentiment_score: score,\n        sentiment_breakdown: geminiResult.sentiment_breakdown || 'No breakdown available.',\n        has_red_flags: geminiResult.has_red_flags === true ? true : false,\n        review_count: parseInt(geminiResult.review_count) || restaurant.existing_total_ratings || 0,\n        updated_at: now\n      }\n    });\n  } else {\n    // No Gemini match - use fallback from existing JSONB data\n    console.log(`No Gemini result for restaurant ${restaurant.id} (${restaurant.name}), using fallback`);\n    updateItems.push({\n      json: {\n        id: restaurant.id,\n        sentiment_score: restaurant.existing_sentiment_score || 3.0,\n        sentiment_breakdown: restaurant.existing_summary \n          ? `Based on reviews: ${restaurant.existing_summary}. Top aspects: ${(restaurant.existing_top_aspects || []).join(', ') || 'N/A'}.`\n          : 'Sentiment analysis unavailable.',\n        has_red_flags: (restaurant.existing_red_flags && restaurant.existing_red_flags.length > 0 && restaurant.existing_red_flags[0] !== 'analysis_error') ? true : false,\n        review_count: restaurant.existing_review_count || restaurant.existing_total_ratings || 0,\n        updated_at: now\n      }\n    });\n  }\n}\n\nconsole.log(`Prepared ${updateItems.length} restaurant sentiment updates`);\nreturn updateItems;"
+      },
+      "id": "a0a1d25a-3f39-4387-a29b-c4e140ee7b9e",
+      "name": "Parse Sentiment Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "restaurants",
+        "filterType": "string",
+        "filterString": "=id=eq.{{ $json.id }}",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "sentiment_score",
+              "fieldValue": "={{ $json.sentiment_score }}"
+            },
+            {
+              "fieldId": "sentiment_breakdown",
+              "fieldValue": "={{ $json.sentiment_breakdown }}"
+            },
+            {
+              "fieldId": "has_red_flags",
+              "fieldValue": "={{ $json.has_red_flags }}"
+            },
+            {
+              "fieldId": "review_count",
+              "fieldValue": "={{ $json.review_count }}"
+            },
+            {
+              "fieldId": "updated_at",
+              "fieldValue": "={{ $json.updated_at }}"
+            }
+          ]
+        }
+      },
+      "id": "8803e819-94ce-4824-af54-2a0f5dee8c41",
+      "name": "Update Restaurant Sentiment",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        16
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "JZitKDg2Yi5Q0fPk",
+          "name": "Supabase - Donde"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst successCount = items.filter(item => item.json && item.json.id).length;\nconst totalInBatch = items.length;\n\nconsole.log(`\\n========================================`);\nconsole.log(`SENTIMENT BATCH COMPLETED`);\nconsole.log(`Updated: ${successCount}/${totalInBatch} restaurants`);\nconsole.log(`========================================\\n`);\n\nreturn [{ json: { \n  batch_completed: true,\n  success_count: successCount,\n  total_count: totalInBatch,\n  timestamp: new Date().toISOString()\n}}];"
+      },
+      "id": "e3a30d1b-9d71-4b08-aaaf-b098e7931931",
+      "name": "Log Batch Completion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1984,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "2a6c9364-6e09-44fc-9836-2c078a2fc1ea",
+      "name": "Wait (Rate Limit)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        2208,
+        16
+      ],
+      "webhookId": "rate-limit-agent3b"
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log('=== ALL DONE ===');\nconsole.log('No restaurants needed sentiment analysis.');\nconsole.log('All sentiment_score columns are already populated.');\n\nreturn [{\n  json: {\n    status: 'complete',\n    message: 'No restaurants needed sentiment analysis',\n    restaurants_updated: 0\n  }\n}];"
+      },
+      "id": "e848659b-86c8-4263-bceb-a9bd60a75dce",
+      "name": "No Restaurants - Exit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        224
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Restaurants Needing Sentiment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Restaurants Needing Sentiment": {
+      "main": [
+        [
+          {
+            "node": "Classify and Extract Existing Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify and Extract Existing Data": {
+      "main": [
+        [
+          {
+            "node": "Any Restaurants to Process?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any Restaurants to Process?": {
+      "main": [
+        [
+          {
+            "node": "Split in Batches",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Restaurants - Exit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split in Batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Build Sentiment Analysis Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Sentiment Analysis Prompt": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini for Sentiment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini for Sentiment": {
+      "main": [
+        [
+          {
+            "node": "Parse Sentiment Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Sentiment Response": {
+      "main": [
+        [
+          {
+            "node": "Update Restaurant Sentiment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Restaurant Sentiment": {
+      "main": [
+        [
+          {
+            "node": "Log Batch Completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Batch Completion": {
+      "main": [
+        [
+          {
+            "node": "Wait (Rate Limit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait (Rate Limit)": {
+      "main": [
+        [
+          {
+            "node": "Split in Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "5d80fe2b-bde8-4d54-b89a-640478853b6b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3ac4b04d2be991323392602cbf815c5e6661b46c00bdd5ec1576f7ce5b92c491"
+  },
+  "id": "xeWTPJbR3MFepIA8E84gH",
+  "tags": []
+}
