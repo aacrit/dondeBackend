@@ -40,7 +40,7 @@ async function main() {
   const { data: restaurants, error: rError } = await supabase
     .from("restaurants")
     .select(
-      "id, name, address, price_level, noise_level, lighting_ambiance, google_rating, google_review_count, ambiance, good_for, best_for_oneliner, google_review_summary"
+      "id, name, address, price_level, noise_level, lighting_ambiance, ambiance, good_for, best_for_oneliner"
     );
   if (rError) throw rError;
 
@@ -56,21 +56,14 @@ async function main() {
   await processBatches(unscored, 10, async (batch) => {
     const restaurantList = batch
       .map((r, i) => {
-        const summary =
-          typeof r.google_review_summary === "object" && r.google_review_summary
-            ? JSON.stringify(r.google_review_summary)
-            : "N/A";
-
         return `${i + 1}. ${r.name} (ID: ${r.id})
    Address: ${r.address || "N/A"}
    Price: ${r.price_level || "N/A"}
-   Google Rating: ${r.google_rating || "N/A"}/5 (${r.google_review_count || 0} reviews)
    Noise: ${r.noise_level || "N/A"}
    Lighting: ${r.lighting_ambiance || "N/A"}
    Ambiance: ${(r.ambiance || []).join(", ") || "N/A"}
    Good For: ${(r.good_for || []).join(", ") || "N/A"}
-   One-liner: ${r.best_for_oneliner || "N/A"}
-   Review Summary: ${summary}`;
+   One-liner: ${r.best_for_oneliner || "N/A"}`;
       })
       .join("\n\n---\n\n");
 

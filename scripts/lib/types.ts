@@ -13,6 +13,7 @@ export interface Restaurant {
   live_music: boolean | null;
   pet_friendly: boolean | null;
   parking_availability: string | null;
+  cuisine_type: string | null;
   best_for_oneliner: string | null;
   data_source: string;
   accessibility_features: string[] | null;
