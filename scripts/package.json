@@ -1,0 +1,23 @@
+{
+  "name": "dondeai-pipelines",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "discovery": "tsx pipelines/discovery.ts",
+    "enrichment": "tsx pipelines/enrichment.ts",
+    "reviews": "tsx pipelines/review-summarization.ts",
+    "sentiment": "tsx pipelines/sentiment-analysis.ts",
+    "scores": "tsx pipelines/generate-occasion-scores.ts",
+    "tags": "tsx pipelines/generate-tags.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@supabase/supabase-js": "^2.49.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  }
+}
