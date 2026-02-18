@@ -51,7 +51,14 @@ See `_archive/UI_UX_Requirements.md` for full response schema.
 
 ## Environment Variables
 
-Set in Supabase vault (Edge Function) and GitHub Secrets (pipelines):
-- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+**Supabase Edge Function secrets** (set via `supabase secrets set` or Dashboard):
+- `SUPAB_URL` — Supabase project URL (SUPABASE_ prefix is reserved by Supabase)
+- `SUPAB_ANON_KEY` — Supabase anon key (RLS-safe)
+- `ANTHROPIC_API_KEY`
+- `GOOGLE_PLACES_API_KEY`
+
+**GitHub Actions secrets** (set in repo Settings → Secrets):
+- `SUPABASE_URL` — same value as SUPAB_URL
+- `SUPABASE_SERVICE_ROLE_KEY` — admin key (bypasses RLS, pipelines only)
 - `ANTHROPIC_API_KEY`
 - `GOOGLE_PLACES_API_KEY`
