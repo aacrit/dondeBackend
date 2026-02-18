@@ -41,9 +41,9 @@ ALTER TABLE restaurants
   DROP COLUMN IF EXISTS typical_wait_time CASCADE;
 
 -- Step 5: Drop is_seed from satellite tables
-ALTER TABLE occasion_scores DROP COLUMN IF EXISTS is_seed;
-ALTER TABLE tags DROP COLUMN IF EXISTS is_seed;
-ALTER TABLE user_queries DROP COLUMN IF EXISTS is_seed;
+ALTER TABLE occasion_scores DROP COLUMN IF EXISTS is_seed CASCADE;
+ALTER TABLE tags DROP COLUMN IF EXISTS is_seed CASCADE;
+ALTER TABLE user_queries DROP COLUMN IF EXISTS is_seed CASCADE;
 
 -- Step 6: Drop unused table
-DROP TABLE IF EXISTS cuisine_types;
+DROP TABLE IF EXISTS cuisine_types CASCADE;

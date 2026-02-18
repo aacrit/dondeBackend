@@ -21,7 +21,10 @@ ALTER TABLE restaurants
   DROP COLUMN IF EXISTS review_last_fetched_at CASCADE,
   DROP COLUMN IF EXISTS review_analysis_version CASCADE;
 
--- Drop partial indexes that referenced dropped columns
+-- Drop partial indexes that referenced dropped columns (may already be gone via CASCADE)
 DROP INDEX IF EXISTS idx_restaurants_review_summary_not_null;
 DROP INDEX IF EXISTS idx_restaurants_needs_review_summary;
 DROP INDEX IF EXISTS idx_restaurants_needs_sentiment;
+
+-- Drop any remaining legacy functions that referenced dropped columns
+DROP FUNCTION IF EXISTS update_sentiment_score() CASCADE;
