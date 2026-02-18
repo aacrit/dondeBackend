@@ -5,17 +5,14 @@ export interface UserRequest {
   price_level?: string;
 }
 
+/** Restaurant data stored in DB (compliant — only place_id + our own content) */
 export interface Restaurant {
   id: string;
   name: string;
   address: string;
   neighborhood_id: string | null;
   google_place_id: string | null;
-  google_rating: number | null;
-  google_review_count: number | null;
   price_level: string | null;
-  phone: string | null;
-  website: string | null;
   noise_level: string | null;
   lighting_ambiance: string | null;
   dress_code: string | null;
@@ -23,9 +20,6 @@ export interface Restaurant {
   live_music: boolean | null;
   pet_friendly: boolean | null;
   parking_availability: string | null;
-  google_review_summary: Record<string, unknown> | null;
-  sentiment_breakdown: string | null;
-  sentiment_score: number | null;
   best_for_oneliner: string | null;
 }
 
@@ -52,6 +46,7 @@ export interface Neighborhood {
   name: string;
 }
 
+/** Merged profile used for ranking (DB data + scores + tags) */
 export interface RestaurantProfile extends Restaurant {
   neighborhood_name: string;
   date_friendly_score: number | null;
@@ -69,4 +64,6 @@ export interface ClaudeRecommendation {
   recommendation: string;
   insider_tip: string | null;
   donde_score: number;
+  sentiment_score: number | null;
+  sentiment_breakdown: string | null;
 }

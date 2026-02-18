@@ -1,14 +1,11 @@
+/** Restaurant data stored in DB (compliant — only place_id + our own content) */
 export interface Restaurant {
   id: string;
   name: string;
   address: string;
   neighborhood_id: string | null;
   google_place_id: string | null;
-  google_rating: number | null;
-  google_review_count: number | null;
   price_level: string | null;
-  phone: string | null;
-  website: string | null;
   noise_level: string | null;
   lighting_ambiance: string | null;
   dress_code: string | null;
@@ -16,19 +13,12 @@ export interface Restaurant {
   live_music: boolean | null;
   pet_friendly: boolean | null;
   parking_availability: string | null;
-  google_review_summary: Record<string, unknown> | null;
-  sentiment_breakdown: string | null;
-  sentiment_score: number | null;
-  has_red_flags: boolean;
   best_for_oneliner: string | null;
-  hours_of_operation: Record<string, unknown> | null;
   data_source: string;
   accessibility_features: string[] | null;
   ambiance: string[] | null;
   dietary_options: string[] | null;
   good_for: string[] | null;
-  review_last_fetched_at: string | null;
-  review_analysis_version: string;
   is_seed: boolean;
   created_at: string;
   updated_at: string;
@@ -95,6 +85,8 @@ export interface ClaudeRecommendation {
   recommendation: string;
   insider_tip: string | null;
   donde_score: number;
+  sentiment_score: number | null;
+  sentiment_breakdown: string | null;
 }
 
 export interface ApiResponse {

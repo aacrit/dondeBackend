@@ -34,7 +34,7 @@ async function main() {
   // Fetch restaurants needing enrichment
   const { data: restaurants, error } = await supabase
     .from("restaurants")
-    .select("id, name, address, google_rating, price_level")
+    .select("id, name, address, price_level")
     .is("noise_level", null);
 
   if (error) throw error;
@@ -49,7 +49,7 @@ async function main() {
     const restaurantList = batch
       .map(
         (r) =>
-          `Restaurant: ${r.name}\nAddress: ${r.address || "N/A"}\nGoogle Rating: ${r.google_rating || "N/A"}\nPrice Level: ${r.price_level || "N/A"}`
+          `Restaurant: ${r.name}\nAddress: ${r.address || "N/A"}\nPrice Level: ${r.price_level || "N/A"}`
       )
       .join("\n\n---\n\n");
 

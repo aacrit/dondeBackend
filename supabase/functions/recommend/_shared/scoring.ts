@@ -85,12 +85,12 @@ export function filterAndRank(
     filtered = filtered.filter((p) => p.price_level === priceLevel);
   }
 
-  // Filter: only restaurants with review summaries
-  filtered = filtered.filter((p) => p.google_review_summary != null);
+  // Filter: only restaurants with enrichment data (noise_level as proxy)
+  filtered = filtered.filter((p) => p.noise_level != null);
 
   if (filtered.length === 0) return [];
 
-  // Sort by occasion score descending, tiebreak by google_rating
+  // Sort by occasion score descending, tiebreak by secondary occasion scores sum
   const scoreField = getScoreField(occasion);
 
   filtered.sort((a, b) => {
@@ -99,7 +99,16 @@ export function filterAndRank(
     const scoreB =
       (b[scoreField as keyof RestaurantProfile] as number) || 0;
     if (scoreB !== scoreA) return scoreB - scoreA;
-    return (b.google_rating || 0) - (a.google_rating || 0);
+    // Tiebreak: sum of all occasion scores
+    const sumA = (a.date_friendly_score || 0) + (a.group_friendly_score || 0) +
+      (a.family_friendly_score || 0) + (a.romantic_rating || 0) +
+      (a.business_lunch_score || 0) + (a.solo_dining_score || 0) +
+      (a.hole_in_wall_factor || 0);
+    const sumB = (b.date_friendly_score || 0) + (b.group_friendly_score || 0) +
+      (b.family_friendly_score || 0) + (b.romantic_rating || 0) +
+      (b.business_lunch_score || 0) + (b.solo_dining_score || 0) +
+      (b.hole_in_wall_factor || 0);
+    return sumB - sumA;
   });
 
   // Return top 10
@@ -117,19 +126,13 @@ export function buildPrompt(
 
   const restaurantList = top10
     .map((d, i) => {
-      const summary =
-        typeof d.google_review_summary === "object"
-          ? JSON.stringify(d.google_review_summary)
-          : d.google_review_summary || "N/A";
-
       return `${i + 1}. ${d.name}
    Address: ${d.address}
    Neighborhood: ${d.neighborhood_name}
    Price: ${d.price_level}
-   Google Rating: ${d.google_rating}/5 (${d.google_review_count} reviews)
    ${occasion} Score: ${(d[scoreField as keyof RestaurantProfile] as number) || "N/A"}/10
    Atmosphere: ${d.noise_level || "N/A"}, ${d.lighting_ambiance || "N/A"}
-   Review Summary: ${summary}
+   Dress Code: ${d.dress_code || "N/A"}
    Best For: ${d.best_for_oneliner || "N/A"}
    Tags: ${d.tags.length > 0 ? d.tags.join(", ") : "N/A"}`;
     })

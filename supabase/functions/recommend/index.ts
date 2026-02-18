@@ -14,6 +14,10 @@ import {
   buildNoResultsResponse,
   buildErrorResponse,
 } from "./_shared/response-builder.ts";
+import {
+  fetchPlaceDetails,
+  formatReviewsForPrompt,
+} from "./_shared/google-places.ts";
 import type {
   UserRequest,
   Restaurant,
@@ -76,7 +80,7 @@ serve(async (req: Request) => {
       return jsonResponse(buildNoResultsResponse());
     }
 
-    // Build Claude prompt
+    // Build Claude prompt (uses stored enrichment data only — no Google data)
     const prompt = buildPrompt(
       top10,
       occasion,
@@ -98,12 +102,47 @@ serve(async (req: Request) => {
       );
       const chosen = top10[idx];
 
-      responseBody = buildSuccessResponse(chosen, parsed);
+      // Fetch fresh Google Place Details for the chosen restaurant (transient — never stored)
+      const googleData = chosen.google_place_id
+        ? await fetchPlaceDetails(chosen.google_place_id)
+        : null;
+
+      // If we got reviews, generate on-the-fly sentiment via a second Claude call
+      if (googleData && googleData.reviews.length > 0 && !parsed.sentiment_breakdown) {
+        try {
+          const reviewsText = formatReviewsForPrompt(googleData.reviews);
+          const sentimentPrompt = `Analyze these restaurant reviews for ${googleData.name}. Return ONLY valid JSON (no markdown):
+{"sentiment_score": 4.2, "sentiment_breakdown": "2-3 sentence summary of what diners love and any common complaints."}
+
+Reviews:
+${reviewsText}`;
+
+          const sentimentText = await callClaude(sentimentPrompt);
+          const sentiment = parseClaudeJson<{
+            sentiment_score: number;
+            sentiment_breakdown: string;
+          }>(sentimentText);
+
+          parsed.sentiment_score = sentiment.sentiment_score;
+          parsed.sentiment_breakdown = sentiment.sentiment_breakdown;
+        } catch (sentimentErr) {
+          console.error("Sentiment generation failed (non-fatal):", sentimentErr);
+        }
+      }
+
+      responseBody = buildSuccessResponse(chosen, parsed, googleData);
     } catch (claudeError) {
       // Fallback: return top-ranked restaurant without AI enrichment
       console.error("Claude API failed, using fallback:", claudeError);
       const scoreField = getScoreField(occasion);
-      responseBody = buildFallbackResponse(top10[0], scoreField);
+      const chosen = top10[0];
+
+      // Still try to fetch Google data for the fallback
+      const googleData = chosen.google_place_id
+        ? await fetchPlaceDetails(chosen.google_place_id)
+        : null;
+
+      responseBody = buildFallbackResponse(chosen, scoreField, googleData);
     }
 
     // Log query (fire-and-forget — don't block the response)

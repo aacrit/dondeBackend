@@ -25,9 +25,14 @@ export async function textSearch(
   return data.results || [];
 }
 
+/**
+ * Fetch Place Details for discovery pipeline.
+ * Default fields are minimal — only what we're allowed to use transiently.
+ * Google-sourced data (rating, phone, website, hours) is NOT stored in DB.
+ */
 export async function getPlaceDetails(
   placeId: string,
-  fields = "name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,price_level,opening_hours,geometry,place_id"
+  fields = "name,formatted_address,price_level,geometry,place_id"
 ): Promise<GooglePlaceDetails | null> {
   const params = new URLSearchParams({
     place_id: placeId,
@@ -40,10 +45,4 @@ export async function getPlaceDetails(
   );
   const data = await res.json();
   return data.result || null;
-}
-
-export async function getPlaceReviews(
-  placeId: string
-): Promise<GooglePlaceDetails | null> {
-  return getPlaceDetails(placeId, "reviews,name,place_id");
 }

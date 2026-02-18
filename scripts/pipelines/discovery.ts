@@ -142,17 +142,15 @@ async function main() {
         }
       }
 
+      // Store only compliant data: place_id (allowed), name/address (editorial),
+      // price_level (our classification). Google-specific fields (rating, phone,
+      // website, hours) are NOT stored per Google Maps Platform ToS Section 3.2.3.
       toInsert.push({
         name: result.name,
         address: result.formatted_address,
         neighborhood_id: neighborhoodId,
         google_place_id: result.place_id,
-        google_rating: result.rating || null,
-        google_review_count: result.user_ratings_total || null,
         price_level: PRICE_MAP[result.price_level ?? 2] || "$$",
-        phone: result.formatted_phone_number || null,
-        website: result.website || null,
-        hours_of_operation: result.opening_hours || null,
         data_source: "google_places_api",
         created_at: now,
         updated_at: now,
