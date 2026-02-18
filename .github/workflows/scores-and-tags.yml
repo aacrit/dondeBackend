@@ -1,0 +1,38 @@
+name: Occasion Scores & Tags
+
+on:
+  schedule:
+    - cron: '0 7 * * 0'  # Weekly Sunday 7am UTC (after enrichment)
+  workflow_dispatch: {}
+
+jobs:
+  scores:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: scripts
+
+      - name: Generate occasion scores
+        run: npx tsx pipelines/generate-occasion-scores.ts
+        working-directory: scripts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Generate tags
+        run: npx tsx pipelines/generate-tags.ts
+        working-directory: scripts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
