@@ -72,7 +72,7 @@ export interface ClaudeRecommendation {
   restaurant_index: number;
   recommendation: string;
   insider_tip: string | null;
-  donde_score: number;
+  relevance_score: number;
   sentiment_score: number | null;
   sentiment_breakdown: string | null;
 }
