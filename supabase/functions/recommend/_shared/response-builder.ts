@@ -1,4 +1,4 @@
-import type { RestaurantProfile, ClaudeRecommendation } from "./types.ts";
+import type { RestaurantProfile, ClaudeRecommendation, PreRecommendation } from "./types.ts";
 import type { GooglePlaceData } from "./google-places.ts";
 
 export function buildSuccessResponse(
@@ -34,6 +34,53 @@ export function buildSuccessResponse(
     recommendation: claude.recommendation,
     insider_tip: claude.insider_tip || null,
     donde_score: String(claude.donde_score),
+    scores: {
+      date_friendly_score: chosen.date_friendly_score,
+      group_friendly_score: chosen.group_friendly_score,
+      family_friendly_score: chosen.family_friendly_score,
+      romantic_rating: chosen.romantic_rating,
+      business_lunch_score: chosen.business_lunch_score,
+      solo_dining_score: chosen.solo_dining_score,
+      hole_in_wall_factor: chosen.hole_in_wall_factor,
+    },
+    tags: chosen.tags,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+export function buildPreGeneratedResponse(
+  chosen: RestaurantProfile,
+  preRec: PreRecommendation,
+  googleData: GooglePlaceData | null
+): Record<string, unknown> {
+  return {
+    success: true,
+    restaurant: {
+      id: chosen.id,
+      name: googleData?.name || chosen.name,
+      address: googleData?.address || chosen.address,
+      google_place_id: chosen.google_place_id,
+      google_rating: googleData?.google_rating || null,
+      google_review_count: googleData?.google_review_count || null,
+      price_level: chosen.price_level,
+      phone: googleData?.phone || null,
+      website: googleData?.website || null,
+      noise_level: chosen.noise_level,
+      cuisine_type: chosen.cuisine_type || null,
+      lighting_ambiance: chosen.lighting_ambiance,
+      dress_code: chosen.dress_code,
+      outdoor_seating: chosen.outdoor_seating,
+      live_music: chosen.live_music,
+      pet_friendly: chosen.pet_friendly,
+      parking_availability: chosen.parking_availability,
+      sentiment_breakdown: null,
+      sentiment_score: null,
+      best_for_oneliner: chosen.best_for_oneliner,
+      neighborhood_name: chosen.neighborhood_name,
+    },
+    recommendation: preRec.recommendation,
+    insider_tip: chosen.insider_tip || null,
+    donde_score: String(preRec.donde_score),
     scores: {
       date_friendly_score: chosen.date_friendly_score,
       group_friendly_score: chosen.group_friendly_score,

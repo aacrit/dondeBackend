@@ -26,6 +26,7 @@ interface EnrichmentResult {
     outdoor_seating: boolean;
     live_music: boolean;
     pet_friendly: boolean;
+    insider_tip: string;
   }>;
 }
 
@@ -73,6 +74,7 @@ For each restaurant, provide:
 11. outdoor_seating: true/false — whether the restaurant has outdoor/patio seating
 12. live_music: true/false — whether the restaurant regularly features live music
 13. pet_friendly: true/false — whether the restaurant allows pets (especially on patios)
+14. insider_tip: One specific, actionable insider tip for this restaurant (e.g., "Ask for the corner booth", "Try the off-menu horchata", "Go on Tuesday for half-price bottles"). Should be practical insider knowledge, max 20 words.
 
 Return ONLY valid JSON in this exact format (no markdown, no explanation):
 {
@@ -91,7 +93,8 @@ Return ONLY valid JSON in this exact format (no markdown, no explanation):
       "cuisine_type": "Italian",
       "outdoor_seating": true,
       "live_music": false,
-      "pet_friendly": true
+      "pet_friendly": true,
+      "insider_tip": "Ask for the corner booth with the skyline view"
     }
   ]
 }
@@ -130,6 +133,7 @@ ${restaurantList}`;
         outdoor_seating: enrichment.outdoor_seating ?? null,
         live_music: enrichment.live_music ?? null,
         pet_friendly: enrichment.pet_friendly ?? null,
+        insider_tip: enrichment.insider_tip || null,
         updated_at: now,
         last_data_refresh: now,
       };
