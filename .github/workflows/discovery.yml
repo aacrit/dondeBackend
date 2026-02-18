@@ -25,6 +25,6 @@ jobs:
         run: npx tsx pipelines/discovery.ts
         working-directory: scripts
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPAB_URL: ${{ secrets.SUPAB_URL }}
+          SUPAB_SERVICE_ROLE_KEY: ${{ secrets.SUPAB_SERVICE_ROLE_KEY }}
           GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}

@@ -25,14 +25,14 @@ jobs:
         run: npx tsx pipelines/generate-occasion-scores.ts
         working-directory: scripts
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPAB_URL: ${{ secrets.SUPAB_URL }}
+          SUPAB_SERVICE_ROLE_KEY: ${{ secrets.SUPAB_SERVICE_ROLE_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Generate tags
         run: npx tsx pipelines/generate-tags.ts
         working-directory: scripts
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPAB_URL: ${{ secrets.SUPAB_URL }}
+          SUPAB_SERVICE_ROLE_KEY: ${{ secrets.SUPAB_SERVICE_ROLE_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
