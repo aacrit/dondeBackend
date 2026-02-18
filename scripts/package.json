@@ -8,7 +8,8 @@
     "enrichment": "tsx pipelines/enrichment.ts",
     "scores": "tsx pipelines/generate-occasion-scores.ts",
     "tags": "tsx pipelines/generate-tags.ts",
-    "backfill": "tsx pipelines/backfill-new-fields.ts"
+    "backfill": "tsx pipelines/backfill-new-fields.ts",
+    "populate": "tsx pipelines/populate-all.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
