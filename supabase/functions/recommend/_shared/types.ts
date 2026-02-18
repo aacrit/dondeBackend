@@ -22,6 +22,14 @@ export interface Restaurant {
   parking_availability: string | null;
   cuisine_type: string | null;
   best_for_oneliner: string | null;
+  insider_tip: string | null;
+}
+
+export interface PreRecommendation {
+  restaurant_id: string;
+  occasion: string;
+  recommendation: string;
+  donde_score: number;
 }
 
 export interface OccasionScores {
