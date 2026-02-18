@@ -6,10 +6,9 @@
   "scripts": {
     "discovery": "tsx pipelines/discovery.ts",
     "enrichment": "tsx pipelines/enrichment.ts",
-    "reviews": "tsx pipelines/review-summarization.ts",
-    "sentiment": "tsx pipelines/sentiment-analysis.ts",
     "scores": "tsx pipelines/generate-occasion-scores.ts",
-    "tags": "tsx pipelines/generate-tags.ts"
+    "tags": "tsx pipelines/generate-tags.ts",
+    "backfill": "tsx pipelines/backfill-new-fields.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

@@ -36,7 +36,7 @@ async function main() {
   const { data: restaurants, error: rError } = await supabase
     .from("restaurants")
     .select(
-      "id, name, address, price_level, noise_level, ambiance, good_for, dietary_options, best_for_oneliner, google_review_summary"
+      "id, name, address, price_level, noise_level, ambiance, good_for, dietary_options, best_for_oneliner"
     );
   if (rError) throw rError;
 

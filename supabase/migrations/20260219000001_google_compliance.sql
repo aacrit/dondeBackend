@@ -17,5 +17,7 @@ ALTER TABLE restaurants
   DROP COLUMN IF EXISTS review_last_fetched_at,
   DROP COLUMN IF EXISTS review_analysis_version;
 
--- Drop the partial index that referenced google_review_summary
+-- Drop partial indexes that referenced dropped columns
 DROP INDEX IF EXISTS idx_restaurants_review_summary_not_null;
+DROP INDEX IF EXISTS idx_restaurants_needs_review_summary;
+DROP INDEX IF EXISTS idx_restaurants_needs_sentiment;

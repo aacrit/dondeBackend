@@ -22,6 +22,10 @@ interface EnrichmentResult {
     parking_info: string;
     accessibility_features: string[];
     best_for_oneliner: string;
+    cuisine_type: string;
+    outdoor_seating: boolean;
+    live_music: boolean;
+    pet_friendly: boolean;
   }>;
 }
 
@@ -65,6 +69,10 @@ For each restaurant, provide:
 7. parking_info: Description of likely parking availability
 8. accessibility_features: Array like ["Wheelchair accessible"]
 9. best_for_oneliner: A catchy one-liner describing what makes this place special (max 15 words)
+10. cuisine_type: Primary cuisine category. Use ONE of: "Mexican", "American", "Italian", "Japanese", "Thai", "Chinese", "Korean", "French", "Seafood", "Steak", "Mediterranean", "Vietnamese", "Indian", "Vegan", "Brunch", "Cocktail Bar", "Coffee/Cafe", or similar. Must be a single string.
+11. outdoor_seating: true/false — whether the restaurant has outdoor/patio seating
+12. live_music: true/false — whether the restaurant regularly features live music
+13. pet_friendly: true/false — whether the restaurant allows pets (especially on patios)
 
 Return ONLY valid JSON in this exact format (no markdown, no explanation):
 {
@@ -79,7 +87,11 @@ Return ONLY valid JSON in this exact format (no markdown, no explanation):
       "good_for": ["Groups"],
       "parking_info": "Street parking available",
       "accessibility_features": ["Wheelchair accessible"],
-      "best_for_oneliner": "The hidden gem your foodie friends haven't found yet"
+      "best_for_oneliner": "The hidden gem your foodie friends haven't found yet",
+      "cuisine_type": "Italian",
+      "outdoor_seating": true,
+      "live_music": false,
+      "pet_friendly": true
     }
   ]
 }
@@ -114,6 +126,10 @@ ${restaurantList}`;
           : [],
         best_for_oneliner:
           enrichment.best_for_oneliner || null,
+        cuisine_type: enrichment.cuisine_type || null,
+        outdoor_seating: enrichment.outdoor_seating ?? null,
+        live_music: enrichment.live_music ?? null,
+        pet_friendly: enrichment.pet_friendly ?? null,
         updated_at: now,
         last_data_refresh: now,
       };
