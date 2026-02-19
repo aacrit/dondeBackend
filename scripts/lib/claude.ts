@@ -48,5 +48,38 @@ export function parseJsonResponse<T>(text: string): T {
     .replace(/```json\n?/g, "")
     .replace(/```\n?/g, "")
     .trim();
+
+  // Extract the first complete JSON object by matching balanced braces
+  const start = cleaned.indexOf("{");
+  if (start === -1) throw new Error("No JSON object found in response");
+
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = start; i < cleaned.length; i++) {
+    const ch = cleaned[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escape = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (ch === "{") depth++;
+    else if (ch === "}") {
+      depth--;
+      if (depth === 0) {
+        return JSON.parse(cleaned.substring(start, i + 1));
+      }
+    }
+  }
+
+  // Fallback: try parsing the whole cleaned string
   return JSON.parse(cleaned);
 }
