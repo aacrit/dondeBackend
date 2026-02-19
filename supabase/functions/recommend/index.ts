@@ -4,6 +4,7 @@ import { callClaude, parseClaudeJson } from "./_shared/claude.ts";
 import {
   mergeProfiles,
   filterAndRank,
+  reRankWithBoosts,
   buildSystemPrompt,
   buildUserPrompt,
   computeDondeMatch,
@@ -95,6 +96,9 @@ Deno.serve(async (req: Request) => {
     } else {
       top10 = rpcData as RestaurantProfile[];
     }
+
+    // Re-rank by special_request relevance (RPC only sorts by occasion score)
+    top10 = reRankWithBoosts(top10, occasion, special_request);
 
     if (top10.length === 0) {
       return jsonResponse(buildNoResultsResponse());

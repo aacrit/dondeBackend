@@ -52,6 +52,15 @@ const TAG_KEYWORDS: Record<string, string[]> = {
   "craft cocktails": ["cocktail", "mixology", "craft drinks"],
   "live music": ["live music", "jazz", "band"],
   "farm-to-table": ["farm to table", "organic", "local ingredients"],
+  "scenic view": ["view", "scenic", "panoramic", "waterfront", "lakefront", "river view"],
+  romantic: ["romantic", "intimate", "candlelit", "cozy date"],
+  trendy: ["trendy", "hip", "instagram", "modern", "stylish"],
+  quiet: ["quiet", "peaceful", "calm", "serene"],
+  "great value": ["cheap", "affordable", "deal", "value", "budget"],
+  "brunch spot": ["brunch", "breakfast", "morning"],
+  waterfront: ["waterfront", "lakefront", "riverwalk", "lake view"],
+  "vegan friendly": ["vegan", "plant-based", "plant based"],
+  "gluten free": ["gluten free", "celiac", "gluten-free"],
 };
 
 interface BoostedProfile extends RestaurantProfile {
@@ -87,6 +96,18 @@ function computeBoost(
         t.toLowerCase().includes(tag.toLowerCase())
       );
       if (tagMatch) boost += 1.5;
+    }
+  }
+
+  // Boolean feature match: +1.5 if user mentions a feature the restaurant has
+  const featureBoosts: [string[], keyof RestaurantProfile][] = [
+    [["outdoor", "patio", "outside", "al fresco", "terrace", "view", "lakefront", "waterfront"], "outdoor_seating"],
+    [["live music", "jazz", "band"], "live_music"],
+    [["pet", "dog"], "pet_friendly"],
+  ];
+  for (const [keywords, field] of featureBoosts) {
+    if (keywords.some((kw) => lower.includes(kw))) {
+      if (profile[field]) boost += 1.5;
     }
   }
 
@@ -236,7 +257,7 @@ function computeKeywordRelevance(
 
   const lower = specialRequest.toLowerCase();
   let points = 0;
-  const maxPoints = 10;
+  const maxPoints = 12;
 
   // Cuisine match: worth 4 points
   for (const [cuisine, keywords] of Object.entries(CUISINE_KEYWORDS)) {
@@ -277,6 +298,19 @@ function computeKeywordRelevance(
     ).length;
     points += Math.min(3, overlap);
   }
+
+  // Boolean feature match: worth up to 2 points
+  const featureKeywords: [string[], keyof RestaurantProfile][] = [
+    [["outdoor", "patio", "outside", "al fresco", "terrace", "view", "lakefront", "waterfront"], "outdoor_seating"],
+    [["live music", "jazz", "band", "live band"], "live_music"],
+    [["pet", "dog", "pet-friendly", "dog-friendly"], "pet_friendly"],
+  ];
+  for (const [keywords, field] of featureKeywords) {
+    if (keywords.some((kw) => lower.includes(kw))) {
+      if (profile[field]) points += 1;
+    }
+  }
+  points = Math.min(maxPoints, points);
 
   return (points / maxPoints) * 10;
 }
@@ -573,13 +607,67 @@ export function filterAndRank(
   return boosted.slice(0, 10);
 }
 
+// --- Re-rank RPC results with keyword boosts ---
+
+/**
+ * Re-rank RPC results using keyword boosts from special_request.
+ * The RPC returns restaurants sorted by occasion score only — this
+ * applies special_request relevance so Claude sees better candidates.
+ */
+export function reRankWithBoosts(
+  profiles: RestaurantProfile[],
+  occasion: string,
+  specialRequest: string
+): RestaurantProfile[] {
+  if (!specialRequest || specialRequest.trim().length < 3) return profiles;
+
+  const scoreField = getScoreField(occasion);
+
+  const boosted: BoostedProfile[] = profiles.map((p) => ({
+    ...p,
+    _boost: computeBoost(p, specialRequest),
+  }));
+
+  // Only re-sort if at least one restaurant got a boost
+  const anyBoosted = boosted.some((b) => b._boost > 0);
+  if (!anyBoosted) return profiles;
+
+  boosted.sort((a, b) => {
+    const occasionA =
+      (a[scoreField as keyof RestaurantProfile] as number) ?? 0;
+    const occasionB =
+      (b[scoreField as keyof RestaurantProfile] as number) ?? 0;
+
+    const compositeA = occasionA * 0.6 + a._boost * 0.4;
+    const compositeB = occasionB * 0.6 + b._boost * 0.4;
+
+    return compositeB - compositeA;
+  });
+
+  return boosted;
+}
+
 // --- Prompt building (split for prompt caching) ---
 
 export function buildSystemPrompt(): string {
   return `You are Donde, a warm and knowledgeable Chicago restaurant concierge. A user is looking for the perfect dining spot.
 
 YOUR TASK:
-Pick THE ONE BEST restaurant for this person. Consider their occasion, special request, and overall fit.
+Pick THE ONE BEST restaurant from the candidates below. Use this priority order:
+
+1. SPECIAL REQUEST (highest priority): If the user has a specific craving, cuisine, vibe, or feature request (e.g., "sushi with a view", "quiet Italian spot", "outdoor brunch"), the restaurant MUST match that request as closely as possible. Match on cuisine type, tags, features (outdoor seating, live music), and atmosphere.
+2. OCCASION FIT: The restaurant should suit the occasion (e.g., quiet and intimate for Date Night, lively for Group Hangout). Use the occasion score, noise level, and lighting as signals.
+3. OVERALL QUALITY: Among restaurants that satisfy #1 and #2, prefer those with higher scores and stronger reviews.
+
+KEY SIGNALS TO USE:
+- Cuisine type: Match to what the user is craving
+- Tags: Match to vibe words in the special request (e.g., "hidden gem", "rooftop", "scenic view")
+- Features: Outdoor seating, live music, pet-friendly — match to explicit user requests
+- Atmosphere: Noise level + lighting — match to occasion expectations
+- Best For one-liner: Captures the restaurant's personality
+- Reviews (when provided): Recent diner sentiment
+
+IMPORTANT: Do NOT just pick the highest-scored restaurant. A restaurant with a 7/10 occasion score that perfectly matches "lakefront sushi" beats a 9/10 restaurant that serves Italian food indoors.
 
 Respond ONLY in this exact JSON format (no markdown, no backticks):
 {
@@ -607,13 +695,21 @@ export function buildUserPrompt(
 
   const restaurantList = top10
     .map((d, i) => {
+      const features = [
+        d.outdoor_seating ? "Outdoor seating" : null,
+        d.live_music ? "Live music" : null,
+        d.pet_friendly ? "Pet-friendly" : null,
+      ].filter(Boolean).join(", ") || "None noted";
+
       let entry = `${i}. ${d.name}
    Address: ${d.address}
    Neighborhood: ${d.neighborhood_name}
+   Cuisine: ${d.cuisine_type || "N/A"}
    Price: ${d.price_level}
    ${occasion} Score: ${(d[scoreField as keyof RestaurantProfile] as number) ?? "N/A"}/10
-   Atmosphere: ${d.noise_level || "N/A"}, ${d.lighting_ambiance || "N/A"}
+   Atmosphere: ${d.noise_level || "N/A"} noise, ${d.lighting_ambiance || "N/A"} lighting
    Dress Code: ${d.dress_code || "N/A"}
+   Features: ${features}
    Best For: ${d.best_for_oneliner || "N/A"}
    Tags: ${d.tags.length > 0 ? d.tags.join(", ") : "N/A"}`;
 
