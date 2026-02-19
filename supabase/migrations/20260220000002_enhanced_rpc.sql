@@ -1,6 +1,9 @@
 -- Enhanced RPC function for recommendation engine
 -- Enhancements: 1 (Any occasion neutral), 5 (dietary/array fields), 15 (neighborhood desc), 20 (is_active filter)
 
+-- Must DROP first because the return type (OUT columns) is changing
+DROP FUNCTION IF EXISTS get_ranked_restaurants(text, text, text, int);
+
 CREATE OR REPLACE FUNCTION get_ranked_restaurants(
     p_neighborhood text DEFAULT 'Anywhere',
     p_price_level text DEFAULT 'Any',
