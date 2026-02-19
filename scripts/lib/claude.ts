@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 /** Remove unpaired UTF-16 surrogates that would produce invalid JSON */
-function sanitizeUnicode(str: string): string {
+export function sanitizeUnicode(str: string): string {
   let result = "";
   for (let i = 0; i < str.length; i++) {
     const code = str.charCodeAt(i);
