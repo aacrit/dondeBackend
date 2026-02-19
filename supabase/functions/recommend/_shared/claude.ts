@@ -9,7 +9,8 @@ export interface ClaudeResponse {
  */
 export async function callClaude(
   userPrompt: string,
-  systemPrompt?: string
+  systemPrompt?: string,
+  options?: { maxTokens?: number; temperature?: number }
 ): Promise<string> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY");
@@ -22,8 +23,8 @@ export async function callClaude(
 
   const body: Record<string, unknown> = {
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 512,
-    temperature: 0.7,
+    max_tokens: options?.maxTokens ?? 512,
+    temperature: options?.temperature ?? 0.7,
     messages: [{ role: "user", content: userPrompt }],
   };
 

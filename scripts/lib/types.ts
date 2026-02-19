@@ -124,6 +124,8 @@ export interface GooglePlaceDetails {
   price_level?: number;
   opening_hours?: Record<string, unknown>;
   reviews?: GoogleReview[];
+  types?: string[];
+  editorial_summary?: { overview?: string };
   geometry?: {
     location: { lat: number; lng: number };
   };

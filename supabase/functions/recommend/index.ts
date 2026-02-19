@@ -12,6 +12,7 @@ import {
   computeDondeMatch,
   extractUnmatchedKeywords,
 } from "./_shared/scoring.ts";
+import { classifyIntent } from "./_shared/intent-classifier.ts";
 import {
   buildSuccessResponse,
   buildFallbackResponse,
@@ -106,28 +107,65 @@ Deno.serve(async (req: Request) => {
     // Initialize Supabase client
     const supabase = createSupabaseClient();
 
-    // --- Step 1: Get ranked restaurants via RPC (single DB round-trip) ---
+    // --- Step 0.5: Intent classification + Step 1: RPC (parallel) ---
     let allRpcResults: RestaurantProfile[];
     let top10: RestaurantProfile[];
 
     // Enhancement 6: Request extra results for diversity backfill
     const rpcLimit = 15 + exclude.length;
-    let { data: rpcData, error: rpcError } = await supabase.rpc(
-      "get_ranked_restaurants",
-      {
+
+    // Fire intent classification and initial RPC in parallel
+    const [intent, initialRpc] = await Promise.all([
+      special_request ? classifyIntent(special_request) : Promise.resolve(null),
+      supabase.rpc("get_ranked_restaurants", {
         p_neighborhood: neighborhood,
         p_price_level: price_level,
         p_occasion: occasion,
         p_limit: rpcLimit,
+        p_target_cuisine: null, // First pass without cuisine filter
+      }),
+    ]);
+
+    let { data: rpcData, error: rpcError } = initialRpc;
+
+    // If intent has high-importance cuisine but no matches in initial results, re-query with cuisine boost
+    if (
+      intent?.cuisine_importance === "high" &&
+      intent.target_cuisines.length > 0 &&
+      rpcData &&
+      rpcData.length > 0
+    ) {
+      const targetCuisine = intent.target_cuisines[0];
+      const hasCuisineMatch = (rpcData as RestaurantProfile[]).some(
+        (r) => r.cuisine_type?.toLowerCase() === targetCuisine.toLowerCase()
+      );
+      if (!hasCuisineMatch) {
+        console.log(`Intent re-query: no ${targetCuisine} in initial results, re-querying with cuisine boost`);
+        const { data: cuisineData, error: cuisineError } = await supabase.rpc(
+          "get_ranked_restaurants",
+          {
+            p_neighborhood: neighborhood,
+            p_price_level: price_level,
+            p_occasion: occasion,
+            p_limit: rpcLimit,
+            p_target_cuisine: targetCuisine,
+          }
+        );
+        if (!cuisineError && cuisineData && cuisineData.length > 0) {
+          rpcData = cuisineData;
+          rpcError = null;
+        }
       }
-    );
+    }
 
     // Price relaxation: if no results with exact price, retry with "Any" price
     if ((!rpcData || rpcData.length === 0) && !rpcError && price_level !== "Any") {
       console.log(`Price relaxation: no results for ${neighborhood}/${price_level}, retrying with Any`);
+      const targetCuisine = (intent?.cuisine_importance === "high" && intent.target_cuisines.length > 0)
+        ? intent.target_cuisines[0] : null;
       const { data: relaxedData, error: relaxedError } = await supabase.rpc(
         "get_ranked_restaurants",
-        { p_neighborhood: neighborhood, p_price_level: "Any", p_occasion: occasion, p_limit: rpcLimit }
+        { p_neighborhood: neighborhood, p_price_level: "Any", p_occasion: occasion, p_limit: rpcLimit, p_target_cuisine: targetCuisine }
       );
       if (!relaxedError && relaxedData && relaxedData.length > 0) {
         rpcData = relaxedData;
@@ -180,7 +218,7 @@ Deno.serve(async (req: Request) => {
       : undefined;
 
     // Re-rank by special_request relevance (RPC only sorts by occasion score)
-    top10 = reRankWithBoosts(top10, occasion, special_request, rejectionSignals);
+    top10 = reRankWithBoosts(top10, occasion, special_request, rejectionSignals, intent);
 
     // Enhancement 6: Apply diversity filter
     const backfillPool = allRpcResults.filter((r) => !exclude.includes(r.id));

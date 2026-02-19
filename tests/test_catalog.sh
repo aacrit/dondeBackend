@@ -1112,6 +1112,66 @@ fi
 echo "  [info] Rec ($WORD_COUNT words): ${REC_TEXT:0:120}..."
 echo "  [info] Tip ($TIP_WORDS words): $TIP_TEXT"
 
+# ─── T55: Cuisine intent — deep dish pizza should return Italian/pizza ────────
+test_banner "T55" "Cuisine intent: deep dish pizza"
+api_call '{"special_request":"local favorite deep dish pizza","occasion":"Chill Hangout","neighborhood":"Anywhere","price_level":"$$"}'
+check "T55" "success" '.success' 'true'
+check_exists "T55" "restaurant returned" '.restaurant.name'
+CUISINE_55=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // ""' | tr '[:upper:]' '[:lower:]')
+if [[ "$CUISINE_55" == *"italian"* || "$CUISINE_55" == *"pizza"* || "$CUISINE_55" == *"american"* ]]; then
+  warn_check "T55" "deep dish maps to Italian/American" "true" "got: $CUISINE_55"
+else
+  warn_check "T55" "deep dish maps to Italian/American" "false" "got: $CUISINE_55"
+fi
+echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') ($CUISINE_55)"
+
+# ─── T56: Cuisine intent — mole/Oaxacan should return Mexican ────────────────
+test_banner "T56" "Cuisine intent: authentic mole negro (Oaxacan)"
+api_call '{"special_request":"authentic mole negro","occasion":"Adventure","neighborhood":"Anywhere","price_level":"$$"}'
+check "T56" "success" '.success' 'true'
+check_exists "T56" "restaurant returned" '.restaurant.name'
+CUISINE_56=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // ""' | tr '[:upper:]' '[:lower:]')
+if [[ "$CUISINE_56" == *"mexican"* ]]; then
+  warn_check "T56" "mole negro maps to Mexican" "true" "got: $CUISINE_56"
+else
+  warn_check "T56" "mole negro maps to Mexican" "false" "got: $CUISINE_56"
+fi
+echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') ($CUISINE_56)"
+
+# ─── T57: Compound intent — sushi + outdoor patio ────────────────────────────
+test_banner "T57" "Compound intent: sushi with outdoor patio"
+api_call '{"special_request":"sushi with outdoor patio","occasion":"Date Night","neighborhood":"Anywhere","price_level":"$$$"}'
+check "T57" "success" '.success' 'true'
+check_exists "T57" "restaurant returned" '.restaurant.name'
+CUISINE_57=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // ""' | tr '[:upper:]' '[:lower:]')
+OUTDOOR_57=$(echo "$LAST_RESPONSE" | jq '.restaurant.outdoor_seating')
+if [[ "$CUISINE_57" == *"japanese"* || "$CUISINE_57" == *"sushi"* ]]; then
+  warn_check "T57" "sushi intent matched" "true" "got: $CUISINE_57"
+else
+  warn_check "T57" "sushi intent matched" "false" "got: $CUISINE_57"
+fi
+if [[ "$OUTDOOR_57" == "true" ]]; then
+  warn_check "T57" "outdoor_seating matched" "true"
+else
+  warn_check "T57" "outdoor_seating matched" "false" "got: $OUTDOOR_57"
+fi
+echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') ($CUISINE_57, outdoor=$OUTDOOR_57)"
+
+# ─── T58: Graceful degradation — obscure cuisine not in DB ───────────────────
+test_banner "T58" "Graceful degradation: obscure cuisine not in DB"
+api_call '{"special_request":"Uyghur hand-pulled noodles","occasion":"Adventure","neighborhood":"Anywhere","price_level":"$"}'
+check "T58" "success" '.success' 'true'
+check_exists "T58" "still returns a restaurant" '.restaurant.name'
+MATCH_58=$(echo "$LAST_RESPONSE" | jq '.donde_match // 0')
+if [[ "$MATCH_58" -ge 60 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T58] donde_match >= 60 (got: $MATCH_58)"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T58|donde_match=$MATCH_58\n"
+else
+  echo -e "  ${RED}FAIL${NC} [T58] donde_match >= 60 (got: $MATCH_58)"
+  ((FAIL_COUNT++)); TEST_LOG+="FAIL|T58|donde_match=$MATCH_58\n"
+fi
+echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') (match: $MATCH_58%)"
+
 ###############################################################################
 # FINAL REPORT
 ###############################################################################

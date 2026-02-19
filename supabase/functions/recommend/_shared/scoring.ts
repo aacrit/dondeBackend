@@ -6,6 +6,7 @@ import type {
   RestaurantProfile,
 } from "./types.ts";
 import type { GooglePlaceData } from "./google-places.ts";
+import type { IntentClassification } from "./intent-classifier.ts";
 
 // --- Enhancement 2: Multi-score occasion weights ---
 // Each occasion maps to a weighted blend of score columns
@@ -392,7 +393,8 @@ export function analyzeRejections(
 function computeBoost(
   profile: RestaurantProfile,
   specialRequest: string,
-  rejectionSignals?: RejectionSignals
+  rejectionSignals?: RejectionSignals,
+  intent?: IntentClassification | null
 ): number {
   let boost = 0;
 
@@ -520,6 +522,30 @@ function computeBoost(
     ) {
       // Only penalize narrow-focus restaurants (e.g., brunch-only at dinner)
       boost -= 1.0;
+    }
+  }
+
+  // Intent classification boost (stronger than keyword matching)
+  if (intent) {
+    if (intent.target_cuisines.length > 0 && profile.cuisine_type) {
+      const cuisineMatch = intent.target_cuisines.some(
+        (c) => c.toLowerCase() === profile.cuisine_type!.toLowerCase()
+      );
+      if (cuisineMatch) {
+        boost += intent.cuisine_importance === "high" ? 5 : 3;
+      } else if (intent.cuisine_importance === "high") {
+        boost -= 2; // Penalize non-matching when user clearly wants specific cuisine
+      }
+    }
+    for (const targetTag of intent.target_tags) {
+      if (profile.tags.some((t) => t.toLowerCase().includes(targetTag.toLowerCase()))) {
+        boost += 1.5;
+      }
+    }
+    for (const feature of intent.target_features) {
+      if (profile[feature as keyof RestaurantProfile]) {
+        boost += 1.5;
+      }
     }
   }
 
@@ -1056,11 +1082,12 @@ export function reRankWithBoosts(
   profiles: RestaurantProfile[],
   occasion: string,
   specialRequest: string,
-  rejectionSignals?: RejectionSignals
+  rejectionSignals?: RejectionSignals,
+  intent?: IntentClassification | null
 ): RestaurantProfile[] {
   const boosted: BoostedProfile[] = profiles.map((p) => ({
     ...p,
-    _boost: computeBoost(p, specialRequest, rejectionSignals),
+    _boost: computeBoost(p, specialRequest, rejectionSignals, intent),
   }));
 
   // Enhancement 11: Add trending score as minor tiebreaker (5% weight)
