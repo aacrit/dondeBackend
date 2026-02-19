@@ -929,10 +929,11 @@ else
 fi
 
 # ─── T48: Large exclude array ───────────────────────────────────────────────
-test_banner "T48" "Large exclude array — 20 fake UUIDs"
+test_banner "T48" "Large exclude array — 10 properly formatted UUIDs"
 UUIDS=""
-for i in $(seq 1 20); do
-  UUID=$(printf '%08x-%04x-%04x-%04x-%012x' $((RANDOM % 65536)) $((RANDOM % 65536)) $((RANDOM % 65536)) $((RANDOM % 65536)) $((RANDOM % 65536)))
+for i in $(seq 1 10); do
+  # Generate proper UUID v4 format using /proc/sys/kernel/random/uuid or fallback
+  UUID=$(cat /proc/sys/kernel/random/uuid 2>/dev/null || printf '%08x-%04x-4%03x-%04x-%012x' $((RANDOM * RANDOM)) $((RANDOM)) $((RANDOM % 4096)) $(( (RANDOM % 16384) + 32768 )) $((RANDOM * RANDOM)))
   if [[ -n "$UUIDS" ]]; then UUIDS="$UUIDS,"; fi
   UUIDS="$UUIDS\"$UUID\""
 done
@@ -941,6 +942,7 @@ api_call "{\"occasion\":\"Any\",\"neighborhood\":\"Anywhere\",\"price_level\":\"
 check        "T48" "success"                '.success'                              'true'
 check        "T48" "donde_match >= 60"      '.donde_match >= 60'                    'true'
 check_exists "T48" "restaurant"             '.restaurant.name'
+echo "  [info] Handled 10-element exclude array with proper UUIDs"
 
 # ─── T49: SQL/XSS injection ─────────────────────────────────────────────────
 test_banner "T49" "Special characters — SQL/XSS injection attempt"

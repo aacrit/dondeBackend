@@ -88,9 +88,10 @@ Deno.serve(async (req: Request) => {
     const occasion = body.occasion || "Any";
     const neighborhood = body.neighborhood || "Anywhere";
     const price_level = body.price_level || "Any";
-    const exclude = (body.exclude || []).filter(
-      (id: string) => typeof id === "string" && id.length > 0
-    );
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const exclude = (body.exclude || [])
+      .filter((id: string) => typeof id === "string" && UUID_REGEX.test(id))
+      .slice(0, 15);
 
     // Enhancement 8: Check cache (skip for "Try Another" requests)
     if (exclude.length === 0) {
@@ -110,7 +111,7 @@ Deno.serve(async (req: Request) => {
 
     // Enhancement 6: Request extra results for diversity backfill
     const rpcLimit = 15 + exclude.length;
-    const { data: rpcData, error: rpcError } = await supabase.rpc(
+    let { data: rpcData, error: rpcError } = await supabase.rpc(
       "get_ranked_restaurants",
       {
         p_neighborhood: neighborhood,
@@ -119,6 +120,19 @@ Deno.serve(async (req: Request) => {
         p_limit: rpcLimit,
       }
     );
+
+    // Price relaxation: if no results with exact price, retry with "Any" price
+    if ((!rpcData || rpcData.length === 0) && !rpcError && price_level !== "Any") {
+      console.log(`Price relaxation: no results for ${neighborhood}/${price_level}, retrying with Any`);
+      const { data: relaxedData, error: relaxedError } = await supabase.rpc(
+        "get_ranked_restaurants",
+        { p_neighborhood: neighborhood, p_price_level: "Any", p_occasion: occasion, p_limit: rpcLimit }
+      );
+      if (!relaxedError && relaxedData && relaxedData.length > 0) {
+        rpcData = relaxedData;
+        rpcError = null;
+      }
+    }
 
     if (rpcError || !rpcData || rpcData.length === 0) {
       if (rpcError) {

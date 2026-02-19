@@ -849,9 +849,24 @@ export function filterAndRank(
     );
   }
 
-  // Filter by price level
+  // Filter by price level (with relaxation to adjacent tiers)
   if (priceLevel && priceLevel !== "Any") {
-    filtered = filtered.filter((p) => p.price_level === priceLevel);
+    const exactMatch = filtered.filter((p) => p.price_level === priceLevel);
+    if (exactMatch.length > 0) {
+      filtered = exactMatch;
+    } else {
+      const PRICE_ORDER = ["$", "$$", "$$$", "$$$$"];
+      const idx = PRICE_ORDER.indexOf(priceLevel);
+      const adjacent = [
+        ...(idx > 0 ? [PRICE_ORDER[idx - 1]] : []),
+        ...(idx < PRICE_ORDER.length - 1 ? [PRICE_ORDER[idx + 1]] : []),
+      ];
+      const relaxed = filtered.filter((p) => adjacent.includes(p.price_level));
+      if (relaxed.length > 0) {
+        filtered = relaxed;
+      }
+      // If still empty after relaxation, keep all prices as last resort
+    }
   }
 
   // Filter: only restaurants with enrichment data (noise_level as proxy)
