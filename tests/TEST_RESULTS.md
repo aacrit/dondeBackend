@@ -1,17 +1,17 @@
 # Donde API Test Results
 
-**Date:** 2026-02-19T15:36:26Z
+**Date:** 2026-02-19T16:31:14Z
 **Endpoint:** https://vwbzkgsxmgwcvmvuxnbe.supabase.co/functions/v1/recommend
 
 ## Summary
 
 | Metric | Count |
 |--------|-------|
-| PASSED | 200 |
+| PASSED | 213 |
 | FAILED | 0 |
 | WARNED | 3 |
-| TOTAL  | 203 |
-| **Hard Pass Rate** | **100%** (200 / 200) |
+| TOTAL  | 216 |
+| **Hard Pass Rate** | **100%** (213 / 213) |
 
 ## Detailed Results
 
@@ -96,7 +96,7 @@
 | PASS | T09 | neighborhood match |  |
 | PASS | T10 | success |  |
 | PASS | T10 | group_friendly >= 5 |  |
-| PASS | T10 | price is 8444 |  |
+| PASS | T10 | price is 7251 |  |
 | PASS | T11 | success |  |
 | PASS | T11 | family_friendly >= 5 |  |
 | PASS | T11 | has restaurant name |  |
@@ -109,7 +109,7 @@
 | PASS | T14 | success |  |
 | PASS | T14 | romantic_rating >= 6 |  |
 | PASS | T14 | date_friendly >= 5 |  |
-| PASS | T14 | price 84448444 |  |
+| PASS | T14 | price 72517251 |  |
 | PASS | T15 | success |  |
 | PASS | T15 | solo_dining >= 4 |  |
 | PASS | T15 | donde_match >= 60 |  |
@@ -220,6 +220,19 @@
 | PASS | T49 | has recommendation |  |
 | PASS | T49 | no injection |  |
 | PASS | T50 | stability 5/5 |  |
+| PASS | T51 | success |  |
+| PASS | T51 | donde_match >= 60 |  |
+| PASS | T51 | restaurant name |  |
+| PASS | T51 | noise matches bustling |  |
+| PASS | T51 | vibe referenced in output |  |
+| PASS | T52 | success |  |
+| PASS | T52 | neighborhood Logan Square |  |
+| PASS | T52 | address contains Chicago |  |
+| PASS | T52 | ZIP consistent with Logan Square area |  |
+| PASS | T53 | success |  |
+| PASS | T53 | donde_match >= 60 |  |
+| PASS | T53 | group_friendly >= 4 |  |
+| PASS | T53 | noise matches energetic |  |
 
 ## Enhancement Recommendations
 
