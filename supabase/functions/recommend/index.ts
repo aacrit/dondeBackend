@@ -5,10 +5,9 @@ import { callClaude, parseClaudeJson } from "./_shared/claude.ts";
 import {
   mergeProfiles,
   filterAndRank,
-  buildPrompt,
   buildSystemPrompt,
   buildUserPrompt,
-  getScoreField,
+  computeDondeMatch,
 } from "./_shared/scoring.ts";
 import {
   buildSuccessResponse,
@@ -131,7 +130,7 @@ serve(async (req: Request) => {
       // Lookup pre-generated recommendation
       const { data: preRecData } = await supabase
         .from("pre_recommendations")
-        .select("restaurant_id, occasion, recommendation, donde_score")
+        .select("restaurant_id, occasion, recommendation, donde_match")
         .eq("restaurant_id", chosen.id)
         .eq("occasion", occasion === "Any" ? "Date Night" : occasion)
         .single();
@@ -141,16 +140,26 @@ serve(async (req: Request) => {
         ? await fetchPlaceDetails(chosen.google_place_id)
         : null;
 
+      // Compute donde_match deterministically
+      const dondeMatch = computeDondeMatch(chosen, {
+        occasion,
+        specialRequest: special_request,
+        neighborhood,
+        priceLevel: price_level,
+        isGeneric: true,
+        googleData,
+      });
+
       if (preRecData) {
         responseBody = buildPreGeneratedResponse(
           chosen,
           preRecData as PreRecommendation,
-          googleData
+          googleData,
+          dondeMatch
         );
       } else {
         // No pre-rec found — use fallback response (no Claude call)
-        const scoreField = getScoreField(occasion);
-        responseBody = buildFallbackResponse(chosen, scoreField, googleData);
+        responseBody = buildFallbackResponse(chosen, googleData, dondeMatch);
       }
     } else {
       // === PATH B: Specific request — single Claude call with reviews ===
@@ -223,18 +232,38 @@ serve(async (req: Request) => {
           parsed.insider_tip = chosen.insider_tip;
         }
 
-        responseBody = buildSuccessResponse(chosen, parsed, googleData);
+        // Compute donde_match deterministically (Claude provides relevance_score)
+        const dondeMatch = computeDondeMatch(chosen, {
+          occasion,
+          specialRequest: special_request,
+          neighborhood,
+          priceLevel: price_level,
+          isGeneric: false,
+          googleData,
+          claudeRelevance: parsed.relevance_score,
+        });
+
+        responseBody = buildSuccessResponse(chosen, parsed, googleData, dondeMatch);
       } catch (claudeError) {
         // Fallback: return top-ranked restaurant without AI enrichment
         console.error("Claude API failed, using fallback:", claudeError);
-        const scoreField = getScoreField(occasion);
         const chosen = top10[0];
 
         const googleData = chosen.google_place_id
           ? await fetchPlaceDetails(chosen.google_place_id)
           : null;
 
-        responseBody = buildFallbackResponse(chosen, scoreField, googleData);
+        // Compute donde_match deterministically (no Claude relevance available)
+        const fallbackMatch = computeDondeMatch(chosen, {
+          occasion,
+          specialRequest: special_request,
+          neighborhood,
+          priceLevel: price_level,
+          isGeneric: isGenericRequest(special_request),
+          googleData,
+        });
+
+        responseBody = buildFallbackResponse(chosen, googleData, fallbackMatch);
       }
     }
 

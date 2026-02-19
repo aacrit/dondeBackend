@@ -1,5 +1,4 @@
-[project]
-id = "dondeai"
+project_id = "dondeai"
 
 [api]
 enabled = true

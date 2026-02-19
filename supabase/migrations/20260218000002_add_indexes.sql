@@ -4,11 +4,6 @@
 CREATE INDEX IF NOT EXISTS idx_restaurants_neighborhood
   ON restaurants(neighborhood_id);
 
--- Recommendation engine requires google_review_summary IS NOT NULL
-CREATE INDEX IF NOT EXISTS idx_restaurants_review_summary_not_null
-  ON restaurants(id)
-  WHERE google_review_summary IS NOT NULL;
-
 -- Occasion scores looked up by restaurant_id
 CREATE INDEX IF NOT EXISTS idx_occasion_scores_restaurant
   ON occasion_scores(restaurant_id);
@@ -21,16 +16,6 @@ CREATE INDEX IF NOT EXISTS idx_tags_restaurant
 CREATE INDEX IF NOT EXISTS idx_restaurants_needs_enrichment
   ON restaurants(id)
   WHERE noise_level IS NULL;
-
--- Pipeline: review summarization finds restaurants without summaries
-CREATE INDEX IF NOT EXISTS idx_restaurants_needs_review_summary
-  ON restaurants(id)
-  WHERE google_review_summary IS NULL;
-
--- Pipeline: sentiment analysis finds restaurants without sentiment
-CREATE INDEX IF NOT EXISTS idx_restaurants_needs_sentiment
-  ON restaurants(id)
-  WHERE sentiment_breakdown IS NULL;
 
 -- Discovery pipeline: prevent duplicate google_place_id inserts
 CREATE UNIQUE INDEX IF NOT EXISTS idx_restaurants_google_place_id

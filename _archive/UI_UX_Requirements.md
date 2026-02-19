@@ -136,7 +136,7 @@ After submission, the app must display the AI-generated restaurant recommendatio
 | Restaurant name | Must show | Animated reveal recommended |
 | One-liner description | Must show | |
 | AI recommendation paragraph | Must show | |
-| DondeAI Score (0-10) | Must show | Animated score visualization with color tiers: ≥8 (excellent), ≥5 (good), <5 (risky) |
+| Donde Match (60-99%) | Must show | Animated match percentage visualization with verdict tiers: 93%+ (Perfect Match), 85%+ (Great Match), 75%+ (Good Match), 60%+ (Worth Exploring) |
 | Google rating + stars | Must show | 5-star visualization + numeric rating + review count |
 | Price level | Must show | |
 | Address | Must show | Tappable — opens navigation/maps |
@@ -280,9 +280,9 @@ Should be meaningful and match based on cultural theme selected
 | Fallback | Button does nothing on unsupported browsers |
 
 
-#### BR-H0: Animated Score Visualization
+#### BR-H0: Animated Match Visualization
 
-DondeAI Score should animate on reveal: ring fill with spring easing, number counting up, color tier indicator (green/accent/red), orbit dot positioning at score angle, verdict label fade-in (e.g. "Outstanding", "Solid Pick").
+Donde Match should animate on reveal: ring fill with spring easing (filling to X%), percentage counting up, color tier indicator (green for 85%+, accent for 60-84%), orbit dot positioning at match angle, verdict label fade-in (e.g. "Perfect Match", "Great Match", "Good Match", "Worth Exploring").
 
 ---
 
@@ -379,7 +379,7 @@ Exactly 4 fields. No additional fields should be sent.
 
   "recommendation": "string",
   "insider_tip": "string | null",
-  "donde_score": "string (numeric 0-10)",
+  "donde_match": "integer (60-99, percentage confidence)",
 
   "scores": {
     "date_friendly_score": "string (numeric 0-10) | null",
@@ -421,7 +421,7 @@ Exactly 4 fields. No additional fields should be sent.
 | `restaurant.sentiment_score` | Float 0-1 | Fallback if breakdown is not parseable |
 | `recommendation` | AI-written paragraph about why this restaurant fits | Main body text of result |
 | `insider_tip` | Insider knowledge | Display in a highlighted callout (only if present) |
-| `donde_score` | AI confidence score 0-10 | Render as animated score visualization with color tiers |
+| `donde_match` | Match confidence percentage 60-99 | Render as animated match percentage with verdict tiers: "Perfect Match" (93%+), "Great Match" (85%+), "Good Match" (75%+), "Worth Exploring" (60%+) |
 | `scores.date_friendly_score` | How good for dates (0-10) | Radar chart dimension |
 | `scores.group_friendly_score` | How good for groups (0-10) | Radar chart dimension |
 | `scores.family_friendly_score` | How good for families (0-10) | Radar chart dimension |
@@ -546,14 +546,15 @@ Each cultural theme overrides the following UI labels. A new UI implementation m
 
 ---
 
-## 10. Score Color Tier Reference
+## 10. Donde Match Tier Reference
 
-The DondeAI Score (0-10) must use color tiers to communicate quality at a glance:
+The Donde Match percentage (60-99%) communicates confidence that this restaurant fits the user's specific request. It blends match relevance (70% weight: occasion fit, request relevance, filter precision) with quality signals (30% weight: Google reviews, vibe alignment).
 
-| Score Range | Tier | Color Token | Verdict Label |
-|---|---|---|---|
-| 9-10 | High | `--green` | "Outstanding" |
-| 8 | High | `--green` | "Excellent" |
-| 6-7 | Mid | `--ac` (accent) | "Solid Pick" |
-| 4-5 | Mid | `--ac` (accent) | "Worth a Try" |
-| 0-3 | Low | `--rose` | "Adventurous" |
+Inspired by Netflix Match % (personalized confidence) and Rotten Tomatoes Tomatometer (clear tier labels with instant recognition). Unlike a generic quality score, this answers "will YOU love this for YOUR request?"
+
+| Match % Range | Tier | Color Token | Verdict Label | Meaning |
+|---|---|---|---|---|
+| 93-99% | High | `--green` | "Perfect Match" | Exact cuisine, ideal vibe, stellar reviews, right neighborhood + price |
+| 85-92% | High | `--green` | "Great Match" | Strong alignment across most factors |
+| 75-84% | Mid | `--ac` (accent) | "Good Match" | Solid recommendation, one or two factors are neutral |
+| 60-74% | Mid | `--ac` (accent) | "Worth Exploring" | Best available, some compromises — but still our top pick |

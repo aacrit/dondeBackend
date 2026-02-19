@@ -29,7 +29,7 @@ export interface PreRecommendation {
   restaurant_id: string;
   occasion: string;
   recommendation: string;
-  donde_score: number;
+  donde_match: number;
 }
 
 export interface OccasionScores {
@@ -72,7 +72,7 @@ export interface ClaudeRecommendation {
   restaurant_index: number;
   recommendation: string;
   insider_tip: string | null;
-  donde_score: number;
+  relevance_score: number;
   sentiment_score: number | null;
   sentiment_breakdown: string | null;
 }

@@ -36,7 +36,7 @@ supabase db push
 ## API Contract (immutable — frontend already built)
 
 POST `/recommend` with `{special_request, occasion, neighborhood, price_level}`
-Returns `{success, restaurant, recommendation, insider_tip, donde_score, scores, tags, timestamp}`
+Returns `{success, restaurant, recommendation, insider_tip, donde_match, scores, tags, timestamp}`
 
 See `_archive/UI_UX_Requirements.md` for full response schema.
 

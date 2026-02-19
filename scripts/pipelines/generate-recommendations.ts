@@ -1,6 +1,7 @@
 /**
  * Pipeline 6: Pre-generate Recommendation Content
- * Generates per-restaurant, per-occasion recommendation paragraphs and donde_scores.
+ * Generates per-restaurant, per-occasion recommendation paragraphs.
+ * donde_match is computed deterministically using the weighted formula (without live Google data).
  * These are served instantly for generic requests (no special_request), avoiding live Claude calls.
  * Schedule: Weekly (Sunday 8am UTC, after scores-and-tags)
  */
@@ -8,6 +9,7 @@
 import { createAdminClient } from "../lib/supabase.js";
 import { askClaude, parseJsonResponse } from "../lib/claude.js";
 import { processBatches } from "../lib/batch.js";
+import { OCCASION_SCORE_MAP } from "../lib/config.js";
 
 const DRY_RUN = process.env.DRY_RUN === "true";
 
@@ -27,8 +29,176 @@ interface RecommendationResult {
   restaurants: Array<{
     id: string;
     recommendation: string;
-    donde_score: number;
   }>;
+}
+
+// --- Deterministic donde_match for pipeline (mirrors Edge Function formula) ---
+
+const OCCASION_VIBE_MAP: Record<
+  string,
+  {
+    noise: string[];
+    lighting: string[];
+    dressMin: string;
+    outdoorBonus: boolean;
+    liveMusicBonus: boolean;
+  }
+> = {
+  "Date Night": {
+    noise: ["Quiet", "Moderate"],
+    lighting: ["dim", "intimate", "warm", "candlelit", "romantic"],
+    dressMin: "Smart Casual",
+    outdoorBonus: true,
+    liveMusicBonus: true,
+  },
+  "Group Hangout": {
+    noise: ["Moderate", "Loud"],
+    lighting: ["bright", "lively", "modern", "warm", "vibrant"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: true,
+  },
+  "Family Dinner": {
+    noise: ["Quiet", "Moderate"],
+    lighting: ["bright", "warm", "modern", "welcoming"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: false,
+  },
+  "Business Lunch": {
+    noise: ["Quiet"],
+    lighting: ["bright", "modern", "warm", "elegant"],
+    dressMin: "Business Casual",
+    outdoorBonus: false,
+    liveMusicBonus: false,
+  },
+  "Solo Dining": {
+    noise: ["Quiet", "Moderate"],
+    lighting: ["warm", "cozy", "bright", "relaxed"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: false,
+  },
+  "Special Occasion": {
+    noise: ["Quiet"],
+    lighting: ["dim", "intimate", "elegant", "warm", "candlelit"],
+    dressMin: "Smart Casual",
+    outdoorBonus: true,
+    liveMusicBonus: true,
+  },
+  "Treat Myself": {
+    noise: ["Quiet", "Moderate"],
+    lighting: ["warm", "cozy", "intimate", "elegant"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: false,
+  },
+  Adventure: {
+    noise: ["Moderate", "Loud", "Quiet"],
+    lighting: ["any"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: true,
+  },
+  "Chill Hangout": {
+    noise: ["Moderate", "Quiet"],
+    lighting: ["warm", "cozy", "dim", "relaxed"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: true,
+  },
+};
+
+const DRESS_LEVELS: Record<string, number> = {
+  Casual: 1,
+  "Smart Casual": 2,
+  "Business Casual": 3,
+  Formal: 4,
+};
+
+function computeBaseScore(
+  restaurant: Record<string, unknown>,
+  scores: Record<string, number>,
+  occasion: string
+): number {
+  // Sub-score 1: Occasion Fit (0-10)
+  const scoreField = OCCASION_SCORE_MAP[occasion] || "date_friendly_score";
+  const occasionFit = (scores[scoreField] as number) || 0;
+
+  // Sub-score 2: Request Relevance — generic default (7.0)
+  const requestRelevance = 7.0;
+
+  // Sub-score 3: Google Quality — no Google data in pipeline (6.5)
+  const googleQuality = 6.5;
+
+  // Sub-score 4: Vibe Alignment
+  const expected = OCCASION_VIBE_MAP[occasion] || OCCASION_VIBE_MAP["Chill Hangout"];
+  let vibeScore = 0;
+  const maxVibe = 10;
+
+  // Noise match (3 pts)
+  const noise = restaurant.noise_level as string | null;
+  if (noise) {
+    vibeScore += expected.noise.includes(noise) ? 3 : 1;
+  } else {
+    vibeScore += 1.5;
+  }
+
+  // Lighting match (3 pts)
+  const lighting = restaurant.lighting_ambiance as string | null;
+  if (lighting && !expected.lighting.includes("any")) {
+    const lightingLower = lighting.toLowerCase();
+    const matches = expected.lighting.filter((kw) =>
+      lightingLower.includes(kw)
+    ).length;
+    vibeScore += Math.min(3, matches * 1.5);
+  } else {
+    vibeScore += 1.5;
+  }
+
+  // Dress code (2 pts)
+  const dress = restaurant.dress_code as string | null;
+  if (dress) {
+    const rLevel = DRESS_LEVELS[dress] || 1;
+    const eLevel = DRESS_LEVELS[expected.dressMin] || 1;
+    vibeScore += rLevel >= eLevel ? 2 : 1;
+  } else {
+    vibeScore += 1;
+  }
+
+  // Bonus features (2 pts)
+  let bonusEarned = 0;
+  let bonusAvailable = 0;
+  if (expected.outdoorBonus) {
+    bonusAvailable++;
+    if (restaurant.outdoor_seating) bonusEarned++;
+  }
+  if (expected.liveMusicBonus) {
+    bonusAvailable++;
+    if (restaurant.live_music) bonusEarned++;
+  }
+  if (bonusAvailable > 0) {
+    vibeScore += (bonusEarned / bonusAvailable) * 2;
+  } else {
+    vibeScore += 1;
+  }
+
+  const vibeAlignment = (vibeScore / maxVibe) * 10;
+
+  // Sub-score 5: Filter Precision — pipeline has no user filters (8.0)
+  const filterPrecision = 8.0;
+
+  // Weighted composite
+  const raw =
+    0.3 * occasionFit +
+    0.3 * requestRelevance +
+    0.15 * googleQuality +
+    0.15 * vibeAlignment +
+    0.1 * filterPrecision;
+
+  // Map 0-10 raw composite to 60-99% confidence range
+  const matchPercent = 60 + Math.min(10, Math.max(0, raw)) * 3.9;
+  return Math.min(99, Math.max(60, Math.round(matchPercent)));
 }
 
 async function main() {
@@ -41,7 +211,7 @@ async function main() {
   const { data: restaurants, error: rError } = await supabase
     .from("restaurants")
     .select(
-      "id, name, address, price_level, noise_level, lighting_ambiance, dress_code, cuisine_type, best_for_oneliner, insider_tip"
+      "id, name, address, price_level, noise_level, lighting_ambiance, dress_code, cuisine_type, best_for_oneliner, insider_tip, outdoor_seating, live_music, pet_friendly"
     )
     .not("noise_level", "is", null);
 
@@ -131,16 +301,13 @@ Each recommendation should be:
 - 80-120 words
 - Warm, personal, and specific to WHY this restaurant is great for "${occasion}"
 - Mention specific things about the food, atmosphere, and what makes it special
-- Include a donde_score (0-10) reflecting how well this restaurant suits "${occasion}"
-  (9-10 = outstanding match, 7-8 = excellent, 5-6 = solid, below 5 = not ideal for this occasion)
 
 Return ONLY valid JSON (no markdown):
 {
   "restaurants": [
     {
       "id": "restaurant-uuid",
-      "recommendation": "Your warm 80-120 word recommendation...",
-      "donde_score": 7.5
+      "recommendation": "Your warm 80-120 word recommendation..."
     }
   ]
 }
@@ -157,14 +324,18 @@ ${restaurantList}`;
         const parsed = parseJsonResponse<RecommendationResult>(responseText);
 
         for (const result of parsed.restaurants) {
-          const clampedScore = Math.max(
-            0,
-            Math.min(10, Number(result.donde_score) || 5)
-          );
+          // Find the restaurant data to compute the base score
+          const restaurantData = batch.find((r) => r.id === result.id);
+          const scores = scoresMap[result.id] || {};
+
+          // Compute deterministic base match (no Google data, no user-specific relevance)
+          const baseMatch = restaurantData
+            ? computeBaseScore(restaurantData, scores, occasion)
+            : 75;
 
           if (DRY_RUN) {
             console.log(
-              `  [DRY RUN] Would upsert rec for ${result.id} / ${occasion} (score: ${clampedScore})`
+              `  [DRY RUN] Would upsert rec for ${result.id} / ${occasion} (base match: ${baseMatch}%)`
             );
             continue;
           }
@@ -176,7 +347,7 @@ ${restaurantList}`;
                 restaurant_id: result.id,
                 occasion,
                 recommendation: result.recommendation,
-                donde_score: clampedScore,
+                donde_match: baseMatch,
                 generated_at: new Date().toISOString(),
               },
               { onConflict: "restaurant_id,occasion" }

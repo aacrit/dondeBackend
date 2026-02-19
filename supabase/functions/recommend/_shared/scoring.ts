@@ -5,6 +5,7 @@ import type {
   Neighborhood,
   RestaurantProfile,
 } from "./types.ts";
+import type { GooglePlaceData } from "./google-places.ts";
 
 const OCCASION_SCORE_MAP: Record<string, string> = {
   "Date Night": "date_friendly_score",
@@ -92,6 +93,375 @@ function computeBoost(
   return boost;
 }
 
+// --- Donde Match: Deterministic weighted confidence percentage ---
+// "We're X% confident this is your spot."
+// Combines match relevance (70%) + quality signals (30%) into a single percentage.
+// See plan.md for full design rationale and best-in-class comparison.
+
+export interface DondeMatchInputs {
+  occasion: string;
+  specialRequest: string;
+  neighborhood: string;
+  priceLevel: string;
+  isGeneric: boolean;
+  googleData: GooglePlaceData | null;
+  claudeRelevance?: number;
+}
+
+// Weights sum to 1.0
+const W_OCCASION = 0.30;
+const W_REQUEST = 0.30;
+const W_GOOGLE = 0.15;
+const W_VIBE = 0.15;
+const W_FILTER = 0.10;
+
+// Per-occasion ideal vibe expectations
+interface VibeExpectation {
+  noise: string[];
+  lighting: string[];
+  dressMin: string;
+  outdoorBonus: boolean;
+  liveMusicBonus: boolean;
+}
+
+const OCCASION_VIBE_MAP: Record<string, VibeExpectation> = {
+  "Date Night": {
+    noise: ["Quiet", "Moderate"],
+    lighting: ["dim", "intimate", "warm", "candlelit", "romantic"],
+    dressMin: "Smart Casual",
+    outdoorBonus: true,
+    liveMusicBonus: true,
+  },
+  "Group Hangout": {
+    noise: ["Moderate", "Loud"],
+    lighting: ["bright", "lively", "modern", "warm", "vibrant"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: true,
+  },
+  "Family Dinner": {
+    noise: ["Quiet", "Moderate"],
+    lighting: ["bright", "warm", "modern", "welcoming"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: false,
+  },
+  "Business Lunch": {
+    noise: ["Quiet"],
+    lighting: ["bright", "modern", "warm", "elegant"],
+    dressMin: "Business Casual",
+    outdoorBonus: false,
+    liveMusicBonus: false,
+  },
+  "Solo Dining": {
+    noise: ["Quiet", "Moderate"],
+    lighting: ["warm", "cozy", "bright", "relaxed"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: false,
+  },
+  "Special Occasion": {
+    noise: ["Quiet"],
+    lighting: ["dim", "intimate", "elegant", "warm", "candlelit"],
+    dressMin: "Smart Casual",
+    outdoorBonus: true,
+    liveMusicBonus: true,
+  },
+  "Treat Myself": {
+    noise: ["Quiet", "Moderate"],
+    lighting: ["warm", "cozy", "intimate", "elegant"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: false,
+  },
+  Adventure: {
+    noise: ["Moderate", "Loud", "Quiet"],
+    lighting: ["any"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: true,
+  },
+  "Chill Hangout": {
+    noise: ["Moderate", "Quiet"],
+    lighting: ["warm", "cozy", "dim", "relaxed"],
+    dressMin: "Casual",
+    outdoorBonus: true,
+    liveMusicBonus: true,
+  },
+  Any: {
+    noise: ["Quiet", "Moderate"],
+    lighting: ["any"],
+    dressMin: "Casual",
+    outdoorBonus: false,
+    liveMusicBonus: false,
+  },
+};
+
+const DRESS_LEVELS: Record<string, number> = {
+  Casual: 1,
+  "Smart Casual": 2,
+  "Business Casual": 3,
+  Formal: 4,
+};
+
+function sumAllScores(profile: RestaurantProfile): number {
+  return (
+    (profile.date_friendly_score || 0) +
+    (profile.group_friendly_score || 0) +
+    (profile.family_friendly_score || 0) +
+    (profile.romantic_rating || 0) +
+    (profile.business_lunch_score || 0) +
+    (profile.solo_dining_score || 0) +
+    (profile.hole_in_wall_factor || 0)
+  );
+}
+
+// Sub-score 1: Occasion Fit (0-10)
+function computeOccasionFit(
+  profile: RestaurantProfile,
+  occasion: string
+): number {
+  if (occasion === "Any") {
+    return (sumAllScores(profile) / 70) * 10;
+  }
+  const scoreField = getScoreField(occasion);
+  return (profile[scoreField as keyof RestaurantProfile] as number) ?? 0;
+}
+
+// Sub-score 2: Request Relevance (0-10) — tiered
+function computeKeywordRelevance(
+  profile: RestaurantProfile,
+  specialRequest: string
+): number {
+  if (!specialRequest || specialRequest.trim().length < 3) return 7.0;
+
+  const lower = specialRequest.toLowerCase();
+  let points = 0;
+  const maxPoints = 10;
+
+  // Cuisine match: worth 4 points
+  for (const [cuisine, keywords] of Object.entries(CUISINE_KEYWORDS)) {
+    if (keywords.some((kw) => lower.includes(kw))) {
+      if (
+        profile.cuisine_type &&
+        profile.cuisine_type.toLowerCase() === cuisine.toLowerCase()
+      ) {
+        points += 4;
+      }
+      break;
+    }
+  }
+
+  // Tag match: worth up to 3 points (1 per match, max 3)
+  let tagHits = 0;
+  for (const [tag, keywords] of Object.entries(TAG_KEYWORDS)) {
+    if (keywords.some((kw) => lower.includes(kw))) {
+      if (
+        profile.tags.some((t) =>
+          t.toLowerCase().includes(tag.toLowerCase())
+        )
+      ) {
+        tagHits++;
+      }
+    }
+  }
+  points += Math.min(3, tagHits);
+
+  // best_for_oneliner word overlap: worth up to 3 points
+  if (profile.best_for_oneliner) {
+    const onelineWords = profile.best_for_oneliner.toLowerCase().split(/\s+/);
+    const requestWords = lower
+      .split(/\s+/)
+      .filter((w) => w.length > 3);
+    const overlap = requestWords.filter((w) =>
+      onelineWords.some((ow) => ow.includes(w))
+    ).length;
+    points += Math.min(3, overlap);
+  }
+
+  return (points / maxPoints) * 10;
+}
+
+function computeRequestRelevance(
+  profile: RestaurantProfile,
+  specialRequest: string,
+  isGeneric: boolean,
+  claudeRelevance?: number
+): number {
+  if (claudeRelevance !== undefined && claudeRelevance !== null) {
+    return claudeRelevance;
+  }
+  if (isGeneric) {
+    return 7.0;
+  }
+  return computeKeywordRelevance(profile, specialRequest);
+}
+
+// Sub-score 3: Google Quality (0-10)
+function computeGoogleQuality(googleData: GooglePlaceData | null): number {
+  if (!googleData || googleData.google_rating === null) {
+    return 6.5;
+  }
+
+  const rating = googleData.google_rating;
+  const reviewCount = googleData.google_review_count || 0;
+
+  // Stretch 1-5 rating to 0-10 (clusters at 3.5-4.8)
+  // 4.5 → 8.0, 4.0 → 6.0, 3.5 → 4.0, 3.0 → 2.0
+  const ratingNorm = Math.min(10, Math.max(0, (rating - 2.5) * 4));
+
+  // Confidence multiplier: more reviews = more trustworthy
+  const confidence =
+    reviewCount >= 100 ? 1.0 : reviewCount >= 20 ? 0.9 : 0.8;
+
+  return ratingNorm * confidence;
+}
+
+// Sub-score 4: Vibe Alignment (0-10)
+function computeVibeAlignment(
+  profile: RestaurantProfile,
+  occasion: string
+): number {
+  const expected = OCCASION_VIBE_MAP[occasion] || OCCASION_VIBE_MAP["Any"];
+  let score = 0;
+  const maxScore = 10;
+
+  // Noise match (3 points)
+  if (profile.noise_level) {
+    if (expected.noise.includes(profile.noise_level)) {
+      score += 3;
+    } else {
+      score += 1;
+    }
+  } else {
+    score += 1.5;
+  }
+
+  // Lighting match (3 points)
+  if (profile.lighting_ambiance && !expected.lighting.includes("any")) {
+    const lightingLower = profile.lighting_ambiance.toLowerCase();
+    const matches = expected.lighting.filter((kw) =>
+      lightingLower.includes(kw)
+    ).length;
+    score += Math.min(3, matches * 1.5);
+  } else {
+    score += 1.5;
+  }
+
+  // Dress code appropriateness (2 points)
+  if (profile.dress_code) {
+    const restaurantLevel = DRESS_LEVELS[profile.dress_code] || 1;
+    const expectedLevel = DRESS_LEVELS[expected.dressMin] || 1;
+    if (restaurantLevel >= expectedLevel) {
+      score += 2;
+    } else {
+      score += 1;
+    }
+  } else {
+    score += 1;
+  }
+
+  // Bonus features (2 points)
+  let bonusEarned = 0;
+  let bonusAvailable = 0;
+  if (expected.outdoorBonus) {
+    bonusAvailable++;
+    if (profile.outdoor_seating) bonusEarned++;
+  }
+  if (expected.liveMusicBonus) {
+    bonusAvailable++;
+    if (profile.live_music) bonusEarned++;
+  }
+  if (bonusAvailable > 0) {
+    score += (bonusEarned / bonusAvailable) * 2;
+  } else {
+    score += 1;
+  }
+
+  return (score / maxScore) * 10;
+}
+
+// Sub-score 5: Filter Precision (0-10)
+function computeFilterPrecision(
+  profile: RestaurantProfile,
+  requestedNeighborhood: string,
+  requestedPrice: string
+): number {
+  let score = 10;
+  let filtersApplied = 0;
+
+  if (requestedNeighborhood && requestedNeighborhood !== "Anywhere") {
+    filtersApplied++;
+    if (
+      profile.neighborhood_name.toLowerCase() !==
+      requestedNeighborhood.toLowerCase()
+    ) {
+      score -= 5;
+    }
+  }
+
+  if (requestedPrice && requestedPrice !== "Any") {
+    filtersApplied++;
+    if (profile.price_level !== requestedPrice) {
+      score -= 5;
+    }
+  }
+
+  if (filtersApplied === 0) return 8.0;
+
+  return Math.max(0, score);
+}
+
+// Donde Match verdict tiers (for frontend display)
+// 93-99%: "Perfect Match" (green)
+// 85-92%: "Great Match" (green)
+// 75-84%: "Good Match" (accent)
+// 60-74%: "Worth Exploring" (accent)
+
+/**
+ * Compute the Donde Match percentage — a deterministic, weighted composite of 5 sub-scores
+ * mapped to a confidence percentage.
+ *
+ * Returns an integer in [60, 99] representing "We're X% confident this is your spot."
+ *
+ * Mapping: match% = 60 + (raw_composite * 3.9), clamped to [60, 99]
+ *  - Raw 8.5 → 93% ("Perfect Match")
+ *  - Raw 7.0 → 87% ("Great Match")
+ *  - Raw 5.5 → 81% ("Good Match")
+ *  - Raw 4.0 → 76% ("Good Match")
+ *  - Raw 2.5 → 70% ("Worth Exploring")
+ */
+export function computeDondeMatch(
+  profile: RestaurantProfile,
+  inputs: DondeMatchInputs
+): number {
+  const occasionFit = computeOccasionFit(profile, inputs.occasion);
+  const requestRelevance = computeRequestRelevance(
+    profile,
+    inputs.specialRequest,
+    inputs.isGeneric,
+    inputs.claudeRelevance
+  );
+  const googleQuality = computeGoogleQuality(inputs.googleData);
+  const vibeAlignment = computeVibeAlignment(profile, inputs.occasion);
+  const filterPrecision = computeFilterPrecision(
+    profile,
+    inputs.neighborhood,
+    inputs.priceLevel
+  );
+
+  const raw =
+    W_OCCASION * occasionFit +
+    W_REQUEST * requestRelevance +
+    W_GOOGLE * googleQuality +
+    W_VIBE * vibeAlignment +
+    W_FILTER * filterPrecision;
+
+  // Map 0-10 raw composite to 60-99% confidence range
+  const matchPercent = 60 + Math.min(10, Math.max(0, raw)) * 3.9;
+  return Math.min(99, Math.max(60, Math.round(matchPercent)));
+}
+
 // --- Legacy merge (kept as fallback for when RPC fails) ---
 
 export function mergeProfiles(
@@ -173,9 +543,9 @@ export function filterAndRank(
 
   boosted.sort((a, b) => {
     const occasionA =
-      (a[scoreField as keyof RestaurantProfile] as number) || 0;
+      (a[scoreField as keyof RestaurantProfile] as number) ?? 0;
     const occasionB =
-      (b[scoreField as keyof RestaurantProfile] as number) || 0;
+      (b[scoreField as keyof RestaurantProfile] as number) ?? 0;
 
     const sumA =
       (a.date_friendly_score || 0) +
@@ -222,12 +592,12 @@ Respond ONLY in this exact JSON format (no markdown, no backticks):
   "restaurant_index": 0,
   "recommendation": "A warm, personal 80-120 word paragraph explaining WHY this restaurant is the perfect match for their request. Mention specific things about the food, atmosphere, and what makes it special for their occasion.",
   "insider_tip": "One specific, actionable insider tip (e.g., ask for the corner booth, try the off-menu horchata, go on Tuesday for half-price bottles)",
-  "donde_score": 7.5,
+  "relevance_score": 8.5,
   "sentiment_score": 4.2,
   "sentiment_breakdown": "2-3 sentence summary of what diners love and any common complaints based on the provided reviews. Set to null if no reviews provided."
 }
 
-The donde_score should be 0-10 reflecting how well this restaurant matches the user's specific request. 9-10 = outstanding match, 7-8 = excellent, 5-6 = solid pick, below 5 = best available but not ideal.
+The relevance_score should be 0-10 reflecting how semantically relevant this restaurant is to the user's specific request text. Consider cuisine match, vibe words, dietary needs, and any specific mentions in their request. 9-10 = directly addresses every aspect of their request, 7-8 = strong match with minor gaps, 5-6 = partially matches, below 5 = best available but doesn't match well.
 The sentiment_score should be 0-10 reflecting overall review sentiment. Only include if reviews are provided.`;
 }
 
@@ -247,7 +617,7 @@ export function buildUserPrompt(
    Address: ${d.address}
    Neighborhood: ${d.neighborhood_name}
    Price: ${d.price_level}
-   ${occasion} Score: ${(d[scoreField as keyof RestaurantProfile] as number) || "N/A"}/10
+   ${occasion} Score: ${(d[scoreField as keyof RestaurantProfile] as number) ?? "N/A"}/10
    Atmosphere: ${d.noise_level || "N/A"}, ${d.lighting_ambiance || "N/A"}
    Dress Code: ${d.dress_code || "N/A"}
    Best For: ${d.best_for_oneliner || "N/A"}

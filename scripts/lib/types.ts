@@ -85,7 +85,7 @@ export interface ClaudeRecommendation {
   restaurant_index: number;
   recommendation: string;
   insider_tip: string | null;
-  donde_score: number;
+  donde_match: number;
   sentiment_score: number | null;
   sentiment_breakdown: string | null;
 }
@@ -95,7 +95,7 @@ export interface ApiResponse {
   restaurant?: Record<string, unknown>;
   recommendation?: string;
   insider_tip?: string | null;
-  donde_score?: string;
+  donde_match?: number;
   scores?: Record<string, unknown>;
   tags?: string[];
   timestamp?: string;
