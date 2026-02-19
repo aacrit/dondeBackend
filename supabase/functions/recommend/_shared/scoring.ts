@@ -589,7 +589,7 @@ Pick THE ONE BEST restaurant for this person. Consider their occasion, special r
 
 Respond ONLY in this exact JSON format (no markdown, no backticks):
 {
-  "restaurant_index": 0,
+  "restaurant_index": 0,  // 0-based index matching the candidate number (0 = first candidate, 1 = second, etc.)
   "recommendation": "A warm, personal 80-120 word paragraph explaining WHY this restaurant is the perfect match for their request. Mention specific things about the food, atmosphere, and what makes it special for their occasion.",
   "insider_tip": "One specific, actionable insider tip (e.g., ask for the corner booth, try the off-menu horchata, go on Tuesday for half-price bottles)",
   "relevance_score": 8.5,
@@ -613,7 +613,7 @@ export function buildUserPrompt(
 
   const restaurantList = top10
     .map((d, i) => {
-      let entry = `${i + 1}. ${d.name}
+      let entry = `${i}. ${d.name}
    Address: ${d.address}
    Neighborhood: ${d.neighborhood_name}
    Price: ${d.price_level}
