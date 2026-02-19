@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsPreflightResponse, jsonResponse } from "./_shared/cors.ts";
 import { createSupabaseClient } from "./_shared/supabase.ts";
 import { callClaude, parseClaudeJson } from "./_shared/claude.ts";
@@ -47,7 +46,7 @@ function isGenericRequest(specialRequest: string): boolean {
   return GENERIC_PHRASES.some((phrase) => lower.includes(phrase));
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return corsPreflightResponse();
