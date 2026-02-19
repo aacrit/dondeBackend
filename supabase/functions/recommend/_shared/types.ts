@@ -3,6 +3,7 @@ export interface UserRequest {
   occasion?: string;
   neighborhood?: string;
   price_level?: string;
+  exclude?: string[];
 }
 
 /** Restaurant data stored in DB (compliant — only place_id + our own content) */
@@ -23,13 +24,6 @@ export interface Restaurant {
   cuisine_type: string | null;
   best_for_oneliner: string | null;
   insider_tip: string | null;
-}
-
-export interface PreRecommendation {
-  restaurant_id: string;
-  occasion: string;
-  recommendation: string;
-  donde_match: number;
 }
 
 export interface OccasionScores {

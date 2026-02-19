@@ -36,19 +36,33 @@ async function main() {
 
   const supabase = createAdminClient();
 
-  // Fetch restaurants needing enrichment
-  const { data: restaurants, error } = await supabase
+  // Fetch restaurants needing enrichment:
+  // 1. Never enriched (noise_level IS NULL)
+  // 2. Partially enriched — older runs that predate cuisine_type/outdoor_seating fields
+  const { data: neverEnriched, error: e1 } = await supabase
     .from("restaurants")
     .select("id, name, address, price_level")
     .is("noise_level", null);
 
-  if (error) throw error;
-  if (!restaurants || restaurants.length === 0) {
+  const { data: partiallyEnriched, error: e2 } = await supabase
+    .from("restaurants")
+    .select("id, name, address, price_level")
+    .not("noise_level", "is", null)
+    .is("cuisine_type", null);
+
+  if (e1) throw e1;
+  if (e2) throw e2;
+
+  const restaurants = [...(neverEnriched || []), ...(partiallyEnriched || [])];
+
+  if (restaurants.length === 0) {
     console.log("No restaurants need enrichment. Done.");
     return;
   }
 
-  console.log(`Found ${restaurants.length} restaurants needing enrichment`);
+  const freshCount = neverEnriched?.length || 0;
+  const gapCount = partiallyEnriched?.length || 0;
+  console.log(`Found ${restaurants.length} restaurants needing enrichment (${freshCount} new, ${gapCount} partially enriched)`);
 
   await processBatches(restaurants, 10, async (batch) => {
     const restaurantList = batch

@@ -1,17 +1,16 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { corsPreflightResponse, jsonResponse } from "./_shared/cors.ts";
 import { createSupabaseClient } from "./_shared/supabase.ts";
 import { callClaude, parseClaudeJson } from "./_shared/claude.ts";
 import {
   mergeProfiles,
   filterAndRank,
+  reRankWithBoosts,
   buildSystemPrompt,
   buildUserPrompt,
   computeDondeMatch,
 } from "./_shared/scoring.ts";
 import {
   buildSuccessResponse,
-  buildPreGeneratedResponse,
   buildFallbackResponse,
   buildNoResultsResponse,
   buildErrorResponse,
@@ -28,26 +27,9 @@ import type {
   Neighborhood,
   ClaudeRecommendation,
   RestaurantProfile,
-  PreRecommendation,
 } from "./_shared/types.ts";
 
-// --- Generic request detection ---
-
-const GENERIC_PHRASES = [
-  "surprise me", "anything good", "whatever", "best spot",
-  "something nice", "good food", "recommend something",
-  "hungry", "let's eat", "feed me", "dealer's choice",
-  "you pick", "chef's choice", "anything",
-];
-
-function isGenericRequest(specialRequest: string): boolean {
-  if (!specialRequest || specialRequest.trim().length === 0) return true;
-  if (specialRequest.trim().length < 5) return true;
-  const lower = specialRequest.toLowerCase().trim();
-  return GENERIC_PHRASES.some((phrase) => lower.includes(phrase));
-}
-
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return corsPreflightResponse();
@@ -67,6 +49,9 @@ serve(async (req: Request) => {
     const occasion = body.occasion || "Any";
     const neighborhood = body.neighborhood || "Anywhere";
     const price_level = body.price_level || "Any";
+    const exclude = (body.exclude || []).filter(
+      (id: string) => typeof id === "string" && id.length > 0
+    );
 
     // Initialize Supabase client
     const supabase = createSupabaseClient();
@@ -74,13 +59,15 @@ serve(async (req: Request) => {
     // --- Step 1: Get ranked restaurants via RPC (single DB round-trip) ---
     let top10: RestaurantProfile[];
 
+    // Request extra results to compensate for excluded restaurants
+    const rpcLimit = 10 + exclude.length;
     const { data: rpcData, error: rpcError } = await supabase.rpc(
       "get_ranked_restaurants",
       {
         p_neighborhood: neighborhood,
         p_price_level: price_level,
         p_occasion: occasion,
-        p_limit: 10,
+        p_limit: rpcLimit,
       }
     );
 
@@ -115,156 +102,121 @@ serve(async (req: Request) => {
       top10 = rpcData as RestaurantProfile[];
     }
 
+    // Filter excluded restaurants (handles both RPC and fallback paths)
+    if (exclude.length > 0) {
+      top10 = top10.filter((r) => !exclude.includes(r.id));
+    }
+    top10 = top10.slice(0, 10);
+
+    // Re-rank by special_request relevance (RPC only sorts by occasion score)
+    top10 = reRankWithBoosts(top10, occasion, special_request);
+
     if (top10.length === 0) {
       return jsonResponse(buildNoResultsResponse());
     }
 
-    // --- Step 2: Route to generic or specific path ---
+    // --- Step 2: Claude recommendation with live Google reviews ---
     let responseBody: Record<string, unknown>;
-    const generic = isGenericRequest(special_request);
 
-    if (generic) {
-      // === PATH A: Generic request — use pre-generated content, 0 Claude calls ===
-      const chosen = top10[0];
+    try {
+      // Start Google Places fetches for top 3 in parallel with Claude
+      const top3PlaceIds = top10
+        .slice(0, 3)
+        .map((r) => r.google_place_id)
+        .filter(Boolean) as string[];
 
-      // Lookup pre-generated recommendation
-      const { data: preRecData } = await supabase
-        .from("pre_recommendations")
-        .select("restaurant_id, occasion, recommendation, donde_match")
-        .eq("restaurant_id", chosen.id)
-        .eq("occasion", occasion === "Any" ? "Date Night" : occasion)
-        .single();
+      const googlePromises = top3PlaceIds.map((pid) =>
+        fetchPlaceDetails(pid)
+      );
 
-      // Fetch Google Places live (still required per ToS)
-      const googleData = chosen.google_place_id
-        ? await fetchPlaceDetails(chosen.google_place_id)
+      // Build reviews map from top 3 Google results for the merged prompt
+      const googleResults = await Promise.all(googlePromises);
+
+      // Map Google results back to top10 indices
+      const reviewsByIndex = new Map<number, string>();
+      const googleByPlaceId = new Map<
+        string,
+        Awaited<ReturnType<typeof fetchPlaceDetails>>
+      >();
+      for (let i = 0; i < top3PlaceIds.length; i++) {
+        const gd = googleResults[i];
+        if (gd) {
+          googleByPlaceId.set(top3PlaceIds[i], gd);
+          // Find the index in top10
+          const top10Idx = top10.findIndex(
+            (r) => r.google_place_id === top3PlaceIds[i]
+          );
+          if (top10Idx !== -1 && gd.reviews.length > 0) {
+            reviewsByIndex.set(top10Idx, formatReviewsForPrompt(gd.reviews));
+          }
+        }
+      }
+
+      // Single Claude call: recommendation + sentiment (merged)
+      const systemPrompt = buildSystemPrompt();
+      const userPrompt = buildUserPrompt(
+        top10,
+        occasion,
+        price_level,
+        neighborhood,
+        special_request,
+        reviewsByIndex.size > 0 ? reviewsByIndex : undefined
+      );
+
+      const claudeText = await callClaude(userPrompt, systemPrompt);
+      const parsed = parseClaudeJson<ClaudeRecommendation>(claudeText);
+
+      const idx = Math.min(
+        Math.max(0, parsed.restaurant_index || 0),
+        top10.length - 1
+      );
+      const chosen = top10[idx];
+
+      // Use pre-fetched Google data if available, otherwise fetch now
+      let googleData = chosen.google_place_id
+        ? googleByPlaceId.get(chosen.google_place_id) || null
         : null;
 
-      // Compute donde_match deterministically
+      if (!googleData && chosen.google_place_id) {
+        // Claude picked outside top 3 — fetch individually
+        googleData = await fetchPlaceDetails(chosen.google_place_id);
+      }
+
+      // Use stored insider_tip as fallback if Claude didn't provide one
+      if (!parsed.insider_tip && chosen.insider_tip) {
+        parsed.insider_tip = chosen.insider_tip;
+      }
+
+      // Compute donde_match deterministically (Claude provides relevance_score)
       const dondeMatch = computeDondeMatch(chosen, {
         occasion,
         specialRequest: special_request,
         neighborhood,
         priceLevel: price_level,
-        isGeneric: true,
+        googleData,
+        claudeRelevance: parsed.relevance_score,
+      });
+
+      responseBody = buildSuccessResponse(chosen, parsed, googleData, dondeMatch);
+    } catch (claudeError) {
+      // Fallback: return top-ranked restaurant without AI enrichment
+      console.error("Claude API failed, using fallback:", claudeError);
+      const chosen = top10[0];
+
+      const googleData = chosen.google_place_id
+        ? await fetchPlaceDetails(chosen.google_place_id)
+        : null;
+
+      // Compute donde_match deterministically (no Claude relevance available)
+      const fallbackMatch = computeDondeMatch(chosen, {
+        occasion,
+        specialRequest: special_request,
+        neighborhood,
+        priceLevel: price_level,
         googleData,
       });
 
-      if (preRecData) {
-        responseBody = buildPreGeneratedResponse(
-          chosen,
-          preRecData as PreRecommendation,
-          googleData,
-          dondeMatch
-        );
-      } else {
-        // No pre-rec found — use fallback response (no Claude call)
-        responseBody = buildFallbackResponse(chosen, googleData, dondeMatch);
-      }
-    } else {
-      // === PATH B: Specific request — single Claude call with reviews ===
-      try {
-        // Start Google Places fetches for top 3 in parallel with Claude
-        const top3PlaceIds = top10
-          .slice(0, 3)
-          .map((r) => r.google_place_id)
-          .filter(Boolean) as string[];
-
-        const googlePromises = top3PlaceIds.map((pid) =>
-          fetchPlaceDetails(pid)
-        );
-
-        // Build reviews map from top 3 Google results for the merged prompt
-        const googleResults = await Promise.all(googlePromises);
-
-        // Map Google results back to top10 indices
-        const reviewsByIndex = new Map<number, string>();
-        const googleByPlaceId = new Map<
-          string,
-          Awaited<ReturnType<typeof fetchPlaceDetails>>
-        >();
-        for (let i = 0; i < top3PlaceIds.length; i++) {
-          const gd = googleResults[i];
-          if (gd) {
-            googleByPlaceId.set(top3PlaceIds[i], gd);
-            // Find the index in top10
-            const top10Idx = top10.findIndex(
-              (r) => r.google_place_id === top3PlaceIds[i]
-            );
-            if (top10Idx !== -1 && gd.reviews.length > 0) {
-              reviewsByIndex.set(top10Idx, formatReviewsForPrompt(gd.reviews));
-            }
-          }
-        }
-
-        // Single Claude call: recommendation + sentiment (merged)
-        const systemPrompt = buildSystemPrompt();
-        const userPrompt = buildUserPrompt(
-          top10,
-          occasion,
-          price_level,
-          neighborhood,
-          special_request,
-          reviewsByIndex.size > 0 ? reviewsByIndex : undefined
-        );
-
-        const claudeText = await callClaude(userPrompt, systemPrompt);
-        const parsed = parseClaudeJson<ClaudeRecommendation>(claudeText);
-
-        const idx = Math.min(
-          Math.max(0, parsed.restaurant_index || 0),
-          top10.length - 1
-        );
-        const chosen = top10[idx];
-
-        // Use pre-fetched Google data if available, otherwise fetch now
-        let googleData = chosen.google_place_id
-          ? googleByPlaceId.get(chosen.google_place_id) || null
-          : null;
-
-        if (!googleData && chosen.google_place_id) {
-          // Claude picked outside top 3 — fetch individually
-          googleData = await fetchPlaceDetails(chosen.google_place_id);
-        }
-
-        // Use stored insider_tip as fallback if Claude didn't provide one
-        if (!parsed.insider_tip && chosen.insider_tip) {
-          parsed.insider_tip = chosen.insider_tip;
-        }
-
-        // Compute donde_match deterministically (Claude provides relevance_score)
-        const dondeMatch = computeDondeMatch(chosen, {
-          occasion,
-          specialRequest: special_request,
-          neighborhood,
-          priceLevel: price_level,
-          isGeneric: false,
-          googleData,
-          claudeRelevance: parsed.relevance_score,
-        });
-
-        responseBody = buildSuccessResponse(chosen, parsed, googleData, dondeMatch);
-      } catch (claudeError) {
-        // Fallback: return top-ranked restaurant without AI enrichment
-        console.error("Claude API failed, using fallback:", claudeError);
-        const chosen = top10[0];
-
-        const googleData = chosen.google_place_id
-          ? await fetchPlaceDetails(chosen.google_place_id)
-          : null;
-
-        // Compute donde_match deterministically (no Claude relevance available)
-        const fallbackMatch = computeDondeMatch(chosen, {
-          occasion,
-          specialRequest: special_request,
-          neighborhood,
-          priceLevel: price_level,
-          isGeneric: isGenericRequest(special_request),
-          googleData,
-        });
-
-        responseBody = buildFallbackResponse(chosen, googleData, fallbackMatch);
-      }
+      responseBody = buildFallbackResponse(chosen, googleData, fallbackMatch);
     }
 
     // Log query (fire-and-forget — don't block the response)

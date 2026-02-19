@@ -12,3 +12,6 @@ major_version = 15
 [studio]
 enabled = true
 port = 54323
+
+[functions.recommend]
+verify_jwt = false
