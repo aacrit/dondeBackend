@@ -70,11 +70,14 @@ sequenceDiagram
     participant C as Claude Haiku 4.5
     participant G as Google Places API
 
-    U->>EF: POST /recommend {special_request, occasion, neighborhood, price_level}
+    U->>EF: POST /recommend {special_request, occasion,<br/>neighborhood, price_level, exclude?}
 
-    EF->>DB: RPC get_ranked_restaurants(neighborhood, price, occasion, limit=10)
-    Note over DB: Single round-trip: JOIN restaurants +<br/>occasion_scores + neighborhoods,<br/>filter + rank server-side
-    DB-->>EF: Top 10 ranked restaurant profiles (with scores, tags)
+    EF->>DB: RPC get_ranked_restaurants(neighborhood, price, occasion, limit=10+len(exclude))
+    Note over DB: Single round-trip: JOIN restaurants +<br/>occasion_scores + neighborhoods,<br/>filter + rank server-side,<br/>random() tiebreaker for same-score variety
+    DB-->>EF: Top N ranked restaurant profiles (with scores, tags)
+
+    EF->>EF: Filter out excluded IDs → slice to top 10 → reRankWithBoosts()
+    Note over EF: reRankWithBoosts re-sorts by<br/>60% occasion score + 40% keyword boost<br/>(cuisine, tag, feature matches from special_request)
 
     par Parallel execution
         EF->>C: Single Claude call: recommendation + sentiment<br/>(top 10 profiles + user request + Google reviews)
@@ -123,7 +126,7 @@ flowchart LR
     end
 
     subgraph "Sunday 5:00 AM UTC"
-        E1["Find restaurants with<br/>noise_level IS NULL"]
+        E1["Find restaurants with<br/>noise_level IS NULL<br/>OR cuisine_type IS NULL<br/>(catches partial enrichments)"]
         E2["Claude enriches batches of 10:<br/>noise, lighting, dress code,<br/>dietary, accessibility, ambiance,<br/>cuisine_type, insider_tip"]
         E3[UPDATE restaurants]
         E1 --> E2 --> E3
@@ -275,6 +278,8 @@ flowchart TB
 
 ## Ranking Algorithm
 
+Two-phase ranking: the RPC does broad server-side sorting, then TypeScript applies special_request-aware re-ranking before Claude makes the final pick.
+
 ```mermaid
 flowchart TD
     ALL["RPC: get_ranked_restaurants()"] --> F1{Neighborhood filter}
@@ -285,12 +290,26 @@ flowchart TD
     F2 -->|"Specific"| FILT2[Keep matching price_level] --> F3
     F3{Enrichment filter}
     F3 --> FILT3["Keep only enriched<br/>(noise_level IS NOT NULL)"]
-    FILT3 --> COMPOSITE["Weighted composite score:<br/>60% occasion score<br/>20% total scores (sum of all 7)<br/>20% keyword boost (cuisine + tag matches)"]
-    COMPOSITE --> SORT["Sort by composite score DESC"]
-    SORT --> TOP10[Return top 10]
-    TOP10 --> CLAUDE_PICK["Claude picks best match<br/>from top 10 based on<br/>user's special_request<br/>(1 Claude call: recommendation + sentiment)"]
+    FILT3 --> RPC_SORT["RPC sorts by:<br/>1. occasion_score DESC<br/>2. total_score DESC (sum of all 7)<br/>3. random() tiebreaker"]
+    RPC_SORT --> RPC_LIMIT["LIMIT 10 + len(exclude)"]
+    RPC_LIMIT --> EXCLUDE{"Exclude filter<br/>(TypeScript)"}
+    EXCLUDE --> SLICE["Slice to top 10"]
+    SLICE --> RERANK["reRankWithBoosts():<br/>Re-sort by composite =<br/>60% occasion score + 40% keyword boost<br/>(only if special_request matches any restaurant)"]
+    RERANK --> CLAUDE_PICK["Claude picks best match<br/>from top 10 based on<br/>user's special_request<br/>(1 Claude call: recommendation + sentiment)"]
     CLAUDE_PICK --> WINNER[Single restaurant recommendation]
 ```
+
+### Keyword Boost Details (`computeBoost`)
+
+The boost score rewards restaurants whose attributes match the user's `special_request`:
+
+| Match Type | Points | Example |
+|-----------|--------|---------|
+| Cuisine match | +3.0 | "sushi" matches `cuisine_type: "Japanese"` |
+| Tag match (per tag) | +1.5 | "rooftop" matches tag "rooftop" |
+| Feature match (per feature) | +1.5 | "outdoor" matches `outdoor_seating: true` |
+
+Keyword dictionaries: 14 cuisine categories, 17 tag categories, 3 boolean features (outdoor_seating, live_music, pet_friendly).
 
 ---
 
@@ -299,9 +318,11 @@ flowchart TD
 ```mermaid
 flowchart TD
     REQ[Incoming Request] --> RPC{RPC get_ranked_restaurants}
-    RPC -->|"Success"| RANK_OK[Ranked results]
+    RPC -->|"Success"| EXCLUDE["Filter excluded IDs + slice to 10"]
     RPC -->|"Failure"| LEGACY["Fallback: 4 separate queries<br/>(restaurants, scores, tags, neighborhoods)<br/>+ mergeProfiles() + filterAndRank()"]
-    LEGACY --> RANK_OK
+    LEGACY --> EXCLUDE
+    EXCLUDE --> RERANK["reRankWithBoosts()"]
+    RERANK --> RANK_OK{Results?}
 
     RANK_OK --> |"0 results"| NO_RESULTS[buildNoResultsResponse]
     RANK_OK --> |"≥1 result"| CLAUDE[Call Claude for recommendation + sentiment]
@@ -416,7 +437,12 @@ dondeBackend/
 │       ├── *_add_cuisine_type.sql          # Add cuisine_type column
 │       ├── *_seed_neighborhoods.sql        # 14 Chicago neighborhoods
 │       ├── *_optimization.sql              # RPC function, insider_tip
-│       └── *_drop_pre_recommendations.sql  # Removed pre-recommendations table
+│       ├── *_fix_rpc_null_neighborhood.sql # Handle NULL neighborhood_id in RPC
+│       ├── *_rename_donde_score_to_match.sql # Rename donde_score → donde_match
+│       ├── *_fix_occasion_scores_id_default.sql # Add uuid_generate_v4() default
+│       ├── *_fix_tags_id_default.sql       # Add uuid_generate_v4() default
+│       ├── *_drop_pre_recommendations.sql  # Removed pre-recommendations table
+│       └── *_rpc_exclude_and_shuffle.sql   # Add random() tiebreaker + dynamic limit to RPC
 ├── scripts/
 │   ├── lib/
 │   │   ├── config.ts                       # Neighborhoods, cuisines, coords, ZIP mapping
@@ -440,5 +466,6 @@ dondeBackend/
 ├── _archive/                               # Reference docs & original workflows
 ├── CLAUDE.md                               # Project instructions
 └── docs/
-    └── system-architecture.md              # This file
+    ├── system-architecture.md              # This file
+    └── api-field-mapping.md                # Complete request/response field mapping
 ```

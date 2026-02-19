@@ -6,7 +6,7 @@ Complete mapping of every field exchanged between the frontend and the recommend
 
 ## REQUEST (UI -> Backend)
 
-`POST /recommend` -- exactly 4 fields, all optional with defaults.
+`POST /recommend` -- 5 fields, all optional with defaults.
 
 | Field | Type | Default | UI Element | Purpose |
 |-------|------|---------|------------|---------|
@@ -14,6 +14,7 @@ Complete mapping of every field exchanged between the frontend and the recommend
 | `occasion` | string | `"Any"` | Single-select picker: Date Night, Group Hangout, Family Dinner, Business Lunch, Solo Dining, Special Occasion, Treat Myself, Adventure, Chill Hangout | Selects which occasion score column to rank by. Feeds into `donde_match` calculation (30% weight). |
 | `neighborhood` | string | `"Anywhere"` | Single-select picker: Anywhere + 14 Chicago neighborhoods | Filters restaurant pool via DB query. Contributes to `donde_match` filter precision score (10% weight). |
 | `price_level` | string | `"Any"` | Single-select: Any, $, $$, $$$, $$$$ | Filters restaurant pool via DB query. Contributes to `donde_match` filter precision score (10% weight). |
+| `exclude` | string[] | `[]` | Not visible — sent automatically by "Try Another" button | Array of restaurant UUIDs to skip. Used so repeated requests don't return the same restaurant. The RPC fetches `10 + len(exclude)` results, then excluded IDs are filtered out in TypeScript before ranking. |
 
 ---
 

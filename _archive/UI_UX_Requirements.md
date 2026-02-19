@@ -4,7 +4,7 @@
 **Product:** AI-powered restaurant/bar recommendation engine
 **Market:** Chicago (expandable)
 **Platform:** Web + Mobile (responsive SPA)
-**Backend:** n8n webhook + Supabase (immutable — UI must conform to its contract)
+**Backend:** Supabase Edge Function (Deno/TypeScript) + Supabase PostgreSQL (migrated from n8n — UI must conform to the API contract)
 
 ---
 
@@ -159,7 +159,7 @@ The user must be able to dismiss the current recommendation and request an alter
 | Requirement | Detail |
 |---|---|
 | Mechanism | Swipe-to-dismiss gesture (mobile) and/or explicit "Again" button |
-| Behavior | Re-submits the same payload to get a different result |
+| Behavior | Re-submits the same payload with the dismissed restaurant's ID added to the `exclude` array, ensuring a different result |
 | Visual feedback | Card dismissal must have clear exit animation |
 
 ---
@@ -319,18 +319,18 @@ Below the craving input, show tappable shortcut chips that append common modifie
 
 ## 3. Backend Integration Contract
 
-> **This contract is immutable.** The UI must conform to these exact field names and types. The backend (n8n + Supabase) is not modified by UI changes.
+> **This contract is immutable.** The UI must conform to these exact field names and types. The backend is not modified by UI changes.
 
 ### 3.1 API Endpoint
 
 ```
-POST https://donde.app.n8n.cloud/webhook-test/donde-recommend
+POST /recommend  (Supabase Edge Function)
 Content-Type: application/json
 ```
 
 ### 3.2 Request Payload
 
-Exactly 4 fields. No additional fields should be sent.
+5 fields, all optional with defaults.
 
 | Field | Type | Source | Default |
 |---|---|---|---|
@@ -338,6 +338,7 @@ Exactly 4 fields. No additional fields should be sent.
 | `occasion` | `string` | Selected vibe/occasion | `"Any"` |
 | `neighborhood` | `string` | Selected neighborhood | `"Anywhere"` |
 | `price_level` | `string` | Selected budget tier | `"Any"` |
+| `exclude` | `string[]` | Restaurant IDs to skip (sent by "Try Another") | `[]` |
 
 **Example request:**
 ```json
@@ -345,7 +346,8 @@ Exactly 4 fields. No additional fields should be sent.
   "special_request": "cozy ramen with killer sake",
   "occasion": "Date Night",
   "neighborhood": "Wicker Park",
-  "price_level": "$$$"
+  "price_level": "$$$",
+  "exclude": []
 }
 ```
 
@@ -374,7 +376,8 @@ Exactly 4 fields. No additional fields should be sent.
     "live_music": "boolean | null",
     "pet_friendly": "boolean | null",
     "sentiment_breakdown": "string | null",
-    "sentiment_score": "string (numeric 0-1) | null"
+    "sentiment_score": "string (numeric 0-1) | null",
+    "neighborhood_name": "string"
   },
 
   "recommendation": "string",

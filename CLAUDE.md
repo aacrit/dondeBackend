@@ -44,13 +44,21 @@ cd scripts && npx tsx pipelines/discovery.ts
 supabase db push
 ```
 
+## Ranking Algorithm
+
+Two-phase ranking before Claude makes the final pick:
+1. **RPC phase** (`get_ranked_restaurants`): Server-side JOIN + filter + sort by occasion score DESC, total score DESC, `random()` tiebreaker. Returns `10 + len(exclude)` results.
+2. **TypeScript phase**: Filter out excluded IDs, slice to top 10, then `reRankWithBoosts()` re-sorts by 60% occasion score + 40% keyword boost (cuisine match +3, tag match +1.5, feature match +1.5 per hit).
+
+Keyword dictionaries: 14 cuisine categories, 17 tag categories, 3 boolean features (outdoor_seating, live_music, pet_friendly). See `scoring.ts` for full details.
+
 ## API Contract (immutable — frontend already built)
 
 POST `/recommend` with `{special_request, occasion, neighborhood, price_level, exclude?}`
 - `exclude` is an optional array of restaurant IDs to skip (used by "Try Another" on frontend)
 Returns `{success, restaurant, recommendation, insider_tip, donde_match, scores, tags, timestamp}`
 
-See `_archive/UI_UX_Requirements.md` for full response schema.
+See `docs/api-field-mapping.md` for complete field mapping or `_archive/UI_UX_Requirements.md` for full UI/UX spec.
 
 ## Project Structure
 
