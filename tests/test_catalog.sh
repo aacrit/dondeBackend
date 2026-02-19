@@ -1172,6 +1172,24 @@ else
 fi
 echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') (match: $MATCH_58%)"
 
+# ─── T59: Craft beer intent — should return brewery/beer-focused spot ─────────
+test_banner "T59" "Craft beer intent: great craft beer"
+api_call '{"special_request":"great craft beer","occasion":"Chill Hangout","neighborhood":"Anywhere","price_level":"$$"}'
+check "T59" "success" '.success' 'true'
+check_exists "T59" "restaurant returned" '.restaurant.name'
+CUISINE_59=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // ""' | tr '[:upper:]' '[:lower:]')
+REC_59=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""' | tr '[:upper:]' '[:lower:]')
+NAME_59=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"')
+# Check if cuisine is beer-related or if recommendation mentions beer
+if [[ "$CUISINE_59" == *"brewery"* || "$CUISINE_59" == *"beer"* ]]; then
+  warn_check "T59" "craft beer maps to Brewery/Beer Bar" "true" "got: $CUISINE_59"
+elif [[ "$REC_59" == *"beer"* || "$REC_59" == *"brew"* || "$REC_59" == *"tap"* ]]; then
+  warn_check "T59" "craft beer maps to Brewery/Beer Bar" "true" "rec mentions beer: $NAME_59"
+else
+  warn_check "T59" "craft beer maps to Brewery/Beer Bar" "false" "got: $NAME_59 ($CUISINE_59)"
+fi
+echo "  [info] Returned: $NAME_59 ($CUISINE_59)"
+
 ###############################################################################
 # FINAL REPORT
 ###############################################################################

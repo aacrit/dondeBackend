@@ -55,6 +55,7 @@ const GOOGLE_TYPE_TO_CUISINE: Record<string, string> = {
   spanish_restaurant: "Mediterranean",
   ethiopian_restaurant: "Ethiopian",
   peruvian_restaurant: "Peruvian",
+  brewery: "Brewery/Beer Bar",
 };
 
 interface RestaurantRow {

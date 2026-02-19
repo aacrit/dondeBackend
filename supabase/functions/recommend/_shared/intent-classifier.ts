@@ -19,9 +19,9 @@ export interface IntentClassification {
 
 const INTENT_SYSTEM_PROMPT = `You classify restaurant search intent for a Chicago dining recommendation app. Given a user's request, extract structured search criteria.
 
-Available cuisines: Mexican, American, Italian, Japanese, Thai, Chinese, Korean, French, Seafood, Steak, Mediterranean, Vietnamese, Indian, Ethiopian, Peruvian, Brazilian, Brunch, Vegan, Cocktail Bar, Coffee/Cafe, Polish, Puerto Rican, Southern/Soul Food, Middle Eastern, Greek, Fusion, BBQ
+Available cuisines: Mexican, American, Italian, Japanese, Thai, Chinese, Korean, French, Seafood, Steak, Mediterranean, Vietnamese, Indian, Ethiopian, Peruvian, Brazilian, Brunch, Vegan, Cocktail Bar, Coffee/Cafe, Polish, Puerto Rican, Southern/Soul Food, Middle Eastern, Greek, Fusion, BBQ, Brewery/Beer Bar
 
-Available tags: byob, rooftop, outdoor patio, hidden gem, late night, craft cocktails, live music, farm-to-table, scenic view, romantic, trendy, quiet, great value, brunch spot, waterfront, vegan friendly, gluten free, lively atmosphere
+Available tags: byob, rooftop, outdoor patio, hidden gem, late night, craft cocktails, craft beer, live music, farm-to-table, scenic view, romantic, trendy, quiet, great value, brunch spot, waterfront, vegan friendly, gluten free, lively atmosphere
 
 Available features: outdoor_seating, live_music, pet_friendly
 
@@ -29,7 +29,7 @@ Rules:
 - cuisine_importance "high": user clearly wants a specific cuisine (pizza, sushi, tacos, deep dish, mole, pho, dim sum, BBQ ribs)
 - cuisine_importance "medium": implied cuisine preference (comfort food, spicy, noodles)
 - cuisine_importance "low": request is about vibe, occasion, or location only (cozy date night, bustling atmosphere)
-- Map food items to their cuisine: pizza/pasta → Italian, sushi/ramen → Japanese, tacos/mole → Mexican, pho/banh mi → Vietnamese, dim sum → Chinese, BBQ → BBQ or Korean depending on context, deep dish → Italian
+- Map food items to their cuisine: pizza/pasta → Italian, sushi/ramen → Japanese, tacos/mole → Mexican, pho/banh mi → Vietnamese, dim sum → Chinese, BBQ → BBQ or Korean depending on context, deep dish → Italian, beer/craft beer/brewery/IPA/ale/taproom/brewpub → Brewery/Beer Bar
 - Only include tags/features that are clearly implied by the request
 
 Respond ONLY in JSON (no markdown, no explanation):

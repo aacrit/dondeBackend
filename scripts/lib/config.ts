@@ -43,6 +43,7 @@ export const CUISINE_TYPES = [
   "Greek",
   "Fusion",
   "BBQ",
+  "Brewery/Beer Bar",
 ] as const;
 
 export const CHICAGO_COORDS = { lat: 41.8781, lng: -87.6298 };

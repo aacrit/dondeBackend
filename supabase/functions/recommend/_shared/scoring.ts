@@ -74,6 +74,7 @@ const CUISINE_KEYWORDS: Record<string, string[]> = {
   Vietnamese: ["vietnamese", "pho", "banh mi"],
   Brunch: ["brunch", "pancake", "waffle", "mimosa"],
   American: ["burger", "american", "wings"],
+  "Brewery/Beer Bar": ["beer", "craft beer", "brewery", "brewpub", "ale", "ipa", "lager", "stout", "tap room", "taproom"],
 };
 
 const TAG_KEYWORDS: Record<string, string[]> = {
@@ -95,6 +96,7 @@ const TAG_KEYWORDS: Record<string, string[]> = {
   "vegan friendly": ["vegan", "plant-based", "plant based"],
   "gluten free": ["gluten free", "celiac", "gluten-free"],
   "lively atmosphere": ["bustling", "vibrant", "energetic", "buzzing", "lively", "happening", "high energy", "animated", "festive"],
+  "craft beer": ["craft beer", "brewery", "beer garden", "tap room", "taproom", "ale house", "beer selection", "draft beer", "beer list"],
 };
 
 // --- Enhancement 4: Semantic intent expansion ---
@@ -221,7 +223,13 @@ const INTENT_MAP: Record<string, IntentSignal> = {
   "drinks": { tags: ["craft cocktails", "byob"] },
   "cocktails": { tags: ["craft cocktails"] },
   "wine": { tags: ["romantic"], cuisines: ["Italian", "French"] },
-  "beer": { tags: ["great value", "craft cocktails"] },
+  "beer": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
+  "craft beer": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
+  "brewery": { cuisines: ["Brewery/Beer Bar"] },
+  "brewpub": { cuisines: ["Brewery/Beer Bar"], tags: ["lively atmosphere"] },
+  "tap room": { cuisines: ["Brewery/Beer Bar"] },
+  "ipa": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
+  "ale": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
   "happy hour": { tags: ["craft cocktails", "great value"] },
   "after work": { tags: ["craft cocktails", "great value"] },
 

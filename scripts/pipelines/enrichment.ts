@@ -85,7 +85,7 @@ For each restaurant, provide:
 7. parking_info: Description of likely parking availability
 8. accessibility_features: Array like ["Wheelchair accessible"]
 9. best_for_oneliner: A catchy one-liner describing what makes this place special (max 15 words)
-10. cuisine_type: Primary cuisine category. Use ONE of: "Mexican", "American", "Italian", "Japanese", "Thai", "Chinese", "Korean", "French", "Seafood", "Steak", "Mediterranean", "Vietnamese", "Indian", "Vegan", "Brunch", "Cocktail Bar", "Coffee/Cafe", or similar. Must be a single string.
+10. cuisine_type: Primary cuisine category. Use ONE of: "Mexican", "American", "Italian", "Japanese", "Thai", "Chinese", "Korean", "French", "Seafood", "Steak", "Mediterranean", "Vietnamese", "Indian", "Ethiopian", "Peruvian", "Brazilian", "Vegan", "Brunch", "Cocktail Bar", "Coffee/Cafe", "Brewery/Beer Bar", "BBQ", "Southern/Soul Food", "Middle Eastern", "Greek", "Fusion", "Polish", "Puerto Rican", or similar. Must be a single string.
 11. outdoor_seating: true/false — whether the restaurant has outdoor/patio seating
 12. live_music: true/false — whether the restaurant regularly features live music
 13. pet_friendly: true/false — whether the restaurant allows pets (especially on patios)
