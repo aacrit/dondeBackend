@@ -10,10 +10,16 @@ import { processBatches } from "../lib/batch.js";
 
 const DRY_RUN = process.env.DRY_RUN === "true";
 
+// Enhancement 18: Tags now include categories
+interface TagEntry {
+  text: string;
+  category: string;
+}
+
 interface TagsResult {
   restaurants: Array<{
     id: string;
-    tags: string[];
+    tags: (string | TagEntry)[];
   }>;
 }
 
@@ -62,16 +68,19 @@ async function main() {
       })
       .join("\n\n---\n\n");
 
-    const prompt = `Generate 3-6 short, descriptive tags for each restaurant. Tags should be lowercase, 1-3 words each, and capture the restaurant's personality.
+    // Enhancement 18: Tags now include categories
+    const prompt = `Generate 3-6 short, descriptive tags for each restaurant. Each tag should include a category.
 
-Good tag examples: "hidden gem", "craft cocktails", "family-style", "late night", "farm-to-table", "byob", "rooftop", "brunch spot", "local favorite", "date night", "trendy", "cash only", "dive bar vibes", "outdoor patio"
+Tag categories: "vibe" (atmosphere/mood), "cuisine" (food style), "feature" (amenities), "dietary" (dietary options), "occasion" (best occasions)
+
+Good tag examples: {"text": "hidden gem", "category": "vibe"}, {"text": "craft cocktails", "category": "feature"}, {"text": "family-style", "category": "vibe"}, {"text": "late night", "category": "feature"}, {"text": "farm-to-table", "category": "cuisine"}, {"text": "byob", "category": "feature"}, {"text": "rooftop", "category": "feature"}, {"text": "brunch spot", "category": "occasion"}, {"text": "date night", "category": "occasion"}, {"text": "trendy", "category": "vibe"}, {"text": "vegan friendly", "category": "dietary"}, {"text": "outdoor patio", "category": "feature"}
 
 Return ONLY valid JSON (no markdown):
 {
   "restaurants": [
     {
       "id": "restaurant-uuid",
-      "tags": ["hidden gem", "craft cocktails", "date night"]
+      "tags": [{"text": "hidden gem", "category": "vibe"}, {"text": "craft cocktails", "category": "feature"}, {"text": "date night", "category": "occasion"}]
     }
   ]
 }
@@ -85,20 +94,28 @@ ${restaurantList}`;
       const parsed = parseJsonResponse<TagsResult>(responseText);
 
       for (const result of parsed.restaurants) {
-        const validTags = (result.tags || []).filter(
-          (t) => t && t !== "null" && t.length > 0
-        );
+        // Enhancement 18: Handle both old (string[]) and new ({text, category}[]) formats
+        const rawTags = result.tags || [];
+        const validEntries = rawTags
+          .map((t) => {
+            if (typeof t === "string") {
+              return { text: t, category: null as string | null };
+            }
+            return { text: t.text, category: t.category || null };
+          })
+          .filter((t) => t.text && t.text !== "null" && t.text.length > 0);
 
         if (DRY_RUN) {
           console.log(
-            `  [DRY RUN] Would insert ${validTags.length} tags for ${result.id}`
+            `  [DRY RUN] Would insert ${validEntries.length} tags for ${result.id}`
           );
           continue;
         }
 
-        const tagRows = validTags.map((tag) => ({
+        const tagRows = validEntries.map((tag) => ({
           restaurant_id: result.id,
-          tag_text: tag,
+          tag_text: tag.text,
+          tag_category: tag.category,
         }));
 
         if (tagRows.length > 0) {

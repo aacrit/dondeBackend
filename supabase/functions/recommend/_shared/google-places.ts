@@ -11,6 +11,7 @@ export interface GooglePlaceData {
   google_rating: number | null;
   google_review_count: number | null;
   reviews: GoogleReviewData[];
+  business_status: string | null; // Enhancement 20: OPERATIONAL, CLOSED_TEMPORARILY, CLOSED_PERMANENTLY
 }
 
 export interface GoogleReviewData {
@@ -18,8 +19,9 @@ export interface GoogleReviewData {
   text: string;
 }
 
+// Enhancement 20: Added business_status to detect closed restaurants
 const PLACE_DETAILS_FIELDS =
-  "name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,reviews";
+  "name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,reviews,business_status";
 
 /**
  * Fetch fresh Google Place Details for a single restaurant.
@@ -69,6 +71,7 @@ export async function fetchPlaceDetails(
       google_rating: result.rating || null,
       google_review_count: result.user_ratings_total || null,
       reviews,
+      business_status: result.business_status || null,
     };
   } catch (err) {
     console.error(`Failed to fetch place details for ${placeId}:`, err);

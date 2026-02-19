@@ -98,6 +98,69 @@ export function buildFallbackResponse(
   };
 }
 
+// Enhancement 19 Tier 4: Template-based recommendation when Claude is unavailable
+export function buildTemplateResponse(
+  chosen: RestaurantProfile,
+  googleData: GooglePlaceData | null,
+  dondeMatch: number,
+  occasion: string
+): Record<string, unknown> {
+  const noise = chosen.noise_level?.toLowerCase() || "welcoming";
+  const cuisine = chosen.cuisine_type || "restaurant";
+  const neighborhood = chosen.neighborhood_name || "Chicago";
+  const oneliner = chosen.best_for_oneliner ? ` ${chosen.best_for_oneliner}.` : "";
+  const occasionPhrase = occasion !== "Any" ? ` for ${occasion.toLowerCase()}` : "";
+
+  const features: string[] = [];
+  if (chosen.outdoor_seating) features.push("outdoor seating");
+  if (chosen.live_music) features.push("live music");
+  if (chosen.pet_friendly) features.push("pet-friendly vibes");
+  const featureText = features.length > 0 ? ` Enjoy ${features.join(" and ")}.` : "";
+
+  const recommendation = `${chosen.name} is a ${noise} ${cuisine} spot in ${neighborhood} that's a great pick${occasionPhrase}.${oneliner}${featureText} With a ${chosen.dress_code?.toLowerCase() || "casual"} dress code and ${chosen.lighting_ambiance?.toLowerCase() || "inviting"} atmosphere, it's exactly the kind of place that makes dining in Chicago special.`;
+
+  return {
+    success: true,
+    restaurant: {
+      id: chosen.id,
+      name: googleData?.name || chosen.name,
+      address: googleData?.address || chosen.address,
+      google_place_id: chosen.google_place_id,
+      google_rating: googleData?.google_rating || null,
+      google_review_count: googleData?.google_review_count || null,
+      price_level: chosen.price_level,
+      phone: googleData?.phone || null,
+      website: googleData?.website || null,
+      noise_level: chosen.noise_level,
+      cuisine_type: chosen.cuisine_type || null,
+      lighting_ambiance: chosen.lighting_ambiance,
+      dress_code: chosen.dress_code,
+      outdoor_seating: chosen.outdoor_seating,
+      live_music: chosen.live_music,
+      pet_friendly: chosen.pet_friendly,
+      parking_availability: chosen.parking_availability,
+      sentiment_breakdown: null,
+      sentiment_score: null,
+      best_for_oneliner: chosen.best_for_oneliner,
+      neighborhood_name: chosen.neighborhood_name,
+    },
+    recommendation,
+    insider_tip: chosen.insider_tip || null,
+    donde_match: dondeMatch,
+    scores: {
+      date_friendly_score: chosen.date_friendly_score,
+      group_friendly_score: chosen.group_friendly_score,
+      family_friendly_score: chosen.family_friendly_score,
+      romantic_rating: chosen.romantic_rating,
+      business_lunch_score: chosen.business_lunch_score,
+      solo_dining_score: chosen.solo_dining_score,
+      hole_in_wall_factor: chosen.hole_in_wall_factor,
+    },
+    tags: chosen.tags,
+    timestamp: new Date().toISOString(),
+  };
+}
+
 export function buildNoResultsResponse(): Record<string, unknown> {
   return {
     success: false,

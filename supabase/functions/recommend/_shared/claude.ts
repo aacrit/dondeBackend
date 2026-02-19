@@ -39,20 +39,44 @@ export async function callClaude(
     ];
   }
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
+  // Enhancement 19 Tier 3: Retry once on 5xx/timeout errors
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Claude API error ${response.status}: ${errorText}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        const status = response.status;
+        // Only retry on 5xx server errors
+        if (status >= 500 && attempt === 0) {
+          lastError = new Error(`Claude API error ${status}: ${errorText}`);
+          console.warn(`Claude API returned ${status}, retrying in 2s...`);
+          await new Promise((r) => setTimeout(r, 2000));
+          continue;
+        }
+        throw new Error(`Claude API error ${status}: ${errorText}`);
+      }
+
+      const data: ClaudeResponse = await response.json();
+      const block = data.content[0];
+      return block.type === "text" && block.text ? block.text : "";
+    } catch (err) {
+      if (attempt === 0 && !(err instanceof Error && err.message.includes("Claude API error 4"))) {
+        // Retry on network/timeout errors, not on 4xx
+        lastError = err instanceof Error ? err : new Error(String(err));
+        console.warn("Claude API call failed, retrying in 2s...");
+        await new Promise((r) => setTimeout(r, 2000));
+        continue;
+      }
+      throw err;
+    }
   }
-
-  const data: ClaudeResponse = await response.json();
-  const block = data.content[0];
-  return block.type === "text" && block.text ? block.text : "";
+  throw lastError || new Error("Claude API failed after retries");
 }
 
 export function parseClaudeJson<T>(text: string): T {
