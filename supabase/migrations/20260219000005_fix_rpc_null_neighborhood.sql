@@ -1,28 +1,8 @@
--- Migration: Optimization — pre-recommendations table, insider_tip column, RPC function, composite index
+-- Fix: NULL neighborhood ID causes silent SQL mismatch (NULL = NULL is never TRUE)
+-- When a neighborhood name doesn't match the neighborhoods table, v_neighborhood_id
+-- stays NULL and "r.neighborhood_id = NULL" silently filters out ALL restaurants.
+-- Fix: return empty set immediately if neighborhood lookup fails.
 
--- 1. Pre-generated recommendations table (Claude output — ours to store per Anthropic ToS)
-CREATE TABLE IF NOT EXISTS pre_recommendations (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    restaurant_id uuid NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
-    occasion text NOT NULL,
-    recommendation text NOT NULL,
-    donde_score numeric(3,1) NOT NULL CHECK (donde_score >= 0 AND donde_score <= 10),
-    generated_at timestamptz NOT NULL DEFAULT now(),
-    UNIQUE(restaurant_id, occasion)
-);
-
-CREATE INDEX IF NOT EXISTS idx_pre_recs_restaurant_occasion
-    ON pre_recommendations(restaurant_id, occasion);
-
--- 2. Insider tip column on restaurants (pre-generated during enrichment)
-ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS insider_tip text;
-
--- 3. Composite index for RPC function's common WHERE pattern
-CREATE INDEX IF NOT EXISTS idx_restaurants_neighborhood_price_enriched
-    ON restaurants(neighborhood_id, price_level)
-    WHERE noise_level IS NOT NULL;
-
--- 4. RPC function: server-side join + filter + rank in one round-trip
 CREATE OR REPLACE FUNCTION get_ranked_restaurants(
     p_neighborhood text DEFAULT 'Anywhere',
     p_price_level text DEFAULT 'Any',
@@ -82,7 +62,8 @@ BEGIN
         FROM neighborhoods n
         WHERE lower(n.name) = lower(p_neighborhood);
 
-        -- If neighborhood not found, return empty set (no silent NULL = NULL mismatches)
+        -- If neighborhood not found, return empty set immediately
+        -- (prevents silent NULL = NULL mismatch that filters out everything)
         IF v_neighborhood_id IS NULL THEN
             RETURN;
         END IF;

@@ -222,7 +222,7 @@ function computeOccasionFit(
     return (sumAllScores(profile) / 70) * 10;
   }
   const scoreField = getScoreField(occasion);
-  return (profile[scoreField as keyof RestaurantProfile] as number) || 0;
+  return (profile[scoreField as keyof RestaurantProfile] as number) ?? 0;
 }
 
 // Sub-score 2: Request Relevance (0-10) — tiered
@@ -524,9 +524,9 @@ export function filterAndRank(
 
   boosted.sort((a, b) => {
     const occasionA =
-      (a[scoreField as keyof RestaurantProfile] as number) || 0;
+      (a[scoreField as keyof RestaurantProfile] as number) ?? 0;
     const occasionB =
-      (b[scoreField as keyof RestaurantProfile] as number) || 0;
+      (b[scoreField as keyof RestaurantProfile] as number) ?? 0;
 
     const sumA =
       (a.date_friendly_score || 0) +
@@ -598,7 +598,7 @@ export function buildUserPrompt(
    Address: ${d.address}
    Neighborhood: ${d.neighborhood_name}
    Price: ${d.price_level}
-   ${occasion} Score: ${(d[scoreField as keyof RestaurantProfile] as number) || "N/A"}/10
+   ${occasion} Score: ${(d[scoreField as keyof RestaurantProfile] as number) ?? "N/A"}/10
    Atmosphere: ${d.noise_level || "N/A"}, ${d.lighting_ambiance || "N/A"}
    Dress Code: ${d.dress_code || "N/A"}
    Best For: ${d.best_for_oneliner || "N/A"}
