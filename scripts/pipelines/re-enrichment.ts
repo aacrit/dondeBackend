@@ -146,7 +146,7 @@ async function main() {
         const types = details.types || [];
         const reviews = (details.reviews || [])
           .slice(0, 3)
-          .map((r) => (r.text || "").substring(0, 200));
+          .map((r) => Array.from(r.text || "").slice(0, 200).join(""));
         const editorial = details.editorial_summary?.overview || null;
 
         // Tier 1: Try direct Google type mapping

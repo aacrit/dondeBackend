@@ -60,7 +60,7 @@ export async function fetchPlaceDetails(
       .slice(0, 5)
       .map((r: { rating: number; text: string }) => ({
         rating: r.rating,
-        text: (r.text || "").substring(0, 300),
+        text: Array.from(r.text || "").slice(0, 300).join(""),
       }));
 
     return {
