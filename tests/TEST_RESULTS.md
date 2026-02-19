@@ -1,17 +1,17 @@
 # Donde API Test Results
 
-**Date:** 2026-02-19T19:40:52Z
+**Date:** 2026-02-19T20:04:11Z
 **Endpoint:** https://vwbzkgsxmgwcvmvuxnbe.supabase.co/functions/v1/recommend
 
 ## Summary
 
 | Metric | Count |
 |--------|-------|
-| PASSED | 230 |
+| PASSED | 229 |
 | FAILED | 0 |
-| WARNED | 6 |
-| TOTAL  | 236 |
-| **Hard Pass Rate** | **100%** (230 / 230) |
+| WARNED | 10 |
+| TOTAL  | 239 |
+| **Hard Pass Rate** | **100%** (229 / 229) |
 
 ## Detailed Results
 
@@ -96,7 +96,7 @@
 | PASS | T09 | neighborhood match |  |
 | PASS | T10 | success |  |
 | PASS | T10 | group_friendly >= 5 |  |
-| PASS | T10 | price is 8737 |  |
+| PASS | T10 | price is 20191 |  |
 | PASS | T11 | success |  |
 | PASS | T11 | family_friendly >= 5 |  |
 | PASS | T11 | has restaurant name |  |
@@ -109,7 +109,7 @@
 | PASS | T14 | success |  |
 | PASS | T14 | romantic_rating >= 6 |  |
 | PASS | T14 | date_friendly >= 5 |  |
-| PASS | T14 | price 87378737 |  |
+| PASS | T14 | price 2019120191 |  |
 | PASS | T15 | success |  |
 | PASS | T15 | solo_dining >= 4 |  |
 | PASS | T15 | donde_match >= 60 |  |
@@ -149,13 +149,13 @@
 | PASS | T25 | instagrammable tags |  |
 | PASS | T25 | neighborhood West Loop |  |
 | PASS | T26 | success |  |
-| PASS | T26 | vegan referenced |  |
+| WARN | T26 | vegan referenced | rec doesn't mention vegan |
 | PASS | T26 | donde_match >= 60 |  |
 | PASS | T27 | success |  |
 | PASS | T27 | gluten-free referenced |  |
 | PASS | T27 | family_friendly >= 4 |  |
 | PASS | T28 | success |  |
-| WARN | T28 | BYOB tag present | tags=authentic mexican,vibrant cantina,neighborhood gem |
+| WARN | T28 | BYOB tag present | tags=authentic mexican,family-style,neighborhood gem,casual dining |
 | PASS | T28 | group_friendly >= 4 |  |
 | PASS | T29 | success |  |
 | PASS | T29 | rooftop/cocktail tags |  |
@@ -187,7 +187,7 @@
 | PASS | T36 | donde_match >= 60 |  |
 | PASS | T36 | late-night context detected |  |
 | PASS | T37 | success |  |
-| PASS | T37 | brunch context in output |  |
+| WARN | T37 | brunch context in output |  |
 | PASS | T37 | neighborhood Logan Square |  |
 | PASS | T38 | success |  |
 | PASS | T38 | google_rating 1-5 |  |
@@ -236,7 +236,7 @@
 | PASS | T54 | success |  |
 | PASS | T54 | recommendation exists |  |
 | PASS | T54 | insider_tip exists |  |
-| PASS | T54 | rec length 65 words |  |
+| PASS | T54 | rec length 61 words |  |
 | PASS | T54 | no AI slop detected |  |
 | PASS | T54 | uses Donde 'we' voice |  |
 | PASS | T54 | insider tip concise |  |
@@ -248,11 +248,14 @@
 | PASS | T56 | mole negro maps to Mexican |  |
 | PASS | T57 | success |  |
 | PASS | T57 | restaurant returned |  |
-| WARN | T57 | sushi intent matched | got: american |
-| PASS | T57 | outdoor_seating matched |  |
+| WARN | T57 | sushi intent matched | got: cocktail bar |
+| WARN | T57 | outdoor_seating matched | got: false |
 | PASS | T58 | success |  |
 | PASS | T58 | still returns a restaurant |  |
-| PASS | T58 | donde_match=83 |  |
+| PASS | T58 | donde_match=84 |  |
+| PASS | T59 | success |  |
+| PASS | T59 | restaurant returned |  |
+| WARN | T59 | craft beer maps to Brewery/Beer Bar | got: YATAI Asian Street Food (asian) |
 
 ## Enhancement Recommendations
 
