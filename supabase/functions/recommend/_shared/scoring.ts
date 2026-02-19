@@ -103,7 +103,6 @@ export interface DondeMatchInputs {
   specialRequest: string;
   neighborhood: string;
   priceLevel: string;
-  isGeneric: boolean;
   googleData: GooglePlaceData | null;
   claudeRelevance?: number;
 }
@@ -285,14 +284,10 @@ function computeKeywordRelevance(
 function computeRequestRelevance(
   profile: RestaurantProfile,
   specialRequest: string,
-  isGeneric: boolean,
   claudeRelevance?: number
 ): number {
   if (claudeRelevance !== undefined && claudeRelevance !== null) {
     return claudeRelevance;
-  }
-  if (isGeneric) {
-    return 7.0;
   }
   return computeKeywordRelevance(profile, specialRequest);
 }
@@ -439,7 +434,6 @@ export function computeDondeMatch(
   const requestRelevance = computeRequestRelevance(
     profile,
     inputs.specialRequest,
-    inputs.isGeneric,
     inputs.claudeRelevance
   );
   const googleQuality = computeGoogleQuality(inputs.googleData);

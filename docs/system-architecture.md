@@ -10,16 +10,10 @@ graph TB
 
     subgraph "Supabase Edge Function (Deno)"
         EF[POST /recommend]
-        EF --> DETECT{Generic or Specific?}
-
-        DETECT -->|"Generic request"| PREGEN[Fetch pre_recommendations]
-        PREGEN --> BUILD_PRE[buildPreGeneratedResponse]
-
-        DETECT -->|"Specific request"| RPC["RPC: get_ranked_restaurants()<br/>(single DB round-trip)"]
+        EF --> RPC["RPC: get_ranked_restaurants()<br/>(single DB round-trip)"]
         RPC --> PAR["Parallel: Claude call + Google top-3 fetch"]
         PAR --> BUILD[buildSuccessResponse]
         BUILD --> LOG[Log user_query — async]
-        BUILD_PRE --> LOG
     end
 
     subgraph "External Services"
@@ -33,7 +27,6 @@ graph TB
         DB_TAGS[(tags)]
         DB_NEIGH[(neighborhoods)]
         DB_QUERIES[(user_queries)]
-        DB_PREREC[(pre_recommendations)]
     end
 
     subgraph "Data Pipelines (Node.js / GitHub Actions)"
@@ -41,7 +34,6 @@ graph TB
         P2[Enrichment Pipeline]
         P3[Occasion Scores Pipeline]
         P4[Tag Generation Pipeline]
-        P5[Pre-Recommendations Pipeline]
     end
 
     UI -- "POST /recommend" --> EF
@@ -49,13 +41,10 @@ graph TB
     RPC --> DB_SCORES
     RPC --> DB_TAGS
     RPC --> DB_NEIGH
-    PREGEN --> DB_PREREC
-    PREGEN --> DB_REST
     PAR --> ANTHROPIC
     PAR --> GOOGLE
     LOG --> DB_QUERIES
     BUILD -- "JSON response" --> UI
-    BUILD_PRE -- "JSON response" --> UI
 
     P1 -- "INSERT restaurants" --> DB_REST
     P1 --> GOOGLE
@@ -65,22 +54,13 @@ graph TB
     P3 --> ANTHROPIC
     P4 -- "INSERT tags" --> DB_TAGS
     P4 --> ANTHROPIC
-    P5 -- "INSERT pre_recommendations" --> DB_PREREC
-    P5 --> ANTHROPIC
 ```
 
 ---
 
 ## Recommendation Request Flow
 
-### Dual-Path Architecture
-
-The Edge Function detects whether a request is **generic** (e.g., "surprise me", "anything good") or **specific** (e.g., "cozy Italian spot for a date in Wicker Park") and routes accordingly:
-
-- **Generic path**: 0 Claude calls — serves pre-generated recommendations from `pre_recommendations` table
-- **Specific path**: 1 Claude call — merged recommendation + sentiment analysis in a single pass
-
-### Specific Request Flow
+Every request goes through Claude for a personalized recommendation with live Google review sentiment analysis.
 
 ```mermaid
 sequenceDiagram
@@ -92,8 +72,6 @@ sequenceDiagram
 
     U->>EF: POST /recommend {special_request, occasion, neighborhood, price_level}
 
-    EF->>EF: Detect generic vs specific request
-
     EF->>DB: RPC get_ranked_restaurants(neighborhood, price, occasion, limit=10)
     Note over DB: Single round-trip: JOIN restaurants +<br/>occasion_scores + neighborhoods,<br/>filter + rank server-side
     DB-->>EF: Top 10 ranked restaurant profiles (with scores, tags)
@@ -103,40 +81,10 @@ sequenceDiagram
         EF->>G: Place Details for top 3 restaurants (parallel)
     end
     G-->>EF: {rating, review_count, phone, website, reviews[]}
-    C-->>EF: {restaurant_index, recommendation, insider_tip,<br/>donde_match, sentiment_score, sentiment_breakdown}
+    C-->>EF: {restaurant_index, recommendation, insider_tip,<br/>relevance_score, sentiment_score, sentiment_breakdown}
 
-    EF->>EF: buildSuccessResponse()
+    EF->>EF: computeDondeMatch() + buildSuccessResponse()
     EF-->>U: {success, restaurant, recommendation, donde_match, scores, tags}
-
-    EF-)DB: INSERT user_queries (fire-and-forget)
-```
-
-### Generic Request Flow
-
-```mermaid
-sequenceDiagram
-    participant U as User (React SPA)
-    participant EF as Edge Function
-    participant DB as Supabase PostgreSQL
-    participant G as Google Places API
-
-    U->>EF: POST /recommend {special_request: "surprise me", occasion, neighborhood, price_level}
-
-    EF->>EF: Detect generic request (matches GENERIC_PHRASES)
-
-    EF->>DB: RPC get_ranked_restaurants(neighborhood, price, occasion, limit=10)
-    DB-->>EF: Top ranked restaurant profiles
-
-    EF->>DB: SELECT from pre_recommendations WHERE restaurant_id = top pick AND occasion
-    DB-->>EF: {recommendation, donde_match}
-
-    EF->>G: Place Details (top restaurant's google_place_id)
-    G-->>EF: {rating, review_count, phone, website}
-
-    EF->>EF: buildPreGeneratedResponse()
-    EF-->>U: {success, restaurant, recommendation, donde_match, scores, tags}
-
-    Note over EF: 0 Claude API calls — all content pre-generated
 
     EF-)DB: INSERT user_queries (fire-and-forget)
 ```
@@ -160,9 +108,6 @@ gantt
     section Scores & Tags
     Claude generates occasion scores (0-10)      :p3, 07:00, 1h
     Claude generates 3-6 tags per restaurant      :p4, 07:00, 1h
-
-    section Pre-Recommendations
-    Claude pre-generates recommendations per occasion :p5, 08:00, 2h
 ```
 
 ```mermaid
@@ -196,18 +141,9 @@ flowchart LR
         T1 --> T2 --> T3
     end
 
-    subgraph "Sunday 8:00 AM UTC"
-        R1["Find enriched restaurants<br/>with occasion_scores"]
-        R2["Claude generates recommendation<br/>+ donde_match per restaurant × occasion"]
-        R3[INSERT pre_recommendations]
-        R1 --> R2 --> R3
-    end
-
     D6 -.->|"2h gap"| E1
     E3 -.->|"2h gap"| S1
     E3 -.->|"2h gap"| T1
-    S3 -.->|"1h gap"| R1
-    T3 -.->|"1h gap"| R1
 ```
 
 ---
@@ -270,15 +206,6 @@ erDiagram
         timestamptz created_at
     }
 
-    pre_recommendations {
-        uuid id PK
-        uuid restaurant_id FK
-        text occasion
-        text recommendation
-        numeric donde_match
-        timestamptz generated_at
-    }
-
     user_queries {
         uuid id PK
         uuid neighborhood_id FK
@@ -292,7 +219,6 @@ erDiagram
     neighborhoods ||--o{ restaurants : "has many"
     restaurants ||--o| occasion_scores : "has one"
     restaurants ||--o{ tags : "has many"
-    restaurants ||--o{ pre_recommendations : "has many (per occasion)"
     neighborhoods ||--o{ user_queries : "filtered by"
     restaurants ||--o{ user_queries : "recommended"
 ```
@@ -306,7 +232,7 @@ Per Google Maps Platform ToS Section 3.2.3, only `place_id` may be stored indefi
 ```mermaid
 flowchart TB
     subgraph "Stored in DB (allowed)"
-        STORED["google_place_id<br/>name, address (editorial)<br/>price_level<br/>Claude-generated enrichments:<br/>scores, tags, ambiance, cuisine,<br/>insider_tip, pre_recommendations"]
+        STORED["google_place_id<br/>name, address (editorial)<br/>price_level<br/>Claude-generated enrichments:<br/>scores, tags, ambiance, cuisine,<br/>insider_tip"]
     end
 
     subgraph "Fetched Live (never stored)"
@@ -319,7 +245,7 @@ flowchart TB
 
     STORED --> |"Pipelines write weekly"| DB[(PostgreSQL)]
     DB --> |"Read at request time"| EF[Edge Function]
-    GOOGLE[Google Places API] --> |"Fetched per request<br/>for chosen restaurant only"| EF
+    GOOGLE[Google Places API] --> |"Fetched per request<br/>for top 3 candidates"| EF
     EF --> |"reviews[] + restaurant profiles<br/>in single prompt"| CLAUDE[Claude Haiku 4.5]
     CLAUDE --> |"Returns recommendation<br/>+ sentiment in one call"| EF
     EF --> |"Merged into response<br/>then discarded"| RESP[API Response to Frontend]
@@ -362,11 +288,8 @@ flowchart TD
     FILT3 --> COMPOSITE["Weighted composite score:<br/>60% occasion score<br/>20% total scores (sum of all 7)<br/>20% keyword boost (cuisine + tag matches)"]
     COMPOSITE --> SORT["Sort by composite score DESC"]
     SORT --> TOP10[Return top 10]
-    TOP10 --> ROUTE{Generic or Specific?}
-    ROUTE -->|Generic| PREGEN["Serve pre-generated recommendation<br/>from pre_recommendations table<br/>(0 Claude calls)"]
-    ROUTE -->|Specific| CLAUDE_PICK["Claude picks best match<br/>from top 10 based on<br/>user's special_request<br/>(1 Claude call: recommendation + sentiment)"]
-    PREGEN --> WINNER[Single restaurant recommendation]
-    CLAUDE_PICK --> WINNER
+    TOP10 --> CLAUDE_PICK["Claude picks best match<br/>from top 10 based on<br/>user's special_request<br/>(1 Claude call: recommendation + sentiment)"]
+    CLAUDE_PICK --> WINNER[Single restaurant recommendation]
 ```
 
 ---
@@ -381,23 +304,16 @@ flowchart TD
     LEGACY --> RANK_OK
 
     RANK_OK --> |"0 results"| NO_RESULTS[buildNoResultsResponse]
-    RANK_OK --> |"≥1 result"| DETECT{Generic or Specific?}
+    RANK_OK --> |"≥1 result"| CLAUDE[Call Claude for recommendation + sentiment]
 
-    DETECT -->|Generic| PRE_REC[Fetch pre_recommendation]
-    PRE_REC -->|"Found"| GOOGLE_PRE[Fetch Google Place Details]
-    PRE_REC -->|"Not found"| SPECIFIC[Treat as specific request]
+    CLAUDE --> |"Success"| GOOGLE_FETCH[Fetch Google Place Details]
+    CLAUDE --> |"Failure"| FALLBACK[buildFallbackResponse<br/>Top restaurant without AI text]
 
-    DETECT -->|Specific| SPECIFIC[Call Claude for recommendation + sentiment]
-    SPECIFIC --> |"Success"| GOOGLE_FETCH[Fetch Google Place Details]
-    SPECIFIC --> |"Failure"| FALLBACK[buildFallbackResponse<br/>Top restaurant without AI text]
-
-    GOOGLE_PRE --> BUILD_PRE[buildPreGeneratedResponse]
     GOOGLE_FETCH --> |"Success"| SUCCESS[buildSuccessResponse<br/>with sentiment from Claude]
     GOOGLE_FETCH --> |"Failure"| SUCCESS2[buildSuccessResponse<br/>without Google data]
 
     FALLBACK --> RESP[Return response]
     NO_RESULTS --> RESP
-    BUILD_PRE --> RESP
     SUCCESS --> RESP
     SUCCESS2 --> RESP
 ```
@@ -427,14 +343,10 @@ SELECT * FROM get_ranked_restaurants(p_neighborhood, p_price_level, p_occasion, 
 
 Single Claude call combines recommendation generation and sentiment analysis:
 - Receives: top 10 restaurant profiles + user request + Google reviews for top restaurants
-- Returns: restaurant pick, recommendation text, insider_tip, donde_match, sentiment_score, sentiment_breakdown
+- Returns: restaurant pick, recommendation text, insider_tip, relevance_score, sentiment_score, sentiment_breakdown
 - Prompt caching enabled via `cache_control: { type: "ephemeral" }` on system prompt
 
-### 3. Pre-Generated Recommendations (Generic Requests)
-
-Generic requests (13 detected phrases like "surprise me", "anything good", "dealer's choice") are served entirely from pre-computed content — zero Claude API calls at request time.
-
-### 4. Parallel Google Fetches
+### 3. Parallel Google Fetches
 
 During the Claude API call, Google Place Details are fetched in parallel for the top 3 ranked restaurants. If Claude picks from the top 3, the pre-fetched data is reused.
 
@@ -449,7 +361,6 @@ flowchart LR
         CRON_D["Cron: Sunday 3am UTC"]
         CRON_E["Cron: Sunday 5am UTC"]
         CRON_ST["Cron: Sunday 7am UTC"]
-        CRON_R["Cron: Sunday 8am UTC"]
         MANUAL["Manual dispatch"]
     end
 
@@ -458,7 +369,6 @@ flowchart LR
         WF_D["discovery.yml<br/>Node.js 20 → npm ci → tsx discovery.ts"]
         WF_E["enrichment.yml<br/>Node.js 20 → npm ci → tsx enrichment.ts"]
         WF_ST["scores-and-tags.yml<br/>Node.js 20 → npm ci → tsx scores + tags"]
-        WF_R["pre-recommendations.yml<br/>Node.js 20 → npm ci → tsx generate-recommendations.ts"]
     end
 
     subgraph "Targets"
@@ -471,17 +381,14 @@ flowchart LR
     MANUAL --> WF_D
     MANUAL --> WF_E
     MANUAL --> WF_ST
-    MANUAL --> WF_R
     CRON_D --> WF_D
     CRON_E --> WF_E
     CRON_ST --> WF_ST
-    CRON_R --> WF_R
 
     DEPLOY --> SUPA_EF
     WF_D --> SUPA_DB
     WF_E --> SUPA_DB
     WF_ST --> SUPA_DB
-    WF_R --> SUPA_DB
 ```
 
 ---
@@ -493,12 +400,12 @@ dondeBackend/
 ├── supabase/
 │   ├── functions/
 │   │   └── recommend/
-│   │       ├── index.ts                    # Main Edge Function handler (dual-path)
+│   │       ├── index.ts                    # Main Edge Function handler
 │   │       └── _shared/
 │   │           ├── types.ts                # TypeScript interfaces
 │   │           ├── cors.ts                 # CORS headers & JSON helpers
-│   │           ├── response-builder.ts     # Response construction (5 builders)
-│   │           ├── scoring.ts              # Ranking, keyword boost, prompt building
+│   │           ├── response-builder.ts     # Response construction (4 builders)
+│   │           ├── scoring.ts              # Ranking, keyword boost, donde_match, prompt building
 │   │           ├── claude.ts               # Anthropic API client (prompt caching)
 │   │           ├── google-places.ts        # Google Places live fetch
 │   │           └── supabase.ts             # Supabase DB client
@@ -508,7 +415,8 @@ dondeBackend/
 │       ├── *_google_compliance.sql         # Drop stored Google data columns
 │       ├── *_add_cuisine_type.sql          # Add cuisine_type column
 │       ├── *_seed_neighborhoods.sql        # 14 Chicago neighborhoods
-│       └── *_optimization.sql              # pre_recommendations table, RPC function, insider_tip
+│       ├── *_optimization.sql              # RPC function, insider_tip
+│       └── *_drop_pre_recommendations.sql  # Removed pre-recommendations table
 ├── scripts/
 │   ├── lib/
 │   │   ├── config.ts                       # Neighborhoods, cuisines, coords, ZIP mapping
@@ -522,15 +430,13 @@ dondeBackend/
 │       ├── enrichment.ts                   # Claude ambiance/dietary/insider_tip enrichment
 │       ├── generate-occasion-scores.ts     # Claude occasion scoring (7 dimensions)
 │       ├── generate-tags.ts                # Claude tag generation (3-6 per restaurant)
-│       ├── generate-recommendations.ts     # Claude pre-generated recommendations
 │       ├── backfill-new-fields.ts          # One-time backfill for new columns
 │       └── populate-all.ts                 # Orchestrator: runs all pipelines sequentially
 ├── .github/workflows/
 │   ├── deploy-edge-function.yml            # Edge Function deployment (push + manual)
 │   ├── discovery.yml                       # Weekly discovery (Sun 3am)
 │   ├── enrichment.yml                      # Weekly enrichment (Sun 5am)
-│   ├── scores-and-tags.yml                 # Weekly scores & tags (Sun 7am)
-│   └── pre-recommendations.yml             # Weekly pre-gen recommendations (Sun 8am)
+│   └── scores-and-tags.yml                 # Weekly scores & tags (Sun 7am)
 ├── _archive/                               # Reference docs & original workflows
 ├── CLAUDE.md                               # Project instructions
 └── docs/

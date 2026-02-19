@@ -25,13 +25,6 @@ export interface Restaurant {
   insider_tip: string | null;
 }
 
-export interface PreRecommendation {
-  restaurant_id: string;
-  occasion: string;
-  recommendation: string;
-  donde_match: number;
-}
-
 export interface OccasionScores {
   id: string;
   restaurant_id: string;
