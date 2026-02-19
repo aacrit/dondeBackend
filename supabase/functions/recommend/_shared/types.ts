@@ -3,6 +3,7 @@ export interface UserRequest {
   occasion?: string;
   neighborhood?: string;
   price_level?: string;
+  exclude?: string[];
 }
 
 /** Restaurant data stored in DB (compliant — only place_id + our own content) */

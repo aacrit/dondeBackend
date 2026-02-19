@@ -49,6 +49,9 @@ Deno.serve(async (req: Request) => {
     const occasion = body.occasion || "Any";
     const neighborhood = body.neighborhood || "Anywhere";
     const price_level = body.price_level || "Any";
+    const exclude = (body.exclude || []).filter(
+      (id: string) => typeof id === "string" && id.length > 0
+    );
 
     // Initialize Supabase client
     const supabase = createSupabaseClient();
@@ -56,13 +59,15 @@ Deno.serve(async (req: Request) => {
     // --- Step 1: Get ranked restaurants via RPC (single DB round-trip) ---
     let top10: RestaurantProfile[];
 
+    // Request extra results to compensate for excluded restaurants
+    const rpcLimit = 10 + exclude.length;
     const { data: rpcData, error: rpcError } = await supabase.rpc(
       "get_ranked_restaurants",
       {
         p_neighborhood: neighborhood,
         p_price_level: price_level,
         p_occasion: occasion,
-        p_limit: 10,
+        p_limit: rpcLimit,
       }
     );
 
@@ -96,6 +101,12 @@ Deno.serve(async (req: Request) => {
     } else {
       top10 = rpcData as RestaurantProfile[];
     }
+
+    // Filter excluded restaurants (handles both RPC and fallback paths)
+    if (exclude.length > 0) {
+      top10 = top10.filter((r) => !exclude.includes(r.id));
+    }
+    top10 = top10.slice(0, 10);
 
     // Re-rank by special_request relevance (RPC only sorts by occasion score)
     top10 = reRankWithBoosts(top10, occasion, special_request);
