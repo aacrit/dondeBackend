@@ -2,8 +2,8 @@
 set -uo pipefail
 
 ###############################################################################
-# DONDE RECOMMENDATION API — FULL TEST SUITE (T01–T50)
-# 50 scenarios · ~185 validation checks · 5 phases
+# DONDE RECOMMENDATION API — FULL TEST SUITE (T01–T53)
+# 53 scenarios · ~200 validation checks · 5 phases
 #
 # Usage:  chmod +x tests/test_catalog.sh && ./tests/test_catalog.sh
 # Deps:   curl, jq (v1.6+), bash 4+
@@ -980,6 +980,78 @@ else
   echo -e "  ${RED}FAIL${NC} [T50] only $RAPID_SUCCESS/5 calls succeeded"
   ((FAIL_COUNT++)); TEST_LOG+="FAIL|T50|stability|success=$RAPID_SUCCESS\n"
 fi
+
+# ─── T51: Ambiance intent — Bustling and Vibrant ──────────────────────────────
+test_banner "T51" "Ambiance intent: bustling and vibrant"
+api_call '{"special_request":"Bustling and Vibrant","occasion":"Any","neighborhood":"Anywhere","price_level":"Any"}'
+
+check "T51" "success" '.success' 'true'
+check "T51" "donde_match >= 60" '.donde_match >= 60' 'true'
+check_exists "T51" "restaurant name" '.restaurant.name'
+
+# Soft check: noise level should indicate a bustling place (Moderate or Loud)
+NOISE=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.noise_level')
+if [[ "$NOISE" == "Moderate" || "$NOISE" == "Loud" ]]; then
+  warn_check "T51" "noise matches bustling" "true" "got: $NOISE"
+else
+  warn_check "T51" "noise matches bustling" "false" "got: $NOISE — expected Moderate or Loud"
+fi
+
+# Soft check: recommendation or tags should reference vibe/energy
+REC=$(echo "$LAST_RESPONSE" | jq -r '.recommendation' | tr '[:upper:]' '[:lower:]')
+TAGS=$(echo "$LAST_RESPONSE" | jq -r '[.tags[]? | ascii_downcase] | join(",")')
+if [[ "$REC" == *"bustl"* || "$REC" == *"vibrant"* || "$REC" == *"lively"* || "$REC" == *"energe"* || "$REC" == *"energy"* || "$TAGS" == *"lively"* || "$TAGS" == *"trendy"* ]]; then
+  warn_check "T51" "vibe referenced in output" "true"
+else
+  warn_check "T51" "vibe referenced in output" "false" "no vibe words in rec or tags"
+fi
+
+echo "  [info] Restaurant: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name'), Noise: $NOISE"
+echo "  [info] Neighborhood: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.neighborhood_name')"
+
+# ─── T52: Address-neighborhood geographic consistency ─────────────────────────
+test_banner "T52" "Address-neighborhood geographic consistency"
+api_call '{"special_request":"good dinner","occasion":"Date Night","neighborhood":"Logan Square","price_level":"$$"}'
+
+check "T52" "success" '.success' 'true'
+check "T52" "neighborhood Logan Square" '.restaurant.neighborhood_name' 'Logan Square'
+
+# Hard check: address should contain "Chicago"
+ADDRESS=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.address')
+if [[ "$ADDRESS" == *"Chicago"* ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T52] address contains Chicago"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T52|address contains Chicago\n"
+else
+  echo -e "  ${RED}FAIL${NC} [T52] address missing Chicago (got: $ADDRESS)"
+  ((FAIL_COUNT++)); TEST_LOG+="FAIL|T52|address missing Chicago|got=$ADDRESS\n"
+fi
+
+# Soft check: ZIP code consistent with Logan Square area
+ADDR_ZIP=$(echo "$ADDRESS" | grep -oP '\b\d{5}\b' | head -1)
+if [[ "$ADDR_ZIP" == "60647" || "$ADDR_ZIP" == "60622" || "$ADDR_ZIP" == "60642" ]]; then
+  warn_check "T52" "ZIP consistent with Logan Square area" "true" "zip=$ADDR_ZIP"
+else
+  warn_check "T52" "ZIP consistent with Logan Square area" "false" "zip=$ADDR_ZIP"
+fi
+
+echo "  [info] Address: $ADDRESS"
+
+# ─── T53: Ambiance synonyms — energetic fun loud ─────────────────────────────
+test_banner "T53" "Ambiance synonyms: energetic fun loud atmosphere"
+api_call '{"special_request":"energetic fun loud atmosphere","occasion":"Group Hangout","neighborhood":"Anywhere","price_level":"$$"}'
+
+check "T53" "success" '.success' 'true'
+check "T53" "donde_match >= 60" '.donde_match >= 60' 'true'
+check "T53" "group_friendly >= 4" '.scores.group_friendly_score >= 4' 'true'
+
+NOISE=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.noise_level')
+if [[ "$NOISE" == "Moderate" || "$NOISE" == "Loud" ]]; then
+  warn_check "T53" "noise matches energetic" "true" "got: $NOISE"
+else
+  warn_check "T53" "noise matches energetic" "false" "got: $NOISE"
+fi
+
+echo "  [info] Restaurant: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name'), Noise: $NOISE"
 
 ###############################################################################
 # FINAL REPORT

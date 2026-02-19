@@ -93,6 +93,7 @@ const TAG_KEYWORDS: Record<string, string[]> = {
   waterfront: ["waterfront", "lakefront", "riverwalk", "lake view"],
   "vegan friendly": ["vegan", "plant-based", "plant based"],
   "gluten free": ["gluten free", "celiac", "gluten-free"],
+  "lively atmosphere": ["bustling", "vibrant", "energetic", "buzzing", "lively", "happening", "high energy", "animated", "festive"],
 };
 
 // --- Enhancement 4: Semantic intent expansion ---
@@ -104,45 +105,149 @@ interface IntentSignal {
 }
 
 const INTENT_MAP: Record<string, IntentSignal> = {
+  // --- Cuisine cravings ---
   "spicy": { cuisines: ["Thai", "Indian", "Korean", "Mexican"] },
+  "spice": { cuisines: ["Thai", "Indian", "Korean", "Mexican"] },
+  "noodles": { cuisines: ["Japanese", "Vietnamese", "Thai", "Chinese"] },
+  "raw": { cuisines: ["Japanese"], tags: ["farm-to-table"] },
+  "grilled": { cuisines: ["Steak", "American"] },
+  "bbq": { cuisines: ["Korean", "American"] },
+  "tapas": { cuisines: ["Mediterranean"], tags: ["trendy"] },
+  "dim sum": { cuisines: ["Chinese"] },
+  "omakase": { cuisines: ["Japanese"] },
+  "comfort food": { cuisines: ["American"], tags: ["great value"] },
+  "comfort": { cuisines: ["American"], tags: ["great value"] },
+  "sandwich": { cuisines: ["American"], tags: ["great value"] },
+  "salad": { tags: ["farm-to-table", "vegan friendly"] },
+  "soup": { cuisines: ["Vietnamese", "Japanese"] },
+  "dessert": { tags: ["trendy"] },
+  "pastry": { tags: ["trendy"] },
+  "coffee": { tags: ["brunch spot"] },
+  "cafe": { tags: ["brunch spot", "quiet"] },
+  "bakery": { tags: ["brunch spot"] },
+  "poke": { cuisines: ["Japanese"], tags: ["farm-to-table"] },
+  "fusion": { tags: ["trendy"] },
+
+  // --- Cuisine types (expanded) ---
+  "ethiopian": { cuisines: ["Ethiopian"] },
+  "peruvian": { cuisines: ["Peruvian"] },
+  "brazilian": { cuisines: ["Brazilian"] },
+  "turkish": { cuisines: ["Mediterranean"] },
+  "lebanese": { cuisines: ["Mediterranean"] },
+  "middle eastern": { cuisines: ["Mediterranean"] },
+  "spanish": { cuisines: ["Mediterranean"], tags: ["trendy"] },
+  "soul food": { cuisines: ["American"], tags: ["hidden gem"] },
+  "cajun": { cuisines: ["American"] },
+  "creole": { cuisines: ["American"] },
+
+  // --- Flavor & preparation styles ---
+  "smoky": { cuisines: ["Korean", "American", "Steak"] },
+  "savory": { cuisines: ["American", "Italian"] },
+  "crispy": { cuisines: ["Korean", "American"] },
+  "fried": { cuisines: ["Korean", "American"] },
+  "smoked": { cuisines: ["American", "Steak"] },
+  "braised": { cuisines: ["French", "Italian"] },
+  "wood fired": { cuisines: ["Italian"] },
+  "charcoal": { cuisines: ["Steak", "Korean"] },
+  "slow cooked": { cuisines: ["American", "Italian"] },
+  "fresh": { tags: ["farm-to-table"] },
+
+  // --- Ambiance & vibe (the gap that triggered this spot-check) ---
+  "bustling": { tags: ["lively atmosphere", "trendy", "live music"] },
+  "vibrant": { tags: ["lively atmosphere", "trendy", "live music"] },
+  "energetic": { tags: ["lively atmosphere", "trendy", "live music"] },
+  "buzzing": { tags: ["lively atmosphere", "trendy"] },
+  "happening": { tags: ["trendy", "live music"] },
+  "high energy": { tags: ["lively atmosphere", "trendy", "live music"] },
+  "animated": { tags: ["lively atmosphere", "trendy"] },
+  "festive": { tags: ["lively atmosphere", "trendy", "craft cocktails"] },
+  "noisy": { tags: ["live music", "trendy"] },
+  "hopping": { tags: ["lively atmosphere", "trendy"] },
+  "loud": { tags: ["live music", "trendy"] },
+  "lively": { tags: ["live music", "trendy"] },
+  "fun": { tags: ["trendy", "live music"] },
+  "mellow": { tags: ["quiet", "hidden gem"] },
+  "relaxed": { tags: ["quiet", "hidden gem"] },
+  "laid back": { tags: ["quiet", "hidden gem"] },
+  "low key": { tags: ["quiet", "hidden gem"] },
+  "tranquil": { tags: ["quiet", "romantic"] },
+  "intimate": { tags: ["romantic", "quiet"] },
+  "warm": { tags: ["romantic", "hidden gem"] },
+  "inviting": { tags: ["hidden gem"] },
+  "welcoming": { tags: ["hidden gem", "great value"] },
+  "cozy": { tags: ["quiet", "hidden gem"] },
+  "chill": { tags: ["quiet", "hidden gem"] },
+
+  // --- Dining experience level ---
+  "fine dining": { tags: ["romantic", "trendy"] },
+  "white tablecloth": { tags: ["romantic"] },
+  "tasting menu": { tags: ["romantic", "trendy"] },
+  "prix fixe": { tags: ["romantic", "trendy"] },
+  "casual dining": { tags: ["great value"] },
+  "neighborhood spot": { tags: ["hidden gem", "great value"] },
+  "hole in the wall": { tags: ["hidden gem", "great value"] },
+  "dive": { tags: ["hidden gem", "great value"] },
+  "fancy": { tags: ["trendy", "romantic"] },
+  "upscale": { tags: ["trendy", "romantic"] },
+  "elegant": { tags: ["romantic"] },
+
+  // --- Occasion & social context ---
   "anniversary": { tags: ["romantic", "scenic view"] },
   "celebrate": { tags: ["romantic", "trendy"] },
   "birthday": { tags: ["trendy", "craft cocktails"] },
-  "healthy": { cuisines: ["Mediterranean"], tags: ["farm-to-table", "vegan friendly"] },
+  "engagement": { tags: ["romantic", "scenic view"] },
+  "proposal": { tags: ["romantic", "scenic view"] },
+  "graduation": { tags: ["trendy", "craft cocktails"] },
+  "reunion": { tags: ["trendy"] },
+  "first date": { tags: ["romantic", "quiet"] },
+  "double date": { tags: ["romantic", "trendy"] },
+  "girls night": { tags: ["trendy", "craft cocktails"] },
+  "guys night": { tags: ["craft cocktails", "live music"] },
+  "work dinner": { tags: ["quiet"] },
+  "team dinner": { tags: ["trendy"] },
+  "client dinner": { tags: ["quiet", "romantic"] },
+  "romantic": { tags: ["romantic", "scenic view"] },
+  "quiet dinner": { tags: ["quiet", "romantic"] },
+  "business": { tags: ["quiet"] },
+  "meeting": { tags: ["quiet"] },
+  "solo": { tags: ["quiet", "hidden gem"] },
+  "kids": { tags: [] },
+  "family": { tags: [] },
+  "group": { tags: [] },
+  "large party": { tags: [] },
+
+  // --- Drinks ---
   "drinks": { tags: ["craft cocktails", "byob"] },
   "cocktails": { tags: ["craft cocktails"] },
   "wine": { tags: ["romantic"], cuisines: ["Italian", "French"] },
   "beer": { tags: ["great value", "craft cocktails"] },
+  "happy hour": { tags: ["craft cocktails", "great value"] },
+  "after work": { tags: ["craft cocktails", "great value"] },
+
+  // --- Meal & time context ---
+  "lunch": { tags: ["great value"] },
+  "dinner": { tags: [] },
+  "supper": { tags: [] },
+  "late night food": { tags: ["late night"] },
+  "midnight": { tags: ["late night"] },
+  "early bird": { tags: ["great value"] },
+
+  // --- Price & value ---
   "quick": { tags: ["great value"] },
   "fast": { tags: ["great value"] },
   "cheap": { tags: ["great value", "hidden gem"] },
   "affordable": { tags: ["great value", "hidden gem"] },
-  "fancy": { tags: ["trendy", "romantic"] },
-  "upscale": { tags: ["trendy", "romantic"] },
-  "elegant": { tags: ["romantic"] },
-  "romantic": { tags: ["romantic", "scenic view"] },
-  "cozy": { tags: ["quiet", "hidden gem"] },
-  "chill": { tags: ["quiet", "hidden gem"] },
-  "loud": { tags: ["live music", "trendy"] },
-  "lively": { tags: ["live music", "trendy"] },
-  "fun": { tags: ["trendy", "live music"] },
+  "healthy": { cuisines: ["Mediterranean"], tags: ["farm-to-table", "vegan friendly"] },
+
+  // --- Discovery & character ---
   "unique": { tags: ["hidden gem"] },
   "authentic": { tags: ["hidden gem"] },
   "local": { tags: ["hidden gem"] },
   "touristy": { tags: ["trendy", "scenic view"] },
   "instagrammable": { tags: ["trendy", "rooftop", "scenic view"] },
   "photogenic": { tags: ["trendy", "scenic view"] },
-  "comfort food": { cuisines: ["American"], tags: ["great value"] },
-  "comfort": { cuisines: ["American"], tags: ["great value"] },
-  "noodles": { cuisines: ["Japanese", "Vietnamese", "Thai", "Chinese"] },
-  "spice": { cuisines: ["Thai", "Indian", "Korean", "Mexican"] },
-  "raw": { cuisines: ["Japanese"], tags: ["farm-to-table"] },
-  "fresh": { tags: ["farm-to-table"] },
-  "grilled": { cuisines: ["Steak", "American"] },
-  "bbq": { cuisines: ["Korean", "American"] },
-  "tapas": { cuisines: ["Mediterranean"], tags: ["trendy"] },
-  "dim sum": { cuisines: ["Chinese"] },
-  "omakase": { cuisines: ["Japanese"] },
+
+  // --- Dietary ---
   "vegetarian": { tags: ["vegan friendly"] },
   "vegan": { tags: ["vegan friendly"] },
   "gluten": { tags: ["gluten free"] },
@@ -150,21 +255,64 @@ const INTENT_MAP: Record<string, IntentSignal> = {
   "halal": { tags: [] },
   "kosher": { tags: [] },
   "allergy": { tags: [] },
-  "kids": { tags: [] },
-  "family": { tags: [] },
-  "group": { tags: [] },
-  "large party": { tags: [] },
-  "quiet dinner": { tags: ["quiet", "romantic"] },
-  "business": { tags: ["quiet"] },
-  "meeting": { tags: ["quiet"] },
-  "solo": { tags: ["quiet", "hidden gem"] },
+
+  // --- Location & seating ---
   "waterfront": { tags: ["waterfront", "scenic view"], features: ["outdoor_seating"] },
   "lakefront": { tags: ["waterfront", "scenic view"], features: ["outdoor_seating"] },
   "rooftop": { tags: ["rooftop", "scenic view"] },
   "skyline": { tags: ["rooftop", "scenic view"] },
   "garden": { features: ["outdoor_seating"] },
   "terrace": { features: ["outdoor_seating"] },
+  "outdoor dining": { features: ["outdoor_seating"] },
+  "patio": { tags: ["outdoor patio"], features: ["outdoor_seating"] },
+  "candlelit": { tags: ["romantic"] },
+  "private dining": { tags: ["romantic", "quiet"] },
+  "semi private": { tags: ["quiet"] },
+  "bar seating": { tags: ["craft cocktails"] },
 };
+
+// --- Unmatched keyword extraction (for continuous learning) ---
+// Identifies words in a user's special_request that don't match any known dictionary.
+// Used to log gaps in INTENT_MAP/TAG_KEYWORDS for future enrichment.
+const STOP_WORDS = new Set([
+  "i", "a", "an", "the", "and", "or", "but", "for", "with", "in", "on", "at",
+  "to", "of", "is", "it", "that", "this", "was", "are", "be", "has", "had",
+  "want", "need", "looking", "find", "me", "my", "some", "good", "great", "best",
+  "really", "very", "something", "place", "spot", "restaurant", "food", "eat",
+  "dining", "somewhere", "chicago", "tonight", "today", "please", "like", "would",
+  "could", "should", "can", "just", "also", "too", "not", "any", "all", "more",
+]);
+
+export function extractUnmatchedKeywords(specialRequest: string): string[] {
+  if (!specialRequest || specialRequest.trim().length < 3) return [];
+
+  const lower = specialRequest.toLowerCase();
+  const words = lower.split(/\s+/).filter((w) => w.length > 2 && !STOP_WORDS.has(w));
+  if (words.length === 0) return [];
+
+  // Collect all known keywords from all dictionaries
+  const allKnown = new Set<string>();
+  for (const keywords of Object.values(CUISINE_KEYWORDS)) {
+    keywords.forEach((k) => allKnown.add(k));
+  }
+  for (const keywords of Object.values(TAG_KEYWORDS)) {
+    keywords.forEach((k) => allKnown.add(k));
+  }
+  for (const key of Object.keys(INTENT_MAP)) {
+    allKnown.add(key);
+  }
+  for (const key of Object.keys(DIETARY_KEYWORDS)) {
+    allKnown.add(key);
+  }
+
+  // Check each word — is it matched by any dictionary?
+  return words.filter((word) => {
+    for (const known of allKnown) {
+      if (known.includes(word) || word.includes(known)) return false;
+    }
+    return true;
+  });
+}
 
 // --- Enhancement 5: Dietary keyword matching ---
 const DIETARY_KEYWORDS: Record<string, string[]> = {

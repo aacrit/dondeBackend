@@ -10,6 +10,7 @@ import {
   buildSystemPrompt,
   buildUserPrompt,
   computeDondeMatch,
+  extractUnmatchedKeywords,
 } from "./_shared/scoring.ts";
 import {
   buildSuccessResponse,
@@ -398,6 +399,9 @@ Deno.serve(async (req: Request) => {
       ?.id as string;
     const responseTimeMs = Date.now() - startTime;
 
+    // Continuous learning: detect keywords not matched by any dictionary
+    const unmatchedKw = extractUnmatchedKeywords(special_request);
+
     supabase
       .from("user_queries")
       .insert({
@@ -413,6 +417,7 @@ Deno.serve(async (req: Request) => {
         response_time_ms: responseTimeMs,
         claude_relevance_score:
           (responseBody as Record<string, unknown>).relevance_score || null,
+        unmatched_keywords: unmatchedKw.length > 0 ? unmatchedKw : null,
       })
       .then(() => {})
       .catch((err: unknown) => console.error("Failed to log query:", err));
