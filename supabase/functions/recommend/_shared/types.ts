@@ -29,7 +29,7 @@ export interface PreRecommendation {
   restaurant_id: string;
   occasion: string;
   recommendation: string;
-  donde_score: number;
+  donde_match: number;
 }
 
 export interface OccasionScores {

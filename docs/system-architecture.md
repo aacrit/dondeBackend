@@ -103,10 +103,10 @@ sequenceDiagram
         EF->>G: Place Details for top 3 restaurants (parallel)
     end
     G-->>EF: {rating, review_count, phone, website, reviews[]}
-    C-->>EF: {restaurant_index, recommendation, insider_tip,<br/>donde_score, sentiment_score, sentiment_breakdown}
+    C-->>EF: {restaurant_index, recommendation, insider_tip,<br/>donde_match, sentiment_score, sentiment_breakdown}
 
     EF->>EF: buildSuccessResponse()
-    EF-->>U: {success, restaurant, recommendation, donde_score, scores, tags}
+    EF-->>U: {success, restaurant, recommendation, donde_match, scores, tags}
 
     EF-)DB: INSERT user_queries (fire-and-forget)
 ```
@@ -128,13 +128,13 @@ sequenceDiagram
     DB-->>EF: Top ranked restaurant profiles
 
     EF->>DB: SELECT from pre_recommendations WHERE restaurant_id = top pick AND occasion
-    DB-->>EF: {recommendation, donde_score}
+    DB-->>EF: {recommendation, donde_match}
 
     EF->>G: Place Details (top restaurant's google_place_id)
     G-->>EF: {rating, review_count, phone, website}
 
     EF->>EF: buildPreGeneratedResponse()
-    EF-->>U: {success, restaurant, recommendation, donde_score, scores, tags}
+    EF-->>U: {success, restaurant, recommendation, donde_match, scores, tags}
 
     Note over EF: 0 Claude API calls — all content pre-generated
 
@@ -198,7 +198,7 @@ flowchart LR
 
     subgraph "Sunday 8:00 AM UTC"
         R1["Find enriched restaurants<br/>with occasion_scores"]
-        R2["Claude generates recommendation<br/>+ donde_score per restaurant × occasion"]
+        R2["Claude generates recommendation<br/>+ donde_match per restaurant × occasion"]
         R3[INSERT pre_recommendations]
         R1 --> R2 --> R3
     end
@@ -275,7 +275,7 @@ erDiagram
         uuid restaurant_id FK
         text occasion
         text recommendation
-        numeric donde_score
+        numeric donde_match
         timestamptz generated_at
     }
 
@@ -427,7 +427,7 @@ SELECT * FROM get_ranked_restaurants(p_neighborhood, p_price_level, p_occasion, 
 
 Single Claude call combines recommendation generation and sentiment analysis:
 - Receives: top 10 restaurant profiles + user request + Google reviews for top restaurants
-- Returns: restaurant pick, recommendation text, insider_tip, donde_score, sentiment_score, sentiment_breakdown
+- Returns: restaurant pick, recommendation text, insider_tip, donde_match, sentiment_score, sentiment_breakdown
 - Prompt caching enabled via `cache_control: { type: "ephemeral" }` on system prompt
 
 ### 3. Pre-Generated Recommendations (Generic Requests)

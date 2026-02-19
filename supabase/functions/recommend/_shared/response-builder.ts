@@ -5,7 +5,7 @@ export function buildSuccessResponse(
   chosen: RestaurantProfile,
   claude: ClaudeRecommendation,
   googleData: GooglePlaceData | null,
-  dondeScore: number
+  dondeMatch: number
 ): Record<string, unknown> {
   return {
     success: true,
@@ -34,7 +34,7 @@ export function buildSuccessResponse(
     },
     recommendation: claude.recommendation,
     insider_tip: claude.insider_tip || null,
-    donde_score: String(dondeScore),
+    donde_match: dondeMatch,
     scores: {
       date_friendly_score: chosen.date_friendly_score,
       group_friendly_score: chosen.group_friendly_score,
@@ -53,7 +53,7 @@ export function buildPreGeneratedResponse(
   chosen: RestaurantProfile,
   preRec: PreRecommendation,
   googleData: GooglePlaceData | null,
-  dondeScore: number
+  dondeMatch: number
 ): Record<string, unknown> {
   return {
     success: true,
@@ -82,7 +82,7 @@ export function buildPreGeneratedResponse(
     },
     recommendation: preRec.recommendation,
     insider_tip: chosen.insider_tip || null,
-    donde_score: String(dondeScore),
+    donde_match: dondeMatch,
     scores: {
       date_friendly_score: chosen.date_friendly_score,
       group_friendly_score: chosen.group_friendly_score,
@@ -100,7 +100,7 @@ export function buildPreGeneratedResponse(
 export function buildFallbackResponse(
   chosen: RestaurantProfile,
   googleData: GooglePlaceData | null,
-  dondeScore: number
+  dondeMatch: number
 ): Record<string, unknown> {
   return {
     success: true,
@@ -131,7 +131,7 @@ export function buildFallbackResponse(
       chosen.best_for_oneliner ||
       "A top pick for your occasion based on our scores!",
     insider_tip: null,
-    donde_score: String(dondeScore),
+    donde_match: dondeMatch,
     scores: {
       date_friendly_score: chosen.date_friendly_score,
       group_friendly_score: chosen.group_friendly_score,

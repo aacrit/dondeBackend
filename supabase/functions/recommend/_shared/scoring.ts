@@ -93,9 +93,12 @@ function computeBoost(
   return boost;
 }
 
-// --- Donde Score: Deterministic weighted multi-factor formula ---
+// --- Donde Match: Deterministic weighted confidence percentage ---
+// "We're X% confident this is your spot."
+// Combines match relevance (70%) + quality signals (30%) into a single percentage.
+// See plan.md for full design rationale and best-in-class comparison.
 
-export interface DondeScoreInputs {
+export interface DondeMatchInputs {
   occasion: string;
   specialRequest: string;
   neighborhood: string;
@@ -409,13 +412,28 @@ function computeFilterPrecision(
   return Math.max(0, score);
 }
 
+// Donde Match verdict tiers (for frontend display)
+// 93-99%: "Perfect Match" (green)
+// 85-92%: "Great Match" (green)
+// 75-84%: "Good Match" (accent)
+// 60-74%: "Worth Exploring" (accent)
+
 /**
- * Compute the DondeAI Score — a deterministic, weighted composite of 5 sub-scores.
- * Returns a value on a X.X scale clamped to [5.0, 10.0].
+ * Compute the Donde Match percentage — a deterministic, weighted composite of 5 sub-scores
+ * mapped to a confidence percentage.
+ *
+ * Returns an integer in [60, 99] representing "We're X% confident this is your spot."
+ *
+ * Mapping: match% = 60 + (raw_composite * 3.9), clamped to [60, 99]
+ *  - Raw 8.5 → 93% ("Perfect Match")
+ *  - Raw 7.0 → 87% ("Great Match")
+ *  - Raw 5.5 → 81% ("Good Match")
+ *  - Raw 4.0 → 76% ("Good Match")
+ *  - Raw 2.5 → 70% ("Worth Exploring")
  */
-export function computeDondeScore(
+export function computeDondeMatch(
   profile: RestaurantProfile,
-  inputs: DondeScoreInputs
+  inputs: DondeMatchInputs
 ): number {
   const occasionFit = computeOccasionFit(profile, inputs.occasion);
   const requestRelevance = computeRequestRelevance(
@@ -439,8 +457,9 @@ export function computeDondeScore(
     W_VIBE * vibeAlignment +
     W_FILTER * filterPrecision;
 
-  const clamped = Math.min(10.0, Math.max(5.0, raw));
-  return Math.round(clamped * 10) / 10;
+  // Map 0-10 raw composite to 60-99% confidence range
+  const matchPercent = 60 + Math.min(10, Math.max(0, raw)) * 3.9;
+  return Math.min(99, Math.max(60, Math.round(matchPercent)));
 }
 
 // --- Legacy merge (kept as fallback for when RPC fails) ---

@@ -1,7 +1,7 @@
 /**
  * Pipeline 6: Pre-generate Recommendation Content
  * Generates per-restaurant, per-occasion recommendation paragraphs.
- * donde_score is computed deterministically using the weighted formula (without live Google data).
+ * donde_match is computed deterministically using the weighted formula (without live Google data).
  * These are served instantly for generic requests (no special_request), avoiding live Claude calls.
  * Schedule: Weekly (Sunday 8am UTC, after scores-and-tags)
  */
@@ -32,7 +32,7 @@ interface RecommendationResult {
   }>;
 }
 
-// --- Deterministic donde_score for pipeline (mirrors Edge Function formula) ---
+// --- Deterministic donde_match for pipeline (mirrors Edge Function formula) ---
 
 const OCCASION_VIBE_MAP: Record<
   string,
@@ -196,8 +196,9 @@ function computeBaseScore(
     0.15 * vibeAlignment +
     0.1 * filterPrecision;
 
-  const clamped = Math.min(10.0, Math.max(5.0, raw));
-  return Math.round(clamped * 10) / 10;
+  // Map 0-10 raw composite to 60-99% confidence range
+  const matchPercent = 60 + Math.min(10, Math.max(0, raw)) * 3.9;
+  return Math.min(99, Math.max(60, Math.round(matchPercent)));
 }
 
 async function main() {
@@ -327,14 +328,14 @@ ${restaurantList}`;
           const restaurantData = batch.find((r) => r.id === result.id);
           const scores = scoresMap[result.id] || {};
 
-          // Compute deterministic base score (no Google data, no user-specific relevance)
-          const baseScore = restaurantData
+          // Compute deterministic base match (no Google data, no user-specific relevance)
+          const baseMatch = restaurantData
             ? computeBaseScore(restaurantData, scores, occasion)
-            : 6.5;
+            : 75;
 
           if (DRY_RUN) {
             console.log(
-              `  [DRY RUN] Would upsert rec for ${result.id} / ${occasion} (base score: ${baseScore})`
+              `  [DRY RUN] Would upsert rec for ${result.id} / ${occasion} (base match: ${baseMatch}%)`
             );
             continue;
           }
@@ -346,7 +347,7 @@ ${restaurantList}`;
                 restaurant_id: result.id,
                 occasion,
                 recommendation: result.recommendation,
-                donde_score: baseScore,
+                donde_match: baseMatch,
                 generated_at: new Date().toISOString(),
               },
               { onConflict: "restaurant_id,occasion" }
