@@ -17,13 +17,24 @@ Per Google Maps Platform ToS Section 3.2.3, only `place_id` can be stored indefi
 - **Fetched live**: Google rating, review count, phone, website, reviews — fetched at recommendation time for the chosen restaurant only
 - **Generated on-the-fly**: Review sentiment summary and score — Claude analyzes fresh Google reviews per request, never stored
 
+## Deployment
+
+**Edge Function auto-deploys via GitHub Actions** (`.github/workflows/deploy-edge-function.yml`):
+- Triggers on push to `main` or `claude/**` branches when files in `supabase/functions/recommend/**` change
+- Can also be triggered manually from GitHub Actions tab → "Deploy Edge Function" → "Run workflow"
+- Requires `SUPABASE_ACCESS_TOKEN` secret in GitHub repo settings
+
+**Migrations must be applied manually** — no auto-deploy workflow exists:
+- Via CLI: `supabase db push`
+- Via Supabase Dashboard: SQL Editor → paste migration SQL
+
 ## Key Commands
 
 ```bash
 # Edge Function local dev
 supabase functions serve recommend --env-file .env
 
-# Deploy Edge Function
+# Deploy Edge Function (manual — usually auto-deployed via GitHub Actions on push)
 supabase functions deploy recommend
 
 # Run a pipeline locally
@@ -35,7 +46,8 @@ supabase db push
 
 ## API Contract (immutable — frontend already built)
 
-POST `/recommend` with `{special_request, occasion, neighborhood, price_level}`
+POST `/recommend` with `{special_request, occasion, neighborhood, price_level, exclude?}`
+- `exclude` is an optional array of restaurant IDs to skip (used by "Try Another" on frontend)
 Returns `{success, restaurant, recommendation, insider_tip, donde_match, scores, tags, timestamp}`
 
 See `_archive/UI_UX_Requirements.md` for full response schema.
