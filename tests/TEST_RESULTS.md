@@ -1,17 +1,17 @@
 # Donde API Test Results
 
-**Date:** 2026-02-19T17:07:59Z
+**Date:** 2026-02-19T19:40:52Z
 **Endpoint:** https://vwbzkgsxmgwcvmvuxnbe.supabase.co/functions/v1/recommend
 
 ## Summary
 
 | Metric | Count |
 |--------|-------|
-| PASSED | 215 |
+| PASSED | 230 |
 | FAILED | 0 |
-| WARNED | 8 |
-| TOTAL  | 223 |
-| **Hard Pass Rate** | **100%** (215 / 215) |
+| WARNED | 6 |
+| TOTAL  | 236 |
+| **Hard Pass Rate** | **100%** (230 / 230) |
 
 ## Detailed Results
 
@@ -96,7 +96,7 @@
 | PASS | T09 | neighborhood match |  |
 | PASS | T10 | success |  |
 | PASS | T10 | group_friendly >= 5 |  |
-| PASS | T10 | price is 2981 |  |
+| PASS | T10 | price is 8737 |  |
 | PASS | T11 | success |  |
 | PASS | T11 | family_friendly >= 5 |  |
 | PASS | T11 | has restaurant name |  |
@@ -109,7 +109,7 @@
 | PASS | T14 | success |  |
 | PASS | T14 | romantic_rating >= 6 |  |
 | PASS | T14 | date_friendly >= 5 |  |
-| PASS | T14 | price 29812981 |  |
+| PASS | T14 | price 87378737 |  |
 | PASS | T15 | success |  |
 | PASS | T15 | solo_dining >= 4 |  |
 | PASS | T15 | donde_match >= 60 |  |
@@ -134,7 +134,7 @@
 | PASS | T20 | neighborhood Little Italy |  |
 | PASS | T20 | date_friendly >= 3 |  |
 | PASS | T21 | success |  |
-| PASS | T21 | cuisine is Japanese |  |
+| WARN | T21 | cuisine is Japanese | got: french |
 | PASS | T21 | romantic >= 6 |  |
 | PASS | T22 | success |  |
 | PASS | T22 | spicy intent mapped |  |
@@ -149,13 +149,13 @@
 | PASS | T25 | instagrammable tags |  |
 | PASS | T25 | neighborhood West Loop |  |
 | PASS | T26 | success |  |
-| WARN | T26 | vegan referenced | rec doesn't mention vegan |
+| PASS | T26 | vegan referenced |  |
 | PASS | T26 | donde_match >= 60 |  |
 | PASS | T27 | success |  |
-| WARN | T27 | gluten-free referenced |  |
+| PASS | T27 | gluten-free referenced |  |
 | PASS | T27 | family_friendly >= 4 |  |
 | PASS | T28 | success |  |
-| WARN | T28 | BYOB tag present | tags=greek taverna,authentic,local favorite,family-style |
+| WARN | T28 | BYOB tag present | tags=authentic mexican,vibrant cantina,neighborhood gem |
 | PASS | T28 | group_friendly >= 4 |  |
 | PASS | T29 | success |  |
 | PASS | T29 | rooftop/cocktail tags |  |
@@ -187,12 +187,12 @@
 | PASS | T36 | donde_match >= 60 |  |
 | PASS | T36 | late-night context detected |  |
 | PASS | T37 | success |  |
-| WARN | T37 | brunch context in output |  |
+| PASS | T37 | brunch context in output |  |
 | PASS | T37 | neighborhood Logan Square |  |
 | PASS | T38 | success |  |
 | PASS | T38 | google_rating 1-5 |  |
 | PASS | T38 | review_count >= 0 |  |
-| WARN | T38 | sentiment_score present | null |
+| PASS | T38 | sentiment_score is number |  |
 | PASS | T38 | google_place_id |  |
 | PASS | T39 | success |  |
 | PASS | T39 | phone present |  |
@@ -224,7 +224,7 @@
 | PASS | T51 | donde_match >= 60 |  |
 | PASS | T51 | restaurant name |  |
 | PASS | T51 | noise matches bustling |  |
-| WARN | T51 | vibe referenced in output | no vibe words in rec or tags |
+| PASS | T51 | vibe referenced in output |  |
 | PASS | T52 | success |  |
 | PASS | T52 | neighborhood Logan Square |  |
 | PASS | T52 | address contains Chicago |  |
@@ -236,10 +236,23 @@
 | PASS | T54 | success |  |
 | PASS | T54 | recommendation exists |  |
 | PASS | T54 | insider_tip exists |  |
-| PASS | T54 | rec length 40 words |  |
+| PASS | T54 | rec length 65 words |  |
 | PASS | T54 | no AI slop detected |  |
 | PASS | T54 | uses Donde 'we' voice |  |
 | PASS | T54 | insider tip concise |  |
+| PASS | T55 | success |  |
+| PASS | T55 | restaurant returned |  |
+| WARN | T55 | deep dish maps to Italian/American | got: asian |
+| PASS | T56 | success |  |
+| PASS | T56 | restaurant returned |  |
+| PASS | T56 | mole negro maps to Mexican |  |
+| PASS | T57 | success |  |
+| PASS | T57 | restaurant returned |  |
+| WARN | T57 | sushi intent matched | got: american |
+| PASS | T57 | outdoor_seating matched |  |
+| PASS | T58 | success |  |
+| PASS | T58 | still returns a restaurant |  |
+| PASS | T58 | donde_match=83 |  |
 
 ## Enhancement Recommendations
 
