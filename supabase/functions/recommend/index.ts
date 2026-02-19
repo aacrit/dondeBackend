@@ -283,6 +283,27 @@ Deno.serve(async (req: Request) => {
         }
       }
 
+      // Quality guardrail: detect AI slop patterns in recommendation text
+      if (parsed.recommendation) {
+        const SLOP_PATTERNS = [
+          "culinary", "gastronomic", "unforgettable", "unparalleled", "nestled",
+          "tantalizing", "mouthwatering", "delectable", "exquisite", "embark",
+          "elevate your", "a testament to", "truly remarkable", "a must-visit",
+          "from the moment you", "whether you're looking", "taste buds",
+          "culinary journey", "dining experience", "perfect harmony",
+        ];
+        const recLower = parsed.recommendation.toLowerCase();
+        const slopHits = SLOP_PATTERNS.filter((p) => recLower.includes(p));
+        if (slopHits.length >= 2) {
+          console.warn(`Recommendation quality warning: ${slopHits.length} slop patterns detected: ${slopHits.join(", ")}`);
+        }
+        // Word count check
+        const wordCount = parsed.recommendation.split(/\s+/).length;
+        if (wordCount > 100) {
+          console.warn(`Recommendation length warning: ${wordCount} words (target: 50-80)`);
+        }
+      }
+
       const idx = Math.min(
         Math.max(0, parsed.restaurant_index || 0),
         top10.length - 1

@@ -2,8 +2,8 @@
 set -uo pipefail
 
 ###############################################################################
-# DONDE RECOMMENDATION API — FULL TEST SUITE (T01–T53)
-# 53 scenarios · ~200 validation checks · 5 phases
+# DONDE RECOMMENDATION API — FULL TEST SUITE (T01–T54)
+# 54 scenarios · ~210 validation checks · 5 phases
 #
 # Usage:  chmod +x tests/test_catalog.sh && ./tests/test_catalog.sh
 # Deps:   curl, jq (v1.6+), bash 4+
@@ -1052,6 +1052,65 @@ else
 fi
 
 echo "  [info] Restaurant: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name'), Noise: $NOISE"
+
+# ─── T54: Recommendation quality — voice, conciseness, anti-slop ─────────────
+test_banner "T54" "Recommendation quality: voice, conciseness, anti-slop"
+api_call '{"special_request":"cozy Italian date spot with good pasta","occasion":"Date Night","neighborhood":"Anywhere","price_level":"$$"}'
+
+check "T54" "success" '.success' 'true'
+check_exists "T54" "recommendation exists" '.recommendation'
+check_exists "T54" "insider_tip exists" '.insider_tip'
+
+# Extract recommendation text
+REC_TEXT=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""')
+TIP_TEXT=$(echo "$LAST_RESPONSE" | jq -r '.insider_tip // ""')
+
+# Hard check: recommendation word count (target 50-100, allow some flexibility)
+WORD_COUNT=$(echo "$REC_TEXT" | wc -w | tr -d ' ')
+if [[ $WORD_COUNT -ge 30 && $WORD_COUNT -le 120 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T54] recommendation length in range ($WORD_COUNT words)"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T54|rec length $WORD_COUNT words\n"
+else
+  echo -e "  ${RED}FAIL${NC} [T54] recommendation length out of range ($WORD_COUNT words, target 30-120)"
+  ((FAIL_COUNT++)); TEST_LOG+="FAIL|T54|rec length|words=$WORD_COUNT\n"
+fi
+
+# Soft check: AI slop detection — flag common generic AI phrases
+REC_LOWER=$(echo "$REC_TEXT" | tr '[:upper:]' '[:lower:]')
+SLOP_COUNT=0
+SLOP_FOUND=""
+for PHRASE in "culinary journey" "taste buds" "tantalizing" "mouthwatering" "delectable" "exquisite" "unforgettable" "unparalleled" "nestled" "from the moment you" "elevate your" "dining experience" "truly remarkable"; do
+  if [[ "$REC_LOWER" == *"$PHRASE"* ]]; then
+    ((SLOP_COUNT++))
+    SLOP_FOUND+="'$PHRASE' "
+  fi
+done
+
+if [[ $SLOP_COUNT -eq 0 ]]; then
+  warn_check "T54" "no AI slop detected" "true"
+elif [[ $SLOP_COUNT -le 1 ]]; then
+  warn_check "T54" "minor AI slop" "false" "found: $SLOP_FOUND"
+else
+  warn_check "T54" "AI slop detected" "false" "found ${SLOP_COUNT}: $SLOP_FOUND"
+fi
+
+# Soft check: uses "we" pronoun (Donde voice)
+if [[ "$REC_LOWER" == *" we "* || "$REC_LOWER" == *"we'"* || "$REC_LOWER" == *"we'd"* || "$REC_LOWER" == "we "* ]]; then
+  warn_check "T54" "uses Donde 'we' voice" "true"
+else
+  warn_check "T54" "uses Donde 'we' voice" "false" "no 'we' pronoun found"
+fi
+
+# Soft check: insider tip is concise (under 40 words)
+TIP_WORDS=$(echo "$TIP_TEXT" | wc -w | tr -d ' ')
+if [[ $TIP_WORDS -le 40 && $TIP_WORDS -ge 3 ]]; then
+  warn_check "T54" "insider tip concise" "true" "$TIP_WORDS words"
+else
+  warn_check "T54" "insider tip concise" "false" "$TIP_WORDS words (target: 3-40)"
+fi
+
+echo "  [info] Rec ($WORD_COUNT words): ${REC_TEXT:0:120}..."
+echo "  [info] Tip ($TIP_WORDS words): $TIP_TEXT"
 
 ###############################################################################
 # FINAL REPORT

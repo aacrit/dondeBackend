@@ -105,19 +105,43 @@ export function buildTemplateResponse(
   dondeMatch: number,
   occasion: string
 ): Record<string, unknown> {
-  const noise = chosen.noise_level?.toLowerCase() || "welcoming";
   const cuisine = chosen.cuisine_type || "restaurant";
   const neighborhood = chosen.neighborhood_name || "Chicago";
-  const oneliner = chosen.best_for_oneliner ? ` ${chosen.best_for_oneliner}.` : "";
-  const occasionPhrase = occasion !== "Any" ? ` for ${occasion.toLowerCase()}` : "";
+  const noise = chosen.noise_level?.toLowerCase() || "moderate";
+  const lighting = chosen.lighting_ambiance?.toLowerCase() || "warm";
+  const dress = chosen.dress_code?.toLowerCase() || "casual";
 
+  // Build feature highlights
   const features: string[] = [];
   if (chosen.outdoor_seating) features.push("outdoor seating");
   if (chosen.live_music) features.push("live music");
-  if (chosen.pet_friendly) features.push("pet-friendly vibes");
-  const featureText = features.length > 0 ? ` Enjoy ${features.join(" and ")}.` : "";
+  if (chosen.pet_friendly) features.push("it's pet-friendly");
 
-  const recommendation = `${chosen.name} is a ${noise} ${cuisine} spot in ${neighborhood} that's a great pick${occasionPhrase}.${oneliner}${featureText} With a ${chosen.dress_code?.toLowerCase() || "casual"} dress code and ${chosen.lighting_ambiance?.toLowerCase() || "inviting"} atmosphere, it's exactly the kind of place that makes dining in Chicago special.`;
+  // Occasion-aware openers
+  const occasionHooks: Record<string, string> = {
+    "Date Night": `We'd send you to ${chosen.name} for date night.`,
+    "Group Hangout": `${chosen.name} is our pick when you're rolling with a group.`,
+    "Family Dinner": `For a family dinner that works for everyone, we like ${chosen.name}.`,
+    "Business Lunch": `${chosen.name} hits the mark for a business lunch.`,
+    "Solo Dining": `When it's just you, we'd point you to ${chosen.name}.`,
+    "Special Occasion": `For a night that matters, we'd book ${chosen.name}.`,
+    "Treat Myself": `Treating yourself? We'd head to ${chosen.name}.`,
+    "Adventure": `If you're up for something different, ${chosen.name} is the move.`,
+    "Chill Hangout": `For a low-key hang, we like ${chosen.name}.`,
+  };
+  const opener = occasionHooks[occasion] || `We'd send you to ${chosen.name}.`;
+
+  // Build the middle sentence from real metadata
+  const vibeDetails: string[] = [];
+  vibeDetails.push(`It's a ${noise} ${cuisine} spot in ${neighborhood}`);
+  if (lighting !== "warm") vibeDetails[0] += ` with ${lighting} lighting`;
+  if (dress !== "casual") vibeDetails.push(`dress code is ${dress}`);
+
+  // One-liner and features
+  const onelinerText = chosen.best_for_oneliner ? ` ${chosen.best_for_oneliner}.` : "";
+  const featureText = features.length > 0 ? ` Plus, ${features.join(" and ")}.` : "";
+
+  const recommendation = `${opener} ${vibeDetails[0]}.${onelinerText}${featureText}${vibeDetails.length > 1 ? ` The ${vibeDetails.slice(1).join(", ")}.` : ""}`;
 
   return {
     success: true,
