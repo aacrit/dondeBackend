@@ -2,7 +2,7 @@ name: Occasion Scores & Tags
 
 on:
   schedule:
-    - cron: '0 7 * * 0,3'  # Matches enrichment schedule
+    - cron: '0 7 1 * *'  # 1st of every month, 7am UTC (reduced from 2x/week to save Claude API credits)
   # Enhancement 16: Auto-trigger when enrichment completes
   workflow_run:
     workflows: ["Restaurant Enrichment"]

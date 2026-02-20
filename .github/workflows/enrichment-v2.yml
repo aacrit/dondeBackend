@@ -2,7 +2,7 @@ name: Deep Profile Enrichment (V2)
 
 on:
   schedule:
-    - cron: '0 6 * * 0'  # Weekly Sunday 6am UTC (after discovery + enrichment V1)
+    - cron: '0 6 1 * *'  # 1st of every month, 6am UTC (reduced from weekly to save Claude API credits)
   # Auto-trigger when base enrichment completes
   workflow_run:
     workflows: ["Restaurant Enrichment"]

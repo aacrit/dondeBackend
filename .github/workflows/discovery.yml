@@ -2,8 +2,7 @@ name: Restaurant Discovery
 
 on:
   schedule:
-    # Enhancement 16: Run every 3 days instead of weekly for faster restaurant onboarding
-    - cron: '0 3 * * 0,3'  # Sunday and Wednesday 3am UTC
+    - cron: '0 3 1 * *'  # 1st of every month, 3am UTC (reduced from 2x/week to save API credits)
   workflow_dispatch: {}    # Manual trigger
 
 jobs:
