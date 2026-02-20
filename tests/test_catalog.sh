@@ -1191,6 +1191,83 @@ fi
 echo "  [info] Returned: $NAME_59 ($CUISINE_59)"
 
 ###############################################################################
+# T60-T65: New cuisine coverage + neighborhood relaxation
+###############################################################################
+
+test_banner "T60" "Cuisine intent: pierogi should return Polish"
+api_call '{"special_request":"pierogi","occasion":"Adventure","neighborhood":"Anywhere","price_level":"$"}'
+check "T60" "success" '.success' 'true'
+check_exists "T60" "restaurant returned" '.restaurant.name'
+CUISINE_60=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // ""' | tr '[:upper:]' '[:lower:]')
+NAME_60=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"')
+if [[ "$CUISINE_60" == *"polish"* ]]; then
+  warn_check "T60" "pierogi maps to Polish" "true" "got: $CUISINE_60"
+else
+  warn_check "T60" "pierogi maps to Polish" "false" "got: $NAME_60 ($CUISINE_60)"
+fi
+echo "  [info] Returned: $NAME_60 ($CUISINE_60)"
+
+test_banner "T61" "Cuisine intent: injera should return Ethiopian"
+api_call '{"special_request":"injera and doro wat","occasion":"Adventure","neighborhood":"Anywhere","price_level":"$$"}'
+check "T61" "success" '.success' 'true'
+check_exists "T61" "restaurant returned" '.restaurant.name'
+CUISINE_61=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // ""' | tr '[:upper:]' '[:lower:]')
+NAME_61=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"')
+if [[ "$CUISINE_61" == *"ethiopian"* ]]; then
+  warn_check "T61" "injera maps to Ethiopian" "true" "got: $CUISINE_61"
+else
+  warn_check "T61" "injera maps to Ethiopian" "false" "got: $NAME_61 ($CUISINE_61)"
+fi
+echo "  [info] Returned: $NAME_61 ($CUISINE_61)"
+
+test_banner "T62" "Cuisine intent: smoked brisket should return BBQ"
+api_call '{"special_request":"smoked brisket and ribs","occasion":"Group Hangout","neighborhood":"Anywhere","price_level":"$$"}'
+check "T62" "success" '.success' 'true'
+check_exists "T62" "restaurant returned" '.restaurant.name'
+CUISINE_62=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // ""' | tr '[:upper:]' '[:lower:]')
+NAME_62=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"')
+if [[ "$CUISINE_62" == *"bbq"* || "$CUISINE_62" == *"barbecue"* ]]; then
+  warn_check "T62" "brisket maps to BBQ" "true" "got: $CUISINE_62"
+else
+  warn_check "T62" "brisket maps to BBQ" "false" "got: $NAME_62 ($CUISINE_62)"
+fi
+echo "  [info] Returned: $NAME_62 ($CUISINE_62)"
+
+test_banner "T63" "Cuisine intent: mofongo should return Puerto Rican"
+api_call '{"special_request":"mofongo","occasion":"Any","neighborhood":"Anywhere","price_level":"$$"}'
+check "T63" "success" '.success' 'true'
+check_exists "T63" "restaurant returned" '.restaurant.name'
+CUISINE_63=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // ""' | tr '[:upper:]' '[:lower:]')
+NAME_63=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"')
+if [[ "$CUISINE_63" == *"puerto rican"* ]]; then
+  warn_check "T63" "mofongo maps to Puerto Rican" "true" "got: $CUISINE_63"
+else
+  warn_check "T63" "mofongo maps to Puerto Rican" "false" "got: $NAME_63 ($CUISINE_63)"
+fi
+echo "  [info] Returned: $NAME_63 ($CUISINE_63)"
+
+test_banner "T64" "Cuisine intent: shawarma should return Middle Eastern"
+api_call '{"special_request":"shawarma plate","occasion":"Solo Dining","neighborhood":"Anywhere","price_level":"$"}'
+check "T64" "success" '.success' 'true'
+check_exists "T64" "restaurant returned" '.restaurant.name'
+CUISINE_64=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // ""' | tr '[:upper:]' '[:lower:]')
+NAME_64=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"')
+if [[ "$CUISINE_64" == *"middle eastern"* ]]; then
+  warn_check "T64" "shawarma maps to Middle Eastern" "true" "got: $CUISINE_64"
+else
+  warn_check "T64" "shawarma maps to Middle Eastern" "false" "got: $NAME_64 ($CUISINE_64)"
+fi
+echo "  [info] Returned: $NAME_64 ($CUISINE_64)"
+
+test_banner "T65" "Neighborhood relaxation: niche cuisine + specific neighborhood"
+api_call '{"special_request":"Ethiopian food","occasion":"Any","neighborhood":"Little Italy","price_level":"Any"}'
+check "T65" "success is boolean" '.success | type' 'boolean'
+check_exists "T65" "has recommendation" '.recommendation'
+NAME_65=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"')
+SUCCESS_65=$(echo "$LAST_RESPONSE" | jq -r '.success')
+echo "  [info] Returned: $NAME_65 (success=$SUCCESS_65)"
+
+###############################################################################
 # FINAL REPORT
 ###############################################################################
 echo ""

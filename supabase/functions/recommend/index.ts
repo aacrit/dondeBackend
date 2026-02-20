@@ -173,6 +173,21 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // Neighborhood relaxation: if still no results, retry with "Anywhere" + "Any" price
+    if ((!rpcData || rpcData.length === 0) && !rpcError && neighborhood !== "Anywhere") {
+      console.log(`Neighborhood relaxation: no results for ${neighborhood}, retrying with Anywhere`);
+      const targetCuisine = (intent?.cuisine_importance === "high" && intent.target_cuisines.length > 0)
+        ? intent.target_cuisines[0] : null;
+      const { data: anywhereData, error: anywhereError } = await supabase.rpc(
+        "get_ranked_restaurants",
+        { p_neighborhood: "Anywhere", p_price_level: "Any", p_occasion: occasion, p_limit: rpcLimit, p_target_cuisine: targetCuisine }
+      );
+      if (!anywhereError && anywhereData && anywhereData.length > 0) {
+        rpcData = anywhereData;
+        rpcError = null;
+      }
+    }
+
     if (rpcError || !rpcData || rpcData.length === 0) {
       if (rpcError) {
         console.error("RPC failed, falling back to legacy queries:", rpcError);
@@ -225,7 +240,7 @@ Deno.serve(async (req: Request) => {
     top10 = ensureDiversity(top10, backfillPool);
 
     if (top10.length === 0) {
-      return jsonResponse(buildNoResultsResponse());
+      return jsonResponse(buildNoResultsResponse(neighborhood, price_level));
     }
 
     // --- Step 2: Claude recommendation with live Google reviews ---

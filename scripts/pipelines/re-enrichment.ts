@@ -82,7 +82,18 @@ interface ClaudeResult {
   best_for_oneliner: string;
 }
 
+// Generic types that should yield to more specific restaurant types
+const GENERIC_GOOGLE_TYPES = new Set(["bar", "cafe", "coffee_shop", "night_club"]);
+
 function resolveCuisineFromGoogleTypes(types: string[]): string | null {
+  // Pass 1: try specific restaurant types first (skip generic)
+  for (const type of types) {
+    if (GENERIC_GOOGLE_TYPES.has(type)) continue;
+    if (GOOGLE_TYPE_TO_CUISINE[type]) {
+      return GOOGLE_TYPE_TO_CUISINE[type];
+    }
+  }
+  // Pass 2: fall back to generic types only if no specific match
   for (const type of types) {
     if (GOOGLE_TYPE_TO_CUISINE[type]) {
       return GOOGLE_TYPE_TO_CUISINE[type];

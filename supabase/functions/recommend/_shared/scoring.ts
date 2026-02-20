@@ -70,11 +70,24 @@ const CUISINE_KEYWORDS: Record<string, string[]> = {
   French: ["french", "bistro", "crepe"],
   Seafood: ["seafood", "fish", "lobster", "oyster", "crab"],
   Steak: ["steak", "steakhouse", "filet"],
-  Mediterranean: ["mediterranean", "hummus", "falafel", "greek"],
+  Mediterranean: ["mediterranean", "mezze", "tabbouleh", "lamb"],
   Vietnamese: ["vietnamese", "pho", "banh mi"],
   Brunch: ["brunch", "pancake", "waffle", "mimosa"],
   American: ["burger", "american", "wings"],
   "Brewery/Beer Bar": ["beer", "craft beer", "brewery", "brewpub", "ale", "ipa", "lager", "stout", "tap room", "taproom"],
+  Ethiopian: ["ethiopian", "injera", "tibs", "kitfo", "doro wat", "berbere"],
+  Peruvian: ["peruvian", "ceviche", "lomo saltado", "anticucho", "causa"],
+  Brazilian: ["brazilian", "churrasco", "feijoada", "picanha", "rodizio", "caipirinha"],
+  Vegan: ["vegan", "plant-based", "plant based", "meatless"],
+  "Cocktail Bar": ["cocktail bar", "speakeasy", "mixology", "cocktail lounge"],
+  "Coffee/Cafe": ["coffee shop", "cafe", "espresso", "latte", "cappuccino"],
+  Polish: ["polish", "pierogi", "kielbasa", "bigos", "golabki"],
+  "Puerto Rican": ["puerto rican", "mofongo", "pernil", "tostones", "alcapurria", "arroz con gandules"],
+  "Southern/Soul Food": ["soul food", "southern", "fried chicken", "collard greens", "cornbread", "gumbo", "jambalaya", "catfish"],
+  "Middle Eastern": ["middle eastern", "shawarma", "kebab", "falafel", "hummus", "baba ganoush", "pita"],
+  Greek: ["greek", "gyro", "souvlaki", "moussaka", "spanakopita", "tzatziki"],
+  Fusion: ["fusion", "eclectic", "cross-cultural"],
+  BBQ: ["bbq", "barbecue", "brisket", "ribs", "pulled pork", "smoked meat", "pitmaster"],
 };
 
 const TAG_KEYWORDS: Record<string, string[]> = {
@@ -114,7 +127,7 @@ const INTENT_MAP: Record<string, IntentSignal> = {
   "noodles": { cuisines: ["Japanese", "Vietnamese", "Thai", "Chinese"] },
   "raw": { cuisines: ["Japanese"], tags: ["farm-to-table"] },
   "grilled": { cuisines: ["Steak", "American"] },
-  "bbq": { cuisines: ["Korean", "American"] },
+  "bbq": { cuisines: ["BBQ", "Korean"] },
   "tapas": { cuisines: ["Mediterranean"], tags: ["trendy"] },
   "dim sum": { cuisines: ["Chinese"] },
   "omakase": { cuisines: ["Japanese"] },
@@ -135,13 +148,13 @@ const INTENT_MAP: Record<string, IntentSignal> = {
   "ethiopian": { cuisines: ["Ethiopian"] },
   "peruvian": { cuisines: ["Peruvian"] },
   "brazilian": { cuisines: ["Brazilian"] },
-  "turkish": { cuisines: ["Mediterranean"] },
-  "lebanese": { cuisines: ["Mediterranean"] },
-  "middle eastern": { cuisines: ["Mediterranean"] },
+  "turkish": { cuisines: ["Middle Eastern"] },
+  "lebanese": { cuisines: ["Middle Eastern"] },
+  "middle eastern": { cuisines: ["Middle Eastern"] },
   "spanish": { cuisines: ["Mediterranean"], tags: ["trendy"] },
-  "soul food": { cuisines: ["American"], tags: ["hidden gem"] },
-  "cajun": { cuisines: ["American"] },
-  "creole": { cuisines: ["American"] },
+  "soul food": { cuisines: ["Southern/Soul Food"], tags: ["hidden gem"] },
+  "cajun": { cuisines: ["Southern/Soul Food"] },
+  "creole": { cuisines: ["Southern/Soul Food"] },
 
   // --- Flavor & preparation styles ---
   "smoky": { cuisines: ["Korean", "American", "Steak"] },
@@ -278,6 +291,186 @@ const INTENT_MAP: Record<string, IntentSignal> = {
   "private dining": { tags: ["romantic", "quiet"] },
   "semi private": { tags: ["quiet"] },
   "bar seating": { tags: ["craft cocktails"] },
+
+  // --- Dish-level food terms → cuisine mapping ---
+  // Mexican
+  "chilaquiles": { cuisines: ["Mexican"] },
+  "birria": { cuisines: ["Mexican"] },
+  "al pastor": { cuisines: ["Mexican"] },
+  "pozole": { cuisines: ["Mexican"] },
+  "elote": { cuisines: ["Mexican"] },
+  "tamale": { cuisines: ["Mexican"] },
+  "churro": { cuisines: ["Mexican"] },
+  "sopapilla": { cuisines: ["Mexican"] },
+  "carnitas": { cuisines: ["Mexican"] },
+  "enchilada": { cuisines: ["Mexican"] },
+  "quesadilla": { cuisines: ["Mexican"] },
+  "mole": { cuisines: ["Mexican"] },
+
+  // Japanese
+  "tonkatsu": { cuisines: ["Japanese"] },
+  "yakitori": { cuisines: ["Japanese"] },
+  "udon": { cuisines: ["Japanese"] },
+  "tempura": { cuisines: ["Japanese"] },
+  "katsu": { cuisines: ["Japanese"] },
+  "sashimi": { cuisines: ["Japanese"] },
+  "gyoza": { cuisines: ["Japanese"] },
+  "matcha": { cuisines: ["Japanese", "Coffee/Cafe"] },
+
+  // Chinese
+  "bao": { cuisines: ["Chinese"] },
+  "hotpot": { cuisines: ["Chinese"] },
+  "hot pot": { cuisines: ["Chinese"] },
+  "peking duck": { cuisines: ["Chinese"] },
+  "szechuan": { cuisines: ["Chinese"] },
+  "sichuan": { cuisines: ["Chinese"] },
+  "wonton": { cuisines: ["Chinese"] },
+  "dan dan": { cuisines: ["Chinese"] },
+  "kung pao": { cuisines: ["Chinese"] },
+  "mapo tofu": { cuisines: ["Chinese"] },
+  "char siu": { cuisines: ["Chinese"] },
+
+  // Italian
+  "gnocchi": { cuisines: ["Italian"] },
+  "tiramisu": { cuisines: ["Italian"] },
+  "osso buco": { cuisines: ["Italian"] },
+  "bolognese": { cuisines: ["Italian"] },
+  "carbonara": { cuisines: ["Italian"] },
+  "focaccia": { cuisines: ["Italian"] },
+  "bruschetta": { cuisines: ["Italian"] },
+  "arancini": { cuisines: ["Italian"] },
+  "prosciutto": { cuisines: ["Italian"] },
+  "deep dish": { cuisines: ["Italian", "American"] },
+  "margherita": { cuisines: ["Italian"] },
+
+  // Indian
+  "tikka masala": { cuisines: ["Indian"] },
+  "biryani": { cuisines: ["Indian"] },
+  "vindaloo": { cuisines: ["Indian"] },
+  "samosa": { cuisines: ["Indian"] },
+  "paneer": { cuisines: ["Indian"] },
+  "dal": { cuisines: ["Indian"] },
+  "naan": { cuisines: ["Indian"] },
+  "tikka": { cuisines: ["Indian"] },
+  "korma": { cuisines: ["Indian"] },
+  "chana": { cuisines: ["Indian"] },
+  "dosa": { cuisines: ["Indian"] },
+
+  // Thai
+  "green curry": { cuisines: ["Thai"] },
+  "tom yum": { cuisines: ["Thai"] },
+  "som tum": { cuisines: ["Thai"] },
+  "papaya salad": { cuisines: ["Thai"] },
+  "satay": { cuisines: ["Thai"] },
+  "pad see ew": { cuisines: ["Thai"] },
+  "larb": { cuisines: ["Thai"] },
+  "mango sticky rice": { cuisines: ["Thai"] },
+
+  // Korean
+  "bulgogi": { cuisines: ["Korean"] },
+  "japchae": { cuisines: ["Korean"] },
+  "tteokbokki": { cuisines: ["Korean"] },
+  "galbi": { cuisines: ["Korean"] },
+  "banchan": { cuisines: ["Korean"] },
+  "kimchi jjigae": { cuisines: ["Korean"] },
+  "kbbq": { cuisines: ["Korean"] },
+  "korean bbq": { cuisines: ["Korean"] },
+  "soju": { cuisines: ["Korean"] },
+
+  // Vietnamese
+  "bun bo hue": { cuisines: ["Vietnamese"] },
+  "spring rolls": { cuisines: ["Vietnamese"] },
+  "com tam": { cuisines: ["Vietnamese"] },
+  "vermicelli": { cuisines: ["Vietnamese"] },
+
+  // French
+  "tartare": { cuisines: ["French"] },
+  "coq au vin": { cuisines: ["French"] },
+  "bouillabaisse": { cuisines: ["French", "Seafood"] },
+  "steak frites": { cuisines: ["French", "Steak"] },
+  "souffle": { cuisines: ["French"] },
+  "croissant": { cuisines: ["French", "Coffee/Cafe"] },
+  "escargot": { cuisines: ["French"] },
+  "ratatouille": { cuisines: ["French"] },
+
+  // BBQ & Southern/Soul Food
+  "burnt ends": { cuisines: ["BBQ"] },
+  "smoked brisket": { cuisines: ["BBQ"] },
+  "mac and cheese": { cuisines: ["Southern/Soul Food", "American"] },
+  "po boy": { cuisines: ["Southern/Soul Food"] },
+  "hush puppies": { cuisines: ["Southern/Soul Food"] },
+  "crawfish": { cuisines: ["Southern/Soul Food", "Seafood"] },
+  "grits": { cuisines: ["Southern/Soul Food", "Brunch"] },
+  "collard greens": { cuisines: ["Southern/Soul Food"] },
+
+  // Ethiopian
+  "injera": { cuisines: ["Ethiopian"] },
+  "doro wat": { cuisines: ["Ethiopian"] },
+  "kitfo": { cuisines: ["Ethiopian"] },
+  "tibs": { cuisines: ["Ethiopian"] },
+
+  // Peruvian
+  "ceviche": { cuisines: ["Peruvian", "Seafood"] },
+  "lomo saltado": { cuisines: ["Peruvian"] },
+  "anticucho": { cuisines: ["Peruvian"] },
+  "causa": { cuisines: ["Peruvian"] },
+
+  // Brazilian
+  "churrasco": { cuisines: ["Brazilian", "Steak"] },
+  "rodizio": { cuisines: ["Brazilian"] },
+  "picanha": { cuisines: ["Brazilian", "Steak"] },
+  "feijoada": { cuisines: ["Brazilian"] },
+  "caipirinha": { cuisines: ["Brazilian"] },
+
+  // Polish
+  "pierogi": { cuisines: ["Polish"] },
+  "kielbasa": { cuisines: ["Polish"] },
+  "golabki": { cuisines: ["Polish"] },
+
+  // Puerto Rican
+  "mofongo": { cuisines: ["Puerto Rican"] },
+  "pernil": { cuisines: ["Puerto Rican"] },
+  "tostones": { cuisines: ["Puerto Rican"] },
+  "alcapurria": { cuisines: ["Puerto Rican"] },
+  "arroz con gandules": { cuisines: ["Puerto Rican"] },
+
+  // Middle Eastern
+  "shawarma": { cuisines: ["Middle Eastern"] },
+  "kebab": { cuisines: ["Middle Eastern"] },
+  "falafel": { cuisines: ["Middle Eastern"] },
+  "hummus": { cuisines: ["Middle Eastern"] },
+  "baba ganoush": { cuisines: ["Middle Eastern"] },
+  "pita": { cuisines: ["Middle Eastern"] },
+  "labneh": { cuisines: ["Middle Eastern"] },
+  "fattoush": { cuisines: ["Middle Eastern"] },
+  "kibbeh": { cuisines: ["Middle Eastern"] },
+
+  // Greek
+  "gyro": { cuisines: ["Greek"] },
+  "souvlaki": { cuisines: ["Greek"] },
+  "moussaka": { cuisines: ["Greek"] },
+  "spanakopita": { cuisines: ["Greek"] },
+  "baklava": { cuisines: ["Greek", "Middle Eastern"] },
+  "tzatziki": { cuisines: ["Greek"] },
+  "saganaki": { cuisines: ["Greek"] },
+
+  // Coffee/Cafe
+  "espresso": { cuisines: ["Coffee/Cafe"] },
+  "latte": { cuisines: ["Coffee/Cafe"] },
+  "cappuccino": { cuisines: ["Coffee/Cafe"] },
+  "cortado": { cuisines: ["Coffee/Cafe"] },
+
+  // Seafood additions
+  "shrimp": { cuisines: ["Seafood"] },
+  "calamari": { cuisines: ["Seafood", "Italian"] },
+  "clam chowder": { cuisines: ["Seafood"] },
+  "poke bowl": { cuisines: ["Japanese", "Seafood"] },
+
+  // Steak additions
+  "filet mignon": { cuisines: ["Steak"] },
+  "ribeye": { cuisines: ["Steak"] },
+  "wagyu": { cuisines: ["Steak", "Japanese"] },
+  "porterhouse": { cuisines: ["Steak"] },
 };
 
 // --- Unmatched keyword extraction (for continuous learning) ---
@@ -1115,8 +1308,16 @@ export function reRankWithBoosts(
     const trendA = (a.trending_score || 0) / 10; // Normalize to ~0-1
     const trendB = (b.trending_score || 0) / 10;
 
-    const compositeA = occasionA * 0.55 + a._boost * 0.35 + trendA * 0.10;
-    const compositeB = occasionB * 0.55 + b._boost * 0.35 + trendB * 0.10;
+    // Adaptive weights: shift toward boost when user has strong food-specific intent
+    let wOccasion = 0.55, wBoost = 0.35, wTrend = 0.10;
+    if (intent?.cuisine_importance === "high") {
+      wOccasion = 0.35; wBoost = 0.55; wTrend = 0.10;
+    } else if (intent?.cuisine_importance === "medium") {
+      wOccasion = 0.45; wBoost = 0.45; wTrend = 0.10;
+    }
+
+    const compositeA = occasionA * wOccasion + a._boost * wBoost + trendA * wTrend;
+    const compositeB = occasionB * wOccasion + b._boost * wBoost + trendB * wTrend;
 
     return compositeB - compositeA;
   });

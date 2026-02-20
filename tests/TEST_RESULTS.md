@@ -1,17 +1,17 @@
 # Donde API Test Results
 
-**Date:** 2026-02-19T20:04:11Z
+**Date:** 2026-02-19T21:47:53Z
 **Endpoint:** https://vwbzkgsxmgwcvmvuxnbe.supabase.co/functions/v1/recommend
 
 ## Summary
 
 | Metric | Count |
 |--------|-------|
-| PASSED | 229 |
+| PASSED | 250 |
 | FAILED | 0 |
-| WARNED | 10 |
-| TOTAL  | 239 |
-| **Hard Pass Rate** | **100%** (229 / 229) |
+| WARNED | 6 |
+| TOTAL  | 256 |
+| **Hard Pass Rate** | **100%** (250 / 250) |
 
 ## Detailed Results
 
@@ -96,7 +96,7 @@
 | PASS | T09 | neighborhood match |  |
 | PASS | T10 | success |  |
 | PASS | T10 | group_friendly >= 5 |  |
-| PASS | T10 | price is 20191 |  |
+| PASS | T10 | price is 1383 |  |
 | PASS | T11 | success |  |
 | PASS | T11 | family_friendly >= 5 |  |
 | PASS | T11 | has restaurant name |  |
@@ -109,7 +109,7 @@
 | PASS | T14 | success |  |
 | PASS | T14 | romantic_rating >= 6 |  |
 | PASS | T14 | date_friendly >= 5 |  |
-| PASS | T14 | price 2019120191 |  |
+| PASS | T14 | price 13831383 |  |
 | PASS | T15 | success |  |
 | PASS | T15 | solo_dining >= 4 |  |
 | PASS | T15 | donde_match >= 60 |  |
@@ -130,11 +130,11 @@
 | PASS | T19 | cuisine matches Mexican |  |
 | PASS | T19 | neighborhood Pilsen |  |
 | PASS | T20 | success |  |
-| WARN | T20 | cuisine is Italian | got: mexican |
+| WARN | T20 | cuisine is Italian | got: cocktail bar |
 | PASS | T20 | neighborhood Little Italy |  |
 | PASS | T20 | date_friendly >= 3 |  |
 | PASS | T21 | success |  |
-| WARN | T21 | cuisine is Japanese | got: french |
+| WARN | T21 | cuisine is Japanese | got: cocktail bar |
 | PASS | T21 | romantic >= 6 |  |
 | PASS | T22 | success |  |
 | PASS | T22 | spicy intent mapped |  |
@@ -149,13 +149,13 @@
 | PASS | T25 | instagrammable tags |  |
 | PASS | T25 | neighborhood West Loop |  |
 | PASS | T26 | success |  |
-| WARN | T26 | vegan referenced | rec doesn't mention vegan |
+| PASS | T26 | vegan referenced |  |
 | PASS | T26 | donde_match >= 60 |  |
 | PASS | T27 | success |  |
 | PASS | T27 | gluten-free referenced |  |
 | PASS | T27 | family_friendly >= 4 |  |
 | PASS | T28 | success |  |
-| WARN | T28 | BYOB tag present | tags=authentic mexican,family-style,neighborhood gem,casual dining |
+| WARN | T28 | BYOB tag present | tags=lively cantina,authentic mexican,budget-friendly |
 | PASS | T28 | group_friendly >= 4 |  |
 | PASS | T29 | success |  |
 | PASS | T29 | rooftop/cocktail tags |  |
@@ -187,7 +187,7 @@
 | PASS | T36 | donde_match >= 60 |  |
 | PASS | T36 | late-night context detected |  |
 | PASS | T37 | success |  |
-| WARN | T37 | brunch context in output |  |
+| PASS | T37 | brunch context in output |  |
 | PASS | T37 | neighborhood Logan Square |  |
 | PASS | T38 | success |  |
 | PASS | T38 | google_rating 1-5 |  |
@@ -236,26 +236,43 @@
 | PASS | T54 | success |  |
 | PASS | T54 | recommendation exists |  |
 | PASS | T54 | insider_tip exists |  |
-| PASS | T54 | rec length 61 words |  |
+| PASS | T54 | rec length 56 words |  |
 | PASS | T54 | no AI slop detected |  |
 | PASS | T54 | uses Donde 'we' voice |  |
 | PASS | T54 | insider tip concise |  |
 | PASS | T55 | success |  |
 | PASS | T55 | restaurant returned |  |
-| WARN | T55 | deep dish maps to Italian/American | got: asian |
+| PASS | T55 | deep dish maps to Italian/American |  |
 | PASS | T56 | success |  |
 | PASS | T56 | restaurant returned |  |
 | PASS | T56 | mole negro maps to Mexican |  |
 | PASS | T57 | success |  |
 | PASS | T57 | restaurant returned |  |
-| WARN | T57 | sushi intent matched | got: cocktail bar |
+| PASS | T57 | sushi intent matched |  |
 | WARN | T57 | outdoor_seating matched | got: false |
 | PASS | T58 | success |  |
 | PASS | T58 | still returns a restaurant |  |
-| PASS | T58 | donde_match=84 |  |
+| PASS | T58 | donde_match=90 |  |
 | PASS | T59 | success |  |
 | PASS | T59 | restaurant returned |  |
-| WARN | T59 | craft beer maps to Brewery/Beer Bar | got: YATAI Asian Street Food (asian) |
+| PASS | T59 | craft beer maps to Brewery/Beer Bar |  |
+| PASS | T60 | success |  |
+| PASS | T60 | restaurant returned |  |
+| WARN | T60 | pierogi maps to Polish | got: Su Taqueria El Rey Del Taco (cocktail bar) |
+| PASS | T61 | success |  |
+| PASS | T61 | restaurant returned |  |
+| PASS | T61 | injera maps to Ethiopian |  |
+| PASS | T62 | success |  |
+| PASS | T62 | restaurant returned |  |
+| PASS | T62 | brisket maps to BBQ |  |
+| PASS | T63 | success |  |
+| PASS | T63 | restaurant returned |  |
+| PASS | T63 | mofongo maps to Puerto Rican |  |
+| PASS | T64 | success |  |
+| PASS | T64 | restaurant returned |  |
+| PASS | T64 | shawarma maps to Middle Eastern |  |
+| PASS | T65 | success is boolean |  |
+| PASS | T65 | has recommendation |  |
 
 ## Enhancement Recommendations
 

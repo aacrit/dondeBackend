@@ -185,11 +185,24 @@ export function buildTemplateResponse(
   };
 }
 
-export function buildNoResultsResponse(): Record<string, unknown> {
+export function buildNoResultsResponse(
+  neighborhood?: string,
+  priceLevel?: string
+): Record<string, unknown> {
+  let message = "We couldn't find a match for that combination.";
+  const suggestions: string[] = [];
+  if (neighborhood && neighborhood !== "Anywhere") {
+    suggestions.push(`try "Anywhere" for neighborhood`);
+  }
+  if (priceLevel && priceLevel !== "Any") {
+    suggestions.push(`try "Any" for budget`);
+  }
+  if (suggestions.length > 0) {
+    message += ` You might ${suggestions.join(" or ")}.`;
+  }
   return {
     success: false,
-    recommendation:
-      "No restaurants found matching your criteria. Try a different neighborhood or price range!",
+    recommendation: message,
     restaurant: {},
     scores: {},
     tags: [],

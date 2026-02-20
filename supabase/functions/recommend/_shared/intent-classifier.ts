@@ -29,7 +29,7 @@ Rules:
 - cuisine_importance "high": user clearly wants a specific cuisine (pizza, sushi, tacos, deep dish, mole, pho, dim sum, BBQ ribs)
 - cuisine_importance "medium": implied cuisine preference (comfort food, spicy, noodles)
 - cuisine_importance "low": request is about vibe, occasion, or location only (cozy date night, bustling atmosphere)
-- Map food items to their cuisine: pizza/pasta → Italian, sushi/ramen → Japanese, tacos/mole → Mexican, pho/banh mi → Vietnamese, dim sum → Chinese, BBQ → BBQ or Korean depending on context, deep dish → Italian, beer/craft beer/brewery/IPA/ale/taproom/brewpub → Brewery/Beer Bar
+- Map food items to their cuisine: pizza/pasta/gnocchi/carbonara → Italian, sushi/ramen/yakitori/udon/tempura → Japanese, tacos/mole/birria/al pastor/chilaquiles → Mexican, pho/banh mi/bun bo hue → Vietnamese, dim sum/hotpot/bao/peking duck → Chinese, BBQ/brisket/ribs/pulled pork → BBQ, korean bbq/bulgogi/bibimbap → Korean, deep dish → Italian, beer/craft beer/brewery/IPA/ale/taproom/brewpub → Brewery/Beer Bar, pierogi/kielbasa → Polish, mofongo/pernil/tostones → Puerto Rican, injera/doro wat/kitfo → Ethiopian, ceviche/lomo saltado → Peruvian, churrasco/rodizio/picanha → Brazilian, shawarma/kebab/falafel → Middle Eastern, gyro/souvlaki/moussaka → Greek, fried chicken/gumbo/collard greens/jambalaya → Southern/Soul Food, tikka masala/biryani/vindaloo/samosa → Indian, pad thai/green curry/tom yum → Thai, espresso/latte/cappuccino → Coffee/Cafe, bouillabaisse/coq au vin/steak frites → French
 - Only include tags/features that are clearly implied by the request
 
 Respond ONLY in JSON (no markdown, no explanation):
