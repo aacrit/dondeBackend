@@ -452,6 +452,7 @@ Deno.serve(async (req: Request) => {
             priceLevel: price_level,
             googleData: nextGoogleData,
             claudeRelevance: parsed.relevance_score,
+            sentimentNegative: parsed.sentiment_negative,
           });
 
           responseBody = buildSuccessResponse(nextChosen, parsed, nextGoogleData, dondeMatch);
@@ -478,6 +479,7 @@ Deno.serve(async (req: Request) => {
           priceLevel: price_level,
           googleData,
           claudeRelevance: parsed.relevance_score,
+          sentimentNegative: parsed.sentiment_negative,
         };
         const dondeMatch = chosen.deep_profile
           ? computeDondeMatchV2(chosen, matchInputs, intent)
@@ -581,6 +583,11 @@ function recoverFromMalformedClaude(text: string): ClaudeRecommendation | null {
       const sentMatch = text.match(/"sentiment_score"\s*:\s*([\d.]+)/);
       const breakdownMatch = text.match(/"sentiment_breakdown"\s*:\s*"((?:[^"\\]|\\.)*)"/);
 
+      const summaryMatch = text.match(/"sentiment_summary"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      const posMatch = text.match(/"sentiment_positive"\s*:\s*(\d+)/);
+      const negMatch = text.match(/"sentiment_negative"\s*:\s*(\d+)/);
+      const neuMatch = text.match(/"sentiment_neutral"\s*:\s*(\d+)/);
+
       return {
         restaurant_index: parseInt(indexMatch[1]),
         recommendation: recMatch[1].replace(/\\"/g, '"'),
@@ -588,6 +595,10 @@ function recoverFromMalformedClaude(text: string): ClaudeRecommendation | null {
         relevance_score: relMatch ? parseFloat(relMatch[1]) : 7.0,
         sentiment_score: sentMatch ? parseFloat(sentMatch[1]) : null,
         sentiment_breakdown: breakdownMatch ? breakdownMatch[1].replace(/\\"/g, '"') : null,
+        sentiment_summary: summaryMatch ? summaryMatch[1].replace(/\\"/g, '"') : null,
+        sentiment_positive: posMatch ? parseInt(posMatch[1]) : null,
+        sentiment_negative: negMatch ? parseInt(negMatch[1]) : null,
+        sentiment_neutral: neuMatch ? parseInt(neuMatch[1]) : null,
       };
     }
   } catch (_e) {

@@ -767,6 +767,7 @@ export interface DondeMatchInputs {
   priceLevel: string;
   googleData: GooglePlaceData | null;
   claudeRelevance?: number;
+  sentimentNegative?: number | null;
 }
 
 // Weights sum to 1.0
@@ -1017,6 +1018,15 @@ function computeGoogleQuality(googleData: GooglePlaceData | null): number {
   return ratingNorm * confidence;
 }
 
+// Sentiment penalty: penalize donde_match when reviews are significantly negative.
+// Only penalizes, never boosts — match is about fit, not quality.
+// Returns 0 (no penalty) to -3 (severe negative sentiment).
+function computeSentimentPenalty(sentimentNegative: number | null | undefined): number {
+  if (sentimentNegative == null || sentimentNegative <= 15) return 0;
+  // 15% negative = no penalty, 50%+ = max penalty of -3 on 0-10 scale (~12 pts on 60-99 scale)
+  return -Math.min(3, ((sentimentNegative - 15) / 35) * 3);
+}
+
 // Sub-score 4: Vibe Alignment (0-10)
 function computeVibeAlignment(
   profile: RestaurantProfile,
@@ -1136,12 +1146,15 @@ export function computeDondeMatch(
     inputs.priceLevel
   );
 
-  const raw =
+  let raw =
     W_OCCASION * occasionFit +
     W_REQUEST * requestRelevance +
     W_GOOGLE * googleQuality +
     W_VIBE * vibeAlignment +
     W_FILTER * filterPrecision;
+
+  // Sentiment penalty: reduce match when reviews are significantly negative
+  raw += computeSentimentPenalty(inputs.sentimentNegative);
 
   // Map 0-10 raw composite to 60-99% confidence range
   const matchPercent = 60 + Math.min(10, Math.max(0, raw)) * 3.9;
@@ -1627,6 +1640,9 @@ export function computeDondeMatchV2(
     composite = composite * 0.6 + inputs.claudeRelevance * 0.4;
   }
 
+  // Sentiment penalty: reduce match when reviews are significantly negative
+  composite += computeSentimentPenalty(inputs.sentimentNegative);
+
   // Map to 60-99 range
   return Math.min(99, Math.max(60, Math.round(60 + Math.min(10, Math.max(0, composite)) * 3.9)));
 }
@@ -1988,8 +2004,12 @@ OUTPUT FORMAT — respond ONLY in this exact JSON (no markdown, no backticks):
   "recommendation": "50-80 word paragraph. Concise, grounded, opinionated. Explain WHY we picked this spot for THEIR specific request. Reference real attributes from the data. Use deep profile details when available.",
   "insider_tip": "One practical, grounded sentence. See rules below.",
   "relevance_score": 8.5,
-  "sentiment_score": 4.2,
-  "sentiment_breakdown": "2-3 sentences on what diners love and any common complaints from the provided reviews. null if no reviews provided."
+  "sentiment_score": 7.5,
+  "sentiment_positive": 80,
+  "sentiment_negative": 10,
+  "sentiment_neutral": 10,
+  "sentiment_breakdown": "80% positive, 10% neutral, 10% negative",
+  "sentiment_summary": "Diners rave about the handmade pasta and warm service. A few mention slow waits on weekends."
 }
 
 INSIDER TIP RULES (V2 — use the richest available data):
@@ -2018,7 +2038,10 @@ Example 3 (without reviews, minimal deep profile):
 
 SCORING:
 - relevance_score (0-10): How well this restaurant matches the user's specific request. 9-10 = nails every aspect. 7-8 = strong match, minor gaps. 5-6 = partial match. Below 5 = best available but weak fit.
-- sentiment_score (0-10): Overall review sentiment. Only set if reviews are provided, otherwise null.`;
+- sentiment_score (0-10): Overall review sentiment. Only set if reviews are provided, otherwise null.
+- sentiment_positive, sentiment_negative, sentiment_neutral: Integer percentages that MUST sum to 100. Classify each provided review by its star rating: 4-5 stars = positive, 1-2 stars = negative, 3 stars = neutral. Compute the percentage for each category. All three must be null if no reviews are provided.
+- sentiment_breakdown: Format EXACTLY as "X% positive, Y% neutral, Z% negative" (e.g. "80% positive, 10% neutral, 10% negative"). null if no reviews.
+- sentiment_summary: 1-2 sentences on what diners love and any common complaints from the provided reviews. null if no reviews.`;
 }
 
 // V2 Voice modulation — shifts personality based on occasion and restaurant character

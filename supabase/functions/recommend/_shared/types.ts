@@ -148,4 +148,8 @@ export interface ClaudeRecommendation {
   relevance_score: number;
   sentiment_score: number | null;
   sentiment_breakdown: string | null;
+  sentiment_summary: string | null;
+  sentiment_positive: number | null;
+  sentiment_negative: number | null;
+  sentiment_neutral: number | null;
 }
