@@ -1,7 +1,13 @@
 /**
- * Pipeline 5: Generate Occasion Scores
- * NEW pipeline - generates occasion scores for restaurants that don't have them
- * Schedule: Weekly (Sunday 7am UTC)
+ * Pipeline: Regenerate Occasion Scores
+ *
+ * Re-generates occasion scores for ALL restaurants (including already-scored ones).
+ * Unlike generate-occasion-scores.ts which only targets unscored restaurants,
+ * this pipeline refreshes scores using the corrected cuisine_type as context.
+ *
+ * Usage: cd scripts && npx tsx pipelines/regenerate-occasion-scores.ts
+ * Env: DRY_RUN=true to preview without DB writes
+ *      BATCH_LIMIT=50 to process only N restaurants (for incremental runs)
  */
 
 import { createAdminClient } from "../lib/supabase.js";
@@ -9,6 +15,7 @@ import { askClaude, parseJsonResponse } from "../lib/claude.js";
 import { processBatches } from "../lib/batch.js";
 
 const DRY_RUN = process.env.DRY_RUN === "true";
+const BATCH_LIMIT = parseInt(process.env.BATCH_LIMIT || "0", 10);
 
 interface ScoresResult {
   restaurants: Array<{
@@ -24,39 +31,40 @@ interface ScoresResult {
 }
 
 async function main() {
-  console.log("=== Occasion Scores Pipeline ===");
+  console.log("=== Regenerate Occasion Scores Pipeline ===");
   console.log(`Mode: ${DRY_RUN ? "DRY RUN" : "LIVE"}`);
+  if (BATCH_LIMIT > 0) console.log(`Batch limit: ${BATCH_LIMIT} restaurants`);
 
   const supabase = createAdminClient();
-
-  // Find restaurants without occasion scores
-  const { data: allScores, error: scError } = await supabase
-    .from("occasion_scores")
-    .select("restaurant_id");
-  if (scError) throw scError;
-
-  const scoredIds = new Set((allScores || []).map((s) => s.restaurant_id));
 
   const { data: restaurants, error: rError } = await supabase
     .from("restaurants")
     .select(
-      "id, name, address, price_level, noise_level, lighting_ambiance, ambiance, good_for, best_for_oneliner"
-    );
+      "id, name, address, price_level, cuisine_type, noise_level, lighting_ambiance, ambiance, good_for, best_for_oneliner"
+    )
+    .eq("is_active", true)
+    .order("name");
   if (rError) throw rError;
 
-  const unscored = (restaurants || []).filter((r) => !scoredIds.has(r.id));
+  let targets = restaurants || [];
+  if (BATCH_LIMIT > 0) {
+    targets = targets.slice(0, BATCH_LIMIT);
+  }
 
-  if (unscored.length === 0) {
-    console.log("All restaurants have occasion scores. Done.");
+  if (targets.length === 0) {
+    console.log("No restaurants found. Done.");
     return;
   }
 
-  console.log(`Found ${unscored.length} restaurants needing occasion scores`);
+  console.log(`Regenerating occasion scores for ${targets.length} restaurants`);
+  let successCount = 0;
+  let failCount = 0;
 
-  await processBatches(unscored, 10, async (batch) => {
+  await processBatches(targets, 10, async (batch) => {
     const restaurantList = batch
       .map((r, i) => {
         return `${i + 1}. ${r.name} (ID: ${r.id})
+   Cuisine: ${r.cuisine_type || "N/A"}
    Address: ${r.address || "N/A"}
    Price: ${r.price_level || "N/A"}
    Noise: ${r.noise_level || "N/A"}
@@ -77,6 +85,12 @@ Scoring guide:
 - solo_dining_score: Bar seating, counter service, welcoming to solo diners
 - hole_in_wall_factor: Hidden gem quality, authentic, off-the-radar, local favorite
 - romantic_rating: Special occasion worthy, ambiance, presentation, unique experience
+
+Important: Use the cuisine type to inform your scoring. For example:
+- Cocktail bars should score high on date_friendly and solo_dining, low on family_friendly
+- BBQ joints should score high on group_friendly and hole_in_wall_factor
+- Fine dining steakhouses should score high on business_lunch and romantic_rating
+- Brunch spots should score high on group_friendly and family_friendly
 
 Return ONLY valid JSON (no markdown):
 {
@@ -103,7 +117,6 @@ ${restaurantList}`;
       const parsed = parseJsonResponse<ScoresResult>(responseText);
 
       for (const result of parsed.restaurants) {
-        // Clamp all scores to 0-10
         const clamp = (v: number) => Math.max(0, Math.min(10, Math.round(v)));
 
         const scoreData = {
@@ -118,32 +131,40 @@ ${restaurantList}`;
         };
 
         if (DRY_RUN) {
-          console.log(`  [DRY RUN] Would insert scores for ${result.id}`);
+          console.log(`  [DRY RUN] Would upsert scores for ${result.id}`);
+          successCount++;
           continue;
         }
 
-        const { error: insertError } = await supabase
+        const { error: upsertError } = await supabase
           .from("occasion_scores")
           .upsert(scoreData, { onConflict: "restaurant_id" });
 
-        if (insertError) {
+        if (upsertError) {
           console.error(
-            `Failed to upsert scores for ${result.id}:`,
-            insertError
+            `  Failed to upsert scores for ${result.id}:`,
+            upsertError
           );
+          failCount++;
+        } else {
+          successCount++;
         }
       }
 
       console.log(`  Scored ${parsed.restaurants.length} restaurants`);
     } catch (err) {
       console.error("Claude failed for batch:", err);
+      failCount += batch.length;
     }
   });
 
-  console.log("Occasion scores pipeline complete.");
+  console.log("\n=== Regeneration Summary ===");
+  console.log(`Success: ${successCount} restaurants`);
+  console.log(`Failed: ${failCount} restaurants`);
+  console.log("Done.");
 }
 
 main().catch((err) => {
-  console.error("Occasion scores pipeline failed:", err);
+  console.error("Regenerate occasion scores pipeline failed:", err);
   process.exit(1);
 });

@@ -1,18 +1,14 @@
-name: Restaurant Enrichment
+name: Analytics Pipeline
 
 on:
   schedule:
-    - cron: '0 5 * * 0,3'  # Matches discovery schedule
-  # Enhancement 16: Auto-trigger when discovery completes
-  workflow_run:
-    workflows: ["Restaurant Discovery"]
-    types: [completed]
+    - cron: '0 2 * * *'  # Daily at 2am UTC
   workflow_dispatch: {}
 
 jobs:
-  enrich:
+  analytics:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
@@ -25,10 +21,9 @@ jobs:
         run: npm ci
         working-directory: scripts
 
-      - name: Run enrichment pipeline
-        run: npx tsx pipelines/enrichment.ts
+      - name: Run analytics pipeline
+        run: npx tsx pipelines/analytics.ts
         working-directory: scripts
         env:
           SUPAB_URL: ${{ secrets.SUPAB_URL }}
           SUPAB_SERVICE_ROLE_KEY: ${{ secrets.SUPAB_SERVICE_ROLE_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

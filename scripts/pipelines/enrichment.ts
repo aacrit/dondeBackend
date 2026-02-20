@@ -27,6 +27,7 @@ interface EnrichmentResult {
     live_music: boolean;
     pet_friendly: boolean;
     insider_tip: string;
+    best_times: string[]; // Enhancement 12: Time-of-day awareness
   }>;
 }
 
@@ -84,11 +85,12 @@ For each restaurant, provide:
 7. parking_info: Description of likely parking availability
 8. accessibility_features: Array like ["Wheelchair accessible"]
 9. best_for_oneliner: A catchy one-liner describing what makes this place special (max 15 words)
-10. cuisine_type: Primary cuisine category. Use ONE of: "Mexican", "American", "Italian", "Japanese", "Thai", "Chinese", "Korean", "French", "Seafood", "Steak", "Mediterranean", "Vietnamese", "Indian", "Vegan", "Brunch", "Cocktail Bar", "Coffee/Cafe", or similar. Must be a single string.
+10. cuisine_type: Primary cuisine category. Use ONE of: "Mexican", "American", "Italian", "Japanese", "Thai", "Chinese", "Korean", "French", "Seafood", "Steak", "Mediterranean", "Vietnamese", "Indian", "Ethiopian", "Peruvian", "Brazilian", "Vegan", "Brunch", "Cocktail Bar", "Coffee/Cafe", "Brewery/Beer Bar", "BBQ", "Southern/Soul Food", "Middle Eastern", "Greek", "Fusion", "Polish", "Puerto Rican", or similar. Must be a single string.
 11. outdoor_seating: true/false — whether the restaurant has outdoor/patio seating
 12. live_music: true/false — whether the restaurant regularly features live music
 13. pet_friendly: true/false — whether the restaurant allows pets (especially on patios)
 14. insider_tip: One specific, actionable insider tip for this restaurant (e.g., "Ask for the corner booth", "Try the off-menu horchata", "Go on Tuesday for half-price bottles"). Should be practical insider knowledge, max 20 words.
+15. best_times: Array of time-of-day labels when this restaurant shines. Options: "breakfast", "lunch", "dinner", "late_night", "brunch_weekend". Most restaurants should have 2-3 entries.
 
 Return ONLY valid JSON in this exact format (no markdown, no explanation):
 {
@@ -108,7 +110,8 @@ Return ONLY valid JSON in this exact format (no markdown, no explanation):
       "outdoor_seating": true,
       "live_music": false,
       "pet_friendly": true,
-      "insider_tip": "Ask for the corner booth with the skyline view"
+      "insider_tip": "Ask for the corner booth with the skyline view",
+      "best_times": ["lunch", "dinner"]
     }
   ]
 }
@@ -123,7 +126,10 @@ ${restaurantList}`;
 
     for (let i = 0; i < batch.length; i++) {
       const restaurant = batch[i];
-      const enrichment = parsed.restaurants[i];
+      // Enhancement 17: Name-based matching instead of index-based
+      const enrichment = parsed.restaurants.find(
+        (e) => e.name.toLowerCase().trim() === restaurant.name.toLowerCase().trim()
+      ) || parsed.restaurants[i]; // Fallback to index if name not found
       if (!enrichment) continue;
 
       const updateData = {
@@ -148,6 +154,9 @@ ${restaurantList}`;
         live_music: enrichment.live_music ?? null,
         pet_friendly: enrichment.pet_friendly ?? null,
         insider_tip: enrichment.insider_tip || null,
+        best_times: Array.isArray(enrichment.best_times)
+          ? enrichment.best_times
+          : [],
         updated_at: now,
         last_data_refresh: now,
       };

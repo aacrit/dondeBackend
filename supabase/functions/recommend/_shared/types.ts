@@ -24,6 +24,11 @@ export interface Restaurant {
   cuisine_type: string | null;
   best_for_oneliner: string | null;
   insider_tip: string | null;
+  best_times: string[] | null;
+  dietary_options: string[] | null;
+  good_for: string[] | null;
+  ambiance: string[] | null;
+  is_active: boolean | null;
 }
 
 export interface OccasionScores {
@@ -42,16 +47,19 @@ export interface Tag {
   id: string;
   restaurant_id: string;
   tag_text: string;
+  tag_category: string | null;
 }
 
 export interface Neighborhood {
   id: string;
   name: string;
+  description: string | null;
 }
 
 /** Merged profile used for ranking (DB data + scores + tags) */
 export interface RestaurantProfile extends Restaurant {
   neighborhood_name: string;
+  neighborhood_description: string | null;
   date_friendly_score: number | null;
   group_friendly_score: number | null;
   family_friendly_score: number | null;
@@ -60,6 +68,10 @@ export interface RestaurantProfile extends Restaurant {
   solo_dining_score: number | null;
   hole_in_wall_factor: number | null;
   tags: string[];
+  tag_categories: string[];
+  occasion_score: number | null;
+  total_score: number | null;
+  trending_score: number | null;
 }
 
 export interface ClaudeRecommendation {

@@ -6,7 +6,23 @@ import type {
   RestaurantProfile,
 } from "./types.ts";
 import type { GooglePlaceData } from "./google-places.ts";
+import type { IntentClassification } from "./intent-classifier.ts";
 
+// --- Enhancement 2: Multi-score occasion weights ---
+// Each occasion maps to a weighted blend of score columns
+const OCCASION_WEIGHTS: Record<string, Record<string, number>> = {
+  "Date Night": { date_friendly_score: 1.0 },
+  "Group Hangout": { group_friendly_score: 1.0 },
+  "Family Dinner": { family_friendly_score: 1.0 },
+  "Business Lunch": { business_lunch_score: 1.0 },
+  "Solo Dining": { solo_dining_score: 1.0 },
+  "Special Occasion": { romantic_rating: 0.7, date_friendly_score: 0.3 },
+  "Treat Myself": { solo_dining_score: 0.5, romantic_rating: 0.3, hole_in_wall_factor: 0.2 },
+  Adventure: { hole_in_wall_factor: 0.6, group_friendly_score: 0.2, solo_dining_score: 0.2 },
+  "Chill Hangout": { group_friendly_score: 0.6, solo_dining_score: 0.3, hole_in_wall_factor: 0.1 },
+};
+
+// Primary score column for RPC (backward compat) — used only for single-column lookup
 const OCCASION_SCORE_MAP: Record<string, string> = {
   "Date Night": "date_friendly_score",
   "Group Hangout": "group_friendly_score",
@@ -17,11 +33,28 @@ const OCCASION_SCORE_MAP: Record<string, string> = {
   "Treat Myself": "solo_dining_score",
   Adventure: "hole_in_wall_factor",
   "Chill Hangout": "group_friendly_score",
-  Any: "date_friendly_score",
+  Any: "total_score", // Enhancement 1: "Any" no longer biased to date_friendly
 };
 
 export function getScoreField(occasion: string): string {
   return OCCASION_SCORE_MAP[occasion] || "date_friendly_score";
+}
+
+// Enhancement 2: Compute weighted occasion score from multi-score blend
+function computeWeightedOccasionScore(profile: RestaurantProfile, occasion: string): number {
+  if (occasion === "Any") {
+    return (sumAllScores(profile) / 70) * 10;
+  }
+  const weights = OCCASION_WEIGHTS[occasion];
+  if (!weights) {
+    const field = getScoreField(occasion);
+    return (profile[field as keyof RestaurantProfile] as number) ?? 0;
+  }
+  let score = 0;
+  for (const [field, weight] of Object.entries(weights)) {
+    score += ((profile[field as keyof RestaurantProfile] as number) ?? 0) * weight;
+  }
+  return score;
 }
 
 // --- Keyword boosting ---
@@ -37,10 +70,24 @@ const CUISINE_KEYWORDS: Record<string, string[]> = {
   French: ["french", "bistro", "crepe"],
   Seafood: ["seafood", "fish", "lobster", "oyster", "crab"],
   Steak: ["steak", "steakhouse", "filet"],
-  Mediterranean: ["mediterranean", "hummus", "falafel", "greek"],
+  Mediterranean: ["mediterranean", "mezze", "tabbouleh", "lamb"],
   Vietnamese: ["vietnamese", "pho", "banh mi"],
   Brunch: ["brunch", "pancake", "waffle", "mimosa"],
   American: ["burger", "american", "wings"],
+  "Brewery/Beer Bar": ["beer", "craft beer", "brewery", "brewpub", "ale", "ipa", "lager", "stout", "tap room", "taproom"],
+  Ethiopian: ["ethiopian", "injera", "tibs", "kitfo", "doro wat", "berbere"],
+  Peruvian: ["peruvian", "ceviche", "lomo saltado", "anticucho", "causa"],
+  Brazilian: ["brazilian", "churrasco", "feijoada", "picanha", "rodizio", "caipirinha"],
+  Vegan: ["vegan", "plant-based", "plant based", "meatless"],
+  "Cocktail Bar": ["cocktail bar", "speakeasy", "mixology", "cocktail lounge"],
+  "Coffee/Cafe": ["coffee shop", "cafe", "espresso", "latte", "cappuccino"],
+  Polish: ["polish", "pierogi", "kielbasa", "bigos", "golabki"],
+  "Puerto Rican": ["puerto rican", "mofongo", "pernil", "tostones", "alcapurria", "arroz con gandules"],
+  "Southern/Soul Food": ["soul food", "southern", "fried chicken", "collard greens", "cornbread", "gumbo", "jambalaya", "catfish"],
+  "Middle Eastern": ["middle eastern", "shawarma", "kebab", "falafel", "hummus", "baba ganoush", "pita"],
+  Greek: ["greek", "gyro", "souvlaki", "moussaka", "spanakopita", "tzatziki"],
+  Fusion: ["fusion", "eclectic", "cross-cultural"],
+  BBQ: ["bbq", "barbecue", "brisket", "ribs", "pulled pork", "smoked meat", "pitmaster"],
 };
 
 const TAG_KEYWORDS: Record<string, string[]> = {
@@ -61,20 +108,516 @@ const TAG_KEYWORDS: Record<string, string[]> = {
   waterfront: ["waterfront", "lakefront", "riverwalk", "lake view"],
   "vegan friendly": ["vegan", "plant-based", "plant based"],
   "gluten free": ["gluten free", "celiac", "gluten-free"],
+  "lively atmosphere": ["bustling", "vibrant", "energetic", "buzzing", "lively", "happening", "high energy", "animated", "festive"],
+  "craft beer": ["craft beer", "brewery", "beer garden", "tap room", "taproom", "ale house", "beer selection", "draft beer", "beer list"],
 };
+
+// --- Enhancement 4: Semantic intent expansion ---
+// Maps natural-language intents to structured boost signals
+interface IntentSignal {
+  cuisines?: string[];
+  tags?: string[];
+  features?: (keyof RestaurantProfile)[];
+}
+
+const INTENT_MAP: Record<string, IntentSignal> = {
+  // --- Cuisine cravings ---
+  "spicy": { cuisines: ["Thai", "Indian", "Korean", "Mexican"] },
+  "spice": { cuisines: ["Thai", "Indian", "Korean", "Mexican"] },
+  "noodles": { cuisines: ["Japanese", "Vietnamese", "Thai", "Chinese"] },
+  "raw": { cuisines: ["Japanese"], tags: ["farm-to-table"] },
+  "grilled": { cuisines: ["Steak", "American"] },
+  "bbq": { cuisines: ["BBQ", "Korean"] },
+  "tapas": { cuisines: ["Mediterranean"], tags: ["trendy"] },
+  "dim sum": { cuisines: ["Chinese"] },
+  "omakase": { cuisines: ["Japanese"] },
+  "comfort food": { cuisines: ["American"], tags: ["great value"] },
+  "comfort": { cuisines: ["American"], tags: ["great value"] },
+  "sandwich": { cuisines: ["American"], tags: ["great value"] },
+  "salad": { tags: ["farm-to-table", "vegan friendly"] },
+  "soup": { cuisines: ["Vietnamese", "Japanese"] },
+  "dessert": { tags: ["trendy"] },
+  "pastry": { tags: ["trendy"] },
+  "coffee": { tags: ["brunch spot"] },
+  "cafe": { tags: ["brunch spot", "quiet"] },
+  "bakery": { tags: ["brunch spot"] },
+  "poke": { cuisines: ["Japanese"], tags: ["farm-to-table"] },
+  "fusion": { tags: ["trendy"] },
+
+  // --- Cuisine types (expanded) ---
+  "ethiopian": { cuisines: ["Ethiopian"] },
+  "peruvian": { cuisines: ["Peruvian"] },
+  "brazilian": { cuisines: ["Brazilian"] },
+  "turkish": { cuisines: ["Middle Eastern"] },
+  "lebanese": { cuisines: ["Middle Eastern"] },
+  "middle eastern": { cuisines: ["Middle Eastern"] },
+  "spanish": { cuisines: ["Mediterranean"], tags: ["trendy"] },
+  "soul food": { cuisines: ["Southern/Soul Food"], tags: ["hidden gem"] },
+  "cajun": { cuisines: ["Southern/Soul Food"] },
+  "creole": { cuisines: ["Southern/Soul Food"] },
+
+  // --- Flavor & preparation styles ---
+  "smoky": { cuisines: ["Korean", "American", "Steak"] },
+  "savory": { cuisines: ["American", "Italian"] },
+  "crispy": { cuisines: ["Korean", "American"] },
+  "fried": { cuisines: ["Korean", "American"] },
+  "smoked": { cuisines: ["American", "Steak"] },
+  "braised": { cuisines: ["French", "Italian"] },
+  "wood fired": { cuisines: ["Italian"] },
+  "charcoal": { cuisines: ["Steak", "Korean"] },
+  "slow cooked": { cuisines: ["American", "Italian"] },
+  "fresh": { tags: ["farm-to-table"] },
+
+  // --- Ambiance & vibe (the gap that triggered this spot-check) ---
+  "bustling": { tags: ["lively atmosphere", "trendy", "live music"] },
+  "vibrant": { tags: ["lively atmosphere", "trendy", "live music"] },
+  "energetic": { tags: ["lively atmosphere", "trendy", "live music"] },
+  "buzzing": { tags: ["lively atmosphere", "trendy"] },
+  "happening": { tags: ["trendy", "live music"] },
+  "high energy": { tags: ["lively atmosphere", "trendy", "live music"] },
+  "animated": { tags: ["lively atmosphere", "trendy"] },
+  "festive": { tags: ["lively atmosphere", "trendy", "craft cocktails"] },
+  "noisy": { tags: ["live music", "trendy"] },
+  "hopping": { tags: ["lively atmosphere", "trendy"] },
+  "loud": { tags: ["live music", "trendy"] },
+  "lively": { tags: ["live music", "trendy"] },
+  "fun": { tags: ["trendy", "live music"] },
+  "mellow": { tags: ["quiet", "hidden gem"] },
+  "relaxed": { tags: ["quiet", "hidden gem"] },
+  "laid back": { tags: ["quiet", "hidden gem"] },
+  "low key": { tags: ["quiet", "hidden gem"] },
+  "tranquil": { tags: ["quiet", "romantic"] },
+  "intimate": { tags: ["romantic", "quiet"] },
+  "warm": { tags: ["romantic", "hidden gem"] },
+  "inviting": { tags: ["hidden gem"] },
+  "welcoming": { tags: ["hidden gem", "great value"] },
+  "cozy": { tags: ["quiet", "hidden gem"] },
+  "chill": { tags: ["quiet", "hidden gem"] },
+
+  // --- Dining experience level ---
+  "fine dining": { tags: ["romantic", "trendy"] },
+  "white tablecloth": { tags: ["romantic"] },
+  "tasting menu": { tags: ["romantic", "trendy"] },
+  "prix fixe": { tags: ["romantic", "trendy"] },
+  "casual dining": { tags: ["great value"] },
+  "neighborhood spot": { tags: ["hidden gem", "great value"] },
+  "hole in the wall": { tags: ["hidden gem", "great value"] },
+  "dive": { tags: ["hidden gem", "great value"] },
+  "fancy": { tags: ["trendy", "romantic"] },
+  "upscale": { tags: ["trendy", "romantic"] },
+  "elegant": { tags: ["romantic"] },
+
+  // --- Occasion & social context ---
+  "anniversary": { tags: ["romantic", "scenic view"] },
+  "celebrate": { tags: ["romantic", "trendy"] },
+  "birthday": { tags: ["trendy", "craft cocktails"] },
+  "engagement": { tags: ["romantic", "scenic view"] },
+  "proposal": { tags: ["romantic", "scenic view"] },
+  "graduation": { tags: ["trendy", "craft cocktails"] },
+  "reunion": { tags: ["trendy"] },
+  "first date": { tags: ["romantic", "quiet"] },
+  "double date": { tags: ["romantic", "trendy"] },
+  "girls night": { tags: ["trendy", "craft cocktails"] },
+  "guys night": { tags: ["craft cocktails", "live music"] },
+  "work dinner": { tags: ["quiet"] },
+  "team dinner": { tags: ["trendy"] },
+  "client dinner": { tags: ["quiet", "romantic"] },
+  "romantic": { tags: ["romantic", "scenic view"] },
+  "quiet dinner": { tags: ["quiet", "romantic"] },
+  "business": { tags: ["quiet"] },
+  "meeting": { tags: ["quiet"] },
+  "solo": { tags: ["quiet", "hidden gem"] },
+  "kids": { tags: [] },
+  "family": { tags: [] },
+  "group": { tags: [] },
+  "large party": { tags: [] },
+
+  // --- Drinks ---
+  "drinks": { tags: ["craft cocktails", "byob"] },
+  "cocktails": { tags: ["craft cocktails"] },
+  "wine": { tags: ["romantic"], cuisines: ["Italian", "French"] },
+  "beer": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
+  "craft beer": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
+  "brewery": { cuisines: ["Brewery/Beer Bar"] },
+  "brewpub": { cuisines: ["Brewery/Beer Bar"], tags: ["lively atmosphere"] },
+  "tap room": { cuisines: ["Brewery/Beer Bar"] },
+  "ipa": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
+  "ale": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
+  "happy hour": { tags: ["craft cocktails", "great value"] },
+  "after work": { tags: ["craft cocktails", "great value"] },
+
+  // --- Meal & time context ---
+  "lunch": { tags: ["great value"] },
+  "dinner": { tags: [] },
+  "supper": { tags: [] },
+  "late night food": { tags: ["late night"] },
+  "midnight": { tags: ["late night"] },
+  "early bird": { tags: ["great value"] },
+
+  // --- Price & value ---
+  "quick": { tags: ["great value"] },
+  "fast": { tags: ["great value"] },
+  "cheap": { tags: ["great value", "hidden gem"] },
+  "affordable": { tags: ["great value", "hidden gem"] },
+  "healthy": { cuisines: ["Mediterranean"], tags: ["farm-to-table", "vegan friendly"] },
+
+  // --- Discovery & character ---
+  "unique": { tags: ["hidden gem"] },
+  "authentic": { tags: ["hidden gem"] },
+  "local": { tags: ["hidden gem"] },
+  "touristy": { tags: ["trendy", "scenic view"] },
+  "instagrammable": { tags: ["trendy", "rooftop", "scenic view"] },
+  "photogenic": { tags: ["trendy", "scenic view"] },
+
+  // --- Dietary ---
+  "vegetarian": { tags: ["vegan friendly"] },
+  "vegan": { tags: ["vegan friendly"] },
+  "gluten": { tags: ["gluten free"] },
+  "celiac": { tags: ["gluten free"] },
+  "halal": { tags: [] },
+  "kosher": { tags: [] },
+  "allergy": { tags: [] },
+
+  // --- Location & seating ---
+  "waterfront": { tags: ["waterfront", "scenic view"], features: ["outdoor_seating"] },
+  "lakefront": { tags: ["waterfront", "scenic view"], features: ["outdoor_seating"] },
+  "rooftop": { tags: ["rooftop", "scenic view"] },
+  "skyline": { tags: ["rooftop", "scenic view"] },
+  "garden": { features: ["outdoor_seating"] },
+  "terrace": { features: ["outdoor_seating"] },
+  "outdoor dining": { features: ["outdoor_seating"] },
+  "patio": { tags: ["outdoor patio"], features: ["outdoor_seating"] },
+  "candlelit": { tags: ["romantic"] },
+  "private dining": { tags: ["romantic", "quiet"] },
+  "semi private": { tags: ["quiet"] },
+  "bar seating": { tags: ["craft cocktails"] },
+
+  // --- Dish-level food terms → cuisine mapping ---
+  // Mexican
+  "chilaquiles": { cuisines: ["Mexican"] },
+  "birria": { cuisines: ["Mexican"] },
+  "al pastor": { cuisines: ["Mexican"] },
+  "pozole": { cuisines: ["Mexican"] },
+  "elote": { cuisines: ["Mexican"] },
+  "tamale": { cuisines: ["Mexican"] },
+  "churro": { cuisines: ["Mexican"] },
+  "sopapilla": { cuisines: ["Mexican"] },
+  "carnitas": { cuisines: ["Mexican"] },
+  "enchilada": { cuisines: ["Mexican"] },
+  "quesadilla": { cuisines: ["Mexican"] },
+  "mole": { cuisines: ["Mexican"] },
+
+  // Japanese
+  "tonkatsu": { cuisines: ["Japanese"] },
+  "yakitori": { cuisines: ["Japanese"] },
+  "udon": { cuisines: ["Japanese"] },
+  "tempura": { cuisines: ["Japanese"] },
+  "katsu": { cuisines: ["Japanese"] },
+  "sashimi": { cuisines: ["Japanese"] },
+  "gyoza": { cuisines: ["Japanese"] },
+  "matcha": { cuisines: ["Japanese", "Coffee/Cafe"] },
+
+  // Chinese
+  "bao": { cuisines: ["Chinese"] },
+  "hotpot": { cuisines: ["Chinese"] },
+  "hot pot": { cuisines: ["Chinese"] },
+  "peking duck": { cuisines: ["Chinese"] },
+  "szechuan": { cuisines: ["Chinese"] },
+  "sichuan": { cuisines: ["Chinese"] },
+  "wonton": { cuisines: ["Chinese"] },
+  "dan dan": { cuisines: ["Chinese"] },
+  "kung pao": { cuisines: ["Chinese"] },
+  "mapo tofu": { cuisines: ["Chinese"] },
+  "char siu": { cuisines: ["Chinese"] },
+
+  // Italian
+  "gnocchi": { cuisines: ["Italian"] },
+  "tiramisu": { cuisines: ["Italian"] },
+  "osso buco": { cuisines: ["Italian"] },
+  "bolognese": { cuisines: ["Italian"] },
+  "carbonara": { cuisines: ["Italian"] },
+  "focaccia": { cuisines: ["Italian"] },
+  "bruschetta": { cuisines: ["Italian"] },
+  "arancini": { cuisines: ["Italian"] },
+  "prosciutto": { cuisines: ["Italian"] },
+  "deep dish": { cuisines: ["Italian", "American"] },
+  "margherita": { cuisines: ["Italian"] },
+
+  // Indian
+  "tikka masala": { cuisines: ["Indian"] },
+  "biryani": { cuisines: ["Indian"] },
+  "vindaloo": { cuisines: ["Indian"] },
+  "samosa": { cuisines: ["Indian"] },
+  "paneer": { cuisines: ["Indian"] },
+  "dal": { cuisines: ["Indian"] },
+  "naan": { cuisines: ["Indian"] },
+  "tikka": { cuisines: ["Indian"] },
+  "korma": { cuisines: ["Indian"] },
+  "chana": { cuisines: ["Indian"] },
+  "dosa": { cuisines: ["Indian"] },
+
+  // Thai
+  "green curry": { cuisines: ["Thai"] },
+  "tom yum": { cuisines: ["Thai"] },
+  "som tum": { cuisines: ["Thai"] },
+  "papaya salad": { cuisines: ["Thai"] },
+  "satay": { cuisines: ["Thai"] },
+  "pad see ew": { cuisines: ["Thai"] },
+  "larb": { cuisines: ["Thai"] },
+  "mango sticky rice": { cuisines: ["Thai"] },
+
+  // Korean
+  "bulgogi": { cuisines: ["Korean"] },
+  "japchae": { cuisines: ["Korean"] },
+  "tteokbokki": { cuisines: ["Korean"] },
+  "galbi": { cuisines: ["Korean"] },
+  "banchan": { cuisines: ["Korean"] },
+  "kimchi jjigae": { cuisines: ["Korean"] },
+  "kbbq": { cuisines: ["Korean"] },
+  "korean bbq": { cuisines: ["Korean"] },
+  "soju": { cuisines: ["Korean"] },
+
+  // Vietnamese
+  "bun bo hue": { cuisines: ["Vietnamese"] },
+  "spring rolls": { cuisines: ["Vietnamese"] },
+  "com tam": { cuisines: ["Vietnamese"] },
+  "vermicelli": { cuisines: ["Vietnamese"] },
+
+  // French
+  "tartare": { cuisines: ["French"] },
+  "coq au vin": { cuisines: ["French"] },
+  "bouillabaisse": { cuisines: ["French", "Seafood"] },
+  "steak frites": { cuisines: ["French", "Steak"] },
+  "souffle": { cuisines: ["French"] },
+  "croissant": { cuisines: ["French", "Coffee/Cafe"] },
+  "escargot": { cuisines: ["French"] },
+  "ratatouille": { cuisines: ["French"] },
+
+  // BBQ & Southern/Soul Food
+  "burnt ends": { cuisines: ["BBQ"] },
+  "smoked brisket": { cuisines: ["BBQ"] },
+  "mac and cheese": { cuisines: ["Southern/Soul Food", "American"] },
+  "po boy": { cuisines: ["Southern/Soul Food"] },
+  "hush puppies": { cuisines: ["Southern/Soul Food"] },
+  "crawfish": { cuisines: ["Southern/Soul Food", "Seafood"] },
+  "grits": { cuisines: ["Southern/Soul Food", "Brunch"] },
+  "collard greens": { cuisines: ["Southern/Soul Food"] },
+
+  // Ethiopian
+  "injera": { cuisines: ["Ethiopian"] },
+  "doro wat": { cuisines: ["Ethiopian"] },
+  "kitfo": { cuisines: ["Ethiopian"] },
+  "tibs": { cuisines: ["Ethiopian"] },
+
+  // Peruvian
+  "ceviche": { cuisines: ["Peruvian", "Seafood"] },
+  "lomo saltado": { cuisines: ["Peruvian"] },
+  "anticucho": { cuisines: ["Peruvian"] },
+  "causa": { cuisines: ["Peruvian"] },
+
+  // Brazilian
+  "churrasco": { cuisines: ["Brazilian", "Steak"] },
+  "rodizio": { cuisines: ["Brazilian"] },
+  "picanha": { cuisines: ["Brazilian", "Steak"] },
+  "feijoada": { cuisines: ["Brazilian"] },
+  "caipirinha": { cuisines: ["Brazilian"] },
+
+  // Polish
+  "pierogi": { cuisines: ["Polish"] },
+  "kielbasa": { cuisines: ["Polish"] },
+  "golabki": { cuisines: ["Polish"] },
+
+  // Puerto Rican
+  "mofongo": { cuisines: ["Puerto Rican"] },
+  "pernil": { cuisines: ["Puerto Rican"] },
+  "tostones": { cuisines: ["Puerto Rican"] },
+  "alcapurria": { cuisines: ["Puerto Rican"] },
+  "arroz con gandules": { cuisines: ["Puerto Rican"] },
+
+  // Middle Eastern
+  "shawarma": { cuisines: ["Middle Eastern"] },
+  "kebab": { cuisines: ["Middle Eastern"] },
+  "falafel": { cuisines: ["Middle Eastern"] },
+  "hummus": { cuisines: ["Middle Eastern"] },
+  "baba ganoush": { cuisines: ["Middle Eastern"] },
+  "pita": { cuisines: ["Middle Eastern"] },
+  "labneh": { cuisines: ["Middle Eastern"] },
+  "fattoush": { cuisines: ["Middle Eastern"] },
+  "kibbeh": { cuisines: ["Middle Eastern"] },
+
+  // Greek
+  "gyro": { cuisines: ["Greek"] },
+  "souvlaki": { cuisines: ["Greek"] },
+  "moussaka": { cuisines: ["Greek"] },
+  "spanakopita": { cuisines: ["Greek"] },
+  "baklava": { cuisines: ["Greek", "Middle Eastern"] },
+  "tzatziki": { cuisines: ["Greek"] },
+  "saganaki": { cuisines: ["Greek"] },
+
+  // Coffee/Cafe
+  "espresso": { cuisines: ["Coffee/Cafe"] },
+  "latte": { cuisines: ["Coffee/Cafe"] },
+  "cappuccino": { cuisines: ["Coffee/Cafe"] },
+  "cortado": { cuisines: ["Coffee/Cafe"] },
+
+  // Seafood additions
+  "shrimp": { cuisines: ["Seafood"] },
+  "calamari": { cuisines: ["Seafood", "Italian"] },
+  "clam chowder": { cuisines: ["Seafood"] },
+  "poke bowl": { cuisines: ["Japanese", "Seafood"] },
+
+  // Steak additions
+  "filet mignon": { cuisines: ["Steak"] },
+  "ribeye": { cuisines: ["Steak"] },
+  "wagyu": { cuisines: ["Steak", "Japanese"] },
+  "porterhouse": { cuisines: ["Steak"] },
+};
+
+// --- Unmatched keyword extraction (for continuous learning) ---
+// Identifies words in a user's special_request that don't match any known dictionary.
+// Used to log gaps in INTENT_MAP/TAG_KEYWORDS for future enrichment.
+const STOP_WORDS = new Set([
+  "i", "a", "an", "the", "and", "or", "but", "for", "with", "in", "on", "at",
+  "to", "of", "is", "it", "that", "this", "was", "are", "be", "has", "had",
+  "want", "need", "looking", "find", "me", "my", "some", "good", "great", "best",
+  "really", "very", "something", "place", "spot", "restaurant", "food", "eat",
+  "dining", "somewhere", "chicago", "tonight", "today", "please", "like", "would",
+  "could", "should", "can", "just", "also", "too", "not", "any", "all", "more",
+]);
+
+export function extractUnmatchedKeywords(specialRequest: string): string[] {
+  if (!specialRequest || specialRequest.trim().length < 3) return [];
+
+  const lower = specialRequest.toLowerCase();
+  const words = lower.split(/\s+/).filter((w) => w.length > 2 && !STOP_WORDS.has(w));
+  if (words.length === 0) return [];
+
+  // Collect all known keywords from all dictionaries
+  const allKnown = new Set<string>();
+  for (const keywords of Object.values(CUISINE_KEYWORDS)) {
+    keywords.forEach((k) => allKnown.add(k));
+  }
+  for (const keywords of Object.values(TAG_KEYWORDS)) {
+    keywords.forEach((k) => allKnown.add(k));
+  }
+  for (const key of Object.keys(INTENT_MAP)) {
+    allKnown.add(key);
+  }
+  for (const key of Object.keys(DIETARY_KEYWORDS)) {
+    allKnown.add(key);
+  }
+
+  // Check each word — is it matched by any dictionary?
+  return words.filter((word) => {
+    for (const known of allKnown) {
+      if (known.includes(word) || word.includes(known)) return false;
+    }
+    return true;
+  });
+}
+
+// --- Enhancement 5: Dietary keyword matching ---
+const DIETARY_KEYWORDS: Record<string, string[]> = {
+  "vegetarian": ["Vegetarian", "Veg"],
+  "vegan": ["Vegan", "Plant-Based"],
+  "gluten-free": ["Gluten-Free", "Gluten Free"],
+  "gluten free": ["Gluten-Free", "Gluten Free"],
+  "halal": ["Halal"],
+  "kosher": ["Kosher"],
+  "dairy-free": ["Dairy-Free", "Dairy Free"],
+  "nut-free": ["Nut-Free", "Nut Free"],
+  "keto": ["Keto", "Low-Carb"],
+  "paleo": ["Paleo"],
+};
+
+// --- Enhancement 12: Time-of-day awareness ---
+function getChicagoTimeContext(): string {
+  const now = new Date();
+  // Chicago is UTC-6 (CST) or UTC-5 (CDT)
+  // Use a simple approximation — CDT from March to November
+  const month = now.getUTCMonth(); // 0-indexed
+  const isDST = month >= 2 && month <= 10; // March-November (approximate)
+  const offsetHours = isDST ? 5 : 6;
+  const chicagoHour = (now.getUTCHours() - offsetHours + 24) % 24;
+
+  if (chicagoHour >= 6 && chicagoHour < 11) return "breakfast";
+  if (chicagoHour >= 11 && chicagoHour < 15) return "lunch";
+  if (chicagoHour >= 15 && chicagoHour < 21) return "dinner";
+  return "late_night";
+}
 
 interface BoostedProfile extends RestaurantProfile {
   _boost: number;
 }
 
+// --- Enhancement 14: Rejection pattern analysis ---
+export interface RejectionSignals {
+  avoidCuisines: string[];
+  avoidPriceLevels: string[];
+}
+
+export function analyzeRejections(
+  excludedIds: string[],
+  allProfiles: RestaurantProfile[]
+): RejectionSignals {
+  const signals: RejectionSignals = { avoidCuisines: [], avoidPriceLevels: [] };
+  if (excludedIds.length < 2) return signals;
+
+  const excluded = allProfiles.filter((p) => excludedIds.includes(p.id));
+  if (excluded.length < 2) return signals;
+
+  // Detect cuisine clustering
+  const cuisineCounts = new Map<string, number>();
+  for (const p of excluded) {
+    if (p.cuisine_type) {
+      cuisineCounts.set(p.cuisine_type, (cuisineCounts.get(p.cuisine_type) || 0) + 1);
+    }
+  }
+  for (const [cuisine, count] of cuisineCounts) {
+    if (count >= 2) signals.avoidCuisines.push(cuisine);
+  }
+
+  // Detect price level clustering
+  const priceCounts = new Map<string, number>();
+  for (const p of excluded) {
+    if (p.price_level) {
+      priceCounts.set(p.price_level, (priceCounts.get(p.price_level) || 0) + 1);
+    }
+  }
+  for (const [price, count] of priceCounts) {
+    if (count >= 2) signals.avoidPriceLevels.push(price);
+  }
+
+  return signals;
+}
+
 function computeBoost(
   profile: RestaurantProfile,
-  specialRequest: string
+  specialRequest: string,
+  rejectionSignals?: RejectionSignals,
+  intent?: IntentClassification | null
 ): number {
-  if (!specialRequest || specialRequest.trim().length < 3) return 0;
+  let boost = 0;
+
+  // Enhancement 14: Rejection penalty
+  if (rejectionSignals) {
+    if (
+      profile.cuisine_type &&
+      rejectionSignals.avoidCuisines.includes(profile.cuisine_type)
+    ) {
+      boost -= 2.0;
+    }
+    if (
+      profile.price_level &&
+      rejectionSignals.avoidPriceLevels.includes(profile.price_level)
+    ) {
+      boost -= 1.0;
+    }
+  }
+
+  if (!specialRequest || specialRequest.trim().length < 3) return boost;
 
   const lower = specialRequest.toLowerCase();
-  let boost = 0;
 
   // Cuisine match: +3
   for (const [cuisine, keywords] of Object.entries(CUISINE_KEYWORDS)) {
@@ -111,13 +654,108 @@ function computeBoost(
     }
   }
 
+  // Enhancement 4: Semantic intent expansion (+1.0 per intent-to-attribute match)
+  for (const [intent, signals] of Object.entries(INTENT_MAP)) {
+    if (!lower.includes(intent)) continue;
+
+    // Intent cuisine match
+    if (signals.cuisines && profile.cuisine_type) {
+      if (signals.cuisines.some((c) => c.toLowerCase() === profile.cuisine_type!.toLowerCase())) {
+        boost += 1.0;
+      }
+    }
+    // Intent tag match
+    if (signals.tags) {
+      for (const targetTag of signals.tags) {
+        if (profile.tags.some((t) => t.toLowerCase().includes(targetTag.toLowerCase()))) {
+          boost += 0.5;
+        }
+      }
+    }
+    // Intent feature match
+    if (signals.features) {
+      for (const feature of signals.features) {
+        if (profile[feature]) boost += 0.5;
+      }
+    }
+  }
+
+  // Enhancement 5: Dietary keyword matching (+2 per dietary match)
+  if (profile.dietary_options && profile.dietary_options.length > 0) {
+    for (const [keyword, dietaryValues] of Object.entries(DIETARY_KEYWORDS)) {
+      if (lower.includes(keyword)) {
+        const match = profile.dietary_options.some((opt) =>
+          dietaryValues.some((dv) => opt.toLowerCase().includes(dv.toLowerCase()))
+        );
+        if (match) boost += 2.0;
+      }
+    }
+  }
+
+  // Enhancement 5: good_for array matching (+1.0 per match)
+  if (profile.good_for && profile.good_for.length > 0) {
+    const goodForKeywords: Record<string, string[]> = {
+      "date": ["Dates", "Date Night", "Romantic"],
+      "group": ["Groups", "Group Dining", "Large Parties"],
+      "family": ["Families", "Family", "Kids"],
+      "solo": ["Solo", "Solo Dining"],
+      "business": ["Business", "Business Lunch", "Meetings"],
+    };
+    for (const [keyword, matches] of Object.entries(goodForKeywords)) {
+      if (lower.includes(keyword)) {
+        if (profile.good_for.some((gf) =>
+          matches.some((m) => gf.toLowerCase().includes(m.toLowerCase()))
+        )) {
+          boost += 1.0;
+        }
+      }
+    }
+  }
+
+  // Enhancement 12: Time-of-day boost (+1.5 match, -1.0 mismatch)
+  if (profile.best_times && profile.best_times.length > 0) {
+    const timeContext = getChicagoTimeContext();
+    if (profile.best_times.includes(timeContext)) {
+      boost += 1.5;
+    } else if (
+      profile.best_times.length <= 2 &&
+      !profile.best_times.includes(timeContext)
+    ) {
+      // Only penalize narrow-focus restaurants (e.g., brunch-only at dinner)
+      boost -= 1.0;
+    }
+  }
+
+  // Intent classification boost (stronger than keyword matching)
+  if (intent) {
+    if (intent.target_cuisines.length > 0 && profile.cuisine_type) {
+      const cuisineMatch = intent.target_cuisines.some(
+        (c) => c.toLowerCase() === profile.cuisine_type!.toLowerCase()
+      );
+      if (cuisineMatch) {
+        boost += intent.cuisine_importance === "high" ? 5 : 3;
+      } else if (intent.cuisine_importance === "high") {
+        boost -= 2; // Penalize non-matching when user clearly wants specific cuisine
+      }
+    }
+    for (const targetTag of intent.target_tags) {
+      if (profile.tags.some((t) => t.toLowerCase().includes(targetTag.toLowerCase()))) {
+        boost += 1.5;
+      }
+    }
+    for (const feature of intent.target_features) {
+      if (profile[feature as keyof RestaurantProfile]) {
+        boost += 1.5;
+      }
+    }
+  }
+
   return boost;
 }
 
 // --- Donde Match: Deterministic weighted confidence percentage ---
 // "We're X% confident this is your spot."
 // Combines match relevance (70%) + quality signals (30%) into a single percentage.
-// See plan.md for full design rationale and best-in-class comparison.
 
 export interface DondeMatchInputs {
   occasion: string;
@@ -236,16 +874,13 @@ function sumAllScores(profile: RestaurantProfile): number {
   );
 }
 
-// Sub-score 1: Occasion Fit (0-10)
+// Sub-score 1: Occasion Fit (0-10) — Enhanced with multi-score blending
 function computeOccasionFit(
   profile: RestaurantProfile,
   occasion: string
 ): number {
-  if (occasion === "Any") {
-    return (sumAllScores(profile) / 70) * 10;
-  }
-  const scoreField = getScoreField(occasion);
-  return (profile[scoreField as keyof RestaurantProfile] as number) ?? 0;
+  // Enhancement 2: Use weighted blend instead of single score
+  return computeWeightedOccasionScore(profile, occasion);
 }
 
 // Sub-score 2: Request Relevance (0-10) — tiered
@@ -257,7 +892,7 @@ function computeKeywordRelevance(
 
   const lower = specialRequest.toLowerCase();
   let points = 0;
-  const maxPoints = 12;
+  const maxPoints = 16; // Increased from 12 to account for new signals
 
   // Cuisine match: worth 4 points
   for (const [cuisine, keywords] of Object.entries(CUISINE_KEYWORDS)) {
@@ -310,8 +945,42 @@ function computeKeywordRelevance(
       if (profile[field]) points += 1;
     }
   }
-  points = Math.min(maxPoints, points);
 
+  // Enhancement 5: Dietary match: worth up to 2 points
+  if (profile.dietary_options && profile.dietary_options.length > 0) {
+    for (const [keyword, dietaryValues] of Object.entries(DIETARY_KEYWORDS)) {
+      if (lower.includes(keyword)) {
+        const match = profile.dietary_options.some((opt) =>
+          dietaryValues.some((dv) => opt.toLowerCase().includes(dv.toLowerCase()))
+        );
+        if (match) {
+          points += 2;
+          break; // Only count one dietary match
+        }
+      }
+    }
+  }
+
+  // Enhancement 4: Intent expansion: worth up to 2 points
+  let intentPoints = 0;
+  for (const [intent, signals] of Object.entries(INTENT_MAP)) {
+    if (!lower.includes(intent)) continue;
+    if (signals.cuisines && profile.cuisine_type) {
+      if (signals.cuisines.some((c) => c.toLowerCase() === profile.cuisine_type!.toLowerCase())) {
+        intentPoints += 1;
+      }
+    }
+    if (signals.tags) {
+      for (const targetTag of signals.tags) {
+        if (profile.tags.some((t) => t.toLowerCase().includes(targetTag.toLowerCase()))) {
+          intentPoints += 0.5;
+        }
+      }
+    }
+  }
+  points += Math.min(2, intentPoints);
+
+  points = Math.min(maxPoints, points);
   return (points / maxPoints) * 10;
 }
 
@@ -336,7 +1005,6 @@ function computeGoogleQuality(googleData: GooglePlaceData | null): number {
   const reviewCount = googleData.google_review_count || 0;
 
   // Stretch 1-5 rating to 0-10 (clusters at 3.5-4.8)
-  // 4.5 → 8.0, 4.0 → 6.0, 3.5 → 4.0, 3.0 → 2.0
   const ratingNorm = Math.min(10, Math.max(0, (rating - 2.5) * 4));
 
   // Confidence multiplier: more reviews = more trustworthy
@@ -447,19 +1115,6 @@ function computeFilterPrecision(
 // 75-84%: "Good Match" (accent)
 // 60-74%: "Worth Exploring" (accent)
 
-/**
- * Compute the Donde Match percentage — a deterministic, weighted composite of 5 sub-scores
- * mapped to a confidence percentage.
- *
- * Returns an integer in [60, 99] representing "We're X% confident this is your spot."
- *
- * Mapping: match% = 60 + (raw_composite * 3.9), clamped to [60, 99]
- *  - Raw 8.5 → 93% ("Perfect Match")
- *  - Raw 7.0 → 87% ("Great Match")
- *  - Raw 5.5 → 81% ("Good Match")
- *  - Raw 4.0 → 76% ("Good Match")
- *  - Raw 2.5 → 70% ("Worth Exploring")
- */
 export function computeDondeMatch(
   profile: RestaurantProfile,
   inputs: DondeMatchInputs
@@ -498,9 +1153,9 @@ export function mergeProfiles(
   allTags: Tag[],
   neighborhoods: Neighborhood[]
 ): RestaurantProfile[] {
-  const neighborhoodMap: Record<string, string> = {};
+  const neighborhoodMap: Record<string, { name: string; description: string | null }> = {};
   for (const n of neighborhoods) {
-    neighborhoodMap[n.id] = n.name;
+    neighborhoodMap[n.id] = { name: n.name, description: n.description || null };
   }
 
   const scoresMap: Record<string, OccasionScores> = {};
@@ -509,18 +1164,32 @@ export function mergeProfiles(
   }
 
   const tagsMap: Record<string, string[]> = {};
+  const tagCategoriesMap: Record<string, string[]> = {};
   for (const t of allTags) {
     if (!tagsMap[t.restaurant_id]) tagsMap[t.restaurant_id] = [];
+    if (!tagCategoriesMap[t.restaurant_id]) tagCategoriesMap[t.restaurant_id] = [];
     if (t.tag_text && t.tag_text !== "null") {
       tagsMap[t.restaurant_id].push(t.tag_text);
+      if (t.tag_category) tagCategoriesMap[t.restaurant_id].push(t.tag_category);
     }
   }
 
   return restaurants.map((r) => {
     const scores = scoresMap[r.id] || ({} as Partial<OccasionScores>);
+    const nbhood = neighborhoodMap[r.neighborhood_id || ""] || { name: "Unknown", description: null };
+    const totalScore =
+      (scores.date_friendly_score ?? 0) +
+      (scores.group_friendly_score ?? 0) +
+      (scores.family_friendly_score ?? 0) +
+      (scores.romantic_rating ?? 0) +
+      (scores.business_lunch_score ?? 0) +
+      (scores.solo_dining_score ?? 0) +
+      (scores.hole_in_wall_factor ?? 0);
+
     return {
       ...r,
-      neighborhood_name: neighborhoodMap[r.neighborhood_id || ""] || "Unknown",
+      neighborhood_name: nbhood.name,
+      neighborhood_description: nbhood.description,
       date_friendly_score: scores.date_friendly_score ?? null,
       group_friendly_score: scores.group_friendly_score ?? null,
       family_friendly_score: scores.family_friendly_score ?? null,
@@ -529,6 +1198,10 @@ export function mergeProfiles(
       solo_dining_score: scores.solo_dining_score ?? null,
       hole_in_wall_factor: scores.hole_in_wall_factor ?? null,
       tags: tagsMap[r.id] || [],
+      tag_categories: tagCategoriesMap[r.id] || [],
+      occasion_score: null,
+      total_score: totalScore,
+      trending_score: null,
     };
   });
 }
@@ -551,17 +1224,33 @@ export function filterAndRank(
     );
   }
 
-  // Filter by price level
+  // Filter by price level (with relaxation to adjacent tiers)
   if (priceLevel && priceLevel !== "Any") {
-    filtered = filtered.filter((p) => p.price_level === priceLevel);
+    const exactMatch = filtered.filter((p) => p.price_level === priceLevel);
+    if (exactMatch.length > 0) {
+      filtered = exactMatch;
+    } else {
+      const PRICE_ORDER = ["$", "$$", "$$$", "$$$$"];
+      const idx = PRICE_ORDER.indexOf(priceLevel);
+      const adjacent = [
+        ...(idx > 0 ? [PRICE_ORDER[idx - 1]] : []),
+        ...(idx < PRICE_ORDER.length - 1 ? [PRICE_ORDER[idx + 1]] : []),
+      ];
+      const relaxed = filtered.filter((p) => adjacent.includes(p.price_level));
+      if (relaxed.length > 0) {
+        filtered = relaxed;
+      }
+      // If still empty after relaxation, keep all prices as last resort
+    }
   }
 
   // Filter: only restaurants with enrichment data (noise_level as proxy)
   filtered = filtered.filter((p) => p.noise_level != null);
 
-  if (filtered.length === 0) return [];
+  // Enhancement 20: Filter inactive restaurants
+  filtered = filtered.filter((p) => p.is_active !== false);
 
-  const scoreField = getScoreField(occasion);
+  if (filtered.length === 0) return [];
 
   // Apply keyword boosts and weighted composite sort
   const boosted: BoostedProfile[] = filtered.map((p) => ({
@@ -570,31 +1259,12 @@ export function filterAndRank(
   }));
 
   boosted.sort((a, b) => {
-    const occasionA =
-      (a[scoreField as keyof RestaurantProfile] as number) ?? 0;
-    const occasionB =
-      (b[scoreField as keyof RestaurantProfile] as number) ?? 0;
+    // Enhancement 2: Use weighted occasion score
+    const occasionA = computeWeightedOccasionScore(a, occasion);
+    const occasionB = computeWeightedOccasionScore(b, occasion);
 
-    const sumA =
-      (a.date_friendly_score || 0) +
-      (a.group_friendly_score || 0) +
-      (a.family_friendly_score || 0) +
-      (a.romantic_rating || 0) +
-      (a.business_lunch_score || 0) +
-      (a.solo_dining_score || 0) +
-      (a.hole_in_wall_factor || 0);
-    const sumB =
-      (b.date_friendly_score || 0) +
-      (b.group_friendly_score || 0) +
-      (b.family_friendly_score || 0) +
-      (b.romantic_rating || 0) +
-      (b.business_lunch_score || 0) +
-      (b.solo_dining_score || 0) +
-      (b.hole_in_wall_factor || 0);
-
-    // Weighted composite: 60% occasion + 20% normalized total + 20% boost
-    const normalizedSumA = (sumA / 70) * 10; // Normalize sum (max 70) to 0-10 scale
-    const normalizedSumB = (sumB / 70) * 10;
+    const normalizedSumA = (sumAllScores(a) / 70) * 10;
+    const normalizedSumB = (sumAllScores(b) / 70) * 10;
 
     const compositeA =
       occasionA * 0.6 + normalizedSumA * 0.2 + a._boost * 0.2;
@@ -609,37 +1279,45 @@ export function filterAndRank(
 
 // --- Re-rank RPC results with keyword boosts ---
 
-/**
- * Re-rank RPC results using keyword boosts from special_request.
- * The RPC returns restaurants sorted by occasion score only — this
- * applies special_request relevance so Claude sees better candidates.
- */
 export function reRankWithBoosts(
   profiles: RestaurantProfile[],
   occasion: string,
-  specialRequest: string
+  specialRequest: string,
+  rejectionSignals?: RejectionSignals,
+  intent?: IntentClassification | null
 ): RestaurantProfile[] {
-  if (!specialRequest || specialRequest.trim().length < 3) return profiles;
-
-  const scoreField = getScoreField(occasion);
-
   const boosted: BoostedProfile[] = profiles.map((p) => ({
     ...p,
-    _boost: computeBoost(p, specialRequest),
+    _boost: computeBoost(p, specialRequest, rejectionSignals, intent),
   }));
 
-  // Only re-sort if at least one restaurant got a boost
-  const anyBoosted = boosted.some((b) => b._boost > 0);
-  if (!anyBoosted) return profiles;
+  // Enhancement 11: Add trending score as minor tiebreaker (5% weight)
+  const hasTrending = boosted.some((b) => b.trending_score && b.trending_score > 0);
+
+  // Only re-sort if at least one restaurant got a non-zero boost or trending signal
+  const anyBoosted = boosted.some((b) => b._boost !== 0);
+  if (!anyBoosted && !hasTrending && (!specialRequest || specialRequest.trim().length < 3)) {
+    return profiles;
+  }
 
   boosted.sort((a, b) => {
-    const occasionA =
-      (a[scoreField as keyof RestaurantProfile] as number) ?? 0;
-    const occasionB =
-      (b[scoreField as keyof RestaurantProfile] as number) ?? 0;
+    // Enhancement 2: Use weighted occasion score
+    const occasionA = computeWeightedOccasionScore(a, occasion);
+    const occasionB = computeWeightedOccasionScore(b, occasion);
 
-    const compositeA = occasionA * 0.6 + a._boost * 0.4;
-    const compositeB = occasionB * 0.6 + b._boost * 0.4;
+    const trendA = (a.trending_score || 0) / 10; // Normalize to ~0-1
+    const trendB = (b.trending_score || 0) / 10;
+
+    // Adaptive weights: shift toward boost when user has strong food-specific intent
+    let wOccasion = 0.55, wBoost = 0.35, wTrend = 0.10;
+    if (intent?.cuisine_importance === "high") {
+      wOccasion = 0.35; wBoost = 0.55; wTrend = 0.10;
+    } else if (intent?.cuisine_importance === "medium") {
+      wOccasion = 0.45; wBoost = 0.45; wTrend = 0.10;
+    }
+
+    const compositeA = occasionA * wOccasion + a._boost * wBoost + trendA * wTrend;
+    const compositeB = occasionB * wOccasion + b._boost * wBoost + trendB * wTrend;
 
     return compositeB - compositeA;
   });
@@ -647,89 +1325,206 @@ export function reRankWithBoosts(
   return boosted;
 }
 
+// --- Enhancement 6: Diversity-aware candidate selection ---
+
+export function ensureDiversity(
+  top: RestaurantProfile[],
+  backfillPool: RestaurantProfile[],
+  maxPerCuisine = 3,
+  maxPerNeighborhood = 4
+): RestaurantProfile[] {
+  if (top.length <= 5) return top; // Not enough to diversify
+
+  const result: RestaurantProfile[] = [];
+  const cuisineCount = new Map<string, number>();
+  const neighborhoodCount = new Map<string, number>();
+  const demoted: RestaurantProfile[] = [];
+
+  for (let i = 0; i < top.length; i++) {
+    const r = top[i];
+    const cuisine = r.cuisine_type || "Unknown";
+    const neighborhood = r.neighborhood_name || "Unknown";
+
+    const cc = cuisineCount.get(cuisine) || 0;
+    const nc = neighborhoodCount.get(neighborhood) || 0;
+
+    // Preserve top 3 positions (their Google reviews are pre-fetched)
+    if (i < 3 || (cc < maxPerCuisine && nc < maxPerNeighborhood)) {
+      result.push(r);
+      cuisineCount.set(cuisine, cc + 1);
+      neighborhoodCount.set(neighborhood, nc + 1);
+    } else {
+      demoted.push(r);
+    }
+  }
+
+  // Backfill with restaurants from the overflow pool that add diversity
+  const resultIds = new Set(result.map((r) => r.id));
+  const topIds = new Set(top.map((r) => r.id));
+  const candidates = backfillPool.filter((r) => !resultIds.has(r.id) && !topIds.has(r.id));
+
+  for (const r of candidates) {
+    if (result.length >= 10) break;
+    const cuisine = r.cuisine_type || "Unknown";
+    const neighborhood = r.neighborhood_name || "Unknown";
+    const cc = cuisineCount.get(cuisine) || 0;
+    const nc = neighborhoodCount.get(neighborhood) || 0;
+    if (cc < maxPerCuisine && nc < maxPerNeighborhood) {
+      result.push(r);
+      cuisineCount.set(cuisine, cc + 1);
+      neighborhoodCount.set(neighborhood, nc + 1);
+    }
+  }
+
+  // If still under 10, add demoted back
+  for (const r of demoted) {
+    if (result.length >= 10) break;
+    result.push(r);
+  }
+
+  return result.slice(0, 10);
+}
+
 // --- Prompt building (split for prompt caching) ---
 
+// Enhancement 10: Expanded system prompt with static reference data for better cache utilization
 export function buildSystemPrompt(): string {
-  return `You are Donde, a warm and knowledgeable Chicago restaurant concierge. A user is looking for the perfect dining spot.
+  return `You are Donde — a sharp, opinionated Chicago dining guide that sounds like a well-connected local friend, not a chatbot. Use "we" (Donde's voice). You know the city's food scene cold.
 
-YOUR TASK:
-Pick THE ONE BEST restaurant from the candidates below. Use this priority order:
+TASK: Pick THE ONE BEST restaurant from the candidates for this user. Priority:
+1. SPECIAL REQUEST match (cuisine, vibe, features) — highest priority
+2. OCCASION FIT (noise, lighting, dress code match)
+3. QUALITY (scores, reviews, trending)
 
-1. SPECIAL REQUEST (highest priority): If the user has a specific craving, cuisine, vibe, or feature request (e.g., "sushi with a view", "quiet Italian spot", "outdoor brunch"), the restaurant MUST match that request as closely as possible. Match on cuisine type, tags, features (outdoor seating, live music), and atmosphere.
-2. OCCASION FIT: The restaurant should suit the occasion (e.g., quiet and intimate for Date Night, lively for Group Hangout). Use the occasion score, noise level, and lighting as signals.
-3. OVERALL QUALITY: Among restaurants that satisfy #1 and #2, prefer those with higher scores and stronger reviews.
+A 7/10 occasion score that nails "lakefront sushi" beats a 9/10 Italian spot indoors. Match the ASK, not the score.
 
-KEY SIGNALS TO USE:
-- Cuisine type: Match to what the user is craving
-- Tags: Match to vibe words in the special request (e.g., "hidden gem", "rooftop", "scenic view")
-- Features: Outdoor seating, live music, pet-friendly — match to explicit user requests
-- Atmosphere: Noise level + lighting — match to occasion expectations
-- Best For one-liner: Captures the restaurant's personality
-- Reviews (when provided): Recent diner sentiment
+OCCASION VIBE GUIDE:
+- Date Night: Quiet/Moderate, dim/intimate, Smart Casual+
+- Group Hangout: Moderate/Loud, bright/lively, Casual
+- Family Dinner: Quiet/Moderate, bright/warm, Casual
+- Business Lunch: Quiet, bright/modern, Business Casual+
+- Solo Dining: Quiet/Moderate, warm/cozy, Casual
+- Special Occasion: Quiet, dim/elegant, Smart Casual+
+- Treat Myself: Quiet/Moderate, warm/cozy, Casual
+- Adventure: Any vibe, Casual, hidden gems preferred
+- Chill Hangout: Moderate/Quiet, warm/dim, Casual
 
-IMPORTANT: Do NOT just pick the highest-scored restaurant. A restaurant with a 7/10 occasion score that perfectly matches "lakefront sushi" beats a 9/10 restaurant that serves Italian food indoors.
+WRITING RULES — THIS IS CRITICAL:
 
-Respond ONLY in this exact JSON format (no markdown, no backticks):
+Voice:
+- Write like The Infatuation, not like a brochure. Confident, specific, human.
+- Use "we" — "We love this spot for..." / "We'd send you here when..."
+- Mix one short punchy sentence with one or two medium ones. No walls of text.
+- Be opinionated: "The handmade pasta is the move" > "They offer a variety of options"
+- Acknowledge trade-offs honestly when relevant: "It gets loud on weekends — that's the energy."
+
+Grounding (MANDATORY — violating this is the worst failure mode):
+- ONLY reference facts from the candidate data: cuisine type, tags, noise level, lighting, dress code, features (outdoor/music/pet), best-for one-liner, dietary options, neighborhood character.
+- If REVIEWS are provided: you may reference specific dishes, experiences, or sentiments that diners actually mentioned. Paraphrase, don't quote verbatim.
+- If NO reviews are provided for the chosen restaurant: describe the style and vibe using ONLY the metadata. Do NOT invent dish names, chef names, interior details, menu items, daily specials, or specific prices.
+- When in doubt, OMIT the detail. A shorter honest rec beats a longer fabricated one.
+
+BANNED (never use these — they are AI slop):
+"culinary" "gastronomic" "unforgettable" "unparalleled" "nestled" "boasts" "tantalizing" "mouthwatering" "delectable" "exquisite" "embark" "elevate your" "a testament to" "truly remarkable" "a must-visit" "not to be missed" "a cut above" "hidden gem" (as generic filler) "from the moment you" "whether you're looking for" "that will leave you" "perfect harmony" "burst of flavor" "culinary journey" "dining experience" "taste buds"
+
+Structure:
+- Do NOT open with the restaurant name as the first word. Vary your hooks.
+- No rhetorical questions. No "This [cuisine] gem/haven/oasis."
+- Never parrot the user's request back to them.
+- The recommendation should feel like a text from a friend, not a Yelp listing.
+
+OUTPUT FORMAT — respond ONLY in this exact JSON (no markdown, no backticks):
 {
-  "restaurant_index": 0,  // 0-based index matching the candidate number (0 = first candidate, 1 = second, etc.)
-  "recommendation": "A warm, personal 80-120 word paragraph explaining WHY this restaurant is the perfect match for their request. Mention specific things about the food, atmosphere, and what makes it special for their occasion.",
-  "insider_tip": "One specific, actionable insider tip (e.g., ask for the corner booth, try the off-menu horchata, go on Tuesday for half-price bottles)",
+  "restaurant_index": 0,
+  "recommendation": "50-80 word paragraph. Concise, grounded, opinionated. Explain WHY we picked this spot for THEIR specific request. Reference real attributes from the data.",
+  "insider_tip": "One practical, grounded sentence. See rules below.",
   "relevance_score": 8.5,
   "sentiment_score": 4.2,
-  "sentiment_breakdown": "2-3 sentence summary of what diners love and any common complaints based on the provided reviews. Set to null if no reviews provided."
+  "sentiment_breakdown": "2-3 sentences on what diners love and any common complaints from the provided reviews. null if no reviews provided."
 }
 
-The relevance_score should be 0-10 reflecting how semantically relevant this restaurant is to the user's specific request text. Consider cuisine match, vibe words, dietary needs, and any specific mentions in their request. 9-10 = directly addresses every aspect of their request, 7-8 = strong match with minor gaps, 5-6 = partially matches, below 5 = best available but doesn't match well.
-The sentiment_score should be 0-10 reflecting overall review sentiment. Only include if reviews are provided.`;
+INSIDER TIP RULES:
+- If reviews mention a specific standout dish, seating spot, or timing advice → use that.
+- If no reviews: give practical advice from the metadata — e.g., dress code expectations, noise level timing ("go early for a quieter vibe"), feature highlights ("grab a patio seat if weather allows"), or what the restaurant is best known for (from best-for one-liner / tags).
+- NEVER fabricate specific menu items, off-menu secrets, server names, or reservation hacks you can't verify from the data.
+- Keep it to one sentence, under 25 words. Actionable > clever.
+
+EXAMPLES OF GOOD OUTPUT:
+
+Example 1 (with reviews):
+"recommendation": "We'd point you straight to this Logan Square spot for your date night. The handmade rigatoni gets raved about in every review for good reason, and the dim, candlelit room keeps things intimate without being stuffy. It's Italian comfort done with real craft — and the wine list punches above its price point."
+"insider_tip": "Diners rave about the pork shoulder — ask what's on the daily specials board."
+
+Example 2 (without reviews — metadata only):
+"recommendation": "For a group hangout with actual energy, we'd send you here. It's a lively Korean spot in Wicker Park with moderate noise and a casual dress code — exactly the kind of place where you order too many small plates and nobody minds. BYOB keeps the bill friendly."
+"insider_tip": "It's BYOB, so grab a six-pack from the shop next door before you walk in."
+
+SCORING:
+- relevance_score (0-10): How well this restaurant matches the user's specific request. 9-10 = nails every aspect. 7-8 = strong match, minor gaps. 5-6 = partial match. Below 5 = best available but weak fit.
+- sentiment_score (0-10): Overall review sentiment. Only set if reviews are provided, otherwise null.`;
 }
 
+// Enhancement 9: Compressed candidate format for reduced token usage
 export function buildUserPrompt(
   top10: RestaurantProfile[],
   occasion: string,
   priceLevel: string,
   neighborhood: string,
   specialRequest: string,
-  reviewsByIndex?: Map<number, string>
+  reviewsByIndex?: Map<number, string>,
+  neighborhoodDescription?: string | null,
+  rejectionContext?: string
 ): string {
-  const scoreField = getScoreField(occasion);
-
   const restaurantList = top10
     .map((d, i) => {
       const features = [
-        d.outdoor_seating ? "Outdoor seating" : null,
-        d.live_music ? "Live music" : null,
-        d.pet_friendly ? "Pet-friendly" : null,
-      ].filter(Boolean).join(", ") || "None noted";
+        d.outdoor_seating ? "Outdoor" : null,
+        d.live_music ? "LiveMusic" : null,
+        d.pet_friendly ? "PetFriendly" : null,
+      ].filter(Boolean).join(",") || "—";
 
-      let entry = `${i}. ${d.name}
-   Address: ${d.address}
-   Neighborhood: ${d.neighborhood_name}
-   Cuisine: ${d.cuisine_type || "N/A"}
-   Price: ${d.price_level}
-   ${occasion} Score: ${(d[scoreField as keyof RestaurantProfile] as number) ?? "N/A"}/10
-   Atmosphere: ${d.noise_level || "N/A"} noise, ${d.lighting_ambiance || "N/A"} lighting
-   Dress Code: ${d.dress_code || "N/A"}
-   Features: ${features}
-   Best For: ${d.best_for_oneliner || "N/A"}
-   Tags: ${d.tags.length > 0 ? d.tags.join(", ") : "N/A"}`;
+      const dietary = d.dietary_options?.length
+        ? d.dietary_options.join(",")
+        : "";
+
+      const occasionScore = computeWeightedOccasionScore(d, occasion);
+      const trending = d.trending_score ? ` T:${d.trending_score.toFixed(1)}` : "";
+
+      let entry = `${i}. ${d.name} | ${d.neighborhood_name} | ${d.cuisine_type || "N/A"} | ${d.price_level} | ${occasion}:${occasionScore.toFixed(1)}/10${trending} | ${d.noise_level || "?"} noise, ${d.lighting_ambiance || "?"} | ${d.dress_code || "?"} | ${features}${dietary ? " | Diet:" + dietary : ""} | "${d.best_for_oneliner || "N/A"}" | Tags: ${d.tags.length > 0 ? d.tags.join(", ") : "—"}`;
 
       if (reviewsByIndex?.has(i)) {
-        entry += `\n   Recent Reviews:\n${reviewsByIndex.get(i)}`;
+        entry += `\n  Recent diner reviews (use these for grounding — you may reference dishes/experiences mentioned here):\n  ${reviewsByIndex.get(i)!.split("\n").join("\n  ")}`;
+      } else {
+        entry += `\n  [No reviews available — use only metadata above for this restaurant. Do NOT invent dishes or details.]`;
       }
 
       return entry;
     })
-    .join("\n\n---\n\n");
+    .join("\n\n");
 
-  return `USER REQUEST:
+  let prompt = `USER REQUEST:
 - Occasion: ${occasion}
 - Budget: ${priceLevel}
 - Neighborhood: ${neighborhood}
-- Special Request: ${specialRequest || "None"}
+- Special Request: ${specialRequest || "None"}`;
 
-TOP 10 CANDIDATES (ranked by ${occasion} score):
+  // Enhancement 15: Neighborhood character context
+  if (neighborhoodDescription && neighborhood !== "Anywhere") {
+    prompt += `\n- Neighborhood Character: ${neighborhoodDescription}`;
+  }
 
-${restaurantList}`;
+  // Enhancement 14: Rejection context
+  if (rejectionContext) {
+    prompt += `\n\n${rejectionContext}`;
+  }
+
+  prompt += `\n\nCANDIDATES (pick the best match — your recommendation MUST only reference facts from this data):
+
+${restaurantList}
+
+REMINDER: Write 50-80 words. Use "we." Ground every claim in the data above. If the chosen restaurant has no reviews, stick to metadata only — do not fabricate dishes or details.`;
+
+  return prompt;
 }
 
 // Legacy single-string prompt builder (kept for fallback compatibility)
