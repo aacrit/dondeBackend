@@ -124,11 +124,11 @@ ${restaurantList}`;
 
         const { error: insertError } = await supabase
           .from("occasion_scores")
-          .insert(scoreData);
+          .upsert(scoreData, { onConflict: "restaurant_id" });
 
         if (insertError) {
           console.error(
-            `Failed to insert scores for ${result.id}:`,
+            `Failed to upsert scores for ${result.id}:`,
             insertError
           );
         }
