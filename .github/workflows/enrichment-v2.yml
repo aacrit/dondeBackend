@@ -1,18 +1,18 @@
-name: Restaurant Enrichment
+name: Deep Profile Enrichment (V2)
 
 on:
   schedule:
-    - cron: '0 5 1 * *'  # 1st of every month, 5am UTC (reduced from 2x/week to save Claude API credits)
-  # Enhancement 16: Auto-trigger when discovery completes
+    - cron: '0 6 1 * *'  # 1st of every month, 6am UTC (reduced from weekly to save Claude API credits)
+  # Auto-trigger when base enrichment completes
   workflow_run:
-    workflows: ["Restaurant Discovery"]
+    workflows: ["Restaurant Enrichment"]
     types: [completed]
   workflow_dispatch: {}
 
 jobs:
-  enrich:
+  enrich-v2:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60  # Longer timeout — V2 uses Sonnet + Google reviews
 
     steps:
       - uses: actions/checkout@v4
@@ -25,10 +25,11 @@ jobs:
         run: npm ci
         working-directory: scripts
 
-      - name: Run enrichment pipeline
-        run: npx tsx pipelines/enrichment.ts
+      - name: Run deep profile enrichment
+        run: npx tsx pipelines/enrichment-v2.ts
         working-directory: scripts
         env:
           SUPAB_URL: ${{ secrets.SUPAB_URL }}
           SUPAB_SERVICE_ROLE_KEY: ${{ secrets.SUPAB_SERVICE_ROLE_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}

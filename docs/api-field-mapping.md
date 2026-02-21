@@ -52,8 +52,12 @@ Complete mapping of every field exchanged between the frontend and the recommend
 | `live_music` | boolean \| null | DB (pipeline-enriched) | Atmosphere tag (shown if `true`) | Whether restaurant has live music. |
 | `pet_friendly` | boolean \| null | DB (pipeline-enriched) | Atmosphere tag (shown if `true`) | Whether restaurant allows pets. |
 | `parking_availability` | string \| null | DB (pipeline-enriched) | Info line (shown only if present) | Parking description (e.g. "Street parking", "Valet available"). |
-| `sentiment_breakdown` | string \| null | Claude analyzes fresh Google reviews on-the-fly | Stacked bar (positive/neutral/negative %) | Text like "85% positive, 10% neutral, 5% negative". UI parses percentages. |
-| `sentiment_score` | string (numeric 0-1) \| null | Claude generates on-the-fly | Fallback if breakdown not parseable | Overall sentiment as 0-1 float. |
+| `sentiment_breakdown` | string \| null | Claude analyzes fresh Google reviews on-the-fly | Stacked bar (positive/neutral/negative %) | Formatted as "80% positive, 10% neutral, 10% negative". UI parses percentages directly. null if no reviews. |
+| `sentiment_score` | string (numeric 0-10) \| null | Claude generates on-the-fly | Overall sentiment indicator | Overall sentiment as 0-10 float. null if no reviews. |
+| `sentiment_summary` | string \| null | Claude generates on-the-fly | Tooltip/detail view narrative | 1-2 sentences on what diners love and common complaints. null if no reviews. |
+| `sentiment_positive` | integer (0-100) \| null | Claude generates on-the-fly | Percentage display | Percentage of positive sentiment from reviews. null if no reviews. |
+| `sentiment_negative` | integer (0-100) \| null | Claude generates on-the-fly | Internal + percentage display | Percentage of negative sentiment. Also used in donde_match penalty calculation. null if no reviews. |
+| `sentiment_neutral` | integer (0-100) \| null | Claude generates on-the-fly | Percentage display | Percentage of neutral sentiment from reviews. null if no reviews. |
 | `neighborhood_name` | string | DB (`neighborhoods.name` via join) | Displayed on result card | Name of the neighborhood the restaurant is in. |
 
 ### `scores` object

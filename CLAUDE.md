@@ -80,3 +80,21 @@ All use `SUPAB_` prefix (SUPABASE_ is reserved in Edge Functions).
 **GitHub Actions secrets** (set in repo Settings → Secrets):
 - `SUPAB_URL`, `SUPAB_SERVICE_ROLE_KEY`
 - `ANTHROPIC_API_KEY`, `GOOGLE_PLACES_API_KEY`
+
+## Claude API Cost Requirement
+
+**IMPORTANT: Before running ANY pipeline or script that calls Claude for DB updates**, the session assistant MUST:
+1. **Estimate and disclose the total cost** (input + output tokens, USD)
+2. **Get your explicit approval** before proceeding
+3. **Monitor for API usage limits** and alert you if approaching monthly cap
+
+**Current pricing** (Claude Haiku 4.5):
+- Input: $0.80 / million tokens
+- Output: $4.00 / million tokens
+
+**Examples:**
+- **enrichment-v2** (full backfill ~1000 restaurants): ~$2.00-2.50 (2 passes per restaurant × live reviews)
+- **enrichment-v2** (weekly new restaurants ~5-10): ~$0.01-0.02
+- **scores pipeline** (all restaurants): ~$0.50-1.00
+
+This requirement prevents unexpected usage charges and keeps you informed of operational costs.

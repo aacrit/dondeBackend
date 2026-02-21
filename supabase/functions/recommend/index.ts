@@ -5,11 +5,15 @@ import {
   mergeProfiles,
   filterAndRank,
   reRankWithBoosts,
+  reRankV2,
   ensureDiversity,
   analyzeRejections,
   buildSystemPrompt,
   buildUserPrompt,
   computeDondeMatch,
+  computeDondeMatchV2,
+  computeScoringDimensions,
+  computeDimensionWeights,
   extractUnmatchedKeywords,
 } from "./_shared/scoring.ts";
 import { classifyIntent } from "./_shared/intent-classifier.ts";
@@ -32,6 +36,7 @@ import type {
   Neighborhood,
   ClaudeRecommendation,
   RestaurantProfile,
+  DeepProfile,
 } from "./_shared/types.ts";
 
 // --- Enhancement 8: In-memory response cache ---
@@ -217,7 +222,54 @@ Deno.serve(async (req: Request) => {
       top10 = filterAndRank(profiles, neighborhood, price_level, occasion, special_request);
       allRpcResults = top10;
     } else {
-      allRpcResults = rpcData as RestaurantProfile[];
+      // V2: Map dp_* fields from RPC into deep_profile object on each result
+      allRpcResults = (rpcData as Record<string, unknown>[]).map((row) => {
+        const hasDeepProfile = row.dp_service_style != null || row.dp_flavor_profiles != null;
+        const deep_profile: DeepProfile | null = hasDeepProfile ? {
+          flavor_profiles: (row.dp_flavor_profiles as string[] | null) || null,
+          signature_dishes: (row.dp_signature_dishes as Array<{ dish: string; why: string }> | null) || null,
+          cuisine_subcategory: (row.dp_cuisine_subcategory as string | null) || null,
+          menu_depth: (row.dp_menu_depth as string | null) || null,
+          spice_level: (row.dp_spice_level as string | null) || null,
+          dietary_depth: (row.dp_dietary_depth as string | null) || null,
+          service_style: (row.dp_service_style as string | null) || null,
+          meal_pacing: (row.dp_meal_pacing as string | null) || null,
+          reservation_difficulty: (row.dp_reservation_difficulty as string | null) || null,
+          typical_wait_minutes: (row.dp_typical_wait_minutes as number | null) || null,
+          group_size_sweet_spot: (row.dp_group_size_sweet_spot as string | null) || null,
+          check_average_per_person: (row.dp_check_average_per_person as number | null) || null,
+          tipping_culture: (row.dp_tipping_culture as string | null) || null,
+          kid_friendliness: (row.dp_kid_friendliness as number | null) || null,
+          music_vibe: (row.dp_music_vibe as string | null) || null,
+          decor_style: (row.dp_decor_style as string | null) || null,
+          conversation_friendliness: (row.dp_conversation_friendliness as number | null) || null,
+          energy_level: (row.dp_energy_level as number | null) || null,
+          seating_options: (row.dp_seating_options as string[] | null) || null,
+          instagram_worthiness: (row.dp_instagram_worthiness as number | null) || null,
+          seasonal_relevance: (row.dp_seasonal_relevance as Record<string, number> | null) || null,
+          cultural_authenticity: (row.dp_cultural_authenticity as number | null) || null,
+          origin_story: (row.dp_origin_story as string | null) || null,
+          crowd_profile: (row.dp_crowd_profile as string[] | null) || null,
+          neighborhood_integration: (row.dp_neighborhood_integration as string | null) || null,
+          chef_notable: (row.dp_chef_notable as boolean | null) || null,
+          awards_recognition: (row.dp_awards_recognition as string[] | null) || null,
+          wow_factors: (row.dp_wow_factors as string[] | null) || null,
+          date_progression: (row.dp_date_progression as string | null) || null,
+          best_seat_in_house: (row.dp_best_seat_in_house as string | null) || null,
+          ideal_weather: (row.dp_ideal_weather as string[] | null) || null,
+          unique_selling_point: (row.dp_unique_selling_point as string | null) || null,
+          transit_accessibility: (row.dp_transit_accessibility as string | null) || null,
+          byob_policy: (row.dp_byob_policy as string | null) || null,
+          payment_notes: (row.dp_payment_notes as string | null) || null,
+          enrichment_confidence: (row.dp_enrichment_confidence as number | null) || null,
+        } : null;
+
+        // Return RestaurantProfile with deep_profile attached
+        return {
+          ...row,
+          deep_profile,
+        } as unknown as RestaurantProfile;
+      });
       top10 = allRpcResults;
     }
 
@@ -232,8 +284,13 @@ Deno.serve(async (req: Request) => {
       ? analyzeRejections(exclude, allRpcResults)
       : undefined;
 
-    // Re-rank by special_request relevance (RPC only sorts by occasion score)
-    top10 = reRankWithBoosts(top10, occasion, special_request, rejectionSignals, intent);
+    // V2: Re-rank using multi-dimensional scoring (falls back to V1 if no deep profiles)
+    const hasDeepProfiles = top10.some((r) => r.deep_profile != null);
+    if (hasDeepProfiles) {
+      top10 = reRankV2(top10, occasion, special_request, rejectionSignals, intent);
+    } else {
+      top10 = reRankWithBoosts(top10, occasion, special_request, rejectionSignals, intent);
+    }
 
     // Enhancement 6: Apply diversity filter
     const backfillPool = allRpcResults.filter((r) => !exclude.includes(r.id));
@@ -256,7 +313,7 @@ Deno.serve(async (req: Request) => {
 
       // Enhancement 7: True parallel execution — fire Google + Claude together
       // Build Claude prompt first (without reviews), then race with Google
-      const systemPrompt = buildSystemPrompt();
+      const systemPrompt = buildSystemPrompt(occasion, price_level);
 
       // Get neighborhood description for prompt (Enhancement 15)
       const neighborhoodDescription = top10[0]?.neighborhood_description || null;
@@ -395,6 +452,7 @@ Deno.serve(async (req: Request) => {
             priceLevel: price_level,
             googleData: nextGoogleData,
             claudeRelevance: parsed.relevance_score,
+            sentimentNegative: parsed.sentiment_negative,
           });
 
           responseBody = buildSuccessResponse(nextChosen, parsed, nextGoogleData, dondeMatch);
@@ -408,18 +466,30 @@ Deno.serve(async (req: Request) => {
         if (!parsed.insider_tip && chosen.insider_tip) {
           parsed.insider_tip = chosen.insider_tip;
         }
+        // V2: Use deep profile best_seat_in_house as ultimate insider tip fallback
+        if (!parsed.insider_tip && chosen.deep_profile?.best_seat_in_house) {
+          parsed.insider_tip = chosen.deep_profile.best_seat_in_house;
+        }
 
-        // Compute donde_match deterministically (Claude provides relevance_score)
-        const dondeMatch = computeDondeMatch(chosen, {
+        // V2: Compute donde_match using multi-dimensional scoring
+        const matchInputs = {
           occasion,
           specialRequest: special_request,
           neighborhood,
           priceLevel: price_level,
           googleData,
           claudeRelevance: parsed.relevance_score,
-        });
+          sentimentNegative: parsed.sentiment_negative,
+        };
+        const dondeMatch = chosen.deep_profile
+          ? computeDondeMatchV2(chosen, matchInputs, intent)
+          : computeDondeMatch(chosen, matchInputs);
 
-        responseBody = buildSuccessResponse(chosen, parsed, googleData, dondeMatch);
+        // V2: Compute scoring dimensions for response
+        const dimensions = computeScoringDimensions(chosen, occasion, special_request, intent);
+        const weights = computeDimensionWeights(occasion, intent);
+
+        responseBody = buildSuccessResponse(chosen, parsed, googleData, dondeMatch, dimensions, weights);
       }
     } catch (claudeError) {
       wasFallback = true;
@@ -513,6 +583,11 @@ function recoverFromMalformedClaude(text: string): ClaudeRecommendation | null {
       const sentMatch = text.match(/"sentiment_score"\s*:\s*([\d.]+)/);
       const breakdownMatch = text.match(/"sentiment_breakdown"\s*:\s*"((?:[^"\\]|\\.)*)"/);
 
+      const summaryMatch = text.match(/"sentiment_summary"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      const posMatch = text.match(/"sentiment_positive"\s*:\s*(\d+)/);
+      const negMatch = text.match(/"sentiment_negative"\s*:\s*(\d+)/);
+      const neuMatch = text.match(/"sentiment_neutral"\s*:\s*(\d+)/);
+
       return {
         restaurant_index: parseInt(indexMatch[1]),
         recommendation: recMatch[1].replace(/\\"/g, '"'),
@@ -520,6 +595,10 @@ function recoverFromMalformedClaude(text: string): ClaudeRecommendation | null {
         relevance_score: relMatch ? parseFloat(relMatch[1]) : 7.0,
         sentiment_score: sentMatch ? parseFloat(sentMatch[1]) : null,
         sentiment_breakdown: breakdownMatch ? breakdownMatch[1].replace(/\\"/g, '"') : null,
+        sentiment_summary: summaryMatch ? summaryMatch[1].replace(/\\"/g, '"') : null,
+        sentiment_positive: posMatch ? parseInt(posMatch[1]) : null,
+        sentiment_negative: negMatch ? parseInt(negMatch[1]) : null,
+        sentiment_neutral: neuMatch ? parseInt(neuMatch[1]) : null,
       };
     }
   } catch (_e) {
