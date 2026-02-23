@@ -102,7 +102,22 @@ function buildRestaurantObject(
     photo_urls: googleData?.photo_urls || [],
     // F2: Business hours from Google Places
     opening_hours: googleData?.opening_hours || null,
+    // I5: Review snippets from Google Places (top 2, high-rated, truncated)
+    review_snippets: buildReviewSnippets(googleData),
   };
+}
+
+/** I5: Extract top 2 review snippets for social proof */
+function buildReviewSnippets(googleData: GooglePlaceData | null): Array<{ text: string; rating: number }> {
+  if (!googleData?.reviews || googleData.reviews.length === 0) return [];
+  return googleData.reviews
+    .filter((r) => r.rating >= 4 && r.text.length >= 20)
+    .sort((a, b) => b.rating - a.rating || b.text.length - a.text.length)
+    .slice(0, 2)
+    .map((r) => ({
+      text: r.text.length > 120 ? r.text.slice(0, 117) + "..." : r.text,
+      rating: r.rating,
+    }));
 }
 
 /** Build scores object (shared) */

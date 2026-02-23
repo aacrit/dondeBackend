@@ -28,6 +28,7 @@ import {
   fetchPlaceDetails,
   formatReviewsForPrompt,
 } from "./_shared/google-places.ts";
+import { logInfo, logWarn, logError } from "./_shared/logger.ts";
 import type {
   UserRequest,
   Restaurant,
@@ -38,6 +39,9 @@ import type {
   RestaurantProfile,
   DeepProfile,
 } from "./_shared/types.ts";
+
+// B15: API version for response headers
+const API_VERSION = "2.1.0";
 
 // --- Enhancement 8: In-memory response cache ---
 interface CacheEntry {
@@ -72,10 +76,69 @@ function setCacheResponse(key: string, response: Record<string, unknown>): void 
   RESPONSE_CACHE.set(key, { response, expiry: Date.now() + CACHE_TTL });
 }
 
+// --- B13: In-memory rate limiter ---
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+const RATE_LIMIT_MAP = new Map<string, RateLimitEntry>();
+const RATE_LIMIT_MAX = 30; // requests per window
+const RATE_LIMIT_WINDOW = 60_000; // 1 minute
+
+function checkRateLimit(clientIp: string): boolean {
+  const now = Date.now();
+  const entry = RATE_LIMIT_MAP.get(clientIp);
+  if (!entry || now > entry.resetAt) {
+    RATE_LIMIT_MAP.set(clientIp, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+    return true;
+  }
+  entry.count++;
+  if (entry.count > RATE_LIMIT_MAX) return false;
+  return true;
+}
+
+// Periodic cleanup of expired rate limit entries
+function cleanupRateLimits(): void {
+  if (RATE_LIMIT_MAP.size > 500) {
+    const now = Date.now();
+    for (const [key, entry] of RATE_LIMIT_MAP) {
+      if (now > entry.resetAt) RATE_LIMIT_MAP.delete(key);
+    }
+  }
+}
+
+// --- B20: Input sanitization ---
+function sanitizeInput(input: string): string {
+  return input
+    // Strip control characters (keep newlines, tabs)
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+    // Collapse excessive whitespace
+    .replace(/\s{5,}/g, "    ")
+    // Strip obvious prompt injection attempts
+    .replace(/ignore\s+(all\s+)?previous\s+instructions/gi, "")
+    .replace(/you\s+are\s+now\s+/gi, "")
+    .replace(/system\s*:\s*/gi, "")
+    .replace(/\[INST\]/gi, "")
+    .replace(/<\/?(?:system|assistant|user)>/gi, "")
+    .trim();
+}
+
+// B7: UserFeedbackSignals type imported from scoring.ts
+import type { UserFeedbackSignals } from "./_shared/scoring.ts";
+
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return corsPreflightResponse();
+  }
+
+  // B16: Health check endpoint
+  if (req.method === "GET") {
+    return jsonResponse({
+      status: "ok",
+      version: API_VERSION,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   if (req.method !== "POST") {
@@ -85,16 +148,34 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  // B13: Rate limiting
+  cleanupRateLimits();
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || req.headers.get("x-real-ip")
+    || "unknown";
+  if (!checkRateLimit(clientIp)) {
+    logWarn("Rate limit exceeded", { ip: clientIp });
+    return jsonResponse(
+      { success: false, recommendation: "Too many requests — please wait a moment." },
+      429
+    );
+  }
+
   // Enhancement 13: Track response time
   const startTime = Date.now();
 
   try {
     // Parse and validate input
     const body: UserRequest = await req.json();
-    const special_request = (body.special_request || "").slice(0, 500); // F20/B20: Length limit for prompt injection mitigation
+    const special_request = sanitizeInput((body.special_request || "").slice(0, 500)); // B20: Length limit + sanitization
     const occasion = body.occasion || "Any";
     const neighborhood = body.neighborhood || "Anywhere";
     const price_level = body.price_level || "Any";
+
+    // B2: Accept client-provided time_of_day (validated)
+    const VALID_TIME_PERIODS = ["breakfast", "lunch", "dinner", "late_night"];
+    const time_of_day = (typeof body.time_of_day === "string" && VALID_TIME_PERIODS.includes(body.time_of_day))
+      ? body.time_of_day : null;
     const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const exclude = (body.exclude || [])
       .filter((id: string) => typeof id === "string" && UUID_REGEX.test(id))
@@ -120,7 +201,7 @@ Deno.serve(async (req: Request) => {
         .order("created_at", { ascending: false })
         .limit(1)
         .then(() => {})
-        .catch((err: unknown) => console.error("Failed to store feedback:", err));
+        .catch((err: unknown) => logError("Failed to store feedback", { error: String(err) }));
     }
 
     // Enhancement 8: Check cache (skip for "Try Another" requests)
@@ -135,6 +216,41 @@ Deno.serve(async (req: Request) => {
     // Initialize Supabase client
     const supabase = createSupabaseClient();
 
+    // B7: Fetch user feedback history for personalization (non-blocking)
+    let userFeedback: UserFeedbackSignals | null = null;
+    const feedbackPromise = user_id
+      ? supabase
+          .from("user_queries")
+          .select("recommended_restaurant_id, feedback, restaurants!inner(cuisine_type)")
+          .eq("user_id", user_id)
+          .not("feedback", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(20)
+          .then(({ data }) => {
+            if (!data || data.length === 0) return null;
+            const signals: UserFeedbackSignals = {
+              likedCuisines: [], dislikedCuisines: [],
+              likedRestaurantIds: [], dislikedRestaurantIds: [],
+            };
+            for (const row of data) {
+              const cuisine = (row.restaurants as Record<string, unknown>)?.cuisine_type as string | null;
+              const rid = row.recommended_restaurant_id as string;
+              if (row.feedback === "like") {
+                if (rid) signals.likedRestaurantIds.push(rid);
+                if (cuisine && !signals.likedCuisines.includes(cuisine)) signals.likedCuisines.push(cuisine);
+              } else if (row.feedback === "dislike") {
+                if (rid) signals.dislikedRestaurantIds.push(rid);
+                if (cuisine && !signals.dislikedCuisines.includes(cuisine)) signals.dislikedCuisines.push(cuisine);
+              }
+            }
+            return signals;
+          })
+          .catch((err: unknown) => {
+            logWarn("Failed to fetch user feedback", { error: String(err) });
+            return null;
+          })
+      : Promise.resolve(null);
+
     // --- Step 0.5: Intent classification + Step 1: RPC (parallel) ---
     let allRpcResults: RestaurantProfile[];
     let top10: RestaurantProfile[];
@@ -142,9 +258,10 @@ Deno.serve(async (req: Request) => {
     // Enhancement 6: Request extra results for diversity backfill
     const rpcLimit = 15 + exclude.length;
 
-    // Fire intent classification and initial RPC in parallel
-    const [intent, initialRpc] = await Promise.all([
+    // Fire intent classification, feedback resolution, and initial RPC in parallel
+    const [intent, resolvedFeedback, initialRpc] = await Promise.all([
       special_request ? classifyIntent(special_request) : Promise.resolve(null),
+      feedbackPromise,
       supabase.rpc("get_ranked_restaurants", {
         p_neighborhood: neighborhood,
         p_price_level: price_level,
@@ -153,6 +270,8 @@ Deno.serve(async (req: Request) => {
         p_target_cuisine: null, // First pass without cuisine filter
       }),
     ]);
+
+    userFeedback = resolvedFeedback;
 
     let { data: rpcData, error: rpcError } = initialRpc;
 
@@ -168,7 +287,7 @@ Deno.serve(async (req: Request) => {
         (r) => r.cuisine_type?.toLowerCase() === targetCuisine.toLowerCase()
       );
       if (!hasCuisineMatch) {
-        console.log(`Intent re-query: no ${targetCuisine} in initial results, re-querying with cuisine boost`);
+        logInfo("Intent re-query: cuisine not found in initial results", { cuisine: targetCuisine });
         const { data: cuisineData, error: cuisineError } = await supabase.rpc(
           "get_ranked_restaurants",
           {
@@ -188,7 +307,7 @@ Deno.serve(async (req: Request) => {
 
     // Price relaxation: if no results with exact price, retry with "Any" price
     if ((!rpcData || rpcData.length === 0) && !rpcError && price_level !== "Any") {
-      console.log(`Price relaxation: no results for ${neighborhood}/${price_level}, retrying with Any`);
+      logInfo("Price relaxation: retrying with Any", { neighborhood, price_level });
       const targetCuisine = (intent?.cuisine_importance === "high" && intent.target_cuisines.length > 0)
         ? intent.target_cuisines[0] : null;
       const { data: relaxedData, error: relaxedError } = await supabase.rpc(
@@ -203,7 +322,7 @@ Deno.serve(async (req: Request) => {
 
     // Neighborhood relaxation: if still no results, retry with "Anywhere" + "Any" price
     if ((!rpcData || rpcData.length === 0) && !rpcError && neighborhood !== "Anywhere") {
-      console.log(`Neighborhood relaxation: no results for ${neighborhood}, retrying with Anywhere`);
+      logInfo("Neighborhood relaxation: retrying with Anywhere", { neighborhood });
       const targetCuisine = (intent?.cuisine_importance === "high" && intent.target_cuisines.length > 0)
         ? intent.target_cuisines[0] : null;
       const { data: anywhereData, error: anywhereError } = await supabase.rpc(
@@ -218,7 +337,7 @@ Deno.serve(async (req: Request) => {
 
     if (rpcError || !rpcData || rpcData.length === 0) {
       if (rpcError) {
-        console.error("RPC failed, falling back to legacy queries:", rpcError);
+        logError("RPC failed, falling back to legacy queries", { error: String(rpcError) });
       }
 
       // Fallback: legacy 4-query approach
@@ -314,7 +433,7 @@ Deno.serve(async (req: Request) => {
       if (dietaryFiltered.length > 0) {
         top10 = dietaryFiltered;
       } else {
-        console.warn(`Dietary filter (${dietary_restrictions.join(",")}) matched 0 restaurants, using unfiltered results`);
+        logWarn("Dietary filter matched 0 restaurants, using unfiltered", { dietary_restrictions });
       }
     }
 
@@ -328,9 +447,9 @@ Deno.serve(async (req: Request) => {
     // V2: Re-rank using multi-dimensional scoring (falls back to V1 if no deep profiles)
     const hasDeepProfiles = top10.some((r) => r.deep_profile != null);
     if (hasDeepProfiles) {
-      top10 = reRankV2(top10, occasion, special_request, rejectionSignals, intent);
+      top10 = reRankV2(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day);
     } else {
-      top10 = reRankWithBoosts(top10, occasion, special_request, rejectionSignals, intent);
+      top10 = reRankWithBoosts(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day);
     }
 
     // Enhancement 6: Apply diversity filter
@@ -428,7 +547,7 @@ Deno.serve(async (req: Request) => {
         const recovered = recoverFromMalformedClaude(claudeText);
         if (recovered) {
           parsed = recovered;
-          console.warn("Claude JSON parse failed, recovered via regex");
+          logWarn("Claude JSON parse failed, recovered via regex");
         } else {
           throw new Error("Claude returned unparseable response");
         }
@@ -446,12 +565,12 @@ Deno.serve(async (req: Request) => {
         const recLower = parsed.recommendation.toLowerCase();
         const slopHits = SLOP_PATTERNS.filter((p) => recLower.includes(p));
         if (slopHits.length >= 2) {
-          console.warn(`Recommendation quality warning: ${slopHits.length} slop patterns detected: ${slopHits.join(", ")}`);
+          logWarn("Recommendation quality: slop patterns detected", { count: slopHits.length, patterns: slopHits });
         }
         // Word count check
         const wordCount = parsed.recommendation.split(/\s+/).length;
         if (wordCount > 100) {
-          console.warn(`Recommendation length warning: ${wordCount} words (target: 50-80)`);
+          logWarn("Recommendation length exceeds target", { wordCount, target: "50-80" });
         }
       }
 
@@ -473,7 +592,7 @@ Deno.serve(async (req: Request) => {
 
       // Enhancement 20: If restaurant is closed, try next candidate
       if (googleData?.business_status === "CLOSED_PERMANENTLY") {
-        console.warn(`Chosen restaurant ${chosen.name} is permanently closed, picking next`);
+        logWarn("Chosen restaurant permanently closed, picking next", { name: chosen.name });
         const nextIdx = top10.findIndex((r, i) => i !== idx && r.id !== chosen.id);
         if (nextIdx !== -1) {
           const nextChosen = top10[nextIdx];
@@ -539,7 +658,7 @@ Deno.serve(async (req: Request) => {
       wasFallback = true;
 
       // Enhancement 19: Tiered fallback
-      console.error("Claude API failed, using fallback:", claudeError);
+      logError("Claude API failed, using fallback", { error: String(claudeError) });
       const chosen = top10[0];
 
       const googleData = chosen.google_place_id
@@ -618,10 +737,23 @@ Deno.serve(async (req: Request) => {
         dietary_restrictions: dietary_restrictions.length > 0 ? dietary_restrictions : null,
       })
       .then(() => {})
-      .catch((err: unknown) => console.error("Failed to log query:", err));
+      .catch((err: unknown) => logError("Failed to log query", { error: String(err) }));
 
-    return jsonResponse(responseBody);
+    logInfo("Recommendation served", {
+      responseTimeMs,
+      occasion, neighborhood, price_level,
+      wasFallback,
+      excludeCount: exclude.length,
+      hasUserFeedback: !!userFeedback,
+      timeOfDay: time_of_day,
+    });
+
+    // B15: Include API version in response headers
+    const response = jsonResponse(responseBody);
+    response.headers.set("X-API-Version", API_VERSION);
+    return response;
   } catch (error) {
+    logError("Recommendation engine error", { error: String(error) });
     return jsonResponse(buildErrorResponse(error), 500);
   }
 });

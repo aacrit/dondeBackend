@@ -1694,12 +1694,21 @@ export function computeCompositeV2(
 
 // --- V2 Base Score: Shared core for ranking AND donde_match ---
 
+export interface UserFeedbackSignals {
+  likedCuisines: string[];
+  dislikedCuisines: string[];
+  likedRestaurantIds: string[];
+  dislikedRestaurantIds: string[];
+}
+
 export interface BaseScoreInputs {
   occasion: string;
   specialRequest: string;
   intent: IntentClassification | IntentClassificationV2 | null;
   trendingScore?: number | null;
   rejectionSignals?: RejectionSignals;
+  userFeedback?: UserFeedbackSignals | null;
+  clientTimeOfDay?: string | null;
 }
 
 /**
@@ -1740,6 +1749,32 @@ export function computeBaseScore(
     }
     if (profile.price_level && inputs.rejectionSignals.avoidPriceLevels.includes(profile.price_level)) {
       composite -= 1.0;
+    }
+  }
+
+  // B7: User feedback personalization signals
+  if (inputs.userFeedback) {
+    const fb = inputs.userFeedback;
+    // Boost restaurants matching liked cuisines
+    if (profile.cuisine_type && fb.likedCuisines.includes(profile.cuisine_type)) {
+      composite += 0.5;
+    }
+    // Penalize restaurants matching disliked cuisines
+    if (profile.cuisine_type && fb.dislikedCuisines.includes(profile.cuisine_type)) {
+      composite -= 0.8;
+    }
+    // Penalize previously disliked specific restaurants
+    if (fb.dislikedRestaurantIds.includes(profile.id)) {
+      composite -= 2.0;
+    }
+  }
+
+  // B2: Client time-of-day override (more accurate than server-side timezone guess)
+  if (inputs.clientTimeOfDay && profile.best_times && profile.best_times.length > 0) {
+    if (profile.best_times.includes(inputs.clientTimeOfDay)) {
+      composite += 0.8;
+    } else if (profile.best_times.length <= 2) {
+      composite -= 0.5;
     }
   }
 
@@ -1787,7 +1822,9 @@ export function reRankV2(
   occasion: string,
   specialRequest: string,
   rejectionSignals?: RejectionSignals,
-  intent?: IntentClassification | IntentClassificationV2 | null
+  intent?: IntentClassification | IntentClassificationV2 | null,
+  userFeedback?: UserFeedbackSignals | null,
+  clientTimeOfDay?: string | null
 ): RestaurantProfile[] {
   const scored = profiles.map((p) => {
     const composite = computeBaseScore(p, {
@@ -1796,6 +1833,8 @@ export function reRankV2(
       intent: intent ?? null,
       trendingScore: p.trending_score,
       rejectionSignals,
+      userFeedback,
+      clientTimeOfDay,
     });
     return { profile: p, composite };
   });
@@ -1972,19 +2011,36 @@ export function reRankWithBoosts(
   occasion: string,
   specialRequest: string,
   rejectionSignals?: RejectionSignals,
-  intent?: IntentClassification | null
+  intent?: IntentClassification | null,
+  userFeedback?: UserFeedbackSignals | null,
+  clientTimeOfDay?: string | null
 ): RestaurantProfile[] {
   // Only re-sort if at least one restaurant would get a non-zero boost or trending signal
   const anyBoosted = profiles.some((p) => computeBoost(p, specialRequest, rejectionSignals, intent) !== 0);
   const hasTrending = profiles.some((p) => p.trending_score && p.trending_score > 0);
-  if (!anyBoosted && !hasTrending && (!specialRequest || specialRequest.trim().length < 3)) {
+  const hasFeedback = userFeedback && (userFeedback.likedCuisines.length > 0 || userFeedback.dislikedCuisines.length > 0);
+  if (!anyBoosted && !hasTrending && !hasFeedback && (!specialRequest || specialRequest.trim().length < 3)) {
     return profiles;
   }
 
-  const scored = profiles.map((p) => ({
-    profile: p,
-    composite: computeBaseScoreV1(p, occasion, specialRequest, rejectionSignals, intent),
-  }));
+  const scored = profiles.map((p) => {
+    let composite = computeBaseScoreV1(p, occasion, specialRequest, rejectionSignals, intent);
+
+    // B7: User feedback signals for V1 path
+    if (userFeedback) {
+      if (p.cuisine_type && userFeedback.likedCuisines.includes(p.cuisine_type)) composite += 0.5;
+      if (p.cuisine_type && userFeedback.dislikedCuisines.includes(p.cuisine_type)) composite -= 0.8;
+      if (userFeedback.dislikedRestaurantIds.includes(p.id)) composite -= 2.0;
+    }
+
+    // B2: Client time-of-day for V1 path
+    if (clientTimeOfDay && p.best_times && p.best_times.length > 0) {
+      if (p.best_times.includes(clientTimeOfDay)) composite += 0.8;
+      else if (p.best_times.length <= 2) composite -= 0.5;
+    }
+
+    return { profile: p, composite };
+  });
 
   scored.sort((a, b) => b.composite - a.composite);
   return scored.map((s) => s.profile);
