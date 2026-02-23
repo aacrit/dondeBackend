@@ -91,7 +91,7 @@ Deno.serve(async (req: Request) => {
   try {
     // Parse and validate input
     const body: UserRequest = await req.json();
-    const special_request = body.special_request || "";
+    const special_request = (body.special_request || "").slice(0, 500); // F20/B20: Length limit for prompt injection mitigation
     const occasion = body.occasion || "Any";
     const neighborhood = body.neighborhood || "Anywhere";
     const price_level = body.price_level || "Any";
@@ -99,6 +99,29 @@ Deno.serve(async (req: Request) => {
     const exclude = (body.exclude || [])
       .filter((id: string) => typeof id === "string" && UUID_REGEX.test(id))
       .slice(0, 15);
+
+    // F5: Dietary restrictions (validated string array, max 5)
+    const dietary_restrictions = (body.dietary_restrictions || [])
+      .filter((d: string) => typeof d === "string" && d.length < 30)
+      .slice(0, 5);
+
+    // F9: User ID for personalization (optional, validated format)
+    const user_id = (typeof body.user_id === "string" && body.user_id.length < 100)
+      ? body.user_id : null;
+
+    // F11: Process feedback if included (fire-and-forget)
+    if (body.feedback?.restaurant_id && body.feedback?.feedback && user_id) {
+      const supabaseForFeedback = createSupabaseClient();
+      supabaseForFeedback
+        .from("user_queries")
+        .update({ feedback: body.feedback.feedback })
+        .eq("recommended_restaurant_id", body.feedback.restaurant_id)
+        .eq("user_id", user_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .then(() => {})
+        .catch((err: unknown) => console.error("Failed to store feedback:", err));
+    }
 
     // Enhancement 8: Check cache (skip for "Try Another" requests)
     if (exclude.length === 0) {
@@ -277,6 +300,24 @@ Deno.serve(async (req: Request) => {
     if (exclude.length > 0) {
       top10 = top10.filter((r) => !exclude.includes(r.id));
     }
+
+    // F5: Dietary restriction filtering
+    if (dietary_restrictions.length > 0) {
+      const dietaryFiltered = top10.filter((r) => {
+        if (!r.dietary_options || r.dietary_options.length === 0) return false;
+        const opts = r.dietary_options.map((d) => d.toLowerCase());
+        return dietary_restrictions.every((dr: string) =>
+          opts.some((opt) => opt.includes(dr.toLowerCase()))
+        );
+      });
+      // Graceful fallback: if no dietary matches, keep unfiltered but log
+      if (dietaryFiltered.length > 0) {
+        top10 = dietaryFiltered;
+      } else {
+        console.warn(`Dietary filter (${dietary_restrictions.join(",")}) matched 0 restaurants, using unfiltered results`);
+      }
+    }
+
     top10 = top10.slice(0, 10);
 
     // Enhancement 14: Analyze rejection patterns from excluded restaurants
@@ -571,6 +612,10 @@ Deno.serve(async (req: Request) => {
         claude_relevance_score:
           (responseBody as Record<string, unknown>).relevance_score || null,
         unmatched_keywords: unmatchedKw.length > 0 ? unmatchedKw : null,
+        // F9: User ID for personalization tracking
+        user_id: user_id || null,
+        // F5: Dietary restrictions used
+        dietary_restrictions: dietary_restrictions.length > 0 ? dietary_restrictions : null,
       })
       .then(() => {})
       .catch((err: unknown) => console.error("Failed to log query:", err));

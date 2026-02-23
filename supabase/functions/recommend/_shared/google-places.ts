@@ -12,6 +12,11 @@ export interface GooglePlaceData {
   google_review_count: number | null;
   reviews: GoogleReviewData[];
   business_status: string | null; // Enhancement 20: OPERATIONAL, CLOSED_TEMPORARILY, CLOSED_PERMANENTLY
+  photo_urls: string[];
+  opening_hours: {
+    open_now: boolean | null;
+    weekday_text: string[] | null;
+  } | null;
 }
 
 export interface GoogleReviewData {
@@ -21,7 +26,7 @@ export interface GoogleReviewData {
 
 // Enhancement 20: Added business_status to detect closed restaurants
 const PLACE_DETAILS_FIELDS =
-  "name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,reviews,business_status";
+  "name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,reviews,business_status,photos,opening_hours,current_opening_hours";
 
 /**
  * Fetch fresh Google Place Details for a single restaurant.
@@ -63,6 +68,24 @@ export async function fetchPlaceDetails(
         text: Array.from(r.text || "").slice(0, 300).join(""),
       }));
 
+    // Extract photo URLs (max 5, 800px wide)
+    const photoRefs: string[] = (result.photos || [])
+      .slice(0, 5)
+      .map((p: { photo_reference: string }) => p.photo_reference)
+      .filter(Boolean)
+      .map((ref: string) =>
+        `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${ref}&key=${apiKey}`
+      );
+
+    // Extract opening hours (prefer current_opening_hours for live accuracy)
+    const hours = result.current_opening_hours || result.opening_hours;
+    const openingHours = hours
+      ? {
+          open_now: hours.open_now ?? null,
+          weekday_text: hours.weekday_text || null,
+        }
+      : null;
+
     return {
       name: result.name || "",
       address: result.formatted_address || "",
@@ -72,6 +95,8 @@ export async function fetchPlaceDetails(
       google_review_count: result.user_ratings_total || null,
       reviews,
       business_status: result.business_status || null,
+      photo_urls: photoRefs,
+      opening_hours: openingHours,
     };
   } catch (err) {
     console.error(`Failed to fetch place details for ${placeId}:`, err);
