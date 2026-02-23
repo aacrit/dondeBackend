@@ -7,6 +7,7 @@ export interface UserRequest {
   dietary_restrictions?: string[];
   user_id?: string;
   feedback?: { restaurant_id: string; feedback: "like" | "dislike" };
+  time_of_day?: string; // B2: Client-provided time context (breakfast, lunch, dinner, late_night)
 }
 
 /** Restaurant data stored in DB (compliant — only place_id + our own content) */
