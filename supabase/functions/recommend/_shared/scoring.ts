@@ -1653,6 +1653,15 @@ export function computeDimensionWeights(
       w.practical = Math.max(0.05, w.practical - 0.05);
       w.craving = Math.max(0.10, w.craving - 0.05);
     }
+    // Normalize to maintain sum = 1.0 after clamped nudges
+    const sum = w.occasion + w.craving + w.vibe + w.practical + w.discovery;
+    if (Math.abs(sum - 1.0) > 0.001) {
+      w.occasion /= sum;
+      w.craving /= sum;
+      w.vibe /= sum;
+      w.practical /= sum;
+      w.discovery /= sum;
+    }
   }
 
   return w;
