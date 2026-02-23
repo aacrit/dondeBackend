@@ -1132,33 +1132,27 @@ export function computeDondeMatch(
   profile: RestaurantProfile,
   inputs: DondeMatchInputs
 ): number {
-  const occasionFit = computeOccasionFit(profile, inputs.occasion);
-  const requestRelevance = computeRequestRelevance(
-    profile,
-    inputs.specialRequest,
-    inputs.claudeRelevance
-  );
-  const googleQuality = computeGoogleQuality(inputs.googleData);
-  const vibeAlignment = computeVibeAlignment(profile, inputs.occasion);
-  const filterPrecision = computeFilterPrecision(
-    profile,
-    inputs.neighborhood,
-    inputs.priceLevel
+  // Use same base as V1 ranking (without rejection signals — restaurant was already chosen)
+  let composite = computeBaseScoreV1(
+    profile, inputs.occasion, inputs.specialRequest
   );
 
-  let raw =
-    W_OCCASION * occasionFit +
-    W_REQUEST * requestRelevance +
-    W_GOOGLE * googleQuality +
-    W_VIBE * vibeAlignment +
-    W_FILTER * filterPrecision;
+  // --- Late-binding overlays (only available after Google/Claude fetch) ---
+
+  // Google quality overlay
+  const googleQuality = computeGoogleQuality(inputs.googleData);
+  composite = composite * 0.85 + googleQuality * 0.15;
+
+  // Claude relevance as supplementary signal
+  if (inputs.claudeRelevance != null) {
+    composite = composite * 0.75 + inputs.claudeRelevance * 0.25;
+  }
 
   // Sentiment penalty: reduce match when reviews are significantly negative
-  raw += computeSentimentPenalty(inputs.sentimentNegative);
+  composite += computeSentimentPenalty(inputs.sentimentNegative);
 
   // Map 0-10 raw composite to 60-99% confidence range
-  const matchPercent = 60 + Math.min(10, Math.max(0, raw)) * 3.9;
-  return Math.min(99, Math.max(60, Math.round(matchPercent)));
+  return Math.min(99, Math.max(60, Math.round(60 + Math.min(10, Math.max(0, composite)) * 3.9)));
 }
 
 // ==========================================
@@ -1698,6 +1692,60 @@ export function computeCompositeV2(
   );
 }
 
+// --- V2 Base Score: Shared core for ranking AND donde_match ---
+
+export interface BaseScoreInputs {
+  occasion: string;
+  specialRequest: string;
+  intent: IntentClassification | IntentClassificationV2 | null;
+  trendingScore?: number | null;
+  rejectionSignals?: RejectionSignals;
+}
+
+/**
+ * Unified base score used by BOTH reRankV2 and computeDondeMatchV2.
+ * Includes: V2 multi-dimensional scoring, enrichment confidence gating,
+ * trending signal, and rejection penalties.
+ * Late-binding overlays (Google, Claude relevance, sentiment) are NOT included —
+ * those are applied only in computeDondeMatchV2 after external data is available.
+ */
+export function computeBaseScore(
+  profile: RestaurantProfile,
+  inputs: BaseScoreInputs
+): number {
+  const dimensions = computeScoringDimensions(
+    profile, inputs.occasion, inputs.specialRequest, inputs.intent
+  );
+  const weights = computeDimensionWeights(inputs.occasion, inputs.intent);
+  let composite = computeCompositeV2(dimensions, weights);
+
+  // Enrichment confidence gating: blend toward V1 baseline when deep profile is low-confidence
+  const dp = profile.deep_profile;
+  if (dp?.enrichment_confidence != null && dp.enrichment_confidence < 7) {
+    const v1Base = computeWeightedOccasionScore(profile, inputs.occasion);
+    const confidenceFactor = dp.enrichment_confidence / 10;
+    composite = composite * confidenceFactor + v1Base * (1 - confidenceFactor);
+  }
+
+  // Trending signal (available at both ranking and match time)
+  if (inputs.trendingScore != null) {
+    const trending = inputs.trendingScore / 10;
+    composite = composite * 0.92 + trending * 0.08;
+  }
+
+  // Rejection penalties (available at both ranking and match time)
+  if (inputs.rejectionSignals) {
+    if (profile.cuisine_type && inputs.rejectionSignals.avoidCuisines.includes(profile.cuisine_type)) {
+      composite -= 2.0;
+    }
+    if (profile.price_level && inputs.rejectionSignals.avoidPriceLevels.includes(profile.price_level)) {
+      composite -= 1.0;
+    }
+  }
+
+  return composite;
+}
+
 // --- V2 Donde Match ---
 
 export function computeDondeMatchV2(
@@ -1705,21 +1753,18 @@ export function computeDondeMatchV2(
   inputs: DondeMatchInputs,
   intent: IntentClassification | IntentClassificationV2 | null
 ): number {
-  const dimensions = computeScoringDimensions(profile, inputs.occasion, inputs.specialRequest, intent);
-  const weights = computeDimensionWeights(inputs.occasion, intent);
-  let composite = computeCompositeV2(dimensions, weights);
+  // Start with SAME base score as ranking (dimensions + confidence gating + trending)
+  // Note: rejection signals not passed — the restaurant was already chosen despite any penalties
+  let composite = computeBaseScore(profile, {
+    occasion: inputs.occasion,
+    specialRequest: inputs.specialRequest,
+    intent,
+    trendingScore: profile.trending_score,
+  });
 
-  // Enrichment confidence adjustment: blend toward V1 baseline when deep profile data is low-confidence
-  const dp = profile.deep_profile;
-  if (dp?.enrichment_confidence != null && dp.enrichment_confidence < 7) {
-    // Low-confidence deep profile (< 7/10): reduce reliance on deep-profile-dependent dimensions
-    // by blending composite toward the V1 occasion-weighted score
-    const v1Base = computeWeightedOccasionScore(profile, inputs.occasion);
-    const confidenceFactor = dp.enrichment_confidence / 10; // 0.0 - 0.69
-    composite = composite * confidenceFactor + v1Base * (1 - confidenceFactor);
-  }
+  // --- Late-binding overlays (only available after Google/Claude fetch) ---
 
-  // Google quality bonus (keep existing)
+  // Google quality overlay
   const googleQuality = computeGoogleQuality(inputs.googleData);
   composite = composite * 0.85 + googleQuality * 0.15;
 
@@ -1744,35 +1789,15 @@ export function reRankV2(
   rejectionSignals?: RejectionSignals,
   intent?: IntentClassification | IntentClassificationV2 | null
 ): RestaurantProfile[] {
-  const weights = computeDimensionWeights(occasion, intent ?? null);
-
   const scored = profiles.map((p) => {
-    const dimensions = computeScoringDimensions(p, occasion, specialRequest, intent ?? null);
-    let composite = computeCompositeV2(dimensions, weights);
-
-    // Enrichment confidence: discount low-confidence deep profiles toward occasion score
-    const dp = p.deep_profile;
-    if (dp?.enrichment_confidence != null && dp.enrichment_confidence < 7) {
-      const v1Base = computeWeightedOccasionScore(p, occasion);
-      const confidenceFactor = dp.enrichment_confidence / 10;
-      composite = composite * confidenceFactor + v1Base * (1 - confidenceFactor);
-    }
-
-    // Trending signal
-    const trending = (p.trending_score || 0) / 10;
-    composite = composite * 0.92 + trending * 0.08;
-
-    // Rejection penalty (keep existing logic)
-    if (rejectionSignals) {
-      if (p.cuisine_type && rejectionSignals.avoidCuisines.includes(p.cuisine_type)) {
-        composite -= 2.0;
-      }
-      if (p.price_level && rejectionSignals.avoidPriceLevels.includes(p.price_level)) {
-        composite -= 1.0;
-      }
-    }
-
-    return { profile: p, composite, dimensions };
+    const composite = computeBaseScore(p, {
+      occasion,
+      specialRequest,
+      intent: intent ?? null,
+      trendingScore: p.trending_score,
+      rejectionSignals,
+    });
+    return { profile: p, composite };
   });
 
   scored.sort((a, b) => b.composite - a.composite);
@@ -1912,6 +1937,34 @@ export function filterAndRank(
   return boosted.slice(0, 10);
 }
 
+// --- V1 Base Score: Shared core for V1 ranking AND donde_match ---
+
+/**
+ * Unified V1 base score used by BOTH reRankWithBoosts and computeDondeMatch.
+ * Same formula as the V1 ranking composite: occasion + boost + trending with adaptive weights.
+ * Late-binding overlays (Google, Claude relevance, sentiment) are NOT included.
+ */
+export function computeBaseScoreV1(
+  profile: RestaurantProfile,
+  occasion: string,
+  specialRequest: string,
+  rejectionSignals?: RejectionSignals,
+  intent?: IntentClassification | null
+): number {
+  const occasionScore = computeWeightedOccasionScore(profile, occasion);
+  const boost = computeBoost(profile, specialRequest, rejectionSignals, intent);
+  const trending = (profile.trending_score || 0) / 10;
+
+  let wOccasion = 0.55, wBoost = 0.35, wTrend = 0.10;
+  if (intent?.cuisine_importance === "high") {
+    wOccasion = 0.35; wBoost = 0.55; wTrend = 0.10;
+  } else if (intent?.cuisine_importance === "medium") {
+    wOccasion = 0.45; wBoost = 0.45; wTrend = 0.10;
+  }
+
+  return occasionScore * wOccasion + boost * wBoost + trending * wTrend;
+}
+
 // --- Re-rank RPC results with keyword boosts ---
 
 export function reRankWithBoosts(
@@ -1921,43 +1974,20 @@ export function reRankWithBoosts(
   rejectionSignals?: RejectionSignals,
   intent?: IntentClassification | null
 ): RestaurantProfile[] {
-  const boosted: BoostedProfile[] = profiles.map((p) => ({
-    ...p,
-    _boost: computeBoost(p, specialRequest, rejectionSignals, intent),
-  }));
-
-  // Enhancement 11: Add trending score as minor tiebreaker (5% weight)
-  const hasTrending = boosted.some((b) => b.trending_score && b.trending_score > 0);
-
-  // Only re-sort if at least one restaurant got a non-zero boost or trending signal
-  const anyBoosted = boosted.some((b) => b._boost !== 0);
+  // Only re-sort if at least one restaurant would get a non-zero boost or trending signal
+  const anyBoosted = profiles.some((p) => computeBoost(p, specialRequest, rejectionSignals, intent) !== 0);
+  const hasTrending = profiles.some((p) => p.trending_score && p.trending_score > 0);
   if (!anyBoosted && !hasTrending && (!specialRequest || specialRequest.trim().length < 3)) {
     return profiles;
   }
 
-  boosted.sort((a, b) => {
-    // Enhancement 2: Use weighted occasion score
-    const occasionA = computeWeightedOccasionScore(a, occasion);
-    const occasionB = computeWeightedOccasionScore(b, occasion);
+  const scored = profiles.map((p) => ({
+    profile: p,
+    composite: computeBaseScoreV1(p, occasion, specialRequest, rejectionSignals, intent),
+  }));
 
-    const trendA = (a.trending_score || 0) / 10; // Normalize to ~0-1
-    const trendB = (b.trending_score || 0) / 10;
-
-    // Adaptive weights: shift toward boost when user has strong food-specific intent
-    let wOccasion = 0.55, wBoost = 0.35, wTrend = 0.10;
-    if (intent?.cuisine_importance === "high") {
-      wOccasion = 0.35; wBoost = 0.55; wTrend = 0.10;
-    } else if (intent?.cuisine_importance === "medium") {
-      wOccasion = 0.45; wBoost = 0.45; wTrend = 0.10;
-    }
-
-    const compositeA = occasionA * wOccasion + a._boost * wBoost + trendA * wTrend;
-    const compositeB = occasionB * wOccasion + b._boost * wBoost + trendB * wTrend;
-
-    return compositeB - compositeA;
-  });
-
-  return boosted;
+  scored.sort((a, b) => b.composite - a.composite);
+  return scored.map((s) => s.profile);
 }
 
 // --- Enhancement 6: Diversity-aware candidate selection ---
