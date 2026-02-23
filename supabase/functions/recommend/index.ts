@@ -445,7 +445,7 @@ Deno.serve(async (req: Request) => {
             parsed.insider_tip = nextChosen.insider_tip;
           }
 
-          const dondeMatch = computeDondeMatch(nextChosen, {
+          const closedMatchInputs = {
             occasion,
             specialRequest: special_request,
             neighborhood,
@@ -453,7 +453,10 @@ Deno.serve(async (req: Request) => {
             googleData: nextGoogleData,
             claudeRelevance: parsed.relevance_score,
             sentimentNegative: parsed.sentiment_negative,
-          });
+          };
+          const dondeMatch = nextChosen.deep_profile
+            ? computeDondeMatchV2(nextChosen, closedMatchInputs, intent)
+            : computeDondeMatch(nextChosen, closedMatchInputs);
 
           responseBody = buildSuccessResponse(nextChosen, parsed, nextGoogleData, dondeMatch);
         } else {
@@ -508,24 +511,30 @@ Deno.serve(async (req: Request) => {
         const nextGoogleData = nextChosen.google_place_id
           ? await fetchPlaceDetails(nextChosen.google_place_id)
           : null;
-        const fallbackMatch = computeDondeMatch(nextChosen, {
+        const closedFallbackInputs = {
           occasion,
           specialRequest: special_request,
           neighborhood,
           priceLevel: price_level,
           googleData: nextGoogleData,
-        });
+        };
+        const fallbackMatch = nextChosen.deep_profile
+          ? computeDondeMatchV2(nextChosen, closedFallbackInputs, intent)
+          : computeDondeMatch(nextChosen, closedFallbackInputs);
         // Enhancement 19 Tier 4: Template-based response
         responseBody = buildTemplateResponse(nextChosen, nextGoogleData, fallbackMatch, occasion);
       } else {
         // Compute donde_match deterministically (no Claude relevance available)
-        const fallbackMatch = computeDondeMatch(chosen, {
+        const normalFallbackInputs = {
           occasion,
           specialRequest: special_request,
           neighborhood,
           priceLevel: price_level,
           googleData,
-        });
+        };
+        const fallbackMatch = chosen.deep_profile
+          ? computeDondeMatchV2(chosen, normalFallbackInputs, intent)
+          : computeDondeMatch(chosen, normalFallbackInputs);
 
         // Enhancement 19 Tier 4: Use template-based response (richer than one-liner)
         responseBody = buildTemplateResponse(chosen, googleData, fallbackMatch, occasion);
