@@ -27,6 +27,18 @@ function buildDeepContext(chosen: RestaurantProfile): Record<string, unknown> | 
     date_progression: dp.date_progression || null,
     crowd_profile: dp.crowd_profile || null,
     neighborhood_integration: dp.neighborhood_integration || null,
+    // 1D: Additional deep context fields for frontend rendering
+    typical_wait_minutes: dp.typical_wait_minutes || null,
+    check_average_per_person: dp.check_average_per_person || null,
+    transit_accessibility: dp.transit_accessibility || null,
+    seating_options: dp.seating_options || null,
+    instagram_worthiness: dp.instagram_worthiness || null,
+    kid_friendliness: dp.kid_friendliness || null,
+    group_size_sweet_spot: dp.group_size_sweet_spot || null,
+    ideal_weather: dp.ideal_weather || null,
+    flavor_profiles: dp.flavor_profiles || null,
+    spice_level: dp.spice_level || null,
+    chef_notable: dp.chef_notable || null,
   };
 }
 
@@ -46,6 +58,66 @@ function buildScoringV2(
   };
 }
 
+/** Build the restaurant object (shared across all response types) */
+function buildRestaurantObject(
+  chosen: RestaurantProfile,
+  googleData: GooglePlaceData | null,
+  sentimentData?: {
+    breakdown: string | null;
+    score: number | null;
+    summary: string | null;
+    positive: number | null;
+    negative: number | null;
+    neutral: number | null;
+  }
+): Record<string, unknown> {
+  return {
+    id: chosen.id,
+    name: googleData?.name || chosen.name,
+    address: googleData?.address || chosen.address,
+    google_place_id: chosen.google_place_id,
+    google_rating: googleData?.google_rating || null,
+    google_review_count: googleData?.google_review_count || null,
+    price_level: chosen.price_level,
+    phone: googleData?.phone || null,
+    website: googleData?.website || null,
+    noise_level: chosen.noise_level,
+    cuisine_type: chosen.cuisine_type || null,
+    lighting_ambiance: chosen.lighting_ambiance,
+    dress_code: chosen.dress_code,
+    outdoor_seating: chosen.outdoor_seating,
+    live_music: chosen.live_music,
+    pet_friendly: chosen.pet_friendly,
+    parking_availability: chosen.parking_availability,
+    dietary_options: chosen.dietary_options || null,
+    sentiment_breakdown: sentimentData?.breakdown || null,
+    sentiment_score: sentimentData?.score || null,
+    sentiment_summary: sentimentData?.summary || null,
+    sentiment_positive: sentimentData?.positive ?? null,
+    sentiment_negative: sentimentData?.negative ?? null,
+    sentiment_neutral: sentimentData?.neutral ?? null,
+    best_for_oneliner: chosen.best_for_oneliner,
+    neighborhood_name: chosen.neighborhood_name,
+    // F1: Restaurant photos from Google Places
+    photo_urls: googleData?.photo_urls || [],
+    // F2: Business hours from Google Places
+    opening_hours: googleData?.opening_hours || null,
+  };
+}
+
+/** Build scores object (shared) */
+function buildScores(chosen: RestaurantProfile): Record<string, unknown> {
+  return {
+    date_friendly_score: chosen.date_friendly_score,
+    group_friendly_score: chosen.group_friendly_score,
+    family_friendly_score: chosen.family_friendly_score,
+    romantic_rating: chosen.romantic_rating,
+    business_lunch_score: chosen.business_lunch_score,
+    solo_dining_score: chosen.solo_dining_score,
+    hole_in_wall_factor: chosen.hole_in_wall_factor,
+  };
+}
+
 export function buildSuccessResponse(
   chosen: RestaurantProfile,
   claude: ClaudeRecommendation,
@@ -56,47 +128,19 @@ export function buildSuccessResponse(
 ): Record<string, unknown> {
   return {
     success: true,
-    restaurant: {
-      id: chosen.id,
-      name: googleData?.name || chosen.name,
-      address: googleData?.address || chosen.address,
-      google_place_id: chosen.google_place_id,
-      google_rating: googleData?.google_rating || null,
-      google_review_count: googleData?.google_review_count || null,
-      price_level: chosen.price_level,
-      phone: googleData?.phone || null,
-      website: googleData?.website || null,
-      noise_level: chosen.noise_level,
-      cuisine_type: chosen.cuisine_type || null,
-      lighting_ambiance: chosen.lighting_ambiance,
-      dress_code: chosen.dress_code,
-      outdoor_seating: chosen.outdoor_seating,
-      live_music: chosen.live_music,
-      pet_friendly: chosen.pet_friendly,
-      parking_availability: chosen.parking_availability,
-      sentiment_breakdown: claude.sentiment_breakdown || null,
-      sentiment_score: claude.sentiment_score || null,
-      sentiment_summary: claude.sentiment_summary || null,
-      sentiment_positive: claude.sentiment_positive ?? null,
-      sentiment_negative: claude.sentiment_negative ?? null,
-      sentiment_neutral: claude.sentiment_neutral ?? null,
-      best_for_oneliner: chosen.best_for_oneliner,
-      neighborhood_name: chosen.neighborhood_name,
-    },
+    restaurant: buildRestaurantObject(chosen, googleData, {
+      breakdown: claude.sentiment_breakdown || null,
+      score: claude.sentiment_score || null,
+      summary: claude.sentiment_summary || null,
+      positive: claude.sentiment_positive ?? null,
+      negative: claude.sentiment_negative ?? null,
+      neutral: claude.sentiment_neutral ?? null,
+    }),
     recommendation: claude.recommendation,
     insider_tip: claude.insider_tip || null,
     donde_match: dondeMatch,
-    scores: {
-      date_friendly_score: chosen.date_friendly_score,
-      group_friendly_score: chosen.group_friendly_score,
-      family_friendly_score: chosen.family_friendly_score,
-      romantic_rating: chosen.romantic_rating,
-      business_lunch_score: chosen.business_lunch_score,
-      solo_dining_score: chosen.solo_dining_score,
-      hole_in_wall_factor: chosen.hole_in_wall_factor,
-    },
+    scores: buildScores(chosen),
     tags: chosen.tags,
-    // V2 additions (backward-compatible — frontend can ignore)
     deep_context: buildDeepContext(chosen),
     scoring_v2: buildScoringV2(dimensions, weights),
     timestamp: new Date().toISOString(),
@@ -110,47 +154,13 @@ export function buildFallbackResponse(
 ): Record<string, unknown> {
   return {
     success: true,
-    restaurant: {
-      id: chosen.id,
-      name: googleData?.name || chosen.name,
-      address: googleData?.address || chosen.address,
-      google_place_id: chosen.google_place_id,
-      google_rating: googleData?.google_rating || null,
-      google_review_count: googleData?.google_review_count || null,
-      price_level: chosen.price_level,
-      phone: googleData?.phone || null,
-      website: googleData?.website || null,
-      noise_level: chosen.noise_level,
-      cuisine_type: chosen.cuisine_type || null,
-      lighting_ambiance: chosen.lighting_ambiance,
-      dress_code: chosen.dress_code,
-      outdoor_seating: chosen.outdoor_seating,
-      live_music: chosen.live_music,
-      pet_friendly: chosen.pet_friendly,
-      parking_availability: chosen.parking_availability,
-      sentiment_breakdown: null,
-      sentiment_score: null,
-      sentiment_summary: null,
-      sentiment_positive: null,
-      sentiment_negative: null,
-      sentiment_neutral: null,
-      best_for_oneliner: chosen.best_for_oneliner,
-      neighborhood_name: chosen.neighborhood_name,
-    },
+    restaurant: buildRestaurantObject(chosen, googleData),
     recommendation:
       chosen.best_for_oneliner ||
       "A top pick for your occasion based on our scores!",
     insider_tip: null,
     donde_match: dondeMatch,
-    scores: {
-      date_friendly_score: chosen.date_friendly_score,
-      group_friendly_score: chosen.group_friendly_score,
-      family_friendly_score: chosen.family_friendly_score,
-      romantic_rating: chosen.romantic_rating,
-      business_lunch_score: chosen.business_lunch_score,
-      solo_dining_score: chosen.solo_dining_score,
-      hole_in_wall_factor: chosen.hole_in_wall_factor,
-    },
+    scores: buildScores(chosen),
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
     timestamp: new Date().toISOString(),
@@ -187,7 +197,6 @@ export function buildTemplateResponse(
   } else if (dp?.neighborhood_integration === "hidden_local") {
     opener = `The locals in ${neighborhood} know about ${chosen.name}. Now you do too.`;
   } else {
-    // Occasion-aware openers (V2 — more variety than V1)
     const occasionHooks: Record<string, string[]> = {
       "Date Night": [
         `For the kind of date night where the restaurant does half the work, ${chosen.name} delivers.`,
@@ -240,13 +249,11 @@ export function buildTemplateResponse(
   if (lighting !== "warm") vibeDetails[0] += ` with ${lighting} lighting`;
   if (dress !== "casual") vibeDetails.push(`dress code is ${dress}`);
 
-  // One-liner and features
   const onelinerText = chosen.best_for_oneliner ? ` ${chosen.best_for_oneliner}.` : "";
   const featureText = features.length > 0 ? ` Plus, ${features.join(" and ")}.` : "";
 
   const recommendation = `${opener} ${vibeDetails[0]}.${onelinerText}${featureText}${vibeDetails.length > 1 ? ` The ${vibeDetails.slice(1).join(", ")}.` : ""}`;
 
-  // V2: Enhanced insider tip from deep profile
   let insiderTip = chosen.insider_tip || null;
   if (dp?.best_seat_in_house) {
     insiderTip = dp.best_seat_in_house;
@@ -257,45 +264,11 @@ export function buildTemplateResponse(
 
   return {
     success: true,
-    restaurant: {
-      id: chosen.id,
-      name: googleData?.name || chosen.name,
-      address: googleData?.address || chosen.address,
-      google_place_id: chosen.google_place_id,
-      google_rating: googleData?.google_rating || null,
-      google_review_count: googleData?.google_review_count || null,
-      price_level: chosen.price_level,
-      phone: googleData?.phone || null,
-      website: googleData?.website || null,
-      noise_level: chosen.noise_level,
-      cuisine_type: chosen.cuisine_type || null,
-      lighting_ambiance: chosen.lighting_ambiance,
-      dress_code: chosen.dress_code,
-      outdoor_seating: chosen.outdoor_seating,
-      live_music: chosen.live_music,
-      pet_friendly: chosen.pet_friendly,
-      parking_availability: chosen.parking_availability,
-      sentiment_breakdown: null,
-      sentiment_score: null,
-      sentiment_summary: null,
-      sentiment_positive: null,
-      sentiment_negative: null,
-      sentiment_neutral: null,
-      best_for_oneliner: chosen.best_for_oneliner,
-      neighborhood_name: chosen.neighborhood_name,
-    },
+    restaurant: buildRestaurantObject(chosen, googleData),
     recommendation,
     insider_tip: insiderTip,
     donde_match: dondeMatch,
-    scores: {
-      date_friendly_score: chosen.date_friendly_score,
-      group_friendly_score: chosen.group_friendly_score,
-      family_friendly_score: chosen.family_friendly_score,
-      romantic_rating: chosen.romantic_rating,
-      business_lunch_score: chosen.business_lunch_score,
-      solo_dining_score: chosen.solo_dining_score,
-      hole_in_wall_factor: chosen.hole_in_wall_factor,
-    },
+    scores: buildScores(chosen),
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
     timestamp: new Date().toISOString(),
