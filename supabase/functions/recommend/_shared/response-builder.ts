@@ -203,51 +203,60 @@ export function buildTemplateResponse(
   if (chosen.pet_friendly) features.push("it's pet-friendly");
   if (dp?.byob_policy === "full_byob") features.push("it's BYOB");
 
-  // V2: Dynamic openers using deep profile when available
+  // V3: Dynamic openers using deep profile when available
   let opener: string;
   if (dp?.origin_story && (occasion === "Adventure" || occasion === "Special Occasion")) {
-    opener = `There's a spot in ${neighborhood} with a story — ${dp.origin_story.split('.')[0].toLowerCase()}.`;
+    opener = `There's a spot in ${neighborhood} with a story. ${dp.origin_story.split('.')[0]}.`;
   } else if (dp?.unique_selling_point && occasion === "Adventure") {
-    opener = `${dp.unique_selling_point} — and we think that's worth the trip.`;
+    opener = `${dp.unique_selling_point}. We think that's worth the trip.`;
   } else if (dp?.neighborhood_integration === "hidden_local") {
     opener = `The locals in ${neighborhood} know about ${chosen.name}. Now you do too.`;
   } else {
     const occasionHooks: Record<string, string[]> = {
       "Date Night": [
-        `For the kind of date night where the restaurant does half the work, ${chosen.name} delivers.`,
-        `${chosen.name} in ${neighborhood} — where date nights actually feel like date nights.`,
+        `For the kind of date where the restaurant does half the work, ${chosen.name} delivers.`,
+        `We've sent a lot of first dates to ${chosen.name} in ${neighborhood}. They tend to turn into second ones.`,
+        `The lighting at ${chosen.name} does half the work. The food does the rest.`,
       ],
       "Group Hangout": [
-        `Rally the group to ${chosen.name} — it's built for the kind of dinner that runs long.`,
-        `${chosen.name} is our pick when you're rolling deep and everyone needs to be happy.`,
+        `Rally the crew. ${chosen.name} is built for the kind of dinner that runs long.`,
+        `${chosen.name} is our pick when everyone needs to be happy. It works every time.`,
+        `Big group energy and a menu everyone can agree on. That's ${chosen.name}.`,
       ],
       "Family Dinner": [
-        `For a family dinner where the adults actually enjoy themselves too, ${chosen.name} works.`,
-        `${chosen.name} threads the needle — great food AND kid-approved.`,
+        `Adults enjoy it. Kids don't lose it. ${chosen.name} passes the real test.`,
+        `We've brought our own families to ${chosen.name}. It works.`,
+        `Family dinner that doesn't feel like a compromise. ${chosen.name} nails it.`,
       ],
       "Business Lunch": [
-        `${chosen.name} reads well on a corporate card and the food backs it up.`,
+        `${chosen.name} reads well on a corporate card, and the food backs it up.`,
+        `Quiet enough to talk, good enough to impress. That's ${chosen.name}.`,
         `For a lunch that says "we take this seriously," ${chosen.name} is the call.`,
       ],
       "Solo Dining": [
-        `Just you and a really good plate — ${chosen.name} makes solo dining feel intentional.`,
+        `Just you and a really good plate. ${chosen.name} makes solo dining feel intentional.`,
+        `A seat at the bar, zero rush, and food worth paying attention to. That's ${chosen.name}.`,
         `${chosen.name} is the kind of spot where eating alone is a feature, not a compromise.`,
       ],
       "Special Occasion": [
         `When the night actually matters, we'd put our money on ${chosen.name}.`,
-        `${chosen.name} — for the nights that deserve better than "let's just go somewhere."`,
+        `This isn't a "let's just go somewhere" kind of night. ${chosen.name} is the answer.`,
+        `We don't pull this card often. ${chosen.name} in ${neighborhood} is worth it.`,
       ],
       "Treat Myself": [
-        `You deserve this. ${chosen.name} is the kind of self-care that actually tastes good.`,
+        `You deserve this. ${chosen.name} is the kind of self-care that tastes good.`,
         `Treating yourself? ${chosen.name} is the move.`,
+        `Solo indulgence done right. ${chosen.name} gets it.`,
       ],
       "Adventure": [
-        `If you're ready to try something you didn't know you were looking for, ${chosen.name} is it.`,
-        `This isn't your usual pick — that's the whole point. ${chosen.name} is a genuine find.`,
+        `This isn't your usual pick. That's the whole point. ${chosen.name} is a find.`,
+        `We love sending people to ${chosen.name}. The reaction is always the same: "How did I not know about this?"`,
+        `If you want to eat something you've never tried, ${chosen.name} is where you start.`,
       ],
       "Chill Hangout": [
-        `No agenda, no dress code, no stress — just ${chosen.name} doing its thing.`,
-        `For a low-key hang, ${chosen.name} nails the vibe.`,
+        `No agenda, no dress code, no stress. Just ${chosen.name} doing its thing.`,
+        `For a low-key hang, ${chosen.name} nails it.`,
+        `Show up whenever. Stay as long as you want. ${chosen.name} doesn't rush you.`,
       ],
     };
     const hooks = occasionHooks[occasion] || [`${chosen.name} is our pick for this one.`];
@@ -255,26 +264,28 @@ export function buildTemplateResponse(
   }
 
   // Build the middle sentence from real metadata + deep profile
+  // V3: Use natural language instead of database field names
+  const noiseDesc = noise === "quiet" ? "quiet enough to hear each other"
+    : noise === "loud" ? "loud in the best way"
+    : "just the right amount of buzz";
+  const cuisineLabel = dp?.cuisine_subcategory?.toLowerCase() || cuisine;
+
   const vibeDetails: string[] = [];
-  if (dp?.cuisine_subcategory) {
-    vibeDetails.push(`It's a ${noise} ${dp.cuisine_subcategory.toLowerCase()} spot in ${neighborhood}`);
-  } else {
-    vibeDetails.push(`It's a ${noise} ${cuisine} spot in ${neighborhood}`);
-  }
+  vibeDetails.push(`It's a ${cuisineLabel} spot in ${neighborhood}, ${noiseDesc}`);
   if (lighting !== "warm") vibeDetails[0] += ` with ${lighting} lighting`;
-  if (dress !== "casual") vibeDetails.push(`dress code is ${dress}`);
+  if (dress !== "casual") vibeDetails.push(`you'll want to dress ${dress}`);
 
   const onelinerText = chosen.best_for_oneliner ? ` ${chosen.best_for_oneliner}.` : "";
   const featureText = features.length > 0 ? ` Plus, ${features.join(" and ")}.` : "";
 
-  const recommendation = `${opener} ${vibeDetails[0]}.${onelinerText}${featureText}${vibeDetails.length > 1 ? ` The ${vibeDetails.slice(1).join(", ")}.` : ""}`;
+  const recommendation = `${opener} ${vibeDetails[0]}.${onelinerText}${featureText}${vibeDetails.length > 1 ? ` ${vibeDetails.slice(1).join(". ")}.` : ""}`;
 
   let insiderTip = chosen.insider_tip || null;
   if (dp?.best_seat_in_house) {
     insiderTip = dp.best_seat_in_house;
   } else if (dp?.signature_dishes && Array.isArray(dp.signature_dishes) && dp.signature_dishes.length > 0) {
     const dish = dp.signature_dishes[0];
-    insiderTip = `Go for the ${dish.dish} — ${dish.why}.`;
+    insiderTip = `Go for the ${dish.dish}. ${dish.why}.`;
   }
 
   return {
@@ -319,7 +330,7 @@ export function buildErrorResponse(error: unknown): Record<string, unknown> {
   console.error("Recommendation engine error:", error);
   return {
     success: false,
-    recommendation: "The engine took a nap — try again.",
+    recommendation: "The engine took a nap. Try again.",
     restaurant: {},
     scores: {},
     tags: [],

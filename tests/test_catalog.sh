@@ -171,7 +171,7 @@ echo "============================================================"
 echo "  DONDE RECOMMENDATION API — FULL TEST SUITE (T01-T50)"
 echo "  $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 echo "  Endpoint: $API"
-echo "  Tests: 50 | Expected checks: ~185"
+echo "  Tests: 75 | Expected checks: ~290"
 echo "============================================================"
 
 # Store restaurant IDs for later exclude tests
@@ -1266,6 +1266,233 @@ check_exists "T65" "has recommendation" '.recommendation'
 NAME_65=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"')
 SUCCESS_65=$(echo "$LAST_RESPONSE" | jq -r '.success')
 echo "  [info] Returned: $NAME_65 (success=$SUCCESS_65)"
+
+###############################################################################
+# T66-T75: Blurb Quality & Anti-Slop (V3 Multi-Expert Team)
+###############################################################################
+phase_banner "6" "Blurb Quality & Anti-Slop (T66-T75)"
+
+# ─── T66: Em dash detection ───────────────────────────────────────────────────
+test_banner "T66" "Em dash detection — recommendation should not contain em dashes"
+api_call '{"special_request":"romantic Italian dinner","occasion":"Date Night","neighborhood":"West Loop","price_level":"$$$"}'
+
+check "T66" "success" '.success' 'true'
+check_exists "T66" "recommendation exists" '.recommendation'
+REC_66=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""')
+EM_DASH_COUNT=$(echo "$REC_66" | grep -o '—' | wc -l | tr -d ' ')
+if [[ $EM_DASH_COUNT -eq 0 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T66] no em dashes in recommendation"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T66|no em dashes\n"
+else
+  echo -e "  ${RED}FAIL${NC} [T66] found $EM_DASH_COUNT em dash(es) in recommendation"
+  ((FAIL_COUNT++)); TEST_LOG+="FAIL|T66|em dashes found|count=$EM_DASH_COUNT\n"
+fi
+echo "  [info] Rec: ${REC_66:0:150}..."
+
+# ─── T67: Voice consistency — "we" voice across 3 occasions ──────────────────
+test_banner "T67" "Voice consistency — 'we' voice across multiple occasions"
+WE_VOICE_PASS=0
+for OCCASION_67 in "Date Night" "Adventure" "Group Hangout"; do
+  api_call "{\"special_request\":\"good dinner\",\"occasion\":\"$OCCASION_67\",\"neighborhood\":\"Anywhere\",\"price_level\":\"\$\$\"}"
+  REC_67=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""' | tr '[:upper:]' '[:lower:]')
+  if [[ "$REC_67" == *" we "* || "$REC_67" == *"we'"* || "$REC_67" == *"we'd"* || "$REC_67" == "we "* || "$REC_67" == *"we've"* || "$REC_67" == *"we keep"* || "$REC_67" == *"we love"* ]]; then
+    ((WE_VOICE_PASS++))
+    echo "  [info] $OCCASION_67: 'we' voice found"
+  else
+    echo "  [info] $OCCASION_67: 'we' voice NOT found"
+  fi
+  sleep 1
+done
+if [[ $WE_VOICE_PASS -ge 2 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T67] 'we' voice in $WE_VOICE_PASS/3 occasions"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T67|we voice $WE_VOICE_PASS/3\n"
+else
+  echo -e "  ${RED}FAIL${NC} [T67] 'we' voice only in $WE_VOICE_PASS/3 occasions"
+  ((FAIL_COUNT++)); TEST_LOG+="FAIL|T67|we voice|found=$WE_VOICE_PASS/3\n"
+fi
+
+# ─── T68: Insider tip verb-start ──────────────────────────────────────────────
+test_banner "T68" "Insider tip — starts with action verb or article"
+api_call '{"special_request":"best tacos","occasion":"Adventure","neighborhood":"Pilsen","price_level":"$"}'
+
+check "T68" "success" '.success' 'true'
+TIP_68=$(echo "$LAST_RESPONSE" | jq -r '.insider_tip // ""')
+if [[ -n "$TIP_68" && "$TIP_68" != "null" ]]; then
+  # Check if tip starts with common action verbs or articles
+  FIRST_WORD=$(echo "$TIP_68" | awk '{print tolower($1)}')
+  if [[ "$FIRST_WORD" == "ask" || "$FIRST_WORD" == "grab" || "$FIRST_WORD" == "get" || "$FIRST_WORD" == "order" || "$FIRST_WORD" == "sit" || "$FIRST_WORD" == "go" || "$FIRST_WORD" == "try" || "$FIRST_WORD" == "skip" || "$FIRST_WORD" == "come" || "$FIRST_WORD" == "book" || "$FIRST_WORD" == "the" || "$FIRST_WORD" == "it's" || "$FIRST_WORD" == "head" || "$FIRST_WORD" == "request" || "$FIRST_WORD" == "save" || "$FIRST_WORD" == "start" ]]; then
+    echo -e "  ${GREEN}PASS${NC} [T68] tip starts with action/article: '$FIRST_WORD'"
+    ((PASS_COUNT++)); TEST_LOG+="PASS|T68|tip starts with $FIRST_WORD\n"
+  else
+    warn_check "T68" "tip starts with action verb" "false" "starts with: '$FIRST_WORD'"
+  fi
+else
+  warn_check "T68" "insider_tip present" "false" "null or empty"
+fi
+echo "  [info] Tip: $TIP_68"
+
+# ─── T69: No generic openers ─────────────────────────────────────────────────
+test_banner "T69" "No generic openers — rec doesn't start with restaurant name"
+api_call '{"special_request":"good sushi","occasion":"Date Night","neighborhood":"Anywhere","price_level":"$$$"}'
+
+check "T69" "success" '.success' 'true'
+REC_69=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""')
+RNAME_69=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // ""')
+if [[ -n "$REC_69" && -n "$RNAME_69" ]]; then
+  # Check if recommendation starts with the restaurant name
+  REC_START=$(echo "$REC_69" | head -c ${#RNAME_69})
+  if [[ "$REC_START" != "$RNAME_69" ]]; then
+    echo -e "  ${GREEN}PASS${NC} [T69] rec does not start with restaurant name"
+    ((PASS_COUNT++)); TEST_LOG+="PASS|T69|no name opener\n"
+  else
+    echo -e "  ${RED}FAIL${NC} [T69] rec starts with restaurant name: '$RNAME_69'"
+    ((FAIL_COUNT++)); TEST_LOG+="FAIL|T69|starts with restaurant name\n"
+  fi
+fi
+echo "  [info] Restaurant: $RNAME_69"
+echo "  [info] Rec starts: ${REC_69:0:80}..."
+
+# ─── T70: Sentence variety ───────────────────────────────────────────────────
+test_banner "T70" "Sentence variety — at least 2 sentences of different lengths"
+api_call '{"special_request":"cozy dinner","occasion":"Treat Myself","neighborhood":"Lincoln Park","price_level":"$$"}'
+
+check "T70" "success" '.success' 'true'
+REC_70=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""')
+# Split by sentence-ending punctuation and count words per sentence
+SHORTEST=999
+LONGEST=0
+SENT_COUNT=0
+while IFS= read -r sent; do
+  sent=$(echo "$sent" | xargs)
+  [[ -z "$sent" ]] && continue
+  WC=$(echo "$sent" | wc -w | tr -d ' ')
+  [[ $WC -lt 2 ]] && continue
+  ((SENT_COUNT++))
+  [[ $WC -lt $SHORTEST ]] && SHORTEST=$WC
+  [[ $WC -gt $LONGEST ]] && LONGEST=$WC
+done < <(echo "$REC_70" | sed 's/\. /\.\n/g' | sed 's/! /!\n/g')
+
+if [[ $SENT_COUNT -ge 2 ]]; then
+  DIFF=$((LONGEST - SHORTEST))
+  if [[ $DIFF -ge 3 ]]; then
+    echo -e "  ${GREEN}PASS${NC} [T70] sentence variety: shortest=$SHORTEST, longest=$LONGEST, diff=$DIFF"
+    ((PASS_COUNT++)); TEST_LOG+="PASS|T70|sentence variety diff=$DIFF\n"
+  else
+    warn_check "T70" "sentence length variety" "false" "shortest=$SHORTEST, longest=$LONGEST, diff=$DIFF (want >= 3)"
+  fi
+else
+  warn_check "T70" "multiple sentences" "false" "only $SENT_COUNT sentence(s)"
+fi
+
+# ─── T71: Cultural authenticity — Mexican ─────────────────────────────────────
+test_banner "T71" "Cultural authenticity — tacos al pastor uses correct terminology"
+api_call '{"special_request":"tacos al pastor","occasion":"Adventure","neighborhood":"Pilsen","price_level":"$"}'
+
+check "T71" "success" '.success' 'true'
+REC_71=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""' | tr '[:upper:]' '[:lower:]')
+TIP_71=$(echo "$LAST_RESPONSE" | jq -r '.insider_tip // ""' | tr '[:upper:]' '[:lower:]')
+COMBINED_71="$REC_71 $TIP_71"
+# Check for any Mexican-specific culinary terms
+if [[ "$COMBINED_71" == *"pastor"* || "$COMBINED_71" == *"trompo"* || "$COMBINED_71" == *"masa"* || "$COMBINED_71" == *"salsa"* || "$COMBINED_71" == *"taquero"* || "$COMBINED_71" == *"cilantro"* || "$COMBINED_71" == *"cebolla"* || "$COMBINED_71" == *"tortilla"* || "$COMBINED_71" == *"taco"* ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T71] Mexican food terminology found"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T71|Mexican terminology\n"
+else
+  warn_check "T71" "Mexican food terminology" "false" "no specific terms found"
+fi
+echo "  [info] Rec: ${REC_71:0:120}..."
+
+# ─── T72: Cultural authenticity — Japanese ────────────────────────────────────
+test_banner "T72" "Cultural authenticity — omakase uses correct terminology"
+api_call '{"special_request":"omakase dinner","occasion":"Special Occasion","neighborhood":"Anywhere","price_level":"$$$$"}'
+
+check "T72" "success" '.success' 'true'
+REC_72=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""' | tr '[:upper:]' '[:lower:]')
+TIP_72=$(echo "$LAST_RESPONSE" | jq -r '.insider_tip // ""' | tr '[:upper:]' '[:lower:]')
+COMBINED_72="$REC_72 $TIP_72"
+if [[ "$COMBINED_72" == *"omakase"* || "$COMBINED_72" == *"chef"* || "$COMBINED_72" == *"sushi"* || "$COMBINED_72" == *"robata"* || "$COMBINED_72" == *"izakaya"* || "$COMBINED_72" == *"kaiseki"* || "$COMBINED_72" == *"nigiri"* || "$COMBINED_72" == *"counter"* ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T72] Japanese food terminology found"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T72|Japanese terminology\n"
+else
+  warn_check "T72" "Japanese food terminology" "false" "no specific terms found"
+fi
+echo "  [info] Rec: ${REC_72:0:120}..."
+
+# ─── T73: Emotional resonance — Date Night ───────────────────────────────────
+test_banner "T73" "Emotional resonance — Date Night has sensory/emotional words"
+api_call '{"special_request":"romantic dinner with wine","occasion":"Date Night","neighborhood":"West Loop","price_level":"$$$"}'
+
+check "T73" "success" '.success' 'true'
+REC_73=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""' | tr '[:upper:]' '[:lower:]')
+EMOTIONAL_WORDS="warm|cozy|intimate|candlelit|dim|glow|quiet|romantic|linger|comfort|gentle|soft|low-lit|flickering"
+SENSORY_WORDS="smell|taste|aroma|sizzle|crisp|rich|creamy|smoky|charred|tender|fresh|buttery|silky|fragrant"
+if echo "$REC_73" | grep -qE "($EMOTIONAL_WORDS|$SENSORY_WORDS)"; then
+  echo -e "  ${GREEN}PASS${NC} [T73] emotional/sensory words found in Date Night rec"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T73|emotional words found\n"
+else
+  echo -e "  ${RED}FAIL${NC} [T73] no emotional/sensory words in Date Night rec"
+  ((FAIL_COUNT++)); TEST_LOG+="FAIL|T73|no emotional words\n"
+fi
+echo "  [info] Rec: ${REC_73:0:120}..."
+
+# ─── T74: No exclusive superlatives ──────────────────────────────────────────
+test_banner "T74" "Honest voice — rec doesn't exclusively use superlatives"
+api_call '{"special_request":"good dinner","occasion":"Chill Hangout","neighborhood":"Wicker Park","price_level":"$$"}'
+
+check "T74" "success" '.success' 'true'
+REC_74=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""' | tr '[:upper:]' '[:lower:]')
+# Count superlatives
+SUPER_COUNT=0
+for SUPER in "best" "perfect" "amazing" "incredible" "stunning" "exceptional" "extraordinary" "magnificent" "spectacular" "phenomenal" "outstanding" "superb"; do
+  if [[ "$REC_74" == *"$SUPER"* ]]; then
+    ((SUPER_COUNT++))
+  fi
+done
+WORD_COUNT_74=$(echo "$REC_74" | wc -w | tr -d ' ')
+# More than 3 superlatives in a 50-80 word blurb is too many
+if [[ $SUPER_COUNT -le 3 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T74] reasonable superlative count: $SUPER_COUNT in $WORD_COUNT_74 words"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T74|superlatives=$SUPER_COUNT\n"
+else
+  echo -e "  ${RED}FAIL${NC} [T74] too many superlatives: $SUPER_COUNT in $WORD_COUNT_74 words"
+  ((FAIL_COUNT++)); TEST_LOG+="FAIL|T74|superlatives=$SUPER_COUNT\n"
+fi
+
+# ─── T75: Anti-slop comprehensive ────────────────────────────────────────────
+test_banner "T75" "Anti-slop comprehensive — expanded slop pattern check"
+api_call '{"special_request":"cozy Italian date spot with good pasta","occasion":"Date Night","neighborhood":"Anywhere","price_level":"$$"}'
+
+check "T75" "success" '.success' 'true'
+REC_75=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""' | tr '[:upper:]' '[:lower:]')
+TIP_75=$(echo "$LAST_RESPONSE" | jq -r '.insider_tip // ""' | tr '[:upper:]' '[:lower:]')
+COMBINED_75="$REC_75 $TIP_75"
+
+SLOP_75_COUNT=0
+SLOP_75_FOUND=""
+for PHRASE in "culinary journey" "taste buds" "tantalizing" "mouthwatering" "delectable" "exquisite" "unforgettable" "unparalleled" "nestled" "from the moment you" "elevate your" "dining experience" "truly remarkable" "burst of flavor" "a cut above" "doesn't disappoint" "perfect blend" "perfect balance" "hits all the right notes" "checks all the boxes" "palate" "gastronomic" "a must-visit" "not to be missed" "unapologetically"; do
+  if [[ "$COMBINED_75" == *"$PHRASE"* ]]; then
+    ((SLOP_75_COUNT++))
+    SLOP_75_FOUND+="'$PHRASE' "
+  fi
+done
+
+# Also check for em dashes in this comprehensive test
+EM_75=$(echo "$COMBINED_75" | grep -o '—' | wc -l | tr -d ' ')
+if [[ $EM_75 -gt 0 ]]; then
+  ((SLOP_75_COUNT++))
+  SLOP_75_FOUND+="'em-dash(x$EM_75)' "
+fi
+
+if [[ $SLOP_75_COUNT -eq 0 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T75] zero slop patterns detected"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T75|zero slop\n"
+elif [[ $SLOP_75_COUNT -le 1 ]]; then
+  warn_check "T75" "minor slop" "false" "found: $SLOP_75_FOUND"
+else
+  echo -e "  ${RED}FAIL${NC} [T75] slop detected ($SLOP_75_COUNT): $SLOP_75_FOUND"
+  ((FAIL_COUNT++)); TEST_LOG+="FAIL|T75|slop count=$SLOP_75_COUNT|$SLOP_75_FOUND\n"
+fi
+echo "  [info] Rec: ${REC_75:0:120}..."
+echo "  [info] Tip: $TIP_75"
 
 ###############################################################################
 # FINAL REPORT
