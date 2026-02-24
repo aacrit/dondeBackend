@@ -139,7 +139,8 @@ export function buildSuccessResponse(
   googleData: GooglePlaceData | null,
   dondeMatch: number,
   dimensions?: ScoringDimensions,
-  weights?: DimensionWeights
+  weights?: DimensionWeights,
+  cuisineMismatch?: { requested: string } | null
 ): Record<string, unknown> {
   return {
     success: true,
@@ -158,6 +159,7 @@ export function buildSuccessResponse(
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
     scoring_v2: buildScoringV2(dimensions, weights),
+    cuisine_mismatch: cuisineMismatch ? { requested: cuisineMismatch.requested } : null,
     timestamp: new Date().toISOString(),
   };
 }
@@ -165,7 +167,8 @@ export function buildSuccessResponse(
 export function buildFallbackResponse(
   chosen: RestaurantProfile,
   googleData: GooglePlaceData | null,
-  dondeMatch: number
+  dondeMatch: number,
+  cuisineMismatch?: { requested: string } | null
 ): Record<string, unknown> {
   return {
     success: true,
@@ -178,6 +181,7 @@ export function buildFallbackResponse(
     scores: buildScores(chosen),
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
+    cuisine_mismatch: cuisineMismatch ? { requested: cuisineMismatch.requested } : null,
     timestamp: new Date().toISOString(),
   };
 }
@@ -187,7 +191,8 @@ export function buildTemplateResponse(
   chosen: RestaurantProfile,
   googleData: GooglePlaceData | null,
   dondeMatch: number,
-  occasion: string
+  occasion: string,
+  cuisineMismatch?: { requested: string } | null
 ): Record<string, unknown> {
   const cuisine = chosen.cuisine_type || "restaurant";
   const neighborhood = chosen.neighborhood_name || "Chicago";
@@ -302,6 +307,7 @@ export function buildTemplateResponse(
     scores: buildScores(chosen),
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
+    cuisine_mismatch: cuisineMismatch ? { requested: cuisineMismatch.requested } : null,
     timestamp: new Date().toISOString(),
   };
 }
