@@ -847,9 +847,11 @@ Deno.serve(async (req: Request) => {
       .catch((err: unknown) => logError("Failed to log query", { error: String(err) }));
 
     // SSO: Auto-save search to user_searches for authenticated users (fire-and-forget)
+    // Uses service client to bypass RLS (Edge Function has no user session context)
     if (authUserId && chosenId) {
       const chosenRestaurant = responseBody.restaurant as Record<string, unknown>;
-      supabase
+      const serviceForSave = createServiceClient();
+      serviceForSave
         .from("user_searches")
         .insert({
           user_id: authUserId,
