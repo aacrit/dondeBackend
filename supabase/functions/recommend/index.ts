@@ -570,7 +570,20 @@ Deno.serve(async (req: Request) => {
       // Build cuisine mismatch context for Claude prompt
       let cuisineMismatchContext: string | null = null;
       if (cuisineMismatch) {
-        cuisineMismatchContext = `CUISINE MISMATCH: The user asked for "${special_request}" (${cuisineMismatch.requested} cuisine), but none of the candidates serve this cuisine. Be honest about this gap. Pick the best alternative and briefly explain why it's a good fallback, but acknowledge upfront that we don't have their specific craving covered. Set your relevance_score to 5.0 or below to reflect the mismatch. Do NOT pretend the recommendation matches their request.`;
+        cuisineMismatchContext = `CUISINE MISMATCH: The user asked for "${special_request}" but we don't carry ${cuisineMismatch.requested} cuisine yet.
+
+Your job: pick the BEST alternative and write a rec that leads with what makes THIS pick genuinely worth going to. The frontend already shows a "we don't have [cuisine]" banner, so the blurb doesn't need to repeat that.
+
+MISMATCH BLURB STRUCTURE:
+- Open with what's compelling about the pick (food, vibe, story, or a bold claim)
+- Acknowledge the pivot in a brief clause, not a full confession. One phrase like "it's not the [X] you were after, but..." woven into a sentence about the restaurant's strengths
+- Close with why it's worth the detour
+
+BANNED OPENERS for mismatch blurbs: "We gotta be straight" / "We don't have" / "To be honest" / "Let's be real" / "We'll be upfront" / "Honestly" / "Full disclosure" / any variant that leads with bad news or apology.
+
+Keep the pivot acknowledgment to ONE brief clause, not a full sentence. The tone should feel like a friend saying "yeah that's not quite what you said, but trust me on this one."
+
+Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
       }
 
       // Build user prompt with reviews (if available from Google)

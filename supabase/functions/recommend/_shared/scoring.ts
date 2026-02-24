@@ -2511,6 +2511,10 @@ Example 5 (Family Dinner, Mexican, with reviews):
 "recommendation": "The real test for a family spot: adults enjoy it AND kids don't lose it. This one passes. The tortillas are made fresh every hour, and you can smell the corn masa from the door. Portions are generous, the salsa verde has real heat, and the staff genuinely likes kids. Parking can be tricky on weekends, but the food makes up for it."
 "insider_tip": "Order the queso fundido as a table starter. It arrives bubbling."
 
+Example 6 (Cuisine mismatch, user asked for cuisine we don't carry, subtle pivot):
+"recommendation": "The lamb barbacoa biryani here is beautiful plating, and the patio has the kind of low-lit energy that works for a date. Not the straight-up tacos and margs you described, but the carne apache is bold, addictive, and the Mexican-Indian fusion scratches a similar itch. Worth the detour."
+"insider_tip": "The carne apache is the move. Pair it with the orange-infused coffee."
+
 BAD EXAMPLE (do NOT write like this):
 "recommendation": "Nestled in the heart of River North, this culinary gem boasts an unforgettable dining experience. The exquisite menu offers a tantalizing array of options that will elevate your taste buds. Whether you're looking for a romantic evening or a casual night out, this restaurant delivers. The mouthwatering dishes and impeccable service make it a must-visit destination."
 Why this is bad: em dashes, banned words everywhere, no specifics, no sensory detail, reads like a bot wrote it.

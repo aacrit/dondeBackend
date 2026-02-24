@@ -2,8 +2,8 @@
 set -uo pipefail
 
 ###############################################################################
-# DONDE RECOMMENDATION API — FULL TEST SUITE (T01–T54)
-# 54 scenarios · ~210 validation checks · 5 phases
+# DONDE RECOMMENDATION API — FULL TEST SUITE (T01–T83)
+# 83 scenarios · ~280 validation checks · 7 phases
 #
 # Usage:  chmod +x tests/test_catalog.sh && ./tests/test_catalog.sh
 # Deps:   curl, jq (v1.6+), bash 4+
@@ -1493,6 +1493,172 @@ else
 fi
 echo "  [info] Rec: ${REC_75:0:120}..."
 echo "  [info] Tip: $TIP_75"
+
+###############################################################################
+# T76-T83: Negative Cuisine / Mismatch Tests
+###############################################################################
+phase_banner "7" "Negative Cuisine & Mismatch Tests (T76-T83)"
+
+# ─── T76: Scandinavian cuisine (not in DB) ────────────────────────────────────
+test_banner "T76" "Cuisine mismatch: Scandinavian smorgasbord (not in DB)"
+api_call '{"special_request":"Scandinavian smorgasbord with pickled herring","occasion":"Adventure","neighborhood":"Anywhere","price_level":"$$"}'
+check "T76" "success" '.success' 'true'
+check_exists "T76" "still returns a restaurant" '.restaurant.name'
+MATCH_76=$(echo "$LAST_RESPONSE" | jq '.donde_match // 0')
+if [[ "$MATCH_76" -le 65 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T76] donde_match capped for mismatch ($MATCH_76)"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T76|match capped=$MATCH_76\n"
+else
+  warn_check "T76" "donde_match capped at 65" "false" "got: $MATCH_76"
+fi
+MISMATCH_76=$(echo "$LAST_RESPONSE" | jq -r '.cuisine_mismatch.requested // "null"')
+if [[ "$MISMATCH_76" != "null" ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T76] cuisine_mismatch detected: $MISMATCH_76"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T76|mismatch=$MISMATCH_76\n"
+else
+  warn_check "T76" "cuisine_mismatch field set" "false" "null"
+fi
+echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') (match: $MATCH_76)"
+
+# ─── T77: Filipino cuisine (not in DB) ────────────────────────────────────────
+test_banner "T77" "Cuisine mismatch: Filipino sisig and lumpia (not in DB)"
+api_call '{"special_request":"Filipino sisig and lumpia","occasion":"Group Hangout","neighborhood":"Anywhere","price_level":"$"}'
+check "T77" "success" '.success' 'true'
+check_exists "T77" "still returns a restaurant" '.restaurant.name'
+MATCH_77=$(echo "$LAST_RESPONSE" | jq '.donde_match // 0')
+if [[ "$MATCH_77" -le 65 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T77] donde_match capped for mismatch ($MATCH_77)"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T77|match capped=$MATCH_77\n"
+else
+  warn_check "T77" "donde_match capped at 65" "false" "got: $MATCH_77"
+fi
+MISMATCH_77=$(echo "$LAST_RESPONSE" | jq -r '.cuisine_mismatch.requested // "null"')
+if [[ "$MISMATCH_77" != "null" ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T77] cuisine_mismatch detected: $MISMATCH_77"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T77|mismatch=$MISMATCH_77\n"
+else
+  warn_check "T77" "cuisine_mismatch field set" "false" "null"
+fi
+echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') (match: $MATCH_77)"
+
+# ─── T78: Jamaican cuisine (not in DB) ────────────────────────────────────────
+test_banner "T78" "Cuisine mismatch: Jamaican jerk chicken (not in DB)"
+api_call '{"special_request":"Jamaican jerk chicken and rum cocktails","occasion":"Chill Hangout","neighborhood":"Anywhere","price_level":"$$"}'
+check "T78" "success" '.success' 'true'
+check_exists "T78" "still returns a restaurant" '.restaurant.name'
+MATCH_78=$(echo "$LAST_RESPONSE" | jq '.donde_match // 0')
+if [[ "$MATCH_78" -le 65 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T78] donde_match capped for mismatch ($MATCH_78)"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T78|match capped=$MATCH_78\n"
+else
+  warn_check "T78" "donde_match capped at 65" "false" "got: $MATCH_78"
+fi
+MISMATCH_78=$(echo "$LAST_RESPONSE" | jq -r '.cuisine_mismatch.requested // "null"')
+if [[ "$MISMATCH_78" != "null" ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T78] cuisine_mismatch detected: $MISMATCH_78"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T78|mismatch=$MISMATCH_78\n"
+else
+  warn_check "T78" "cuisine_mismatch field set" "false" "null"
+fi
+echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') (match: $MATCH_78)"
+
+# ─── T79: Georgian cuisine (not in DB) ────────────────────────────────────────
+test_banner "T79" "Cuisine mismatch: Georgian khachapuri (not in DB)"
+api_call '{"special_request":"Georgian khachapuri and natural wine","occasion":"Date Night","neighborhood":"Anywhere","price_level":"$$"}'
+check "T79" "success" '.success' 'true'
+check_exists "T79" "still returns a restaurant" '.restaurant.name'
+MATCH_79=$(echo "$LAST_RESPONSE" | jq '.donde_match // 0')
+if [[ "$MATCH_79" -le 65 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T79] donde_match capped for mismatch ($MATCH_79)"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T79|match capped=$MATCH_79\n"
+else
+  warn_check "T79" "donde_match capped at 65" "false" "got: $MATCH_79"
+fi
+MISMATCH_79=$(echo "$LAST_RESPONSE" | jq -r '.cuisine_mismatch.requested // "null"')
+if [[ "$MISMATCH_79" != "null" ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T79] cuisine_mismatch detected: $MISMATCH_79"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T79|mismatch=$MISMATCH_79\n"
+else
+  warn_check "T79" "cuisine_mismatch field set" "false" "null"
+fi
+echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') (match: $MATCH_79)"
+
+# ─── T80: Tibetan cuisine (not in DB) ─────────────────────────────────────────
+test_banner "T80" "Cuisine mismatch: Tibetan momos (not in DB)"
+api_call '{"special_request":"Tibetan momos and butter tea","occasion":"Adventure","neighborhood":"Anywhere","price_level":"$"}'
+check "T80" "success" '.success' 'true'
+check_exists "T80" "still returns a restaurant" '.restaurant.name'
+MATCH_80=$(echo "$LAST_RESPONSE" | jq '.donde_match // 0')
+if [[ "$MATCH_80" -le 65 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T80] donde_match capped for mismatch ($MATCH_80)"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T80|match capped=$MATCH_80\n"
+else
+  warn_check "T80" "donde_match capped at 65" "false" "got: $MATCH_80"
+fi
+MISMATCH_80=$(echo "$LAST_RESPONSE" | jq -r '.cuisine_mismatch.requested // "null"')
+if [[ "$MISMATCH_80" != "null" ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T80] cuisine_mismatch detected: $MISMATCH_80"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T80|mismatch=$MISMATCH_80\n"
+else
+  warn_check "T80" "cuisine_mismatch field set" "false" "null"
+fi
+echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') (match: $MATCH_80)"
+
+# ─── T81: Compound mismatch (rare cuisine + restrictive neighborhood) ─────────
+test_banner "T81" "Compound mismatch: vegan Ethiopian in Gold Coast"
+api_call '{"special_request":"vegan Ethiopian food","occasion":"Any","neighborhood":"Gold Coast","price_level":"$$"}'
+check "T81" "success is boolean" '.success | type' 'boolean'
+check_exists "T81" "has recommendation" '.recommendation'
+MATCH_81=$(echo "$LAST_RESPONSE" | jq '.donde_match // 0')
+NAME_81=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"')
+SUCCESS_81=$(echo "$LAST_RESPONSE" | jq -r '.success')
+echo "  [info] Returned: $NAME_81 (success=$SUCCESS_81, match=$MATCH_81)"
+
+# ─── T82: Mismatch blurb quality — no apology opener ─────────────────────────
+test_banner "T82" "Mismatch blurb quality: no apology opener"
+api_call '{"special_request":"Trinidadian doubles and roti","occasion":"Adventure","neighborhood":"Anywhere","price_level":"$"}'
+check "T82" "success" '.success' 'true'
+check_exists "T82" "restaurant returned" '.restaurant.name'
+REC_82=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""' | tr '[:upper:]' '[:lower:]')
+# Check first 100 chars don't contain apology/confession patterns
+FIRST_100="${REC_82:0:100}"
+if [[ "$FIRST_100" != *"we gotta"* && "$FIRST_100" != *"to be honest"* && "$FIRST_100" != *"we don't have"* && "$FIRST_100" != *"let's be real"* && "$FIRST_100" != *"we'll be straight"* && "$FIRST_100" != *"full disclosure"* && "$FIRST_100" != *"we'll be upfront"* ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T82] mismatch blurb doesn't open with apology"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T82|no apology opener\n"
+else
+  echo -e "  ${RED}FAIL${NC} [T82] mismatch blurb opens with apology pattern"
+  ((FAIL_COUNT++)); TEST_LOG+="FAIL|T82|apology opener detected\n"
+fi
+# Standard anti-slop on mismatch blurb
+EM_82=$(echo "$REC_82" | grep -o '—' | wc -l | tr -d ' ')
+if [[ $EM_82 -eq 0 ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T82] no em dashes in mismatch blurb"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T82|no em dashes\n"
+else
+  echo -e "  ${RED}FAIL${NC} [T82] em dashes in mismatch blurb ($EM_82)"
+  ((FAIL_COUNT++)); TEST_LOG+="FAIL|T82|em dashes=$EM_82\n"
+fi
+echo "  [info] Rec: ${REC_82:0:150}..."
+
+# ─── T83: Multi-request mismatch — tacos and margaritas on a patio ────────────
+test_banner "T83" "Multi-request mismatch: tacos and margaritas on a patio"
+api_call '{"special_request":"tacos and margaritas on a patio, intimate dinner","occasion":"Date Night","neighborhood":"Anywhere","price_level":"$$"}'
+check "T83" "success" '.success' 'true'
+check_exists "T83" "restaurant returned" '.restaurant.name'
+check_exists "T83" "recommendation exists" '.recommendation'
+MATCH_83=$(echo "$LAST_RESPONSE" | jq '.donde_match // 0')
+REC_83=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""')
+# Check mismatch blurb quality for user's specific example
+REC_83_LOWER=$(echo "$REC_83" | tr '[:upper:]' '[:lower:]')
+FIRST_100_83="${REC_83_LOWER:0:100}"
+if [[ "$FIRST_100_83" != *"we gotta"* && "$FIRST_100_83" != *"to be honest"* && "$FIRST_100_83" != *"we don't have"* ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T83] blurb leads with strengths, not apology"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T83|organic blurb\n"
+else
+  warn_check "T83" "organic blurb (no apology opener)" "false" "starts with apology pattern"
+fi
+echo "  [info] match=$MATCH_83 restaurant=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"')"
+echo "  [info] Rec: ${REC_83:0:150}..."
 
 ###############################################################################
 # FINAL REPORT

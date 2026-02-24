@@ -1,17 +1,17 @@
 # Donde API Test Results
 
-**Date:** 2026-02-24T05:58:11Z
+**Date:** 2026-02-24T20:52:57Z
 **Endpoint:** https://vwbzkgsxmgwcvmvuxnbe.supabase.co/functions/v1/recommend
 
 ## Summary
 
 | Metric | Count |
 |--------|-------|
-| PASSED | 253 |
-| FAILED | 2 |
-| WARNED | 21 |
-| TOTAL  | 276 |
-| **Hard Pass Rate** | **99%** (253 / 255) |
+| PASSED | 273 |
+| FAILED | 3 |
+| WARNED | 30 |
+| TOTAL  | 306 |
+| **Hard Pass Rate** | **98%** (273 / 276) |
 
 ## Detailed Results
 
@@ -63,7 +63,7 @@
 | PASS | T03 | recommendation >= 40 words |  |
 | PASS | T03 | recommendation <= 200 words |  |
 | PASS | T03 | insider_tip type |  |
-| WARN | T03 | rec mentions restaurant name | name=monteverde rest not found in text |
+| PASS | T03 | rec mentions restaurant name |  |
 | PASS | T04 | donde_match is number |  |
 | PASS | T04 | donde_match >= 60 |  |
 | PASS | T04 | donde_match <= 99 |  |
@@ -96,7 +96,7 @@
 | PASS | T09 | neighborhood match |  |
 | PASS | T10 | success |  |
 | PASS | T10 | group_friendly >= 5 |  |
-| PASS | T10 | price is 58970 |  |
+| PASS | T10 | price is 52293 |  |
 | PASS | T11 | success |  |
 | PASS | T11 | family_friendly >= 5 |  |
 | PASS | T11 | has restaurant name |  |
@@ -109,7 +109,7 @@
 | PASS | T14 | success |  |
 | PASS | T14 | romantic_rating >= 6 |  |
 | PASS | T14 | date_friendly >= 5 |  |
-| PASS | T14 | price 5897058970 |  |
+| PASS | T14 | price 5229352293 |  |
 | PASS | T15 | success |  |
 | PASS | T15 | solo_dining >= 4 |  |
 | PASS | T15 | donde_match >= 60 |  |
@@ -134,7 +134,7 @@
 | PASS | T20 | neighborhood Little Italy |  |
 | PASS | T20 | date_friendly >= 3 |  |
 | PASS | T21 | success |  |
-| WARN | T21 | cuisine is Japanese | got: cocktail bar |
+| WARN | T21 | cuisine is Japanese | got: fusion |
 | PASS | T21 | romantic >= 6 |  |
 | PASS | T22 | success |  |
 | PASS | T22 | spicy intent mapped |  |
@@ -155,7 +155,7 @@
 | WARN | T27 | gluten-free referenced |  |
 | PASS | T27 | family_friendly >= 4 |  |
 | PASS | T28 | success |  |
-| PASS | T28 | BYOB tag present |  |
+| WARN | T28 | BYOB tag present | tags=dim sum,roasted meats,family-style,lazy susan dining,groups & families |
 | PASS | T28 | group_friendly >= 4 |  |
 | PASS | T29 | success |  |
 | WARN | T29 | rooftop/cocktail tags | tags=handmade pasta,cacio e pepe,romantic,date night,gluten-free options |
@@ -167,7 +167,7 @@
 | PASS | T30 | group_friendly >= 4 |  |
 | PASS | T31 | first call success |  |
 | PASS | T31 | second call success |  |
-| WARN | T31 | cache hit same restaurant | IDs differ |
+| PASS | T31 | cache hit same restaurant |  |
 | PASS | T32 | success |  |
 | PASS | T32 | donde_match >= 60 |  |
 | PASS | T32 | restaurant.id |  |
@@ -187,7 +187,7 @@
 | PASS | T36 | donde_match >= 60 |  |
 | WARN | T36 | late-night context detected | may depend on Chicago time |
 | PASS | T37 | success |  |
-| PASS | T37 | brunch context in output |  |
+| WARN | T37 | brunch context in output |  |
 | PASS | T37 | neighborhood Logan Square |  |
 | PASS | T38 | success |  |
 | PASS | T38 | google_rating 1-5 |  |
@@ -197,7 +197,7 @@
 | PASS | T39 | success |  |
 | PASS | T39 | phone present |  |
 | PASS | T39 | website present |  |
-| PASS | T40 | cuisine diversity |  |
+| FAIL | T40 | cuisine diversity | count=1 |
 | PASS | T41 | HTTP 200 |  |
 | PASS | T41 | has success flag |  |
 | PASS | T42 | HTTP 200 |  |
@@ -236,7 +236,7 @@
 | PASS | T54 | success |  |
 | PASS | T54 | recommendation exists |  |
 | PASS | T54 | insider_tip exists |  |
-| PASS | T54 | rec length 64 words |  |
+| PASS | T54 | rec length 56 words |  |
 | PASS | T54 | no AI slop detected |  |
 | WARN | T54 | uses Donde 'we' voice | no 'we' pronoun found |
 | PASS | T54 | insider tip concise |  |
@@ -261,7 +261,7 @@
 | WARN | T60 | pierogi maps to Polish | got: Carnitas Uruapan Restaurant (mexican) |
 | PASS | T61 | success |  |
 | PASS | T61 | restaurant returned |  |
-| WARN | T61 | injera maps to Ethiopian | got: No Vacancy (cocktail bar) |
+| PASS | T61 | injera maps to Ethiopian |  |
 | PASS | T62 | success |  |
 | PASS | T62 | restaurant returned |  |
 | WARN | T62 | brisket maps to BBQ | got: Andros Taverna (greek) |
@@ -275,10 +275,10 @@
 | PASS | T65 | has recommendation |  |
 | PASS | T66 | success |  |
 | PASS | T66 | recommendation exists |  |
-| FAIL | T66 | em dashes found | count=1 |
+| PASS | T66 | no em dashes |  |
 | FAIL | T67 | we voice | found=0/3 |
 | PASS | T68 | success |  |
-| PASS | T68 | tip starts with go |  |
+| PASS | T68 | tip starts with order |  |
 | PASS | T69 | success |  |
 | PASS | T69 | no name opener |  |
 | PASS | T70 | success |  |
@@ -293,6 +293,36 @@
 | PASS | T74 | superlatives=0 |  |
 | PASS | T75 | success |  |
 | WARN | T75 | minor slop | found: 'em-dash(x1)'  |
+| PASS | T76 | success |  |
+| PASS | T76 | still returns a restaurant |  |
+| WARN | T76 | donde_match capped at 65 | got: 83 |
+| WARN | T76 | cuisine_mismatch field set | null |
+| PASS | T77 | success |  |
+| PASS | T77 | still returns a restaurant |  |
+| WARN | T77 | donde_match capped at 65 | got: 88 |
+| WARN | T77 | cuisine_mismatch field set | null |
+| PASS | T78 | success |  |
+| PASS | T78 | still returns a restaurant |  |
+| WARN | T78 | donde_match capped at 65 | got: 87 |
+| WARN | T78 | cuisine_mismatch field set | null |
+| PASS | T79 | success |  |
+| PASS | T79 | still returns a restaurant |  |
+| WARN | T79 | donde_match capped at 65 | got: 89 |
+| WARN | T79 | cuisine_mismatch field set | null |
+| PASS | T80 | success |  |
+| PASS | T80 | still returns a restaurant |  |
+| WARN | T80 | donde_match capped at 65 | got: 89 |
+| WARN | T80 | cuisine_mismatch field set | null |
+| PASS | T81 | success is boolean |  |
+| PASS | T81 | has recommendation |  |
+| PASS | T82 | success |  |
+| PASS | T82 | restaurant returned |  |
+| PASS | T82 | no apology opener |  |
+| FAIL | T82 | em dashes=1 |  |
+| PASS | T83 | success |  |
+| PASS | T83 | restaurant returned |  |
+| PASS | T83 | recommendation exists |  |
+| PASS | T83 | organic blurb |  |
 
 ## Enhancement Recommendations
 

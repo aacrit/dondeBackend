@@ -121,6 +121,28 @@ const SAMPLE_BLURBS: BlurbSample[] = [
     insider_tip:
       "Try the white clam pie. It's not on the regular rotation but they usually have it.",
   },
+  {
+    scenario: "Cuisine Mismatch + Adventure + Jamaican + $ (mismatch)",
+    occasion: "Adventure",
+    cuisine: "Mexican-Indian Fusion (fallback)",
+    neighborhood: "Logan Square",
+    price: "$",
+    restaurant_name: "Mirra",
+    recommendation:
+      "The carne apache here is bold and addictive, and the patio has the kind of warm, low-lit energy that works for a date just as well as a solo meal. It's not the Jamaican jerk you were after, but the Mexican-Indian fusion pulls flavors that scratch a similar itch. The orange-infused coffee at the end seals it.",
+    insider_tip: "The carne apache is the move. Sit on the patio if weather allows.",
+  },
+  {
+    scenario: "Cuisine Mismatch + Date Night + Scandinavian + $$ (mismatch)",
+    occasion: "Date Night",
+    cuisine: "French (fallback)",
+    neighborhood: "River North",
+    price: "$$",
+    restaurant_name: "Boka",
+    recommendation:
+      "Low lighting, impeccable pacing, and a wine list that actually matches what's on the plate. It's French, not the Scandinavian you had in mind, but the tasting menu has a clean, restrained elegance that shares DNA with Nordic cooking. You'll linger.",
+    insider_tip: "Ask about the off-menu cheese course.",
+  },
 ];
 
 // ─── Expert Prompt Definitions ───────────────────────────────────────────────
@@ -388,6 +410,19 @@ const LIVE_SCENARIOS: LiveScenario[] = [
     special_request: "craft beer and pizza",
     occasion: "Chill Hangout",
     neighborhood: "Wicker Park",
+    price_level: "$$",
+  },
+  // Cuisine mismatch scenarios (negative testing)
+  {
+    special_request: "Jamaican jerk chicken and rum cocktails",
+    occasion: "Adventure",
+    neighborhood: "Anywhere",
+    price_level: "$",
+  },
+  {
+    special_request: "Scandinavian smorgasbord with pickled herring",
+    occasion: "Date Night",
+    neighborhood: "Anywhere",
     price_level: "$$",
   },
 ];
