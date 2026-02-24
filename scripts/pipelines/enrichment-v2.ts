@@ -214,9 +214,9 @@ Tags: ${r.tags || "N/A"}`;
 
 For each restaurant provide:
 
-1. origin_story: 1-2 sentences about the people behind the restaurant. Their background, what drove them to open, cultural roots. If reviews mention family-owned, a specific chef, or a cultural background, use that. If you can't ground it, return null. Examples:
-   - "Third-generation family from Puebla — the grandmother's mole recipe is still the backbone of the menu."
-   - "Two Alinea alums who wanted to do tasting-menu quality at neighborhood prices."
+1. origin_story: Write as a micro-fable. Begin with "Once, ..." and tell the founder's story in 1-2 sentences as if narrating a folk tale. Ground every detail in reviews and metadata. No em-dashes. If you can't verify anything about the people behind it, return null. Examples:
+   - "Once, a grandmother from Puebla packed her mole recipe in a suitcase and crossed the border with nothing else. Three generations later, that recipe still anchors the menu."
+   - "Once, two Alinea alums grew tired of white tablecloths and bet everything on tasting-menu quality at neighborhood prices."
    - null (when you can't verify anything)
 
 2. signature_dishes: Array of 1-3 dishes this place is KNOWN for. Each has "dish" (name) and "why" (what makes it special, 10 words max). ONLY include dishes specifically mentioned or strongly implied in reviews. If no reviews available, return empty array.
