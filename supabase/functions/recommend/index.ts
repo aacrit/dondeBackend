@@ -613,6 +613,11 @@ Deno.serve(async (req: Request) => {
             googleData: nextGoogleData,
             claudeRelevance: parsed.relevance_score,
             sentimentNegative: parsed.sentiment_negative,
+            intent,
+            rejectionSignals,
+            userFeedback,
+            clientTimeOfDay: time_of_day,
+            dietaryRestrictions: dietary_restrictions,
           };
           const dondeMatch = nextChosen.deep_profile
             ? computeDondeMatchV2(nextChosen, closedMatchInputs, intent)
@@ -621,7 +626,7 @@ Deno.serve(async (req: Request) => {
           responseBody = buildSuccessResponse(nextChosen, parsed, nextGoogleData, dondeMatch);
         } else {
           // Fallback if no alternatives
-          responseBody = buildFallbackResponse(chosen, googleData, 60);
+          responseBody = buildFallbackResponse(chosen, googleData, 55);
         }
       } else {
         // Normal path: use Claude's pick
@@ -643,6 +648,11 @@ Deno.serve(async (req: Request) => {
           googleData,
           claudeRelevance: parsed.relevance_score,
           sentimentNegative: parsed.sentiment_negative,
+          intent,
+          rejectionSignals,
+          userFeedback,
+          clientTimeOfDay: time_of_day,
+          dietaryRestrictions: dietary_restrictions,
         };
         const dondeMatch = chosen.deep_profile
           ? computeDondeMatchV2(chosen, matchInputs, intent)
@@ -677,6 +687,11 @@ Deno.serve(async (req: Request) => {
           neighborhood,
           priceLevel: price_level,
           googleData: nextGoogleData,
+          intent,
+          rejectionSignals,
+          userFeedback,
+          clientTimeOfDay: time_of_day,
+          dietaryRestrictions: dietary_restrictions,
         };
         const fallbackMatch = nextChosen.deep_profile
           ? computeDondeMatchV2(nextChosen, closedFallbackInputs, intent)
@@ -691,6 +706,11 @@ Deno.serve(async (req: Request) => {
           neighborhood,
           priceLevel: price_level,
           googleData,
+          intent,
+          rejectionSignals,
+          userFeedback,
+          clientTimeOfDay: time_of_day,
+          dietaryRestrictions: dietary_restrictions,
         };
         const fallbackMatch = chosen.deep_profile
           ? computeDondeMatchV2(chosen, normalFallbackInputs, intent)
