@@ -533,6 +533,21 @@ const DIETARY_KEYWORDS: Record<string, string[]> = {
   "paleo": ["Paleo"],
 };
 
+// Dietary hierarchy: stricter diets subsume less strict ones
+// Vegan ⊃ Vegetarian (every vegan dish is vegetarian, but not vice versa)
+const DIETARY_HIERARCHY: Record<string, string[]> = {
+  "vegan": ["vegetarian"], // Vegan user gets partial credit for Vegetarian-only restaurant
+};
+
+// Dietary depth bonus multipliers for dedicated restaurants
+// Behavioral psychology: finding a restaurant that fully caters to your restriction
+// creates relief/delight. Dedicated > solid > token.
+const DIETARY_DEPTH_BONUS: Record<string, number> = {
+  "dedicated": 2.0,   // Purely vegan/GF restaurant → max bonus
+  "solid": 1.0,       // Strong menu coverage → moderate bonus
+  "token": 0.0,       // One or two options → no bonus (just meeting minimum)
+};
+
 // --- Enhancement 12: Time-of-day awareness ---
 function getChicagoTimeContext(): string {
   const now = new Date();
@@ -1170,39 +1185,95 @@ function applyHardRequirementPenalties(
   }
 
   // 2. Dietary restriction mismatch — deal-breaker for restricted diets
+  // Behavioral psychology: dietary restrictions are identity-level constraints.
+  // Violating them triggers loss aversion 3-5x stronger than equivalent gains.
+  // Three-tier penalty: no info (worst) → has info but no match (severe) → partial match (moderate).
   if (inputs.dietaryRestrictions && inputs.dietaryRestrictions.length > 0) {
     const restaurantDietary = profile.dietary_options || [];
-    const hasAnyMatch = inputs.dietaryRestrictions.some((restriction) => {
+
+    // Check EACH restriction individually for precise penalty calculation
+    const matchResults = inputs.dietaryRestrictions.map((restriction) => {
       const dietaryValues = DIETARY_KEYWORDS[restriction.toLowerCase()];
-      if (!dietaryValues) return false;
-      return restaurantDietary.some((opt) =>
+      if (!dietaryValues) return "unknown" as const;
+      const hasMatch = restaurantDietary.some((opt) =>
         dietaryValues.some((dv) => opt.toLowerCase().includes(dv.toLowerCase()))
       );
+      if (hasMatch) return "match" as const;
+      // Check hierarchy: e.g., Vegan user at Vegetarian-only restaurant
+      const subsumes = DIETARY_HIERARCHY[restriction.toLowerCase()];
+      if (subsumes) {
+        const hasSubsumedMatch = subsumes.some((sub) => {
+          const subValues = DIETARY_KEYWORDS[sub];
+          if (!subValues) return false;
+          return restaurantDietary.some((opt) =>
+            subValues.some((sv) => opt.toLowerCase().includes(sv.toLowerCase()))
+          );
+        });
+        if (hasSubsumedMatch) return "partial" as const;
+      }
+      return "miss" as const;
     });
-    if (!hasAnyMatch && restaurantDietary.length === 0) {
-      // Restaurant has no dietary info AND user has restrictions → significant penalty
-      composite *= 0.70;
+
+    const allMatch = matchResults.every((r) => r === "match");
+    const allMiss = matchResults.every((r) => r === "miss" || r === "unknown");
+    const hasPartial = matchResults.some((r) => r === "partial");
+
+    if (allMiss) {
+      if (restaurantDietary.length === 0) {
+        // No dietary info at all — total unknown, devastating penalty
+        composite *= 0.45;
+      } else {
+        // Restaurant has dietary options but NONE match user's restrictions
+        // e.g., lists "Gluten-Free" but user selected Vegan
+        composite *= 0.50;
+      }
+    } else if (!allMatch) {
+      if (hasPartial && !matchResults.some((r) => r === "miss")) {
+        // All restrictions are either matched or partially matched via hierarchy
+        // e.g., Vegan user at Vegetarian-only restaurant (better than nothing)
+        composite *= 0.70;
+      } else {
+        // Mixed: some restrictions met, some missed entirely
+        // e.g., user selected [Vegan, Gluten-Free] but only Vegan is listed
+        composite *= 0.65;
+      }
     }
+    // allMatch: no penalty — handled by positive boost in computeBaseScore
   }
 
-  // 3. Price mismatch when user specified (off by 2+ tiers is significant)
+  // 3. Price mismatch — behavioral psychology: budget is a hard constraint.
+  // Overspending triggers regret aversion; underspending can feel like settling.
+  // Asymmetric: over-budget is worse than under-budget.
+  // Uses multiplicative penalties for large gaps (consistent with cuisine mismatch pattern).
   if (inputs.priceLevel && inputs.priceLevel !== "Any" && profile.price_level) {
     const userIdx = PRICE_ORDER.indexOf(inputs.priceLevel);
     const restIdx = PRICE_ORDER.indexOf(profile.price_level);
     if (userIdx >= 0 && restIdx >= 0) {
-      const gap = Math.abs(userIdx - restIdx);
-      if (gap >= 2) {
-        composite -= 1.5;
+      const gap = restIdx - userIdx; // positive = over budget, negative = under
+      if (gap >= 3) {
+        // $→$$$$ : 3-tier over-budget — devastating
+        composite *= 0.55;
+      } else if (gap === 2) {
+        // $→$$$ or $$→$$$$ : 2-tier over-budget — severe
+        composite *= 0.70;
       } else if (gap === 1) {
+        // One tier over budget — noticeable but not fatal
+        composite -= 0.8;
+      } else if (gap === -1) {
+        // One tier under budget — mild (user might enjoy the value)
+        composite -= 0.3;
+      } else if (gap <= -2) {
+        // 2+ tiers under budget — could signal quality concern
         composite -= 0.5;
       }
     }
   }
 
-  // 4. Neighborhood mismatch when user specified
+  // 4. Neighborhood mismatch — mild penalty since RPC pre-filter usually handles this.
+  // Only fires during relaxation cascades when exact neighborhood has no results.
   if (inputs.neighborhood && inputs.neighborhood !== "Anywhere" && profile.neighborhood_name) {
     if (profile.neighborhood_name.toLowerCase() !== inputs.neighborhood.toLowerCase()) {
-      composite -= 1.0;
+      composite -= 1.5;
     }
   }
 
@@ -1811,6 +1882,7 @@ export interface BaseScoreInputs {
   rejectionSignals?: RejectionSignals;
   userFeedback?: UserFeedbackSignals | null;
   clientTimeOfDay?: string | null;
+  dietaryRestrictions?: string[]; // From filter selection — drives dietary boost/penalty in base score
 }
 
 /**
@@ -1880,6 +1952,51 @@ export function computeBaseScore(
     }
   }
 
+  // Dietary filter boost — applied from FILTER SELECTION (not just special_request text).
+  // Behavioral psychology: finding a restaurant that caters to your restriction creates
+  // relief/delight (positive reinforcement). Magnitude is asymmetric to the penalty in
+  // applyHardRequirementPenalties (loss aversion: penalties 2-3x stronger than bonuses).
+  if (inputs.dietaryRestrictions && inputs.dietaryRestrictions.length > 0) {
+    const restaurantDietary = profile.dietary_options || [];
+    const dpDietaryDepth = profile.deep_profile?.dietary_depth;
+
+    const allMatch = inputs.dietaryRestrictions.every((restriction) => {
+      const dietaryValues = DIETARY_KEYWORDS[restriction.toLowerCase()];
+      if (!dietaryValues) return false;
+      return restaurantDietary.some((opt) =>
+        dietaryValues.some((dv) => opt.toLowerCase().includes(dv.toLowerCase()))
+      );
+    });
+
+    if (allMatch) {
+      // Base bonus for matching all dietary restrictions from filter
+      composite += 1.0;
+
+      // Extra bonus for dedicated dietary restaurants (deep profile signal)
+      if (dpDietaryDepth && DIETARY_DEPTH_BONUS[dpDietaryDepth] != null) {
+        composite += DIETARY_DEPTH_BONUS[dpDietaryDepth];
+      }
+    } else {
+      // Check hierarchy for partial credit: e.g., Vegan user at Vegetarian restaurant
+      for (const restriction of inputs.dietaryRestrictions) {
+        const subsumes = DIETARY_HIERARCHY[restriction.toLowerCase()];
+        if (subsumes) {
+          const hasSubsumedMatch = subsumes.some((sub) => {
+            const subValues = DIETARY_KEYWORDS[sub];
+            if (!subValues) return false;
+            return restaurantDietary.some((opt) =>
+              subValues.some((sv) => opt.toLowerCase().includes(sv.toLowerCase()))
+            );
+          });
+          if (hasSubsumedMatch) {
+            composite += 0.5; // partial credit via dietary hierarchy
+            break; // only count once
+          }
+        }
+      }
+    }
+  }
+
   return composite;
 }
 
@@ -1896,6 +2013,7 @@ export function computeDondeMatchV2(
     specialRequest: inputs.specialRequest,
     intent,
     trendingScore: profile.trending_score,
+    dietaryRestrictions: inputs.dietaryRestrictions,
   });
 
   // --- Late-binding overlays (only available after Google/Claude fetch) ---
@@ -1929,7 +2047,8 @@ export function reRankV2(
   rejectionSignals?: RejectionSignals,
   intent?: IntentClassification | IntentClassificationV2 | null,
   userFeedback?: UserFeedbackSignals | null,
-  clientTimeOfDay?: string | null
+  clientTimeOfDay?: string | null,
+  dietaryRestrictions?: string[]
 ): RestaurantProfile[] {
   const scored = profiles.map((p) => {
     const composite = computeBaseScore(p, {
@@ -1940,6 +2059,7 @@ export function reRankV2(
       rejectionSignals,
       userFeedback,
       clientTimeOfDay,
+      dietaryRestrictions,
     });
     return { profile: p, composite };
   });
@@ -2118,13 +2238,15 @@ export function reRankWithBoosts(
   rejectionSignals?: RejectionSignals,
   intent?: IntentClassification | null,
   userFeedback?: UserFeedbackSignals | null,
-  clientTimeOfDay?: string | null
+  clientTimeOfDay?: string | null,
+  dietaryRestrictions?: string[]
 ): RestaurantProfile[] {
   // Only re-sort if at least one restaurant would get a non-zero boost or trending signal
   const anyBoosted = profiles.some((p) => computeBoost(p, specialRequest, rejectionSignals, intent) !== 0);
   const hasTrending = profiles.some((p) => p.trending_score && p.trending_score > 0);
   const hasFeedback = userFeedback && (userFeedback.likedCuisines.length > 0 || userFeedback.dislikedCuisines.length > 0);
-  if (!anyBoosted && !hasTrending && !hasFeedback && (!specialRequest || specialRequest.trim().length < 3)) {
+  const hasDietary = dietaryRestrictions && dietaryRestrictions.length > 0;
+  if (!anyBoosted && !hasTrending && !hasFeedback && !hasDietary && (!specialRequest || specialRequest.trim().length < 3)) {
     return profiles;
   }
 
@@ -2142,6 +2264,43 @@ export function reRankWithBoosts(
     if (clientTimeOfDay && p.best_times && p.best_times.length > 0) {
       if (p.best_times.includes(clientTimeOfDay)) composite += 0.8;
       else if (p.best_times.length <= 2) composite -= 0.5;
+    }
+
+    // Dietary filter boost for V1 path (mirrors V2 computeBaseScore logic)
+    if (hasDietary) {
+      const restaurantDietary = p.dietary_options || [];
+      const allMatch = dietaryRestrictions!.every((restriction) => {
+        const dietaryValues = DIETARY_KEYWORDS[restriction.toLowerCase()];
+        if (!dietaryValues) return false;
+        return restaurantDietary.some((opt) =>
+          dietaryValues.some((dv) => opt.toLowerCase().includes(dv.toLowerCase()))
+        );
+      });
+      if (allMatch) {
+        composite += 1.0;
+        const dpDietaryDepth = p.deep_profile?.dietary_depth;
+        if (dpDietaryDepth && DIETARY_DEPTH_BONUS[dpDietaryDepth] != null) {
+          composite += DIETARY_DEPTH_BONUS[dpDietaryDepth];
+        }
+      } else {
+        // Check hierarchy for partial credit
+        for (const restriction of dietaryRestrictions!) {
+          const subsumes = DIETARY_HIERARCHY[restriction.toLowerCase()];
+          if (subsumes) {
+            const hasSubsumedMatch = subsumes.some((sub) => {
+              const subValues = DIETARY_KEYWORDS[sub];
+              if (!subValues) return false;
+              return restaurantDietary.some((opt) =>
+                subValues.some((sv) => opt.toLowerCase().includes(sv.toLowerCase()))
+              );
+            });
+            if (hasSubsumedMatch) {
+              composite += 0.5;
+              break;
+            }
+          }
+        }
+      }
     }
 
     return { profile: p, composite };
@@ -2222,6 +2381,7 @@ export function buildSystemPrompt(occasion?: string, priceLevel?: string): strin
   return `You are Donde, a sharp, opinionated Chicago dining guide. You sound like a food-obsessed friend who eats out five nights a week and has strong opinions about every restaurant in the city. Use "we" as Donde's voice. You write with the confidence of someone who knows the scene cold, but every specific claim must come from the candidate data provided.
 
 TASK: Pick THE ONE BEST restaurant from the candidates for this user. Priority:
+0. DIETARY RESTRICTIONS (if present) — absolute deal-breaker, overrides all other criteria. Never recommend a restaurant that cannot accommodate the user's dietary needs.
 1. SPECIAL REQUEST match (cuisine, vibe, features), highest priority
 2. OCCASION FIT (noise, lighting, dress code match)
 3. QUALITY (scores, reviews, trending)
@@ -2431,7 +2591,8 @@ export function buildUserPrompt(
   reviewsByIndex?: Map<number, string>,
   neighborhoodDescription?: string | null,
   rejectionContext?: string,
-  cuisineMismatchContext?: string | null
+  cuisineMismatchContext?: string | null,
+  dietaryRestrictions?: string[]
 ): string {
   const restaurantList = top10
     .map((d, i) => {
@@ -2500,6 +2661,11 @@ export function buildUserPrompt(
 - Neighborhood: ${neighborhood}
 - Special Request: ${specialRequest || "None"}`;
 
+  // Dietary restrictions — HARD REQUIREMENT communicated to Claude
+  if (dietaryRestrictions && dietaryRestrictions.length > 0) {
+    prompt += `\n- Dietary Restrictions: ${dietaryRestrictions.join(", ")} (HARD REQUIREMENT. Do NOT recommend a restaurant that cannot accommodate these restrictions. If the best-scoring restaurant does not clearly support these dietary needs, pick one that does, even if ranked slightly lower. Mention the dietary fit naturally in your recommendation.)`;
+  }
+
   // Enhancement 15: Neighborhood character context
   if (neighborhoodDescription && neighborhood !== "Anywhere") {
     prompt += `\n- Neighborhood Character: ${neighborhoodDescription}`;
@@ -2519,7 +2685,7 @@ export function buildUserPrompt(
 
 ${restaurantList}
 
-REMINDER: Write 50-80 words. Zero em dashes. Use "we." Ground every claim in the data above. If the chosen restaurant has a deep profile, leverage origin stories, signature dishes, wow factors, and best seat details to make the rec feel deeply personal. If no reviews AND no deep profile, stick to basic metadata. Do not fabricate.`;
+REMINDER: Write 50-80 words. Zero em dashes. Use "we." Ground every claim in the data above. If the chosen restaurant has a deep profile, leverage origin stories, signature dishes, wow factors, and best seat details to make the rec feel deeply personal. If no reviews AND no deep profile, stick to basic metadata. Do not fabricate.${dietaryRestrictions && dietaryRestrictions.length > 0 ? `\nCRITICAL: The user has ${dietaryRestrictions.join(" + ")} dietary restrictions. Your pick MUST accommodate these. Mention how the restaurant handles their dietary needs naturally in your recommendation.` : ""}`;
 
   return prompt;
 }

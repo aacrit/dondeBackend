@@ -447,9 +447,9 @@ Deno.serve(async (req: Request) => {
     // V2: Re-rank using multi-dimensional scoring (falls back to V1 if no deep profiles)
     const hasDeepProfiles = top10.some((r) => r.deep_profile != null);
     if (hasDeepProfiles) {
-      top10 = reRankV2(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day);
+      top10 = reRankV2(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day, dietary_restrictions);
     } else {
-      top10 = reRankWithBoosts(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day);
+      top10 = reRankWithBoosts(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day, dietary_restrictions);
     }
 
     // Enhancement 6: Apply diversity filter
@@ -560,7 +560,8 @@ Deno.serve(async (req: Request) => {
         reviewsByIndex.size > 0 ? reviewsByIndex : undefined,
         neighborhoodDescription,
         rejectionContext,
-        cuisineMismatchContext
+        cuisineMismatchContext,
+        dietary_restrictions.length > 0 ? dietary_restrictions : undefined
       );
 
       // Call Claude
