@@ -2300,27 +2300,28 @@ OUTPUT FORMAT — respond ONLY in this exact JSON (no markdown, no backticks):
 }
 
 INSIDER TIP RULES (V2 — use the richest available data):
-- PRIORITY 1: If deep profile has best_seat_in_house → USE IT. This is the highest-value tip. "Ask for the corner booth by the window."
-- PRIORITY 2: If deep profile has signature_dishes → reference the standout. "The [dish] is what regulars come back for."
-- PRIORITY 3: If reviews mention a specific dish, seating spot, or timing advice → use that.
-- PRIORITY 4: If deep profile has wow_factors, byob_policy, or origin_story → weave practical + narrative. "It's BYOB — grab wine from the shop around the corner."
-- PRIORITY 5: If no rich data, give practical advice from metadata — dress code, noise timing, features.
-- Combine practical + insider when possible: "Sit at the chef's counter and order the [signature dish]."
-- NEVER fabricate specific menu items, off-menu secrets, server names, or reservation hacks you can't verify from the data.
-- Keep it to one sentence, under 25 words. Actionable > clever.
+- PRIORITY 1: If deep profile has best_seat_in_house, USE IT. "Ask for the corner booth by the window."
+- PRIORITY 2: If deep profile has signature_dishes, reference the standout. "The [dish] is what regulars come back for."
+- PRIORITY 3: If reviews mention a specific dish, seating spot, or timing advice, use that.
+- PRIORITY 4: If deep profile has wow_factors, byob_policy, or origin_story, weave practical + narrative. "It's BYOB, grab wine from the shop next door."
+- PRIORITY 5: If no rich data, give practical advice from metadata.
+- Write like a local friend whispering a secret, not a guidebook.
+- Never use em-dashes. Use commas or periods instead.
+- NEVER fabricate menu items, off-menu secrets, server names, or reservation hacks you can't verify.
+- Keep it to one sentence, under 15 words. Actionable, tight, memorable.
 
 EXAMPLES OF GOOD OUTPUT:
 
 Example 1 (with reviews + deep profile):
-"recommendation": "There's a reason half of Logan Square ends up at this corner spot on any given Tuesday. The handmade rigatoni gets raved about in every review, and the candlelit room is dim enough for a real date but lively enough that it never feels precious. Italian comfort done with genuine craft — and the wine list punches way above its price point."
-"insider_tip": "Grab the two-top by the front window — it's the most intimate seat in the house."
+"recommendation": "There's a reason half of Logan Square ends up at this corner spot on any given Tuesday. The handmade rigatoni gets raved about in every review, and the candlelit room is dim enough for a real date but lively enough that it never feels precious. Italian comfort done with genuine craft, and the wine list punches way above its price point."
+"insider_tip": "Grab the front window two-top. Most intimate seat."
 
 Example 2 (with deep profile, no reviews):
-"recommendation": "In the thick of Pilsen, a third-generation Oaxacan family is doing mole the way it's meant to be done — rich, complex, and unapologetically traditional. It's a no-frills counter-service spot with moderate noise and zero pretense. Exactly the kind of place where the best dish costs $12 and haunts you for weeks."
-"insider_tip": "Go for the mole negro — it's the recipe that's been in the family for three generations."
+"recommendation": "In the thick of Pilsen, a third-generation Oaxacan family is doing mole the way it's meant to be done, rich, complex, and unapologetically traditional. It's a no-frills counter-service spot with moderate noise and zero pretense. Exactly the kind of place where the best dish costs $12 and haunts you for weeks."
+"insider_tip": "Order the mole negro. Three generations of proof."
 
 Example 3 (without reviews, minimal deep profile):
-"recommendation": "For a group hangout with actual energy, this is the move. It's a lively Korean spot in Wicker Park with moderate noise and a casual dress code — the kind of place where you order too many small plates and nobody minds. BYOB keeps the bill friendly."
+"recommendation": "For a group hangout with actual energy, this is the move. It's a lively Korean spot in Wicker Park with moderate noise and a casual dress code, the kind of place where you order too many small plates and nobody minds. BYOB keeps the bill friendly."
 "insider_tip": "It's BYOB, so grab a six-pack from the shop next door before you walk in."
 
 SCORING:
