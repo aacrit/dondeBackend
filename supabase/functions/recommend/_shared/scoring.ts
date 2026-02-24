@@ -69,7 +69,7 @@ const CUISINE_KEYWORDS: Record<string, string[]> = {
   Thai: ["thai", "pad thai", "curry", "basil"],
   Chinese: ["chinese", "dim sum", "dumpling", "noodle"],
   Korean: ["korean", "bibimbap", "bbq", "kimchi"],
-  Indian: ["indian", "curry", "tandoori", "naan", "masala"],
+  Indian: ["indian", "curry", "tandoori", "naan", "masala", "biryani", "tikka", "samosa", "vindaloo", "idli", "dosa", "uttapam", "sambar", "rasam", "vada", "paneer", "dal", "chutney", "appam", "korma", "rogan josh", "butter chicken", "palak", "pongal", "upma", "chana masala"],
   French: ["french", "bistro", "crepe"],
   Seafood: ["seafood", "fish", "lobster", "oyster", "crab"],
   Steak: ["steak", "steakhouse", "filet"],
@@ -2428,7 +2428,8 @@ export function buildUserPrompt(
   specialRequest: string,
   reviewsByIndex?: Map<number, string>,
   neighborhoodDescription?: string | null,
-  rejectionContext?: string
+  rejectionContext?: string,
+  cuisineMismatchContext?: string | null
 ): string {
   const restaurantList = top10
     .map((d, i) => {
@@ -2505,6 +2506,11 @@ export function buildUserPrompt(
   // Enhancement 14: Rejection context
   if (rejectionContext) {
     prompt += `\n\n${rejectionContext}`;
+  }
+
+  // Cuisine mismatch context: tell Claude to be honest when none of the candidates match the request
+  if (cuisineMismatchContext) {
+    prompt += `\n\n${cuisineMismatchContext}`;
   }
 
   prompt += `\n\nCANDIDATES (pick the best match, your recommendation MUST only reference facts from this data):

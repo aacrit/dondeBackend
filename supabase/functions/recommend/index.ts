@@ -460,6 +460,27 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(buildNoResultsResponse(neighborhood, price_level));
     }
 
+    // Detect cuisine mismatch: user asked for specific cuisine but none of the candidates match
+    let cuisineMismatch: { requested: string; keyword: string } | null = null;
+    if (
+      intent?.cuisine_importance === "high" &&
+      intent.target_cuisines.length > 0 &&
+      !top10.some((r) =>
+        intent!.target_cuisines.some(
+          (tc) => r.cuisine_type?.toLowerCase() === tc.toLowerCase()
+        )
+      )
+    ) {
+      cuisineMismatch = {
+        requested: intent.target_cuisines[0],
+        keyword: special_request,
+      };
+      logInfo("Cuisine mismatch detected", {
+        requested: cuisineMismatch.requested,
+        candidateCuisines: [...new Set(top10.map((r) => r.cuisine_type).filter(Boolean))],
+      });
+    }
+
     // --- Step 2: Claude recommendation with live Google reviews ---
     let responseBody: Record<string, unknown>;
     let wasFallback = false;
@@ -523,6 +544,12 @@ Deno.serve(async (req: Request) => {
         }
       }
 
+      // Build cuisine mismatch context for Claude prompt
+      let cuisineMismatchContext: string | null = null;
+      if (cuisineMismatch) {
+        cuisineMismatchContext = `CUISINE MISMATCH: The user asked for "${special_request}" (${cuisineMismatch.requested} cuisine), but none of the candidates serve this cuisine. Be honest about this gap. Pick the best alternative and briefly explain why it's a good fallback, but acknowledge upfront that we don't have their specific craving covered. Set your relevance_score to 5.0 or below to reflect the mismatch. Do NOT pretend the recommendation matches their request.`;
+      }
+
       // Build user prompt with reviews (if available from Google)
       const userPrompt = buildUserPrompt(
         top10,
@@ -532,7 +559,8 @@ Deno.serve(async (req: Request) => {
         special_request,
         reviewsByIndex.size > 0 ? reviewsByIndex : undefined,
         neighborhoodDescription,
-        rejectionContext
+        rejectionContext,
+        cuisineMismatchContext
       );
 
       // Call Claude
@@ -645,14 +673,15 @@ Deno.serve(async (req: Request) => {
             clientTimeOfDay: time_of_day,
             dietaryRestrictions: dietary_restrictions,
           };
-          const dondeMatch = nextChosen.deep_profile
+          let dondeMatch = nextChosen.deep_profile
             ? computeDondeMatchV2(nextChosen, closedMatchInputs, intent)
             : computeDondeMatch(nextChosen, closedMatchInputs);
+          if (cuisineMismatch) dondeMatch = Math.min(dondeMatch, 65);
 
-          responseBody = buildSuccessResponse(nextChosen, parsed, nextGoogleData, dondeMatch);
+          responseBody = buildSuccessResponse(nextChosen, parsed, nextGoogleData, dondeMatch, undefined, undefined, cuisineMismatch);
         } else {
           // Fallback if no alternatives
-          responseBody = buildFallbackResponse(chosen, googleData, 55);
+          responseBody = buildFallbackResponse(chosen, googleData, 55, cuisineMismatch);
         }
       } else {
         // Normal path: use Claude's pick
@@ -680,15 +709,20 @@ Deno.serve(async (req: Request) => {
           clientTimeOfDay: time_of_day,
           dietaryRestrictions: dietary_restrictions,
         };
-        const dondeMatch = chosen.deep_profile
+        let dondeMatch = chosen.deep_profile
           ? computeDondeMatchV2(chosen, matchInputs, intent)
           : computeDondeMatch(chosen, matchInputs);
+
+        // Cap match score for cuisine mismatch — never claim a high match when we don't have the cuisine
+        if (cuisineMismatch) {
+          dondeMatch = Math.min(dondeMatch, 65);
+        }
 
         // V2: Compute scoring dimensions for response
         const dimensions = computeScoringDimensions(chosen, occasion, special_request, intent);
         const weights = computeDimensionWeights(occasion, intent);
 
-        responseBody = buildSuccessResponse(chosen, parsed, googleData, dondeMatch, dimensions, weights);
+        responseBody = buildSuccessResponse(chosen, parsed, googleData, dondeMatch, dimensions, weights, cuisineMismatch);
       }
     } catch (claudeError) {
       wasFallback = true;
@@ -719,11 +753,12 @@ Deno.serve(async (req: Request) => {
           clientTimeOfDay: time_of_day,
           dietaryRestrictions: dietary_restrictions,
         };
-        const fallbackMatch = nextChosen.deep_profile
+        let fallbackMatch = nextChosen.deep_profile
           ? computeDondeMatchV2(nextChosen, closedFallbackInputs, intent)
           : computeDondeMatch(nextChosen, closedFallbackInputs);
+        if (cuisineMismatch) fallbackMatch = Math.min(fallbackMatch, 65);
         // Enhancement 19 Tier 4: Template-based response
-        responseBody = buildTemplateResponse(nextChosen, nextGoogleData, fallbackMatch, occasion);
+        responseBody = buildTemplateResponse(nextChosen, nextGoogleData, fallbackMatch, occasion, cuisineMismatch);
       } else {
         // Compute donde_match deterministically (no Claude relevance available)
         const normalFallbackInputs = {
@@ -738,12 +773,13 @@ Deno.serve(async (req: Request) => {
           clientTimeOfDay: time_of_day,
           dietaryRestrictions: dietary_restrictions,
         };
-        const fallbackMatch = chosen.deep_profile
+        let fallbackMatch = chosen.deep_profile
           ? computeDondeMatchV2(chosen, normalFallbackInputs, intent)
           : computeDondeMatch(chosen, normalFallbackInputs);
+        if (cuisineMismatch) fallbackMatch = Math.min(fallbackMatch, 65);
 
         // Enhancement 19 Tier 4: Use template-based response (richer than one-liner)
-        responseBody = buildTemplateResponse(chosen, googleData, fallbackMatch, occasion);
+        responseBody = buildTemplateResponse(chosen, googleData, fallbackMatch, occasion, cuisineMismatch);
       }
     }
 
