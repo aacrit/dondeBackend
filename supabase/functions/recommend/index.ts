@@ -1,5 +1,5 @@
 import { corsPreflightResponse, jsonResponse } from "./_shared/cors.ts";
-import { createSupabaseClient } from "./_shared/supabase.ts";
+import { createSupabaseClient, createServiceClient } from "./_shared/supabase.ts";
 import { callClaude, parseClaudeJson } from "./_shared/claude.ts";
 import {
   mergeProfiles,
@@ -190,6 +190,25 @@ Deno.serve(async (req: Request) => {
     const user_id = (typeof body.user_id === "string" && body.user_id.length < 100)
       ? body.user_id : null;
 
+    // SSO: Extract authenticated user ID from JWT (if present)
+    let authUserId: string | null = null;
+    const authHeader = req.headers.get("authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.slice(7);
+      // Skip if it's the anon key (not a user JWT)
+      if (token.length > 200) {
+        try {
+          const serviceClient = createServiceClient();
+          const { data: { user: authUser } } = await serviceClient.auth.getUser(token);
+          if (authUser?.id) {
+            authUserId = authUser.id;
+          }
+        } catch {
+          // Invalid JWT — continue as anonymous
+        }
+      }
+    }
+
     // F11: Process feedback if included (fire-and-forget)
     if (body.feedback?.restaurant_id && body.feedback?.feedback && user_id) {
       const supabaseForFeedback = createSupabaseClient();
@@ -217,15 +236,19 @@ Deno.serve(async (req: Request) => {
     const supabase = createSupabaseClient();
 
     // B7: Fetch user feedback history for personalization (non-blocking)
+    // SSO: Use auth_user_id for richer feedback (50 entries) when authenticated
     let userFeedback: UserFeedbackSignals | null = null;
-    const feedbackPromise = user_id
+    const feedbackColumn = authUserId ? "auth_user_id" : "user_id";
+    const feedbackValue = authUserId || user_id;
+    const feedbackLimit = authUserId ? 50 : 20;
+    const feedbackPromise = feedbackValue
       ? supabase
           .from("user_queries")
           .select("recommended_restaurant_id, feedback, restaurants!inner(cuisine_type)")
-          .eq("user_id", user_id)
+          .eq(feedbackColumn, feedbackValue)
           .not("feedback", "is", null)
           .order("created_at", { ascending: false })
-          .limit(20)
+          .limit(feedbackLimit)
           .then(({ data }) => {
             if (!data || data.length === 0) return null;
             const signals: UserFeedbackSignals = {
@@ -816,11 +839,42 @@ Deno.serve(async (req: Request) => {
         unmatched_keywords: unmatchedKw.length > 0 ? unmatchedKw : null,
         // F9: User ID for personalization tracking
         user_id: user_id || null,
+        // SSO: Link authenticated user
+        auth_user_id: authUserId || null,
         // F5: Dietary restrictions used
         dietary_restrictions: dietary_restrictions.length > 0 ? dietary_restrictions : null,
       })
       .then(() => {})
       .catch((err: unknown) => logError("Failed to log query", { error: String(err) }));
+
+    // SSO: Auto-save search to user_searches for authenticated users (fire-and-forget)
+    // Uses service client to bypass RLS (Edge Function has no user session context)
+    if (authUserId && chosenId) {
+      const chosenRestaurant = responseBody.restaurant as Record<string, unknown>;
+      const serviceForSave = createServiceClient();
+      serviceForSave
+        .from("user_searches")
+        .insert({
+          user_id: authUserId,
+          craving: special_request || null,
+          occasion,
+          neighborhood,
+          price_level,
+          dietary_restrictions: dietary_restrictions.length > 0 ? dietary_restrictions : null,
+          restaurant_id: chosenId,
+          restaurant_name: (chosenRestaurant?.name as string) || null,
+          cuisine_type: (chosenRestaurant?.cuisine_type as string) || null,
+          donde_match: (responseBody.donde_match as number) || null,
+          result_snapshot: {
+            name: chosenRestaurant?.name,
+            best_for_oneliner: chosenRestaurant?.best_for_oneliner,
+            recommendation: (responseBody as Record<string, unknown>).recommendation,
+            donde_match: responseBody.donde_match,
+          },
+        })
+        .then(() => {})
+        .catch((err: unknown) => logError("Failed to auto-save search", { error: String(err) }));
+    }
 
     logInfo("Recommendation served", {
       responseTimeMs,
