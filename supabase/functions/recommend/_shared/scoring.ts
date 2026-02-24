@@ -730,6 +730,7 @@ function computeBoost(
   }
 
   // Intent classification boost (stronger than keyword matching)
+  // Penalty asymmetry: mismatches hurt more than matches help (Bayesian loss aversion)
   if (intent) {
     if (intent.target_cuisines.length > 0 && profile.cuisine_type) {
       const cuisineMatch = intent.target_cuisines.some(
@@ -738,7 +739,9 @@ function computeBoost(
       if (cuisineMatch) {
         boost += intent.cuisine_importance === "high" ? 5 : 3;
       } else if (intent.cuisine_importance === "high") {
-        boost -= 2; // Penalize non-matching when user clearly wants specific cuisine
+        boost -= 4.0; // was -2; the single most informative mismatch signal
+      } else if (intent.cuisine_importance === "medium") {
+        boost -= 2.5; // new: medium importance mismatch also penalized
       }
     }
     for (const targetTag of intent.target_tags) {
@@ -768,6 +771,13 @@ export interface DondeMatchInputs {
   googleData: GooglePlaceData | null;
   claudeRelevance?: number;
   sentimentNegative?: number | null;
+  // V1 alignment: pass same signals used by V1 ranking
+  intent?: IntentClassification | IntentClassificationV2 | null;
+  rejectionSignals?: RejectionSignals;
+  userFeedback?: UserFeedbackSignals | null;
+  clientTimeOfDay?: string | null;
+  // Hard requirement penalty inputs
+  dietaryRestrictions?: string[];
 }
 
 // Weights sum to 1.0
@@ -1123,36 +1133,128 @@ function computeFilterPrecision(
 }
 
 // Donde Match verdict tiers (for frontend display)
-// 93-99%: "Perfect Match" (green)
-// 85-92%: "Great Match" (green)
-// 75-84%: "Good Match" (accent)
-// 60-74%: "Worth Exploring" (accent)
+// 92-99%: "Perfect Match" (high)
+// 82-91%: "Great Match" (high)
+// 70-81%: "Good Match" (mid)
+// 55-69%: "Fair Match" (low)
+// 45-54%: "Stretch" (low)
+
+// --- Hard requirement penalties ---
+// Applied multiplicatively to the composite when explicit user requests are unmet.
+// Rationale: These are the highest mutual-information signals. A cuisine mismatch when
+// the user explicitly asked for a cuisine should be devastating to confidence.
+// Penalty asymmetry (Bayesian): negative evidence updates more strongly than positive.
+
+const PRICE_ORDER = ["$", "$$", "$$$", "$$$$"];
+
+function applyHardRequirementPenalties(
+  composite: number,
+  profile: RestaurantProfile,
+  inputs: DondeMatchInputs,
+  intent?: IntentClassification | IntentClassificationV2 | null,
+): number {
+  // 1. Cuisine mismatch when user explicitly requested a cuisine
+  if (intent?.target_cuisines && intent.target_cuisines.length > 0 && profile.cuisine_type) {
+    const cuisineMatch = intent.target_cuisines.some(
+      (c) => c.toLowerCase() === profile.cuisine_type!.toLowerCase()
+    );
+    if (!cuisineMatch) {
+      if (intent.cuisine_importance === "high") {
+        // "I want sushi" + gets steakhouse → devastating penalty
+        composite *= 0.55;
+      } else if (intent.cuisine_importance === "medium") {
+        // Less explicit but still a miss
+        composite *= 0.75;
+      }
+    }
+  }
+
+  // 2. Dietary restriction mismatch — deal-breaker for restricted diets
+  if (inputs.dietaryRestrictions && inputs.dietaryRestrictions.length > 0) {
+    const restaurantDietary = profile.dietary_options || [];
+    const hasAnyMatch = inputs.dietaryRestrictions.some((restriction) => {
+      const dietaryValues = DIETARY_KEYWORDS[restriction.toLowerCase()];
+      if (!dietaryValues) return false;
+      return restaurantDietary.some((opt) =>
+        dietaryValues.some((dv) => opt.toLowerCase().includes(dv.toLowerCase()))
+      );
+    });
+    if (!hasAnyMatch && restaurantDietary.length === 0) {
+      // Restaurant has no dietary info AND user has restrictions → significant penalty
+      composite *= 0.70;
+    }
+  }
+
+  // 3. Price mismatch when user specified (off by 2+ tiers is significant)
+  if (inputs.priceLevel && inputs.priceLevel !== "Any" && profile.price_level) {
+    const userIdx = PRICE_ORDER.indexOf(inputs.priceLevel);
+    const restIdx = PRICE_ORDER.indexOf(profile.price_level);
+    if (userIdx >= 0 && restIdx >= 0) {
+      const gap = Math.abs(userIdx - restIdx);
+      if (gap >= 2) {
+        composite -= 1.5;
+      } else if (gap === 1) {
+        composite -= 0.5;
+      }
+    }
+  }
+
+  // 4. Neighborhood mismatch when user specified
+  if (inputs.neighborhood && inputs.neighborhood !== "Anywhere" && profile.neighborhood_name) {
+    if (profile.neighborhood_name.toLowerCase() !== inputs.neighborhood.toLowerCase()) {
+      composite -= 1.0;
+    }
+  }
+
+  return Math.max(0, composite);
+}
 
 export function computeDondeMatch(
   profile: RestaurantProfile,
   inputs: DondeMatchInputs
 ): number {
-  // Use same base as V1 ranking (without rejection signals — restaurant was already chosen)
+  // V1 alignment fix: pass rejection signals, intent, user feedback, and time-of-day
+  // so V1 donde match uses the same inputs as V1 ranking.
   let composite = computeBaseScoreV1(
-    profile, inputs.occasion, inputs.specialRequest
+    profile, inputs.occasion, inputs.specialRequest,
+    inputs.rejectionSignals, inputs.intent
   );
 
+  // V1 alignment: user feedback signals (same as reRankWithBoosts)
+  if (inputs.userFeedback) {
+    if (profile.cuisine_type && inputs.userFeedback.likedCuisines.includes(profile.cuisine_type)) composite += 0.5;
+    if (profile.cuisine_type && inputs.userFeedback.dislikedCuisines.includes(profile.cuisine_type)) composite -= 1.5;
+    if (inputs.userFeedback.dislikedRestaurantIds.includes(profile.id)) composite -= 3.0;
+  }
+
+  // V1 alignment: time-of-day signals
+  if (inputs.clientTimeOfDay && profile.best_times && profile.best_times.length > 0) {
+    if (profile.best_times.includes(inputs.clientTimeOfDay)) composite += 0.8;
+    else if (profile.best_times.length <= 2) composite -= 0.5;
+  }
+
   // --- Late-binding overlays (only available after Google/Claude fetch) ---
+  // Reduced dilution: base score retains 76.5% influence (was 64%)
 
-  // Google quality overlay
+  // Google quality overlay (10% weight, was 15%)
   const googleQuality = computeGoogleQuality(inputs.googleData);
-  composite = composite * 0.85 + googleQuality * 0.15;
+  composite = composite * 0.90 + googleQuality * 0.10;
 
-  // Claude relevance as supplementary signal
+  // Claude relevance as supplementary signal (15% weight, was 25%)
   if (inputs.claudeRelevance != null) {
-    composite = composite * 0.75 + inputs.claudeRelevance * 0.25;
+    composite = composite * 0.85 + inputs.claudeRelevance * 0.15;
   }
 
   // Sentiment penalty: reduce match when reviews are significantly negative
   composite += computeSentimentPenalty(inputs.sentimentNegative);
 
-  // Map 0-10 raw composite to 60-99% confidence range
-  return Math.min(99, Math.max(60, Math.round(60 + Math.min(10, Math.max(0, composite)) * 3.9)));
+  // Hard requirement penalties: penalize when explicit user requests are unmet
+  composite = applyHardRequirementPenalties(composite, profile, inputs, inputs.intent);
+
+  // Map 0-10 raw composite to 45-99% confidence range
+  // Wider range (was 60-99) gives 54 points of dynamic range for better discrimination.
+  // Each composite point = 5.4 percentage points (was 3.9).
+  return Math.min(99, Math.max(45, Math.round(45 + Math.min(10, Math.max(0, composite)) * 5.4)));
 }
 
 // ==========================================
@@ -1742,17 +1844,17 @@ export function computeBaseScore(
     composite = composite * 0.92 + trending * 0.08;
   }
 
-  // Rejection penalties (available at both ranking and match time)
+  // Rejection penalties — strengthened: user explicitly rejected these patterns
   if (inputs.rejectionSignals) {
     if (profile.cuisine_type && inputs.rejectionSignals.avoidCuisines.includes(profile.cuisine_type)) {
-      composite -= 2.0;
+      composite -= 3.5; // was -2.0; user rejected this cuisine type twice = strong negative evidence
     }
     if (profile.price_level && inputs.rejectionSignals.avoidPriceLevels.includes(profile.price_level)) {
-      composite -= 1.0;
+      composite -= 2.0; // was -1.0; price is a deliberate filter
     }
   }
 
-  // B7: User feedback personalization signals
+  // B7: User feedback personalization signals — strengthened penalties
   if (inputs.userFeedback) {
     const fb = inputs.userFeedback;
     // Boost restaurants matching liked cuisines
@@ -1761,11 +1863,11 @@ export function computeBaseScore(
     }
     // Penalize restaurants matching disliked cuisines
     if (profile.cuisine_type && fb.dislikedCuisines.includes(profile.cuisine_type)) {
-      composite -= 0.8;
+      composite -= 1.5; // was -0.8; past behavior is a strong predictor
     }
     // Penalize previously disliked specific restaurants
     if (fb.dislikedRestaurantIds.includes(profile.id)) {
-      composite -= 2.0;
+      composite -= 3.0; // was -2.0; user explicitly disliked this exact place
     }
   }
 
@@ -1789,7 +1891,6 @@ export function computeDondeMatchV2(
   intent: IntentClassification | IntentClassificationV2 | null
 ): number {
   // Start with SAME base score as ranking (dimensions + confidence gating + trending)
-  // Note: rejection signals not passed — the restaurant was already chosen despite any penalties
   let composite = computeBaseScore(profile, {
     occasion: inputs.occasion,
     specialRequest: inputs.specialRequest,
@@ -1798,21 +1899,25 @@ export function computeDondeMatchV2(
   });
 
   // --- Late-binding overlays (only available after Google/Claude fetch) ---
+  // Reduced dilution: base score retains 76.5% influence (was 64%)
 
-  // Google quality overlay
+  // Google quality overlay (10% weight, was 15%)
   const googleQuality = computeGoogleQuality(inputs.googleData);
-  composite = composite * 0.85 + googleQuality * 0.15;
+  composite = composite * 0.90 + googleQuality * 0.10;
 
-  // Claude relevance as supplementary signal (25% weight — let multi-dimensional scoring lead)
+  // Claude relevance as supplementary signal (15% weight, was 25%)
   if (inputs.claudeRelevance != null) {
-    composite = composite * 0.75 + inputs.claudeRelevance * 0.25;
+    composite = composite * 0.85 + inputs.claudeRelevance * 0.15;
   }
 
   // Sentiment penalty: reduce match when reviews are significantly negative
   composite += computeSentimentPenalty(inputs.sentimentNegative);
 
-  // Map to 60-99 range
-  return Math.min(99, Math.max(60, Math.round(60 + Math.min(10, Math.max(0, composite)) * 3.9)));
+  // Hard requirement penalties: penalize when explicit user requests are unmet
+  composite = applyHardRequirementPenalties(composite, profile, inputs, intent);
+
+  // Map to 45-99 range (wider for better discrimination)
+  return Math.min(99, Math.max(45, Math.round(45 + Math.min(10, Math.max(0, composite)) * 5.4)));
 }
 
 // --- V2 Re-rank using multi-dimensional scoring ---
@@ -2026,11 +2131,11 @@ export function reRankWithBoosts(
   const scored = profiles.map((p) => {
     let composite = computeBaseScoreV1(p, occasion, specialRequest, rejectionSignals, intent);
 
-    // B7: User feedback signals for V1 path
+    // B7: User feedback signals for V1 path — strengthened penalties
     if (userFeedback) {
       if (p.cuisine_type && userFeedback.likedCuisines.includes(p.cuisine_type)) composite += 0.5;
-      if (p.cuisine_type && userFeedback.dislikedCuisines.includes(p.cuisine_type)) composite -= 0.8;
-      if (userFeedback.dislikedRestaurantIds.includes(p.id)) composite -= 2.0;
+      if (p.cuisine_type && userFeedback.dislikedCuisines.includes(p.cuisine_type)) composite -= 1.5;
+      if (userFeedback.dislikedRestaurantIds.includes(p.id)) composite -= 3.0;
     }
 
     // B2: Client time-of-day for V1 path

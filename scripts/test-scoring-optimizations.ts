@@ -476,45 +476,47 @@ section("3. Enrichment Confidence Gating");
 }
 
 // -----------------------------------------------
-section("4. Claude Relevance Weight Reduction");
+section("4. Claude Relevance Weight Reduction (Further Reduced)");
 // -----------------------------------------------
 
 {
-  // Old behavior: composite * 0.6 + claudeRelevance * 0.4
-  // New behavior: composite * 0.75 + claudeRelevance * 0.25
+  // Original: composite * 0.6 + claudeRelevance * 0.4
+  // Previous: composite * 0.75 + claudeRelevance * 0.25
+  // Current:  composite * 0.85 + claudeRelevance * 0.15
+  // Rationale: base score should retain 76.5% total influence after both overlays
 
   const composite = 7.0;
   const claudeRelevance = 3.0; // Claude thinks it's a poor match
 
-  const oldBlend = composite * 0.6 + claudeRelevance * 0.4; // 4.2 + 1.2 = 5.4
-  const newBlend = composite * 0.75 + claudeRelevance * 0.25; // 5.25 + 0.75 = 6.0
+  const oldBlend = composite * 0.75 + claudeRelevance * 0.25; // 5.25 + 0.75 = 6.0
+  const newBlend = composite * 0.85 + claudeRelevance * 0.15; // 5.95 + 0.45 = 6.4
 
   assert(
     newBlend > oldBlend,
-    "reduced Claude weight preserves multi-dim score better when Claude disagrees",
-    `old=${oldBlend.toFixed(2)}, new=${newBlend.toFixed(2)}`
+    "further reduced Claude weight preserves base score even better when Claude disagrees",
+    `prev=${oldBlend.toFixed(2)}, new=${newBlend.toFixed(2)}`
   );
 
   // When Claude agrees (high relevance), both are similar
   const highRelevance = 8.5;
-  const oldAgree = composite * 0.6 + highRelevance * 0.4; // 4.2 + 3.4 = 7.6
-  const newAgree = composite * 0.75 + highRelevance * 0.25; // 5.25 + 2.125 = 7.375
+  const oldAgree = composite * 0.75 + highRelevance * 0.25; // 5.25 + 2.125 = 7.375
+  const newAgree = composite * 0.85 + highRelevance * 0.15; // 5.95 + 1.275 = 7.225
 
   assert(
     Math.abs(oldAgree - newAgree) < 0.5,
-    "when Claude agrees, old vs new weights produce similar results",
-    `old=${oldAgree.toFixed(2)}, new=${newAgree.toFixed(2)}, diff=${Math.abs(oldAgree - newAgree).toFixed(3)}`
+    "when Claude agrees, prev vs new weights produce similar results",
+    `prev=${oldAgree.toFixed(2)}, new=${newAgree.toFixed(2)}, diff=${Math.abs(oldAgree - newAgree).toFixed(3)}`
   );
 
   // When Claude strongly disagrees (relevance=2), multi-dim score should dominate
   const lowRelevance = 2.0;
-  const newLow = composite * 0.75 + lowRelevance * 0.25; // 5.25 + 0.5 = 5.75
-  const oldLow = composite * 0.6 + lowRelevance * 0.4; // 4.2 + 0.8 = 5.0
+  const newLow = composite * 0.85 + lowRelevance * 0.15; // 5.95 + 0.30 = 6.25
+  const oldLow = composite * 0.75 + lowRelevance * 0.25; // 5.25 + 0.50 = 5.75
 
   assert(
     newLow > oldLow,
-    "new weight protects composite score from Claude's low relevance",
-    `new=${newLow.toFixed(2)}, old=${oldLow.toFixed(2)}`
+    "new weight protects composite score from Claude's low relevance even more",
+    `new=${newLow.toFixed(2)}, prev=${oldLow.toFixed(2)}`
   );
 }
 
@@ -786,11 +788,11 @@ section("11. Donde Match V1 Range Invariant");
 // -----------------------------------------------
 
 {
-  // Verify the mapping formula: 60 + clamp(raw, 0, 10) * 3.9 ∈ [60, 99]
+  // Verify the mapping formula: 45 + clamp(raw, 0, 10) * 5.4 ∈ [45, 99]
   const testRaws = [0, 2.5, 5, 7.5, 10, -1, 12];
   for (const raw of testRaws) {
-    const result = Math.min(99, Math.max(60, Math.round(60 + Math.min(10, Math.max(0, raw)) * 3.9)));
-    assert(result >= 60 && result <= 99, `raw=${raw} maps to [60,99]: got ${result}`);
+    const result = Math.min(99, Math.max(45, Math.round(45 + Math.min(10, Math.max(0, raw)) * 5.4)));
+    assert(result >= 45 && result <= 99, `raw=${raw} maps to [45,99]: got ${result}`);
   }
 }
 
@@ -868,13 +870,13 @@ section("13. V2 Ranking-Match Alignment Invariant");
       composite = composite * 0.92 + trending * 0.08;
     }
 
-    // Rejection penalties
+    // Rejection penalties (strengthened)
     if (inputs.rejectionSignals) {
       if (profile.cuisine_type && inputs.rejectionSignals.avoidCuisines.includes(profile.cuisine_type)) {
-        composite -= 2.0;
+        composite -= 3.5;
       }
       if (profile.price_level && inputs.rejectionSignals.avoidPriceLevels.includes(profile.price_level)) {
-        composite -= 1.0;
+        composite -= 2.0;
       }
     }
 
@@ -890,12 +892,12 @@ section("13. V2 Ranking-Match Alignment Invariant");
   ): number {
     let composite = baseScore;
 
-    // Google quality overlay
-    composite = composite * 0.85 + googleQuality * 0.15;
+    // Google quality overlay (reduced: 10% weight, was 15%)
+    composite = composite * 0.90 + googleQuality * 0.10;
 
-    // Claude relevance overlay
+    // Claude relevance overlay (reduced: 15% weight, was 25%)
     if (claudeRelevance != null) {
-      composite = composite * 0.75 + claudeRelevance * 0.25;
+      composite = composite * 0.85 + claudeRelevance * 0.15;
     }
 
     // Sentiment penalty
@@ -903,7 +905,7 @@ section("13. V2 Ranking-Match Alignment Invariant");
       composite += -Math.min(3, ((sentimentNeg - 15) / 35) * 3);
     }
 
-    return Math.min(99, Math.max(60, Math.round(60 + Math.min(10, Math.max(0, composite)) * 3.9)));
+    return Math.min(99, Math.max(45, Math.round(45 + Math.min(10, Math.max(0, composite)) * 5.4)));
   }
 
   // Create 3 restaurants with different occasion scores
@@ -963,17 +965,17 @@ section("14. Monotonic Overlay Test");
   const baseB = 6.0;
   const baseC = 4.0;
 
-  // Equal Google quality = 7.0 for all
-  const matchA = 60 + Math.min(10, Math.max(0, baseA * 0.85 + 7.0 * 0.15)) * 3.9;
-  const matchB = 60 + Math.min(10, Math.max(0, baseB * 0.85 + 7.0 * 0.15)) * 3.9;
-  const matchC = 60 + Math.min(10, Math.max(0, baseC * 0.85 + 7.0 * 0.15)) * 3.9;
+  // Equal Google quality = 7.0 for all (updated: 10% weight, was 15%)
+  const matchA = 45 + Math.min(10, Math.max(0, baseA * 0.90 + 7.0 * 0.10)) * 5.4;
+  const matchB = 45 + Math.min(10, Math.max(0, baseB * 0.90 + 7.0 * 0.10)) * 5.4;
+  const matchC = 45 + Math.min(10, Math.max(0, baseC * 0.90 + 7.0 * 0.10)) * 5.4;
 
   assert(matchA > matchB, "equal Google quality preserves ranking: A > B", `A=${matchA.toFixed(1)}, B=${matchB.toFixed(1)}`);
   assert(matchB > matchC, "equal Google quality preserves ranking: B > C", `B=${matchB.toFixed(1)}, C=${matchC.toFixed(1)}`);
 
-  // Different Google quality CAN change order (this is expected — external signal)
-  const matchA_lowGoogle = 60 + Math.min(10, Math.max(0, baseA * 0.85 + 2.0 * 0.15)) * 3.9;
-  const matchB_highGoogle = 60 + Math.min(10, Math.max(0, baseB * 0.85 + 10.0 * 0.15)) * 3.9;
+  // Different Google quality CAN change order (this is expected — external signal, reduced to 10% weight)
+  const matchA_lowGoogle = 45 + Math.min(10, Math.max(0, baseA * 0.90 + 2.0 * 0.10)) * 5.4;
+  const matchB_highGoogle = 45 + Math.min(10, Math.max(0, baseB * 0.90 + 10.0 * 0.10)) * 5.4;
 
   // A gets bad Google reviews, B gets excellent ones — B may overtake A
   assert(
@@ -1017,9 +1019,9 @@ section("15. V1 Ranking-Match Alignment");
 
   assert(baseA > baseB, "V1 base: Italian restaurant with pasta request ranks higher", `A=${baseA.toFixed(2)}, B=${baseB.toFixed(2)}`);
 
-  // With neutral overlays, match should preserve order
-  const matchA = Math.min(99, Math.max(60, Math.round(60 + Math.min(10, Math.max(0, baseA * 0.85 + 6.5 * 0.15)) * 3.9)));
-  const matchB = Math.min(99, Math.max(60, Math.round(60 + Math.min(10, Math.max(0, baseB * 0.85 + 6.5 * 0.15)) * 3.9)));
+  // With neutral overlays, match should preserve order (updated: 10% Google, 45-99 range)
+  const matchA = Math.min(99, Math.max(45, Math.round(45 + Math.min(10, Math.max(0, baseA * 0.90 + 6.5 * 0.10)) * 5.4)));
+  const matchB = Math.min(99, Math.max(45, Math.round(45 + Math.min(10, Math.max(0, baseB * 0.90 + 6.5 * 0.10)) * 5.4)));
 
   assert(
     matchA >= matchB,
@@ -1071,35 +1073,32 @@ section("16. Trending Now Affects Donde Match");
 }
 
 // -----------------------------------------------
-section("17. Rejection Signals NOT in Donde Match");
+section("17. Rejection Signals ARE Applied in Donde Match (V1 alignment fix)");
 // -----------------------------------------------
 
 {
-  // Rejection penalties should NOT affect donde_match for the chosen restaurant.
-  // The restaurant was already selected despite any penalties during ranking.
+  // Donde match now uses the SAME signals as ranking for consistency.
+  // If a restaurant was chosen despite rejection signals, its donde_match should
+  // reflect those signals honestly — the score should be lower.
 
   const baseScore = 7.5;
-  const rejectionSignals = {
-    avoidCuisines: ["Italian"],
-    avoidPriceLevels: ["$$$$"],
-  };
 
-  // In ranking: rejection penalties reduce composite
+  // In ranking: rejection penalties reduce composite (strengthened: -3.5 for cuisine)
   let rankingScore = baseScore;
-  // Simulate Italian restaurant with rejection for Italian
-  rankingScore -= 2.0; // cuisine penalty
-  assert(rankingScore < baseScore, "ranking applies rejection penalty", `ranking=${rankingScore}, base=${baseScore}`);
+  rankingScore -= 3.5; // cuisine penalty (strengthened from -2.0)
+  assert(rankingScore < baseScore, "ranking applies strengthened rejection penalty", `ranking=${rankingScore}, base=${baseScore}`);
 
-  // In donde_match: NO rejection penalties applied (restaurant was chosen)
-  const matchScore = baseScore; // same base, no penalties
+  // In donde_match: rejection penalties NOW applied for honest scoring
+  let matchScore = baseScore;
+  matchScore -= 3.5; // same cuisine penalty as ranking
   assert(
-    matchScore === baseScore,
-    "donde_match does NOT apply rejection penalties",
+    matchScore < baseScore,
+    "donde_match now applies rejection penalties for V1 alignment",
     `match=${matchScore}, base=${baseScore}`
   );
   assert(
-    matchScore > rankingScore,
-    "donde_match > ranking for same restaurant when rejected",
+    matchScore === rankingScore,
+    "donde_match penalty matches ranking penalty for same restaurant",
     `match=${matchScore}, ranking=${rankingScore}`
   );
 }
