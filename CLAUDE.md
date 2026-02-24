@@ -88,12 +88,12 @@ Timeout: 15s (AbortController on frontend)
 ```
 index.html                  # SPA entry point
 css/reset|tokens|typography|layout|components|animations|responsive.css
-css/themes/{neutral,indian,middleeastern,nepalese,japanese,eastasian,african,southamerican}.css
+css/themes/{neutral,indian,middleeastern,japanese,southamerican}.css
 js/app.js                   # Orchestrator (init, event delegation, result rendering)
 js/state.js                 # Pub/sub store: getState(), setState(patch), subscribe(fn)
 js/router.js                # Canvas↔Result via translateX
 js/api.js                   # Supabase Edge Function client
-js/theme.js                 # 8 cultures × 2 modes, auto-theme on typing, radial wash
+js/theme.js                 # 5 cultures × 2 modes, auto-theme on typing, radial wash
 js/audio.js                 # Web Audio chimes per culture (opt-in)
 js/voice.js                 # Web Speech Recognition
 js/animations.js            # Score ring, petal radar, bloom cycle, particles, logo
@@ -138,16 +138,17 @@ nicehave_sso.md             # Future: SSO auth roadmap (not implemented)
   colorMode, soundEnabled, history, pendingFeedback }
 ```
 
-### Themes (8 × 2 = 16 variants)
+### Themes (5 × 2 = 10 variants)
 
-| ID | Name | Hue | | ID | Name | Hue |
-|---|---|---|---|---|---|---|
-| `neutral` | Studio | achromatic | | `japanese` | Zen | 220° indigo |
-| `indian` | Desi | 28° marigold | | `eastasian` | Silk | 285° plum |
-| `middleeastern` | Bazaar | 48° gold | | `african` | Kente | 155° emerald |
-| `nepalese` | Himalayan | 178° turquoise | | `southamerican` | Sabor | 350° chili |
+| ID | Name | Hue | Scope |
+|---|---|---|---|
+| `neutral` | Studio | 18° terracotta | Western, European, American, Global |
+| `indian` | Desi | 28° marigold | South Asian (Indian + Nepalese + Pakistani) |
+| `middleeastern` | Bazaar | 48° gold | Middle Eastern + Med + North/East African |
+| `japanese` | Zen | 220° indigo | Pan-Asian (Japanese + East/SE Asian) |
+| `southamerican` | Sabor | 350° chili | Latin + Caribbean + West African diaspora |
 
-Applied via `data-theme` + `data-mode` on `<html>`. Auto-theme on typing (cuisine keywords → culture preview). Each culture has unique labels, smart chips, greetings, audio frequencies, and textures.
+Applied via `data-theme` + `data-mode` on `<html>`. Auto-theme on typing (cuisine keywords → culture preview). Each culture has unique labels, smart chips, greetings, audio frequencies, and textures. localStorage migration maps removed themes: nepalese→indian, eastasian→japanese, african→neutral.
 
 ### Scores Display
 
