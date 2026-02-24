@@ -9,7 +9,9 @@
     "scores": "tsx pipelines/generate-occasion-scores.ts",
     "tags": "tsx pipelines/generate-tags.ts",
     "backfill": "tsx pipelines/backfill-new-fields.ts",
-    "populate": "tsx pipelines/populate-all.ts"
+    "populate": "tsx pipelines/populate-all.ts",
+    "discovery:targeted": "TARGET_CUISINES=Japanese INCLUDE_VARIANTS=true tsx pipelines/discovery.ts",
+    "discovery:gaps": "DRY_RUN=true tsx pipelines/discovery.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

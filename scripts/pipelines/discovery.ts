@@ -2,6 +2,19 @@
  * Pipeline 1: Restaurant Discovery
  * Replaces n8n Agent 1 - discovers new restaurants via Google Places API
  * Schedule: Weekly (Sunday 3am UTC)
+ *
+ * Modes:
+ *   Default:  Searches all CUISINE_TYPES × NEIGHBORHOODS (broad sweep)
+ *   Targeted: TARGET_CUISINES=Japanese,Korean — only searches specified cuisines
+ *             Also searches sub-cuisine variants (ramen, sushi, izakaya, etc.)
+ *   Variants: INCLUDE_VARIANTS=true — adds sub-cuisine search queries from
+ *             CUISINE_SEARCH_VARIANTS (e.g. "ramen in West Loop, Chicago")
+ *
+ * Usage:
+ *   npx tsx pipelines/discovery.ts                         # full sweep
+ *   TARGET_CUISINES=Japanese npx tsx pipelines/discovery.ts # targeted Japanese
+ *   INCLUDE_VARIANTS=true npx tsx pipelines/discovery.ts   # full sweep + variants
+ *   DRY_RUN=true npx tsx pipelines/discovery.ts            # preview without insert
  */
 
 import { createAdminClient } from "../lib/supabase.js";
@@ -9,6 +22,7 @@ import { textSearch, getPlaceDetails } from "../lib/google-places.js";
 import {
   NEIGHBORHOODS,
   CUISINE_TYPES,
+  CUISINE_SEARCH_VARIANTS,
   CHICAGO_COORDS,
   SEARCH_RADIUS,
   PRICE_MAP,
@@ -18,12 +32,52 @@ import {
 import { processBatches } from "../lib/batch.js";
 
 const DRY_RUN = process.env.DRY_RUN === "true";
+const TARGET_CUISINES = process.env.TARGET_CUISINES
+  ? process.env.TARGET_CUISINES.split(",").map((c) => c.trim())
+  : null;
+// Include sub-cuisine variant searches (always on for targeted mode)
+const INCLUDE_VARIANTS =
+  process.env.INCLUDE_VARIANTS === "true" || TARGET_CUISINES !== null;
 
 async function main() {
   console.log("=== Restaurant Discovery Pipeline ===");
   console.log(`Mode: ${DRY_RUN ? "DRY RUN" : "LIVE"}`);
+  if (TARGET_CUISINES) {
+    console.log(`Targeted cuisines: ${TARGET_CUISINES.join(", ")}`);
+  }
+  if (INCLUDE_VARIANTS) {
+    console.log("Sub-cuisine variant searches: ENABLED");
+  }
 
   const supabase = createAdminClient();
+
+  // Step 0: Cuisine gap analysis — report current coverage
+  const { data: coverageData, error: covError } = await supabase
+    .from("restaurants")
+    .select("cuisine_type")
+    .eq("is_active", true)
+    .not("noise_level", "is", null);
+
+  if (!covError && coverageData) {
+    const counts = new Map<string, number>();
+    for (const r of coverageData) {
+      const c = r.cuisine_type || "Unknown";
+      counts.set(c, (counts.get(c) || 0) + 1);
+    }
+    console.log("\nCurrent cuisine coverage (enriched + active restaurants):");
+    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    for (const [cuisine, count] of sorted) {
+      console.log(`  ${cuisine}: ${count}`);
+    }
+    // Identify gaps — cuisines with 0 enriched restaurants
+    const gaps = (CUISINE_TYPES as readonly string[]).filter(
+      (c) => !counts.has(c) || counts.get(c)! < 3
+    );
+    if (gaps.length > 0) {
+      console.log(`\n  GAPS (< 3 restaurants): ${gaps.join(", ")}`);
+    }
+    console.log();
+  }
 
   // Step 1: Get neighborhood IDs from DB
   const { data: neighborhoods, error: nhError } = await supabase
@@ -36,17 +90,69 @@ async function main() {
     neighborhoodIdMap.set(n.name, n.id);
   }
 
-  // Step 2: Generate all search queries
-  const queries: Array<{ neighborhood: string; cuisine: string; query: string }> = [];
+  // Step 2: Generate search queries
+  const cuisines = TARGET_CUISINES
+    ? TARGET_CUISINES
+    : (CUISINE_TYPES as readonly string[]);
+
+  const queries: Array<{
+    neighborhood: string;
+    cuisine: string;
+    query: string;
+  }> = [];
+
   for (const neighborhood of NEIGHBORHOODS) {
-    for (const cuisine of CUISINE_TYPES) {
+    for (const cuisine of cuisines) {
+      // Base query: "Japanese restaurants in West Loop, Chicago"
       queries.push({
         neighborhood,
         cuisine,
         query: `${cuisine} restaurants in ${neighborhood}, Chicago`,
       });
+
+      // Variant queries: "ramen in West Loop, Chicago", "sushi in West Loop, Chicago"
+      if (INCLUDE_VARIANTS) {
+        const variants = CUISINE_SEARCH_VARIANTS[cuisine] || [];
+        for (const variant of variants) {
+          queries.push({
+            neighborhood,
+            cuisine,
+            query: `best ${variant} in ${neighborhood}, Chicago`,
+          });
+        }
+      }
     }
   }
+
+  // For targeted mode, also add city-wide searches without neighborhood restriction
+  if (TARGET_CUISINES) {
+    for (const cuisine of TARGET_CUISINES) {
+      queries.push({
+        neighborhood: "Chicago",
+        cuisine,
+        query: `best ${cuisine} restaurants in Chicago`,
+      });
+      queries.push({
+        neighborhood: "Chicago",
+        cuisine,
+        query: `top rated ${cuisine} food Chicago`,
+      });
+      const variants = CUISINE_SEARCH_VARIANTS[cuisine] || [];
+      for (const variant of variants) {
+        queries.push({
+          neighborhood: "Chicago",
+          cuisine,
+          query: `best ${variant} in Chicago`,
+        });
+        queries.push({
+          neighborhood: "Chicago",
+          cuisine,
+          query: `${variant} restaurant Chicago`,
+        });
+      }
+    }
+  }
+
   console.log(`Generated ${queries.length} search queries`);
 
   // Step 3: Run Google Places searches and collect unique place IDs
@@ -164,7 +270,7 @@ async function main() {
     console.log("DRY RUN — skipping database insert");
     console.log(
       "Sample:",
-      toInsert.slice(0, 3).map((r) => `${r.name} (${r.address})`)
+      toInsert.slice(0, 5).map((r) => `${r.name} (${r.address})`)
     );
     return;
   }
@@ -181,6 +287,17 @@ async function main() {
     }
 
     console.log(`Successfully inserted ${toInsert.length} new restaurants`);
+  }
+
+  // Step 7: Post-insert summary
+  if (TARGET_CUISINES) {
+    console.log(
+      `\nNext steps: Run enrichment + scores + tags pipelines for the new restaurants:`
+    );
+    console.log("  npx tsx pipelines/enrichment.ts");
+    console.log("  npx tsx pipelines/enrichment-v2.ts");
+    console.log("  npx tsx pipelines/generate-occasion-scores.ts");
+    console.log("  npx tsx pipelines/generate-tags.ts");
   }
 }
 

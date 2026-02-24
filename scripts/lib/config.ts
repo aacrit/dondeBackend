@@ -46,6 +46,29 @@ export const CUISINE_TYPES = [
   "Brewery/Beer Bar",
 ] as const;
 
+// Sub-cuisine search variants: additional queries per cuisine to catch specialty spots
+// that Google may not surface under the broad cuisine name alone.
+// Key = cuisine from CUISINE_TYPES, values = extra search terms used alongside the cuisine.
+export const CUISINE_SEARCH_VARIANTS: Partial<Record<string, string[]>> = {
+  Japanese: ["ramen", "sushi", "izakaya", "udon", "omakase"],
+  Mexican: ["tacos", "mole", "birria"],
+  Chinese: ["dim sum", "hotpot", "Sichuan"],
+  Korean: ["korean bbq", "bibimbap"],
+  Indian: ["biryani", "dosa", "tandoori"],
+  Vietnamese: ["pho", "banh mi"],
+  Thai: ["pad thai", "thai curry"],
+  Italian: ["pizza", "pasta"],
+  Ethiopian: ["injera"],
+  "Middle Eastern": ["shawarma", "falafel"],
+  Greek: ["gyro"],
+  BBQ: ["brisket", "smoked meat"],
+  "Southern/Soul Food": ["fried chicken", "soul food"],
+  "Puerto Rican": ["mofongo"],
+  Peruvian: ["ceviche"],
+  Brazilian: ["churrasco", "rodizio"],
+  Polish: ["pierogi"],
+};
+
 export const CHICAGO_COORDS = { lat: 41.8781, lng: -87.6298 };
 export const SEARCH_RADIUS = 50000;
 

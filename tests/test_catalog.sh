@@ -1494,6 +1494,46 @@ fi
 echo "  [info] Rec: ${REC_75:0:120}..."
 echo "  [info] Tip: $TIP_75"
 
+# ─── T76: Cuisine gap — ramen search returns Japanese or acknowledges gap ─────
+test_banner "T76" "Cuisine gap: 'Best Ramen' should return Japanese or mismatch signal"
+api_call '{"special_request":"Best Ramen","occasion":"Solo Dining","neighborhood":"Anywhere","price_level":"Any"}'
+
+check "T76" "success" '.success' 'true'
+check_exists "T76" "restaurant returned" '.restaurant.name'
+CUISINE_76=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // ""' | tr '[:upper:]' '[:lower:]')
+MATCH_76=$(echo "$LAST_RESPONSE" | jq -r '.donde_match // 0')
+MISMATCH_76=$(echo "$LAST_RESPONSE" | jq -r '.cuisine_mismatch.requested // ""')
+
+if [[ "$CUISINE_76" == *"japanese"* ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T76] ramen → Japanese cuisine match"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T76|ramen maps to Japanese\n"
+elif [[ -n "$MISMATCH_76" ]]; then
+  warn_check "T76" "ramen → Japanese cuisine" "false" "got: $CUISINE_76 (mismatch signaled: $MISMATCH_76, match: $MATCH_76%)"
+else
+  warn_check "T76" "ramen → Japanese cuisine" "false" "got: $CUISINE_76 (no mismatch signal, match: $MATCH_76%)"
+fi
+echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') ($CUISINE_76, match=$MATCH_76%)"
+
+# ─── T77: Cuisine gap — sushi search returns Japanese or acknowledges gap ─────
+test_banner "T77" "Cuisine gap: 'sushi omakase' should return Japanese or mismatch signal"
+api_call '{"special_request":"sushi omakase","occasion":"Date Night","neighborhood":"Anywhere","price_level":"$$$"}'
+
+check "T77" "success" '.success' 'true'
+check_exists "T77" "restaurant returned" '.restaurant.name'
+CUISINE_77=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // ""' | tr '[:upper:]' '[:lower:]')
+MATCH_77=$(echo "$LAST_RESPONSE" | jq -r '.donde_match // 0')
+MISMATCH_77=$(echo "$LAST_RESPONSE" | jq -r '.cuisine_mismatch.requested // ""')
+
+if [[ "$CUISINE_77" == *"japanese"* ]]; then
+  echo -e "  ${GREEN}PASS${NC} [T77] sushi omakase → Japanese cuisine match"
+  ((PASS_COUNT++)); TEST_LOG+="PASS|T77|sushi maps to Japanese\n"
+elif [[ -n "$MISMATCH_77" ]]; then
+  warn_check "T77" "sushi → Japanese cuisine" "false" "got: $CUISINE_77 (mismatch signaled: $MISMATCH_77, match: $MATCH_77%)"
+else
+  warn_check "T77" "sushi → Japanese cuisine" "false" "got: $CUISINE_77 (no mismatch signal, match: $MATCH_77%)"
+fi
+echo "  [info] Returned: $(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "N/A"') ($CUISINE_77, match=$MATCH_77%)"
+
 ###############################################################################
 # T76-T83: Negative Cuisine / Mismatch Tests
 ###############################################################################
