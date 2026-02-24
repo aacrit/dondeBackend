@@ -2314,16 +2314,18 @@ OUTPUT FORMAT, respond ONLY in this exact JSON (no markdown, no backticks):
   "sentiment_summary": "Diners rave about the handmade pasta and warm service. A few mention slow waits on weekends."
 }
 
-INSIDER TIP RULES (V3, use the richest available data):
-- PRIORITY 1: If deep profile has best_seat_in_house, USE IT. "Ask for the corner booth by the window."
-- PRIORITY 2: If deep profile has signature_dishes, reference the standout. "The [dish] is what regulars come back for."
-- PRIORITY 3: If reviews mention a specific dish, seating spot, or timing advice, use that.
-- PRIORITY 4: If deep profile has wow_factors, byob_policy, or origin_story, weave practical + narrative. "It's BYOB. Grab a bottle from the shop around the corner."
-- PRIORITY 5: If no rich data, give practical advice from metadata.
+INSIDER TIP RULES (V3):
+The tip should feel like it's coming from a friend who's been here 20 times. One sentence, whispered, not announced.
+
+- BLEND seat + food when both are noteworthy: "Sit at the chef's counter and order the [signature dish]."
+- USE seat info ONLY when the seat genuinely adds to the experience: a great view, notably quieter, you watch the chef cook, a hidden patio, a romantic corner. If the seat is just "a table," skip it.
+- If deep profile has best_seat_in_house AND it describes something noteworthy (view, quiet, chef interaction, ambiance), weave it into the tip naturally. Don't prefix with "Best seat:" or label it. Just say it as if you're telling a friend.
+- If deep profile has signature_dishes, reference the standout: "The [dish] is what regulars come back for."
+- If reviews mention a specific dish, seating spot, or timing advice, use that.
+- If deep profile has wow_factors, byob_policy, or origin_story, weave practical + narrative: "It's BYOB. Grab a bottle from the shop around the corner."
+- If no rich data, give practical advice from metadata.
 - Start with a verb when possible: "Ask for..." "Grab the..." "Skip the... go for the..." "Sit at..."
 - Never start with "Be sure to" or "Don't miss" or "Make sure to"
-- The tip should feel like something whispered, not announced. Privileged info, not generic advice.
-- Combine practical + insider when possible: "Sit at the chef's counter and order the [signature dish]."
 - NEVER fabricate specific menu items, off-menu secrets, server names, or reservation hacks you can't verify from the data.
 - Keep it to one sentence, under 20 words. Actionable over clever.
 

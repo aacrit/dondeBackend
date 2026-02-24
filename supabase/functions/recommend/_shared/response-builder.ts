@@ -281,11 +281,16 @@ export function buildTemplateResponse(
   const recommendation = `${opener} ${vibeDetails[0]}.${onelinerText}${featureText}${vibeDetails.length > 1 ? ` ${vibeDetails.slice(1).join(". ")}.` : ""}`;
 
   let insiderTip = chosen.insider_tip || null;
-  if (dp?.best_seat_in_house) {
-    insiderTip = dp.best_seat_in_house;
-  } else if (dp?.signature_dishes && Array.isArray(dp.signature_dishes) && dp.signature_dishes.length > 0) {
+  if (dp?.signature_dishes && Array.isArray(dp.signature_dishes) && dp.signature_dishes.length > 0) {
     const dish = dp.signature_dishes[0];
-    insiderTip = `Go for the ${dish.dish}. ${dish.why}.`;
+    if (dp?.best_seat_in_house) {
+      // Blend seat + dish into one insider tip
+      insiderTip = `${dp.best_seat_in_house} Order the ${dish.dish}.`;
+    } else {
+      insiderTip = `Go for the ${dish.dish}. ${dish.why}.`;
+    }
+  } else if (dp?.best_seat_in_house) {
+    insiderTip = dp.best_seat_in_house;
   }
 
   return {
