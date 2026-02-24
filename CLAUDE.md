@@ -201,7 +201,7 @@ supabase/functions/recommend/_shared/    # 9 modules (types, scoring, intent, re
 supabase/migrations/                     # 18 SQL migrations
 scripts/pipelines/                       # discovery, enrichment, enrichment-v2, occasion-scores, tags, analytics, validate-status, +more
 scripts/lib/                             # config, claude, google-places, supabase, batch, types
-tests/test_catalog.sh                    # 65-test API suite (5 phases, ~215 checks)
+tests/test_catalog.sh                    # 77-test API suite (5 phases, ~225 checks)
 docs/api-field-mapping.md               # Full field mapping
 .github/workflows/                       # 8 CI/CD workflows
 ```
@@ -281,6 +281,8 @@ supabase functions deploy recommend
 
 # Backend — Pipelines
 cd scripts && npx tsx pipelines/discovery.ts    # (or enrichment, enrichment-v2, etc.)
+cd scripts && TARGET_CUISINES=Japanese npm run discovery:targeted  # targeted cuisine discovery
+cd scripts && DRY_RUN=true npm run discovery:gaps                 # check cuisine coverage gaps
 
 # Backend — Migrations
 supabase db push
