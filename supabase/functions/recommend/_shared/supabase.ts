@@ -10,3 +10,20 @@ export function createSupabaseClient(): SupabaseClient {
 
   return createClient(url, key);
 }
+
+/** SSO: Service-role client for verifying user JWTs and writing to auth-protected tables */
+export function createServiceClient(): SupabaseClient {
+  const url = Deno.env.get("SUPAB_URL");
+  const serviceKey = Deno.env.get("SUPAB_SERVICE_ROLE_KEY");
+
+  if (!url || !serviceKey) {
+    throw new Error("Missing SUPAB_URL or SUPAB_SERVICE_ROLE_KEY");
+  }
+
+  return createClient(url, serviceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
