@@ -1,214 +1,309 @@
-# DondeAI Backend
+# DondeAI
 
-Chicago restaurant recommendation engine. Returns ONE best match per request based on craving, occasion, neighborhood, budget.
+> **SYNC DIRECTIVE**: This CLAUDE.md is shared identically across `dondeAI` (frontend) and `dondeBackend` (backend). Any edit MUST be copied to both repos in the same commit/PR. Always verify both files match after changes.
+
+AI restaurant recommendations for Chicago. One craving in → one perfect spot out.
+
+**Design philosophy**: "Ink & Momentum" — Arc Browser choreography, Apple Notes ink feel, Linear precision, Notion progressive disclosure.
 
 ## Architecture
 
-- **API**: Supabase Edge Function (Deno/TS) — `supabase/functions/recommend/`
-- **Pipelines**: Node.js TS scripts — `scripts/pipelines/`, GitHub Actions cron
-- **DB**: Supabase PostgreSQL — `supabase/migrations/`
-- **AI**: Claude Haiku 4.5 (recommendations, enrichment, sentiment, intent classification)
-- **Data**: Google Places API (discovery + live fetch at request time; never stored per ToS §3.2.3)
+| Layer | Tech | Location |
+|-------|------|----------|
+| **Frontend** | Vanilla HTML/CSS/JS (zero framework, zero build) | `dondeAI/` |
+| **API** | Supabase Edge Function (Deno/TS) | `dondeBackend/supabase/functions/recommend/` |
+| **AI** | Claude Haiku 4.5 (recommendations, enrichment, sentiment, intent) | Edge Function + pipelines |
+| **DB** | Supabase PostgreSQL | `dondeBackend/supabase/migrations/` |
+| **Data** | Google Places API (live fetch per request; `google_place_id` only stored per ToS §3.2.3) | Edge Function + pipelines |
+| **Pipelines** | Node.js TS scripts, GitHub Actions cron | `dondeBackend/scripts/pipelines/` |
 
-## Google API Compliance
+## Skill
 
-Only `google_place_id` stored permanently. `name`/`address` stored as editorial. All Google-sourced data (rating, reviews, phone, website, photos, hours) fetched live for top 5 candidates per request, never persisted. Sentiment generated on-the-fly by Claude from fresh reviews.
+**`/frontenddesign`** — design system enforcement (`.claude/skills/frontenddesign/SKILL.md`). Auto-activates on UI/animation/layout tasks. Enforces Ink Rule, 3-voice typography, motion grammar, all 16 theme variants, accessibility.
+
+## API Contract (Immutable — shared between repos)
+
+```
+POST https://vwbzkgsxmgwcvmvuxnbe.supabase.co/functions/v1/recommend
+Authorization: Bearer <supabase-anon-key>
+apikey: <supabase-anon-key>
+Timeout: 15s (AbortController on frontend)
+```
+
+**Request:**
+```json
+{
+  "special_request": "string (required, max 500)",
+  "occasion": "string (default: Any)",
+  "neighborhood": "string (default: Anywhere)",
+  "price_level": "string (default: Any)",
+  "exclude": ["uuid (max 15)"],
+  "dietary_restrictions": ["string (max 5, 30 chars each)"],
+  "user_id": "uuid",
+  "feedback": {"restaurant_id": "uuid", "feedback": "like|dislike"},
+  "time_of_day": "breakfast|lunch|dinner|late_night"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "restaurant": {
+    "id", "name", "address", "best_for_oneliner", "google_place_id",
+    "google_rating", "google_review_count", "price_level", "phone", "website",
+    "noise_level", "cuisine_type", "lighting_ambiance", "dress_code",
+    "outdoor_seating", "live_music", "pet_friendly", "parking_availability",
+    "dietary_options", "sentiment_breakdown", "sentiment_score", "sentiment_summary",
+    "sentiment_positive", "sentiment_negative", "sentiment_neutral",
+    "neighborhood_name", "photo_urls", "opening_hours", "review_snippets"
+  },
+  "recommendation": "string",
+  "insider_tip": "string|null",
+  "donde_match": "numeric 60-99",
+  "scores": {
+    "date_friendly_score", "group_friendly_score", "family_friendly_score",
+    "business_lunch_score", "solo_dining_score", "hole_in_wall_factor", "romantic_rating"
+  },
+  "scoring_v2": {
+    "occasion_fit", "craving_match", "vibe_alignment", "practical_fit",
+    "discovery_value", "weights_used"
+  },
+  "deep_context": { "signature_dishes", "service_style", "reservation_difficulty", "..." },
+  "tags": ["string"],
+  "timestamp": "ISO"
+}
+```
+
+**Errors:** HTTP non-200 → toast + return to canvas | `success:false` → show `recommendation` as error | network → "Couldn't reach the engine." | timeout → "Request timed out."
+
+**Health:** `GET /recommend` → `{status, version, timestamp}`
+
+---
+
+## Frontend (`dondeAI/`)
+
+### Files
+
+```
+index.html                  # SPA entry point
+css/reset|tokens|typography|layout|components|animations|responsive.css
+css/themes/{neutral,indian,middleeastern,nepalese,japanese,eastasian,african,southamerican}.css
+js/app.js                   # Orchestrator (init, event delegation, result rendering)
+js/state.js                 # Pub/sub store: getState(), setState(patch), subscribe(fn)
+js/router.js                # Canvas↔Result via translateX
+js/api.js                   # Supabase Edge Function client
+js/theme.js                 # 8 cultures × 2 modes, auto-theme on typing, radial wash
+js/audio.js                 # Web Audio chimes per culture (opt-in)
+js/voice.js                 # Web Speech Recognition
+js/animations.js            # Score ring, petal radar, bloom cycle, particles, logo
+js/share.js                 # 8-channel share sheet + canvas card
+js/persistence.js           # localStorage (theme, sound, history, bookmarks, userId, feedback)
+js/accessibility.js         # Focus, announcements, keyboard shortcuts
+js/offline.js               # Connectivity detection
+js/utils.js                 # 50+ SVG icons, cuisine mapper, 320 greetings
+Frontendarch.md             # Architecture reference
+UI_UX_Requirements.md       # Business requirements (immutable)
+nicehave_sso.md             # Future: SSO auth roadmap (not implemented)
+```
+
+### Design Principles (Non-Negotiable)
+
+1. **Canvas + Result** — 2 views only. No multi-step wizard.
+2. **Ink Rule** — `--ac` only on: score ring, restaurant name, active CTAs, selected pills, logo dot, caret, petal radar (8%/25%). Everything else grayscale. Google stars always amber `hsl(45 93% 47%)`.
+3. **3 Type Voices** — Emotional (Playfair Display): headings/prompts. Structural (Inter): buttons/labels. Data (JetBrains Mono): scores/badges.
+4. **Motion Grammar** — Spring `cubic-bezier(.34,1.56,.64,1)`: user-initiated. Ease `cubic-bezier(.4,0,.2,1)`: system reveals. `prefers-reduced-motion`: all 0ms.
+5. **Cultural Personality** — Themes change palette + textures + terminology + audio + border/shadow depth.
+
+### User Flow
+
+```
+[Canvas] Greeting → Craving input + voice + smart chips + Surprise Me
+         → Filter drawer (Occasion 9, Neighborhood 15, Budget 5, Dietary 4, Randomize)
+         → CTA (disabled until craving) → Taste Memory (last 3) → Saved Spots
+    ↓ submit
+[Loading] Act 1: blur canvas → Act 2: particles + logo draw-in + sonar → Act 3: reveal
+    ↓
+[Result]  3-tier progressive disclosure:
+  Tier 1 (Glance):  Match pill + name (ink reveal) + one-liner + blurb + feedback
+  Tier 2 (Lean In): Score hero arc + bloom cycle + photos + hours + sentiment + Google + glyph bar
+  Tier 3 (Deep):    V2 score breakdown bars + detail badges grid
+```
+
+### State (`state.js`)
+
+```js
+{ step, craving, occasion, neighborhood, priceLevel, dietaryRestrictions,
+  result, loading, error, excludeIds, theme: {culture, mode},
+  colorMode, soundEnabled, history, pendingFeedback }
+```
+
+### Themes (8 × 2 = 16 variants)
+
+| ID | Name | Hue | | ID | Name | Hue |
+|---|---|---|---|---|---|---|
+| `neutral` | Studio | achromatic | | `japanese` | Zen | 220° indigo |
+| `indian` | Desi | 28° marigold | | `eastasian` | Silk | 285° plum |
+| `middleeastern` | Bazaar | 48° gold | | `african` | Kente | 155° emerald |
+| `nepalese` | Himalayan | 178° turquoise | | `southamerican` | Sabor | 350° chili |
+
+Applied via `data-theme` + `data-mode` on `<html>`. Auto-theme on typing (cuisine keywords → culture preview). Each culture has unique labels, smart chips, greetings, audio frequencies, and textures.
+
+### Scores Display
+
+- **Match (0-100):** 90+ "Outstanding" | 85-89 "Excellent" | 75-84 "Solid Pick" | 60-74 "Worth a Try" | <60 "Adventurous"
+- **Vibe Radar (6 axes):** date, group, family, business, solo, gem — teardrop petals, accent 8%/25%
+- **Bloom cycle:** compact ring → petal radar → V2 bars → compact (tap to cycle)
+- **Sentiment:** 4px RAG bar (green/gray/rose 50% opacity)
+- **Glyph bar:** 32px spring-pop icons for price, noise, ambiance, cuisine, parking, dress, atmosphere
+
+### Persistence (localStorage)
+
+`dondeai-theme`, `dondeai-sound`, `dondeai-colormode`, `dondeai-history` (last 3), `dondeai-bookmarks` (max 20), `dondeai-user-id` (UUID), `dondeai-feedback` (max 100)
+
+### Filter Options
+
+- **Occasion:** Date Night, Group Hangout, Family Dinner, Business Lunch, Solo Dining, Special Occasion, Treat Myself, Adventure, Chill Hangout
+- **Neighborhood:** Anywhere + 14 Chicago neighborhoods
+- **Budget:** Any, $, $$, $$$, $$$$
+- **Dietary:** Vegan, Vegetarian, Gluten-Free, Halal (multi-select)
+
+### Accessibility (WCAG 2.1 AA)
+
+Skip nav, `<main>` landmark, `aria-live` announcements, `radiogroup`+`radio` pills, `switch`+`aria-pressed` toggles, focus management on view change, `:focus-visible` outlines, reduced-motion 0ms, full keyboard nav, AA contrast across 16 variants.
+
+### Keyboard Shortcuts
+
+`/` focus craving | `T` toggle color mode | `F` toggle filters | `R` try again | `Escape` close modal | Arrows navigate pills
+
+### Responsive
+
+320px (min) → 375px (primary mobile) → 500px max-h (virtual keyboard adapt) → 768px (tablet) → 1024px (desktop) → 2560px (max UHD)
+
+### Frontend Coding Standards
+
+- **HTML:** Semantic, all interactives focusable + named, `lang="en"`, data attrs for actions
+- **CSS:** All values via custom properties, mobile-first `min-width`, `clamp()` fluid, no `!important`, BEM-like naming
+- **JS:** ES modules, plain objects + functions, event delegation via `data-action`, `requestAnimationFrame`, cached DOM queries, `AbortController` for fetches, no circular deps
+- **Motion tokens:** `--dur-instant`(0) through `--dur-score`(1200), all → 0ms under reduced-motion
+- **Z-index:** `--z-base`(1) → `--z-particle`(500)
+
+---
+
+## Backend (`dondeBackend/`)
+
+### Files
+
+```
+supabase/functions/recommend/index.ts    # Edge Function entry point
+supabase/functions/recommend/_shared/    # 9 modules (types, scoring, intent, response-builder, claude, google-places, supabase, cors, logger)
+supabase/migrations/                     # 18 SQL migrations
+scripts/pipelines/                       # discovery, enrichment, enrichment-v2, occasion-scores, tags, analytics, validate-status, +more
+scripts/lib/                             # config, claude, google-places, supabase, batch, types
+tests/test_catalog.sh                    # 65-test API suite (5 phases, ~215 checks)
+docs/api-field-mapping.md               # Full field mapping
+.github/workflows/                       # 8 CI/CD workflows
+```
+
+### Google API Compliance
+
+Only `google_place_id` stored permanently. `name`/`address` stored as editorial. All Google-sourced data (rating, reviews, photos, hours) fetched live for top 5 candidates per request, never persisted.
+
+### Ranking Algorithm
+
+1. **RPC** (`get_ranked_restaurants`): Server-side JOIN of restaurants + occasion_scores + neighborhoods + deep_profiles + popularity. Filters by neighborhood/price/active. Returns top `15 + len(exclude)`.
+2. **Intent classification** (parallel): Claude classifies `special_request` → cuisines, tags, features, flavors, vibe, emotional intent. Re-queries with cuisine filter if needed.
+3. **Re-ranking** (TypeScript):
+   - **V2** (deep profiles): `reRankV2()` — multi-dimensional: occasion fit, craving match, vibe alignment, practical fit, discovery value
+   - **V1** fallback: `reRankWithBoosts()` — 60% occasion + 40% keyword boost
+   - Both: rejection analysis, feedback signals, time-of-day, `ensureDiversity()` (max 2 same-cuisine)
+4. **Claude pick**: Top 10 profiles + request + Google reviews → personalized recommendation + sentiment
+5. **Relaxation**: No results → retry "Any" price → retry "Anywhere" + "Any" price
+
+### Occasion Weights
+
+| Occasion | Formula |
+|----------|---------|
+| Date Night / Group / Family / Business / Solo | 100% matching dimension |
+| Special Occasion | 70% romantic + 30% date |
+| Treat Myself | 50% solo + 30% romantic + 20% hole_in_wall |
+| Adventure | 60% hole_in_wall + 20% group + 20% solo |
+| Chill Hangout | 60% group + 30% solo + 10% hole_in_wall |
+| Any | average of all 7 |
+
+### Keyword Dictionaries (`_shared/scoring.ts`)
+
+28 cuisines, 19 tags (byob, rooftop, hidden gem, late night, craft cocktails, etc.), 3 boolean features (outdoor_seating, live_music, pet_friendly)
+
+### Database
+
+- **Core:** `restaurants` (~1000), `occasion_scores` (7 dims, 0-10), `tags` (3-6 per restaurant), `neighborhoods` (14), `user_queries` (logs + feedback)
+- **V2:** `restaurant_deep_profiles` (35 fields: culinary, service, atmosphere, cultural, experiential, practical), `restaurant_popularity`, `unmatched_keywords`
+- **RPC:** `get_ranked_restaurants(p_neighborhood, p_price_level, p_occasion, p_limit, p_target_cuisine)`
+
+### Edge Function Features
+
+API v2.1.0 | 5-min cache (100 entries, bypassed with exclude) | 30/min/IP rate limit | Input sanitization + prompt injection defense | Tiered fallback (JSON → regex → template → one-liner) | Slop detection | Closed restaurant auto-substitution | Fire-and-forget query logging | Parallel: intent + RPC + feedback fetch; Google top-5 with 1.5s timeout
+
+### Pipeline Schedule
+
+Monthly on 1st (analytics daily), chained via GitHub Actions:
+
+`analytics (2:00 UTC daily)` → `discovery (3:00)` → `validate-status (4:00)` → `enrichment (5:00)` → `enrichment-v2 (6:00)` → `scores-and-tags (7:00)` | `regenerate` = manual
+
+### Deployment
+
+- **Edge Function:** Auto-deploys via GitHub Actions on push to `main`/`claude/**` when `supabase/functions/recommend/**` changes
+- **Migrations:** Manual (`supabase db push` or Dashboard SQL Editor)
+
+### Claude API Cost Requirement
+
+**IMPORTANT:** Before running ANY pipeline that calls Claude:
+1. Estimate and disclose cost (input + output tokens, USD)
+2. Get explicit approval before proceeding
+
+Haiku 4.5: $0.80/M input, $4.00/M output. Full enrichment-v2 (~1000 restaurants) ≈ $2-2.50.
+
+---
 
 ## Commands
 
 ```bash
-supabase functions serve recommend --env-file .env  # Local dev
-supabase functions deploy recommend                  # Manual deploy
-cd scripts && npx tsx pipelines/discovery.ts         # Run pipeline
-supabase db push                                     # Apply migrations
-./tests/test_catalog.sh                              # Run test suite (65 tests)
+# Frontend (dondeAI/)
+# Open index.html in browser (no build step)
+
+# Backend — Local dev
+supabase functions serve recommend --env-file .env
+
+# Backend — Deploy
+supabase functions deploy recommend
+
+# Backend — Pipelines
+cd scripts && npx tsx pipelines/discovery.ts    # (or enrichment, enrichment-v2, etc.)
+
+# Backend — Migrations
+supabase db push
+
+# Backend — Tests (65 scenarios)
+./tests/test_catalog.sh
 ```
-
-## Deployment
-
-- **Edge Function**: Auto-deploys via GitHub Actions on push to `main`/`claude/**` when `supabase/functions/recommend/**` changes. Manual trigger available. Requires `SUPABASE_ACCESS_TOKEN` secret.
-- **Migrations**: Manual only (`supabase db push` or paste in Dashboard SQL Editor).
-
-## Ranking Algorithm
-
-1. **RPC** (`get_ranked_restaurants`): Server-side JOIN of restaurants + occasion_scores + neighborhoods + deep_profiles + popularity. Filters by neighborhood/price/active. Sorts: cuisine match → occasion score → total score → `random()`. Returns `15 + len(exclude)`.
-2. **Intent classification** (parallel with RPC): Claude classifies `special_request` → cuisines, tags, features, flavors, vibe, emotional intent, date type, group size, spontaneity. Re-queries with cuisine filter if high-importance cuisine missing from results.
-3. **Re-ranking** (TypeScript): Exclude filtered IDs → dietary filtering → slice top 10 → re-rank:
-   - **V2** (deep profiles present): `reRankV2()` — multi-dimensional: occasion fit, craving match, vibe alignment, practical fit, discovery value
-   - **V1** fallback: `reRankWithBoosts()` — 60% occasion + 40% keyword boost (+3 cuisine, +1.5 tag, +1.5 feature)
-   - Both use rejection analysis (exclude≥2), user feedback signals, time-of-day context
-   - `ensureDiversity()`: max 2 same-cuisine in results
-4. **Claude pick**: Top 10 profiles + request + Google reviews → personalized recommendation + sentiment
-
-**Relaxation**: No results → retry "Any" price → retry "Anywhere" + "Any" price.
-
-## Keyword Dictionaries (`_shared/scoring.ts`)
-
-- **28 cuisines**: Mexican, American, Italian, Japanese, Thai, Chinese, Korean, French, Seafood, Steak, Mediterranean, Vietnamese, Indian, Ethiopian, Peruvian, Brazilian, Brunch, Vegan, Cocktail Bar, Coffee/Cafe, Polish, Puerto Rican, Southern/Soul Food, Middle Eastern, Greek, Fusion, BBQ, Brewery/Beer Bar
-- **19 tags**: byob, rooftop, outdoor patio, hidden gem, late night, craft cocktails, craft beer, live music, farm-to-table, scenic view, romantic, trendy, quiet, great value, brunch spot, waterfront, vegan friendly, gluten free, lively atmosphere
-- **3 features**: outdoor_seating, live_music, pet_friendly
-
-## Occasion Weights (`_shared/scoring.ts`)
-
-| Occasion | Weights |
-|----------|---------|
-| Date Night | date_friendly 100% |
-| Group Hangout | group_friendly 100% |
-| Family Dinner | family_friendly 100% |
-| Business Lunch | business_lunch 100% |
-| Solo Dining | solo_dining 100% |
-| Special Occasion | romantic 70% + date_friendly 30% |
-| Treat Myself | solo 50% + romantic 30% + hole_in_wall 20% |
-| Adventure | hole_in_wall 60% + group 20% + solo 20% |
-| Chill Hangout | group 60% + solo 30% + hole_in_wall 10% |
-| Any | average of all 7 |
-
-## API Contract (immutable)
-
-**POST `/recommend`**
-
-| Field | Type | Default | Notes |
-|-------|------|---------|-------|
-| `special_request` | string | `""` | Max 500 chars, sanitized |
-| `occasion` | string | `"Any"` | See occasion table |
-| `neighborhood` | string | `"Anywhere"` | 14 Chicago neighborhoods |
-| `price_level` | string | `"Any"` | $, $$, $$$, $$$$ |
-| `exclude` | string[] | `[]` | UUIDs to skip; max 15 |
-| `dietary_restrictions` | string[] | `[]` | Max 5, 30 chars each |
-| `user_id` | string | null | For personalization |
-| `feedback` | object | null | `{restaurant_id, feedback: "like"\|"dislike"}` |
-| `time_of_day` | string | null | breakfast, lunch, dinner, late_night |
-
-**Response**: `{success, restaurant, recommendation, insider_tip, donde_match (60-99), scores, tags, deep_context, scoring_v2, timestamp}`
-
-- `restaurant`: id, name, address, google_place_id, google_rating, google_review_count, price_level, phone, website, noise_level, cuisine_type, lighting_ambiance, dress_code, outdoor_seating, live_music, pet_friendly, parking_availability, dietary_options, sentiment_{breakdown,score,summary,positive,negative,neutral}, best_for_oneliner, neighborhood_name, photo_urls, opening_hours, review_snippets
-- `deep_context` (V2, nullable): signature_dishes, service_style, reservation_difficulty, byob_policy, best_seat_in_house, unique_selling_point, wow_factors, origin_story, awards_recognition, +more
-- `scoring_v2` (V2, nullable): occasion_fit, craving_match, vibe_alignment, practical_fit, discovery_value, weights_used
-
-**GET `/recommend`**: Health check → `{status, version, timestamp}`
-
-Full field mapping: `docs/api-field-mapping.md` | UI/UX spec: `_archive/UI_UX_Requirements.md`
-
-## V2 Deep Profiles (`restaurant_deep_profiles`, 35 fields)
-
-- **Culinary**: flavor_profiles, signature_dishes, cuisine_subcategory, menu_depth, spice_level, dietary_depth
-- **Service**: service_style, meal_pacing, reservation_difficulty, typical_wait_minutes, group_size_sweet_spot, check_average_per_person, tipping_culture, kid_friendliness
-- **Atmosphere**: music_vibe, decor_style, conversation_friendliness, energy_level, seating_options, instagram_worthiness, seasonal_relevance
-- **Cultural**: cultural_authenticity, origin_story, crowd_profile, neighborhood_integration, chef_notable, awards_recognition
-- **Experiential**: wow_factors, date_progression, best_seat_in_house, ideal_weather, unique_selling_point
-- **Practical**: transit_accessibility, byob_policy, payment_notes, enrichment_confidence
-
-When present, ranking uses `reRankV2()` + `computeDondeMatchV2()` for multi-dimensional scoring.
-
-## Edge Function Features
-
-API version `2.1.0` | Cache: 5-min TTL, 100 entries (bypassed with exclude) | Rate limit: 30/min/IP | Input sanitization (control chars, prompt injection) | Tiered fallback: JSON parse → regex recovery → template response → one-liner | Slop detection (warns on AI clichés) | Closed restaurant auto-substitution | Fire-and-forget query logging (response time, unmatched keywords, feedback) | Parallel: intent + RPC + feedback fetch; Google top-5 with 1.5s timeout
-
-## Edge Function Shared Modules (`_shared/`)
-
-| File | Purpose |
-|------|---------|
-| `types.ts` | All interfaces: UserRequest, Restaurant, RestaurantProfile, DeepProfile, ScoringDimensions, ClaudeRecommendation |
-| `scoring.ts` | Ranking, keyword boost, donde_match (V1+V2), prompts, occasion weights, diversity, rejection analysis |
-| `intent-classifier.ts` | Claude intent pre-classification V2 (flavor, vibe, emotion, spontaneity) |
-| `response-builder.ts` | 5 builders: success, fallback, template (V2), no-results, error |
-| `claude.ts` | Anthropic API with prompt caching + 1 retry on 5xx |
-| `google-places.ts` | Live Place Details (rating, reviews, photos, hours, business status) |
-| `supabase.ts` | Client init (`SUPAB_URL` + `SUPAB_ANON_KEY`) |
-| `cors.ts` | CORS headers + JSON response helper |
-| `logger.ts` | Structured JSON logger (info/warn/error) |
-
-## Project Structure
-
-```
-supabase/functions/recommend/        — Edge Function: index.ts + _shared/ (9 modules)
-supabase/migrations/                 — 18 SQL migrations
-scripts/lib/                         — config.ts, claude.ts, google-places.ts, supabase.ts, batch.ts, types.ts
-scripts/pipelines/
-  discovery.ts                       — Google Places restaurant discovery
-  enrichment.ts                      — Claude enrichment (ambiance, dietary, insider tip)
-  enrichment-v2.ts                   — Deep profile enrichment (35 fields, Sonnet + reviews)
-  generate-occasion-scores.ts        — Claude occasion scoring (7 dimensions)
-  generate-tags.ts                   — Claude tag generation (3-6 per restaurant)
-  regenerate-occasion-scores.ts      — Full score regeneration
-  regenerate-tags.ts                 — Full tag regeneration
-  analytics.ts                       — Trending/popularity from user_queries
-  validate-status.ts                 — Google business status checks
-  re-enrichment.ts                   — Re-enrich existing restaurants
-  backfill-new-fields.ts             — One-time column backfill
-  populate-all.ts                    — Run all pipelines sequentially
-  intent-gap-analysis.ts             — Analyze unmatched keywords
-scripts/test-scoring-optimizations.ts
-.github/workflows/                   — 8 workflows (see schedule below)
-tests/test_catalog.sh                — 65-test API suite (5 phases, ~215 checks)
-tests/TEST_RESULTS.md                — Auto-generated results
-docs/api-field-mapping.md            — Full field mapping
-docs/system-architecture.md          — Mermaid architecture diagrams
-_archive/                            — Legacy n8n workflows + UI/UX spec
-```
-
-## Pipeline Schedule
-
-Monthly on 1st (reduced from weekly to save API credits), chained triggers:
-
-| UTC | Workflow | Trigger |
-|-----|----------|---------|
-| 2:00 | analytics.yml → `analytics.ts` | Daily |
-| 3:00 | discovery.yml → `discovery.ts` | Monthly |
-| 4:00 | validate-status.yml → `validate-status.ts` | Monthly |
-| 5:00 | enrichment.yml → `enrichment.ts` | Monthly + after Discovery |
-| 6:00 | enrichment-v2.yml → `enrichment-v2.ts` | Monthly + after Enrichment |
-| 7:00 | scores-and-tags.yml → scores + tags | Monthly + after Enrichment |
-| — | regenerate-scores-tags.yml | Manual (batch_limit, dry_run) |
-
-## Database
-
-**Core**: `restaurants` (~1000), `occasion_scores` (7 dims, 0-10, unique per restaurant), `tags` (3-6 per restaurant), `neighborhoods` (14), `user_queries` (logs with feedback, response time, unmatched keywords)
-
-**V2**: `restaurant_deep_profiles` (35 fields), `restaurant_popularity` (trending scores), `unmatched_keywords` (continuous learning)
-
-**RPC**: `get_ranked_restaurants(p_neighborhood, p_price_level, p_occasion, p_limit, p_target_cuisine)` — single-query JOIN of all tables, supports cuisine targeting + "Any"/"Anywhere" defaults.
 
 ## Environment Variables
 
 All use `SUPAB_` prefix (`SUPABASE_` is reserved in Edge Functions).
 
-- **Edge Function secrets**: `SUPAB_URL`, `SUPAB_ANON_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_PLACES_API_KEY`
-- **GitHub Actions secrets**: `SUPAB_URL`, `SUPAB_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_PLACES_API_KEY`, `SUPABASE_ACCESS_TOKEN`
-- **Local** (`.env`): All above + optional `DATABASE_URL` for psql
+- **Edge Function secrets:** `SUPAB_URL`, `SUPAB_ANON_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_PLACES_API_KEY`
+- **GitHub Actions secrets:** above + `SUPAB_SERVICE_ROLE_KEY`, `SUPABASE_ACCESS_TOKEN`
+- **Local `.env`:** all above + optional `DATABASE_URL`
 
-## Testing
+## Backend Coding Standards
 
-`tests/test_catalog.sh` — 65 scenarios, 5 phases:
-1. **Contract** (T01–T08): Response shape, types, enums, booleans
-2. **Parameters** (T09–T18): All 9 occasions, defaults, neighborhoods
-3. **Ranking** (T19–T30): Cuisine matching, intent expansion, dietary, tags/features
-4. **Advanced** (T31–T40): Cache, Try Another, rejections, Google data, diversity
-5. **Edge Cases** (T41–T65): Invalid inputs, injection, rapid calls, relaxation, new cuisines
+- **Edge Function:** Deno runtime (`https://esm.sh/` imports, `Deno.env.get()`)
+- **Pipelines:** Node.js 20 + tsx (`.js` import extensions per ESM)
+- **Dual type systems:** `_shared/types.ts` (Deno) vs `scripts/lib/types.ts` (Node) — overlapping but not identical
+- **Dual Claude clients:** `_shared/claude.ts` (raw fetch) vs `scripts/lib/claude.ts` (`@anthropic-ai/sdk`)
+- **Patterns:** Fire-and-forget logging, response builder functions, structured JSON logging via `logger.ts`
 
-Results → `tests/TEST_RESULTS.md`
+## Future (Not Implemented)
 
-## Claude API Cost Requirement
-
-**IMPORTANT: Before running ANY pipeline that calls Claude**, the assistant MUST:
-1. **Estimate and disclose cost** (input + output tokens, USD)
-2. **Get explicit approval** before proceeding
-3. **Monitor for usage limits**
-
-**Haiku 4.5 pricing**: $0.80/M input, $4.00/M output
-
-| Pipeline | Estimated Cost |
-|----------|---------------|
-| enrichment-v2 (full ~1000) | ~$2.00-2.50 |
-| enrichment-v2 (new ~5-10) | ~$0.01-0.02 |
-| scores (all) | ~$0.50-1.00 |
-| analytics / validate-status | $0 (no Claude) |
-| intent classification (per request) | ~$0.0001 |
-
-## Development Conventions
-
-- **Edge Function**: Deno runtime (`https://esm.sh/` imports, `Deno.env.get()`)
-- **Pipelines**: Node.js 20 + tsx (`.js` import extensions per ESM)
-- **Dual type systems**: `_shared/types.ts` (Deno) vs `scripts/lib/types.ts` (Node) — overlapping but not identical
-- **Dual Claude clients**: `_shared/claude.ts` (raw fetch) vs `scripts/lib/claude.ts` (`@anthropic-ai/sdk`)
-- **Patterns**: Fire-and-forget logging (`.then().catch()`), response builder functions for consistent shape, structured JSON logging via `logger.ts`
+SSO auth (Google/Apple/Instagram/TikTok) → user accounts, unlimited history, favorites. See `nicehave_sso.md` in frontend repo.
