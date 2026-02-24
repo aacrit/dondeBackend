@@ -156,7 +156,7 @@ Deno.serve(async (req: Request) => {
   if (!checkRateLimit(clientIp)) {
     logWarn("Rate limit exceeded", { ip: clientIp });
     return jsonResponse(
-      { success: false, recommendation: "Too many requests — please wait a moment." },
+      { success: false, recommendation: "Too many requests. Please wait a moment." },
       429
     );
   }
@@ -556,17 +556,43 @@ Deno.serve(async (req: Request) => {
       // Quality guardrail: detect AI slop patterns in recommendation text
       if (parsed.recommendation) {
         const SLOP_PATTERNS = [
+          // Core AI slop words
           "culinary", "gastronomic", "unforgettable", "unparalleled", "nestled",
           "tantalizing", "mouthwatering", "delectable", "exquisite", "embark",
           "elevate your", "a testament to", "truly remarkable", "a must-visit",
           "from the moment you", "whether you're looking", "taste buds",
           "culinary journey", "dining experience", "perfect harmony",
+          // Extended slop detection (V3)
+          "burst of flavor", "a cut above", "doesn't disappoint",
+          "will not disappoint", "not to be missed", "that will leave you",
+          "perfect blend", "perfect balance", "hits all the right notes",
+          "checks all the boxes", "treat your taste buds", "palate",
+          "unapologetically", "does it right", "gets it right",
+          "if you know you know", "think meets",
         ];
         const recLower = parsed.recommendation.toLowerCase();
         const slopHits = SLOP_PATTERNS.filter((p) => recLower.includes(p));
         if (slopHits.length >= 2) {
           logWarn("Recommendation quality: slop patterns detected", { count: slopHits.length, patterns: slopHits });
         }
+
+        // V3: Em dash detection (major AI tell)
+        const emDashCount = (parsed.recommendation.match(/\u2014/g) || []).length;
+        if (emDashCount > 0) {
+          logWarn("Recommendation contains em dashes", { count: emDashCount });
+        }
+
+        // V3: Structural AI tell detection
+        const structuralTells = [
+          /^(ah|so|well|look|here's the thing),?\s/i,
+          /whether\s.*\sor\s/i,
+          /if you're looking for/i,
+        ];
+        const structHits = structuralTells.filter((p) => p.test(parsed.recommendation));
+        if (structHits.length > 0) {
+          logWarn("Recommendation has structural AI tells", { count: structHits.length });
+        }
+
         // Word count check
         const wordCount = parsed.recommendation.split(/\s+/).length;
         if (wordCount > 100) {

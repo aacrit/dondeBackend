@@ -18,6 +18,8 @@ Reusable team of specialized Claude Code subagents for independently reviewing t
 | 6 | Data Pipeline Reviewer | Intelligence Layer | Discovery, enrichment, scores, tags, cost, reliability | dondeBackend |
 | 7 | Database & Schema Reviewer | Infrastructure | Tables, indexes, RPC, migrations, RLS, performance | dondeBackend |
 | 8 | Integration & Contract Reviewer | Infrastructure | API contract alignment, E2E flow, deploy, config | Both |
+| 9-14 | Blurb Quality Experts (6) | Content Quality | Linguistics, psychology, food criticism, marketing, prompt eng | dondeBackend |
+| 15 | Blurb Quality Team Lead | Content Quality | Synthesizes expert feedback into prioritized improvements | dondeBackend |
 
 ---
 
@@ -943,7 +945,7 @@ For each finding:
 
 ## Quick Reference: Running the Full Team
 
-To execute all 8 agents in a single parallel run, use 8 Task tool calls in one message:
+To execute the core 8 review agents in a single parallel run, use 8 Task tool calls in one message:
 
 ```
 Agent 1: subagent_type="Explore", description="UX Design Review"
@@ -957,3 +959,42 @@ Agent 8: subagent_type="Explore", description="Integration Contract Review"
 ```
 
 Each agent will return an independent structured review. Combine findings by severity (P0 first) for a unified action plan.
+
+---
+
+## Blurb Quality Expert Team (Agents 9-15)
+
+Specialized team for reviewing and improving the "Why this spot" recommendation blurb and "Insider's tip" generation. These experts audit blurb quality from multiple perspectives, with a Team Lead that synthesizes findings.
+
+**Script:** `scripts/expert-blurb-review.ts` (run with `npx tsx scripts/expert-blurb-review.ts`)
+
+| # | Expert | Focus Area | Key Dimensions |
+|---|--------|-----------|----------------|
+| 9 | Linguist | Language patterns, rhythm, word choice | Sentence cadence, punctuation naturalness, register consistency |
+| 10 | Psychologist | Emotional resonance, trust, behavior | Emotional triggers, decision confidence, anticipation building |
+| 11 | Food Critic | Credible food writing, culinary knowledge | Sensory specificity, cuisine vocabulary, honest assessment |
+| 12 | Foodie | Relatability, excitement, authenticity | Friend test, shareability, discovery delight |
+| 13 | Marketing Exec | Conversion, brand voice, persuasion | Conversion power, differentiation, retention hooks |
+| 14 | Prompt Engineer | Anti-slop, output consistency, grounding | Em dash detection, example quality, hallucination prevention |
+| 15 | Team Lead | Synthesis, prioritization, conflict resolution | Cross-expert consensus, prioritized improvements |
+
+### How to Run
+
+**Sample mode (zero API cost):**
+```
+npx tsx scripts/expert-blurb-review.ts
+```
+
+**Live mode (fetches fresh blurbs from production):**
+```
+npx tsx scripts/expert-blurb-review.ts --live
+```
+
+**In Claude Code (as parallel subagents):**
+Run all 6 experts as parallel Task tool calls using the prompts from the script, then run the Team Lead synthesis on the combined output.
+
+### When to Run
+- After modifying `buildSystemPrompt()` or `getVoiceDirective()` in `scoring.ts`
+- After updating template hooks in `response-builder.ts`
+- After expanding the SLOP_PATTERNS guardrails in `index.ts`
+- Before any major release that touches blurb generation

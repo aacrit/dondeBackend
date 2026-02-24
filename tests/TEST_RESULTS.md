@@ -1,17 +1,17 @@
 # Donde API Test Results
 
-**Date:** 2026-02-19T21:47:53Z
+**Date:** 2026-02-24T05:58:11Z
 **Endpoint:** https://vwbzkgsxmgwcvmvuxnbe.supabase.co/functions/v1/recommend
 
 ## Summary
 
 | Metric | Count |
 |--------|-------|
-| PASSED | 250 |
-| FAILED | 0 |
-| WARNED | 6 |
-| TOTAL  | 256 |
-| **Hard Pass Rate** | **100%** (250 / 250) |
+| PASSED | 253 |
+| FAILED | 2 |
+| WARNED | 21 |
+| TOTAL  | 276 |
+| **Hard Pass Rate** | **99%** (253 / 255) |
 
 ## Detailed Results
 
@@ -63,7 +63,7 @@
 | PASS | T03 | recommendation >= 40 words |  |
 | PASS | T03 | recommendation <= 200 words |  |
 | PASS | T03 | insider_tip type |  |
-| WARN | T03 | rec mentions restaurant name | name=trattoria rnb p not found in text |
+| WARN | T03 | rec mentions restaurant name | name=monteverde rest not found in text |
 | PASS | T04 | donde_match is number |  |
 | PASS | T04 | donde_match >= 60 |  |
 | PASS | T04 | donde_match <= 99 |  |
@@ -96,7 +96,7 @@
 | PASS | T09 | neighborhood match |  |
 | PASS | T10 | success |  |
 | PASS | T10 | group_friendly >= 5 |  |
-| PASS | T10 | price is 1383 |  |
+| PASS | T10 | price is 58970 |  |
 | PASS | T11 | success |  |
 | PASS | T11 | family_friendly >= 5 |  |
 | PASS | T11 | has restaurant name |  |
@@ -109,7 +109,7 @@
 | PASS | T14 | success |  |
 | PASS | T14 | romantic_rating >= 6 |  |
 | PASS | T14 | date_friendly >= 5 |  |
-| PASS | T14 | price 13831383 |  |
+| PASS | T14 | price 5897058970 |  |
 | PASS | T15 | success |  |
 | PASS | T15 | solo_dining >= 4 |  |
 | PASS | T15 | donde_match >= 60 |  |
@@ -152,13 +152,13 @@
 | PASS | T26 | vegan referenced |  |
 | PASS | T26 | donde_match >= 60 |  |
 | PASS | T27 | success |  |
-| PASS | T27 | gluten-free referenced |  |
+| WARN | T27 | gluten-free referenced |  |
 | PASS | T27 | family_friendly >= 4 |  |
 | PASS | T28 | success |  |
-| WARN | T28 | BYOB tag present | tags=lively cantina,authentic mexican,budget-friendly |
+| PASS | T28 | BYOB tag present |  |
 | PASS | T28 | group_friendly >= 4 |  |
 | PASS | T29 | success |  |
-| PASS | T29 | rooftop/cocktail tags |  |
+| WARN | T29 | rooftop/cocktail tags | tags=handmade pasta,cacio e pepe,romantic,date night,gluten-free options |
 | PASS | T29 | romantic >= 5 |  |
 | PASS | T29 | date_friendly >= 5 |  |
 | PASS | T30 | success |  |
@@ -167,7 +167,7 @@
 | PASS | T30 | group_friendly >= 4 |  |
 | PASS | T31 | first call success |  |
 | PASS | T31 | second call success |  |
-| PASS | T31 | cache hit same restaurant |  |
+| WARN | T31 | cache hit same restaurant | IDs differ |
 | PASS | T32 | success |  |
 | PASS | T32 | donde_match >= 60 |  |
 | PASS | T32 | restaurant.id |  |
@@ -185,14 +185,14 @@
 | PASS | T35 | 3rd different |  |
 | PASS | T36 | success |  |
 | PASS | T36 | donde_match >= 60 |  |
-| PASS | T36 | late-night context detected |  |
+| WARN | T36 | late-night context detected | may depend on Chicago time |
 | PASS | T37 | success |  |
 | PASS | T37 | brunch context in output |  |
 | PASS | T37 | neighborhood Logan Square |  |
 | PASS | T38 | success |  |
 | PASS | T38 | google_rating 1-5 |  |
 | PASS | T38 | review_count >= 0 |  |
-| PASS | T38 | sentiment_score is number |  |
+| WARN | T38 | sentiment_score present | null |
 | PASS | T38 | google_place_id |  |
 | PASS | T39 | success |  |
 | PASS | T39 | phone present |  |
@@ -212,7 +212,7 @@
 | PASS | T45 | donde_match >= 60 |  |
 | PASS | T46 | HTTP 500 |  |
 | PASS | T46 | has response body |  |
-| PASS | T47 | responded HTTP 405 |  |
+| PASS | T47 | responded HTTP 200 |  |
 | PASS | T48 | success |  |
 | PASS | T48 | donde_match >= 60 |  |
 | PASS | T48 | restaurant |  |
@@ -224,7 +224,7 @@
 | PASS | T51 | donde_match >= 60 |  |
 | PASS | T51 | restaurant name |  |
 | PASS | T51 | noise matches bustling |  |
-| PASS | T51 | vibe referenced in output |  |
+| WARN | T51 | vibe referenced in output | no vibe words in rec or tags |
 | PASS | T52 | success |  |
 | PASS | T52 | neighborhood Logan Square |  |
 | PASS | T52 | address contains Chicago |  |
@@ -236,43 +236,63 @@
 | PASS | T54 | success |  |
 | PASS | T54 | recommendation exists |  |
 | PASS | T54 | insider_tip exists |  |
-| PASS | T54 | rec length 56 words |  |
+| PASS | T54 | rec length 64 words |  |
 | PASS | T54 | no AI slop detected |  |
-| PASS | T54 | uses Donde 'we' voice |  |
+| WARN | T54 | uses Donde 'we' voice | no 'we' pronoun found |
 | PASS | T54 | insider tip concise |  |
 | PASS | T55 | success |  |
 | PASS | T55 | restaurant returned |  |
-| PASS | T55 | deep dish maps to Italian/American |  |
+| WARN | T55 | deep dish maps to Italian/American | got: mexican |
 | PASS | T56 | success |  |
 | PASS | T56 | restaurant returned |  |
-| PASS | T56 | mole negro maps to Mexican |  |
+| WARN | T56 | mole negro maps to Mexican | got: cocktail bar |
 | PASS | T57 | success |  |
 | PASS | T57 | restaurant returned |  |
-| PASS | T57 | sushi intent matched |  |
+| WARN | T57 | sushi intent matched | got: italian |
 | WARN | T57 | outdoor_seating matched | got: false |
 | PASS | T58 | success |  |
 | PASS | T58 | still returns a restaurant |  |
-| PASS | T58 | donde_match=90 |  |
+| PASS | T58 | donde_match=89 |  |
 | PASS | T59 | success |  |
 | PASS | T59 | restaurant returned |  |
-| PASS | T59 | craft beer maps to Brewery/Beer Bar |  |
+| WARN | T59 | craft beer maps to Brewery/Beer Bar | got: Antique Taco Wicker Park (mexican) |
 | PASS | T60 | success |  |
 | PASS | T60 | restaurant returned |  |
-| WARN | T60 | pierogi maps to Polish | got: Su Taqueria El Rey Del Taco (cocktail bar) |
+| WARN | T60 | pierogi maps to Polish | got: Carnitas Uruapan Restaurant (mexican) |
 | PASS | T61 | success |  |
 | PASS | T61 | restaurant returned |  |
-| PASS | T61 | injera maps to Ethiopian |  |
+| WARN | T61 | injera maps to Ethiopian | got: No Vacancy (cocktail bar) |
 | PASS | T62 | success |  |
 | PASS | T62 | restaurant returned |  |
-| PASS | T62 | brisket maps to BBQ |  |
+| WARN | T62 | brisket maps to BBQ | got: Andros Taverna (greek) |
 | PASS | T63 | success |  |
 | PASS | T63 | restaurant returned |  |
-| PASS | T63 | mofongo maps to Puerto Rican |  |
+| WARN | T63 | mofongo maps to Puerto Rican | got: Minyoli (vietnamese) |
 | PASS | T64 | success |  |
 | PASS | T64 | restaurant returned |  |
 | PASS | T64 | shawarma maps to Middle Eastern |  |
 | PASS | T65 | success is boolean |  |
 | PASS | T65 | has recommendation |  |
+| PASS | T66 | success |  |
+| PASS | T66 | recommendation exists |  |
+| FAIL | T66 | em dashes found | count=1 |
+| FAIL | T67 | we voice | found=0/3 |
+| PASS | T68 | success |  |
+| PASS | T68 | tip starts with go |  |
+| PASS | T69 | success |  |
+| PASS | T69 | no name opener |  |
+| PASS | T70 | success |  |
+| PASS | T70 | sentence variety diff=8 |  |
+| PASS | T71 | success |  |
+| PASS | T71 | Mexican terminology |  |
+| PASS | T72 | success |  |
+| WARN | T72 | Japanese food terminology | no specific terms found |
+| PASS | T73 | success |  |
+| PASS | T73 | emotional words found |  |
+| PASS | T74 | success |  |
+| PASS | T74 | superlatives=0 |  |
+| PASS | T75 | success |  |
+| WARN | T75 | minor slop | found: 'em-dash(x1)'  |
 
 ## Enhancement Recommendations
 
