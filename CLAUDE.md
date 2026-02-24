@@ -110,7 +110,7 @@ nicehave_sso.md             # Future: SSO auth roadmap (not implemented)
 ### Design Principles (Non-Negotiable)
 
 1. **Canvas + Result** — 2 views only. No multi-step wizard.
-2. **Ink Rule** — `--ac` only on: score ring, restaurant name, active CTAs, selected pills, logo dot, caret, petal radar (8%/25%). Everything else grayscale. Google stars always amber `hsl(45 93% 47%)`.
+2. **Ink Rule** — `--ac` only on: score ring, restaurant name, active CTAs, selected pills, logo dot, caret, petal radar (8%/25%). Everything else grayscale. Google stars always `var(--star-gold)`. RAG colors (`--rag-green`, `--rag-amber`, `--rag-red`) are universal and theme-independent.
 3. **3 Type Voices** — Emotional (Playfair Display): headings/prompts. Structural (Inter): buttons/labels. Data (JetBrains Mono): scores/badges.
 4. **Motion Grammar** — Spring `cubic-bezier(.34,1.56,.64,1)`: user-initiated. Ease `cubic-bezier(.4,0,.2,1)`: system reveals. `prefers-reduced-motion`: all 0ms.
 5. **Cultural Personality** — Themes change palette + textures + terminology + audio + border/shadow depth.
@@ -154,7 +154,7 @@ Applied via `data-theme` + `data-mode` on `<html>`. Auto-theme on typing (cuisin
 - **Match (0-100):** 90+ "Outstanding" | 85-89 "Excellent" | 75-84 "Solid Pick" | 60-74 "Worth a Try" | <60 "Adventurous"
 - **Vibe Radar (6 axes):** date, group, family, business, solo, gem — teardrop petals, accent 8%/25%
 - **Bloom cycle:** compact ring → petal radar → V2 bars → compact (tap to cycle)
-- **Sentiment:** 4px RAG bar (green/gray/rose 50% opacity)
+- **Sentiment:** 4px RAG bar (`--rag-green`/`--fg3`/`--rag-red` at 70% opacity)
 - **Glyph bar:** 32px spring-pop icons for price, noise, ambiance, cuisine, parking, dress, atmosphere
 
 ### Persistence (localStorage)
