@@ -549,16 +549,47 @@ Hard penalties:           multiplicative + subtractive
 
 ### Hard Requirement Penalties (Detail)
 
-These ensure that the match score drops significantly when fundamental user requirements are unmet:
+These ensure that the match score drops significantly when fundamental user requirements are unmet.
+Penalty design follows behavioral psychology principles: loss aversion means mismatches feel 2-5x worse than equivalent gains.
 
 | Requirement | Penalty | Trigger |
 |-------------|---------|---------|
 | **Cuisine mismatch (high intent)** | `composite *= 0.55` | User clearly wanted sushi, got American |
 | **Cuisine mismatch (medium intent)** | `composite *= 0.75` | Implied preference not met |
-| **Dietary mismatch** | `composite *= 0.70` | Vegan requested, no dietary info |
-| **Price mismatch (2+ tiers off)** | `composite -= 1.5` | Asked for $, got $$$$ |
-| **Price mismatch (1 tier off)** | `composite -= 0.5` | Asked for $$, got $$$ |
-| **Neighborhood mismatch** | `composite -= 1.0` | Asked for Wicker Park, got Logan Square |
+| **Dietary: no info at all** | `composite *= 0.45` | User selected Vegan, restaurant has zero dietary info |
+| **Dietary: info but no match** | `composite *= 0.50` | User selected Vegan, restaurant only lists Gluten-Free |
+| **Dietary: hierarchy partial** | `composite *= 0.70` | Vegan user, restaurant is Vegetarian-only (partial via hierarchy) |
+| **Dietary: partial match** | `composite *= 0.65` | User selected [Vegan, GF], only Vegan matches |
+| **Price: 3-tier over-budget** | `composite *= 0.55` | Asked for $, got $$$$ |
+| **Price: 2-tier over-budget** | `composite *= 0.70` | Asked for $, got $$$ |
+| **Price: 1-tier over-budget** | `composite -= 0.8` | Asked for $$, got $$$ |
+| **Price: 1-tier under** | `composite -= 0.3` | Asked for $$$, got $$ |
+| **Price: 2+ tiers under** | `composite -= 0.5` | Asked for $$$$, got $$ |
+| **Neighborhood mismatch** | `composite -= 1.5` | Asked for Wicker Park, got Logan Square |
+
+### Dietary Filter Boost (in Base Score)
+
+When dietary restrictions are selected via the filter toggle, matching restaurants receive positive reinforcement:
+
+| Condition | Bonus | Example |
+|-----------|-------|---------|
+| All restrictions match | `+1.0` | Vegan user at restaurant with Vegan options |
+| Dedicated dietary restaurant | `+2.0` additional | Purely vegan restaurant for Vegan user |
+| Solid dietary coverage | `+1.0` additional | Strong vegan menu (not purely vegan) |
+| Hierarchy partial match | `+0.5` | Vegan user at Vegetarian-only restaurant |
+
+### Dietary Hierarchy
+
+Stricter dietary restrictions subsume less strict ones:
+- **Vegan ⊃ Vegetarian**: A Vegan user at a Vegetarian-only restaurant receives partial credit (+0.5 boost, ×0.70 penalty instead of ×0.50)
+
+### Claude Dietary Awareness
+
+When dietary restrictions are selected, they are communicated to Claude as:
+- Priority 0 in the system prompt (above special request, occasion, quality)
+- Explicit HARD REQUIREMENT in the user prompt
+- Reinforced in the REMINDER section
+- Claude must mention dietary fit naturally in the recommendation blurb
 
 ### V1 vs V2 Match Computation
 
