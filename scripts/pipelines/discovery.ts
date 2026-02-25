@@ -221,19 +221,12 @@ async function main() {
       const combo = `${(result.name || "").toLowerCase().trim()}|||${(result.formatted_address || "").toLowerCase().trim()}`;
       if (existingCombos.has(combo)) continue;
 
-      // Map to neighborhood
+      // Map to neighborhood — prefer bounding boxes (more precise) then fall back to ZIP
       let neighborhoodId: string | null = null;
       const address = result.formatted_address || "";
 
-      // Try ZIP code first
-      const zipMatch = address.match(/\b(\d{5})\b/);
-      if (zipMatch) {
-        const nhName = ZIP_TO_NEIGHBORHOOD[zipMatch[1]];
-        if (nhName) neighborhoodId = neighborhoodIdMap.get(nhName) || null;
-      }
-
-      // Fallback: coordinate bounding boxes
-      if (!neighborhoodId && result.geometry?.location) {
+      // Try coordinate bounding boxes first (most precise for shared-ZIP neighborhoods)
+      if (result.geometry?.location) {
         const { lat, lng } = result.geometry.location;
         for (const [name, bounds] of Object.entries(NEIGHBORHOOD_BOUNDS)) {
           if (
@@ -245,6 +238,15 @@ async function main() {
             neighborhoodId = neighborhoodIdMap.get(name) || null;
             break;
           }
+        }
+      }
+
+      // Fallback: ZIP code mapping
+      if (!neighborhoodId) {
+        const zipMatch = address.match(/\b(\d{5})\b/);
+        if (zipMatch) {
+          const nhName = ZIP_TO_NEIGHBORHOOD[zipMatch[1]];
+          if (nhName) neighborhoodId = neighborhoodIdMap.get(nhName) || null;
         }
       }
 
