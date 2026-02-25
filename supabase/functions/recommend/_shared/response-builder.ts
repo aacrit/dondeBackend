@@ -1,4 +1,5 @@
 import type { RestaurantProfile, ClaudeRecommendation, ScoringDimensions, DimensionWeights, V3Factors, V3Weights } from "./types.ts";
+import type { V3SubComponent } from "./scoring-v3.ts";
 import type { GooglePlaceData } from "./google-places.ts";
 
 /** Build deep_context from deep profile (V2 optional response field) */
@@ -62,10 +63,11 @@ function buildScoringV2(
 function buildScoringV3(
   factors?: V3Factors | null,
   weights?: V3Weights | null,
-  dataCompleteness?: number
+  dataCompleteness?: number,
+  factorDetails?: Record<string, Record<string, V3SubComponent>> | null
 ): Record<string, unknown> | null {
   if (!factors || !weights) return null;
-  return {
+  const result: Record<string, unknown> = {
     food_match: Math.round(factors.food * 10) / 10,
     setting_fit: Math.round(factors.setting * 10) / 10,
     atmosphere: Math.round(factors.atmosphere * 10) / 10,
@@ -80,6 +82,22 @@ function buildScoringV3(
     },
     data_completeness: Math.round((dataCompleteness ?? 0) * 100) / 100,
   };
+  // V3.6: Include sub-component details for inline explanation cards
+  if (factorDetails) {
+    const roundedDetails: Record<string, Record<string, { score: number; max: number; signal: string }>> = {};
+    for (const [factorKey, subComponents] of Object.entries(factorDetails)) {
+      roundedDetails[factorKey] = {};
+      for (const [subKey, sub] of Object.entries(subComponents)) {
+        roundedDetails[factorKey][subKey] = {
+          score: Math.round(sub.score * 10) / 10,
+          max: Math.round(sub.max * 10) / 10,
+          signal: sub.signal,
+        };
+      }
+    }
+    result.factor_details = roundedDetails;
+  }
+  return result;
 }
 
 /** Build the restaurant object (shared across all response types) */
@@ -167,7 +185,8 @@ export function buildSuccessResponse(
   cuisineMismatch?: { requested: string } | null,
   v3Factors?: V3Factors | null,
   v3Weights?: V3Weights | null,
-  v3DataCompleteness?: number
+  v3DataCompleteness?: number,
+  v3FactorDetails?: Record<string, Record<string, V3SubComponent>> | null
 ): Record<string, unknown> {
   return {
     success: true,
@@ -186,7 +205,7 @@ export function buildSuccessResponse(
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
     scoring_v2: buildScoringV2(dimensions, weights),
-    scoring_v3: buildScoringV3(v3Factors, v3Weights, v3DataCompleteness),
+    scoring_v3: buildScoringV3(v3Factors, v3Weights, v3DataCompleteness, v3FactorDetails),
     cuisine_mismatch: cuisineMismatch ? { requested: cuisineMismatch.requested } : null,
     timestamp: new Date().toISOString(),
   };

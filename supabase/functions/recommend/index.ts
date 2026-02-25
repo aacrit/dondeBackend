@@ -21,6 +21,7 @@ import {
   reRankV3,
   applyDealBreakerGates,
 } from "./_shared/scoring-v3.ts";
+import type { V3Factors } from "./_shared/scoring-v3.ts";
 import { classifyIntent } from "./_shared/intent-classifier.ts";
 import {
   buildSuccessResponse,
@@ -594,13 +595,15 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
       // V3.5: Pre-compute preliminary V3 scores for tone modulation
       // These scores omit Claude-dependent inputs (±3-5 DM points) but are accurate enough
       // for tier determination (HIGH/MID/LOW boundaries are 20+ points apart)
+      // V3.6: Also capture factor scores for prompt injection (Claude can emphasize strengths/trade-offs)
       const prelimScores: number[] = [];
+      const prelimFactors: V3Factors[] = [];
       for (let i = 0; i < top10.length; i++) {
         const candidate = top10[i];
         const candidateGoogle = candidate.google_place_id
           ? googleByPlaceId.get(candidate.google_place_id) || null
           : null;
-        let prelimDM = computeV3DondeMatch(candidate, {
+        const prelimResult = computeV3DondeMatch(candidate, {
           occasion,
           specialRequest: special_request,
           neighborhood,
@@ -614,15 +617,17 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
           userFeedback,
           clientTimeOfDay: time_of_day,
           dietaryRestrictions: dietary_restrictions,
-        }).dondeMatch;
+        });
+        let prelimDM = prelimResult.dondeMatch;
         if (cuisineMismatch) prelimDM = Math.min(prelimDM, 65);
         prelimScores.push(prelimDM);
+        prelimFactors.push(prelimResult.factors);
       }
 
       // V3.5: Build system prompt with tone directive (after pre-computation)
       const systemPrompt = buildSystemPrompt(occasion, price_level, true);
 
-      // Build user prompt with reviews and preliminary DM scores
+      // Build user prompt with reviews, preliminary DM scores, and factor breakdown
       const userPrompt = buildUserPrompt(
         top10,
         occasion,
@@ -634,7 +639,8 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
         rejectionContext,
         cuisineMismatchContext,
         dietary_restrictions.length > 0 ? dietary_restrictions : undefined,
-        prelimScores
+        prelimScores,
+        prelimFactors
       );
 
       // Call Claude
@@ -754,7 +760,7 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
 
           responseBody = buildSuccessResponse(
             nextChosen, parsed, nextGoogleData, dondeMatch, undefined, undefined, cuisineMismatch,
-            closedV3Result.factors, closedV3Result.weights, closedV3Result.dataCompleteness
+            closedV3Result.factors, closedV3Result.weights, closedV3Result.dataCompleteness, closedV3Result.factorDetails
           );
         } else {
           // Fallback if no alternatives
@@ -801,7 +807,7 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
 
         responseBody = buildSuccessResponse(
           chosen, parsed, googleData, dondeMatch, dimensions, weights, cuisineMismatch,
-          v3Result.factors, v3Result.weights, v3Result.dataCompleteness
+          v3Result.factors, v3Result.weights, v3Result.dataCompleteness, v3Result.factorDetails
         );
       }
     } catch (claudeError) {
