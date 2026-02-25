@@ -104,8 +104,8 @@ interface StageStats {
 // GLOBAL STATE
 // ==========================================
 
-const failures: Array<{ restaurantId: string; restaurantName: string; stage: number; error: string }> = [];
-const stageStats: StageStats[] = [];
+let failures: Array<{ restaurantId: string; restaurantName: string; stage: number; error: string }> = [];
+let stageStats: StageStats[] = [];
 let auditLogStream: fs.WriteStream | null = null;
 
 // ==========================================
@@ -1186,7 +1186,54 @@ async function main() {
   if (failures.length > 0) console.log(`  ${FAILURES_FILE}  — Error details`);
 }
 
-main().catch((err) => {
-  console.error("Enrichment pipeline failed:", err);
-  process.exit(1);
-});
+// ==========================================
+// EXPORTS (for enrich-new-or-gaps.ts)
+// ==========================================
+
+export {
+  // Types
+  type RestaurantFull,
+  type StageStats,
+  type Checkpoint,
+  // Config
+  MODELS,
+  BATCH_SIZES,
+  RATE_LIMITS_MS,
+  SYSTEM_CONTEXT,
+  // Helpers
+  logAudit,
+  saveCheckpoint,
+  loadCheckpoint,
+  askClaudeWithRetry,
+  clamp,
+  // Stages
+  stage1_integrityFixes,
+  stage2_structuredEnrichment,
+  stage3_richContent,
+  stage4_premiumContent,
+  stage5_occasionScores,
+  stage6_tagRegeneration,
+  stage7_confidenceUpdate,
+};
+
+// Allow external callers to set the shared mutable state
+export function initPipelineState(opts: {
+  auditStream: fs.WriteStream | null;
+}) {
+  auditLogStream = opts.auditStream;
+  failures = [];
+  stageStats = [];
+}
+
+export function getPipelineState() {
+  return { failures, stageStats };
+}
+
+// Only run main() when executed directly (not imported)
+const isDirectRun = process.argv[1]?.includes("enrich-full-dataset");
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error("Enrichment pipeline failed:", err);
+    process.exit(1);
+  });
+}
