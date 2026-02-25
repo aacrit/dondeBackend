@@ -2592,7 +2592,8 @@ export function buildUserPrompt(
   rejectionContext?: string,
   cuisineMismatchContext?: string | null,
   dietaryRestrictions?: string[],
-  prelimScores?: number[]       // V3.5: preliminary Donde Match scores for tone calibration
+  prelimScores?: number[],      // V3.5: preliminary Donde Match scores for tone calibration
+  prelimFactors?: { food: number; setting: number; atmosphere: number; reputation: number; convenience: number }[]  // V3.6: factor scores for blurb emphasis
 ): string {
   const restaurantList = top10
     .map((d, i) => {
@@ -2611,7 +2612,10 @@ export function buildUserPrompt(
 
       // V3.5: Include preliminary Donde Match score for tone calibration
       const dmTag = prelimScores && prelimScores[i] != null ? ` | DM:${prelimScores[i]}` : '';
-      let entry = `${i}. ${d.name} | ${d.neighborhood_name} | ${d.cuisine_type || "N/A"} | ${d.price_level} | ${occasion}:${occasionScore.toFixed(1)}/10${trending} | ${d.noise_level || "?"} noise, ${d.lighting_ambiance || "?"} | ${d.dress_code || "?"} | ${features}${dietary ? " | Diet:" + dietary : ""} | "${d.best_for_oneliner || "N/A"}" | Tags: ${d.tags.length > 0 ? d.tags.join(", ") : "none"}${dmTag}`;
+      // V3.6: Include factor scores so Claude can emphasize strengths and acknowledge trade-offs
+      const f = prelimFactors?.[i];
+      const factorTag = f ? ` | F:${f.food.toFixed(1)}/${f.setting.toFixed(1)}/${f.atmosphere.toFixed(1)}/${f.reputation.toFixed(1)}/${f.convenience.toFixed(1)}` : '';
+      let entry = `${i}. ${d.name} | ${d.neighborhood_name} | ${d.cuisine_type || "N/A"} | ${d.price_level} | ${occasion}:${occasionScore.toFixed(1)}/10${trending} | ${d.noise_level || "?"} noise, ${d.lighting_ambiance || "?"} | ${d.dress_code || "?"} | ${features}${dietary ? " | Diet:" + dietary : ""} | "${d.best_for_oneliner || "N/A"}" | Tags: ${d.tags.length > 0 ? d.tags.join(", ") : "none"}${dmTag}${factorTag}`;
 
       // V2: Append deep profile context (compact format to save tokens)
       const dp = d.deep_profile;
@@ -2683,7 +2687,12 @@ export function buildUserPrompt(
     prompt += `\n\n${cuisineMismatchContext}`;
   }
 
-  prompt += `\n\nCANDIDATES (pick the best match, your recommendation MUST only reference facts from this data):
+  // V3.6: Add factor score legend when factor data is present
+  const factorLegend = prelimFactors && prelimFactors.length > 0
+    ? `\nFactor scores (F:Food/Setting/Atmo/Rep/Conv, each 0-10): Lead with the restaurant's strongest factor(s). If one factor is notably weak (<4), briefly acknowledge the trade-off rather than pretending it's perfect.`
+    : '';
+
+  prompt += `\n\nCANDIDATES (pick the best match, your recommendation MUST only reference facts from this data):${factorLegend}
 
 ${restaurantList}
 
