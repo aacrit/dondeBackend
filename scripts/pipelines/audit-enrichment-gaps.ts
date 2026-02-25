@@ -17,20 +17,29 @@ async function main() {
   console.log("=== DondeAI V4 Enrichment Gap Audit ===\n");
 
   // 1. Total active restaurants
-  const { count: totalCount } = await supabase
+  const { data: allRestaurants, error: allErr } = await supabase
     .from("restaurants")
-    .select("id", { count: "exact", head: true })
+    .select("id")
     .eq("is_active", true);
 
+  if (allErr) {
+    console.error("Error fetching restaurants:", allErr.message);
+    process.exit(1);
+  }
+
+  const totalCount = allRestaurants?.length ?? 0;
   console.log(`Total active restaurants: ${totalCount}\n`);
 
   // 2. Missing insider_tip
-  const { data: missingTips, count: missingTipCount } = await supabase
+  const { data: missingTips, error: tipErr } = await supabase
     .from("restaurants")
-    .select("id, name, cuisine_type, neighborhood_id", { count: "exact" })
+    .select("id, name, cuisine_type, neighborhood_id")
     .eq("is_active", true)
     .or("insider_tip.is.null,insider_tip.eq.");
 
+  if (tipErr) console.error("Error querying insider_tip:", tipErr.message);
+
+  const missingTipCount = missingTips?.length ?? 0;
   console.log(`Missing insider_tip: ${missingTipCount}/${totalCount}`);
   if (missingTips && missingTips.length > 0) {
     console.log("  Sample restaurants missing tips:");
@@ -43,19 +52,17 @@ async function main() {
   }
 
   // 3. Missing origin_story in deep profiles
-  const { data: missingStories, count: missingStoryCount } = await supabase
+  const { data: missingStories, error: storyErr } = await supabase
     .from("restaurant_deep_profiles")
-    .select("restaurant_id", { count: "exact" })
+    .select("restaurant_id")
     .or("origin_story.is.null,origin_story.eq.");
 
+  if (storyErr) console.error("Error querying origin_story:", storyErr.message);
+
+  const missingStoryCount = missingStories?.length ?? 0;
   console.log(`\nMissing origin_story: ${missingStoryCount}`);
 
   // 4. Restaurants with NO deep profile at all
-  const { data: allRestaurants } = await supabase
-    .from("restaurants")
-    .select("id")
-    .eq("is_active", true);
-
   const { data: enrichedProfiles } = await supabase
     .from("restaurant_deep_profiles")
     .select("restaurant_id");
@@ -66,11 +73,14 @@ async function main() {
   console.log(`\nNo deep profile at all: ${unenriched.length}/${totalCount}`);
 
   // 5. Low enrichment confidence
-  const { data: lowConf, count: lowConfCount } = await supabase
+  const { data: lowConf, error: confErr } = await supabase
     .from("restaurant_deep_profiles")
-    .select("restaurant_id, enrichment_confidence", { count: "exact" })
+    .select("restaurant_id, enrichment_confidence")
     .lt("enrichment_confidence", 3);
 
+  if (confErr) console.error("Error querying enrichment_confidence:", confErr.message);
+
+  const lowConfCount = lowConf?.length ?? 0;
   console.log(`Low enrichment confidence (<3): ${lowConfCount}`);
 
   // 6. Summary
