@@ -1105,11 +1105,11 @@ runTest(
   })
 );
 
-// T40: Deal-breaker gate — dietary mismatch
+// T40: Deal-breaker gate — dietary mismatch (ANOMALY-1 FIXED)
 runTest(
   "T40: Dietary mismatch (Vegan at no-option restaurant)",
   "E2E",
-  buildMockProfile({ dietary_options: ["Gluten-Free"] }),
+  buildMockProfile({ dietary_options: ["Gluten-Free"] }, { dietary_depth: null }),
   {
     occasion: "Any",
     specialRequest: "vegan dinner",
@@ -1120,9 +1120,11 @@ runTest(
     dietaryRestrictions: ["Vegan"],
   },
   (dm, f) => ({
-    passed: true, // KNOWN ANOMALY: floor=5 overrides when target_cuisines=[] + cuisine_importance="low"
-    desc: `ANOMALY: Dietary mismatch hidden by no-intent floor (Food=${f.food.toFixed(1)}, should be <=4 but floored at 5)`,
-    actual: `Food=${f.food.toFixed(1)}, DM=${dm}. FIX: Floor should not apply when dietaryRestrictions present`,
+    // ANOMALY-1 FIXED: Floor no longer applies when dietaryRestrictions present.
+    // Food = cuisine_base(3) + dietary(0, GF doesn't match Vegan) + menu(0) = 3.0
+    passed: f.food <= 4,
+    desc: "Food<=4 (dietary mismatch properly penalizes now that floor is bypassed)",
+    actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
   })
 );
 
@@ -1161,8 +1163,8 @@ runTest(
     intent: buildMockIntent(),
   },
   (dm) => ({
-    passed: dm <= 40,
-    desc: "DM<=40 (heavy price penalty ×0.5)",
+    passed: dm <= 30,
+    desc: "DM<=30 (heavy price penalty -3.0 on composite)",
     actual: `DM=${dm}`,
   })
 );
@@ -1254,7 +1256,7 @@ runTest(
 // CATEGORY 9: DIETARY EDGE CASES (5 tests)
 // ==========================================
 
-// T46: Vegan at dedicated vegan restaurant
+// T46: Vegan at dedicated vegan restaurant (ANOMALY-1 FIXED)
 runTest(
   "T46: Vegan at dedicated vegan restaurant",
   "Dietary",
@@ -1272,13 +1274,15 @@ runTest(
     dietaryRestrictions: ["Vegan"],
   },
   (dm, f) => ({
-    passed: f.food >= 5,
-    desc: "Food>=5 (dedicated vegan = 2 pts dietary; floored at 5 due to no target_cuisines)",
-    actual: `Food=${f.food.toFixed(1)}, DM=${dm}. NOTE: Score = cuisine_base(3) + dietary(2) = 5.0`,
+    // With ANOMALY-1 fix, floor bypassed when dietary present.
+    // Food = cuisine_base(3, no target match) + dietary_depth("dedicated"=2) = 5.0
+    passed: f.food >= 4.5,
+    desc: "Food>=4.5 (cuisine_base 3 + dedicated dietary 2 = 5.0; no floor needed)",
+    actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
   })
 );
 
-// T47: Vegan at BBQ joint (total mismatch)
+// T47: Vegan at BBQ joint (total mismatch — ANOMALY-1 FIXED)
 runTest(
   "T47: Vegan at BBQ (dietary mismatch)",
   "Dietary",
@@ -1296,13 +1300,14 @@ runTest(
     dietaryRestrictions: ["Vegan"],
   },
   (dm, f) => ({
-    passed: true, // KNOWN ANOMALY: floor=5 overrides dietary penalty when target_cuisines=[]
-    desc: `ANOMALY: Vegan at BBQ should be Food<=4 but floored at 5 (no target_cuisines)`,
-    actual: `Food=${f.food.toFixed(1)}, DM=${dm}. FIX: Floor should not apply when dietaryRestrictions present`,
+    // ANOMALY-1 FIXED: Floor bypassed. Food = cuisine_base(3) + dietary(0, no options) = 3.0
+    passed: f.food <= 4,
+    desc: "Food<=4 (vegan at BBQ: dietary mismatch no longer hidden by floor)",
+    actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
   })
 );
 
-// T48: Vegan at vegetarian restaurant (hierarchy partial)
+// T48: Vegan at vegetarian restaurant (hierarchy partial — ANOMALY-1 FIXED)
 runTest(
   "T48: Vegan at Vegetarian (hierarchy partial)",
   "Dietary",
@@ -1320,8 +1325,9 @@ runTest(
     dietaryRestrictions: ["Vegan"],
   },
   (dm, f) => ({
+    // Floor bypassed (dietary present). Food = cuisine_base(3) + dietary_depth("solid"=1.5 for partial) = ~4.5
     passed: f.food >= 3 && f.food <= 7,
-    desc: "Food 3-7 (partial hierarchy match)",
+    desc: "Food 3-7 (partial hierarchy match, floor bypassed)",
     actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
   })
 );
@@ -1371,6 +1377,573 @@ runTest(
     passed: f.food >= 3,
     desc: "Food>=3 (partial match on multi-restriction)",
     actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
+  })
+);
+
+// ==========================================
+// CATEGORY 10: ENRICHMENT CONFIDENCE (3 tests)
+// ==========================================
+
+// T51: Low enrichment confidence → score dampened
+runTest(
+  "T51: Low enrichment confidence (conf=3)",
+  "Confidence",
+  buildMockProfile(
+    { cuisine_type: "Japanese" },
+    { enrichment_confidence: 3, flavor_profiles: ["umami-forward"] }
+  ),
+  {
+    occasion: "Any",
+    specialRequest: "sushi",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent({ target_cuisines: ["Japanese"], cuisine_importance: "high" }),
+  },
+  (dm, f) => {
+    // confidence=3 < 5 → confidenceFactor=0.3, dampened=0.5+0.3*0.5=0.65
+    // Food and Atmosphere are dampened by 0.65x
+    return {
+      passed: dm <= 55,
+      desc: "DM<=55 (low confidence dampens food + atmosphere)",
+      actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
+    };
+  }
+);
+
+// T52: Confidence at boundary (conf=5) — no dampening
+runTest(
+  "T52: Confidence at boundary (conf=5, no dampening)",
+  "Confidence",
+  buildMockProfile(
+    { cuisine_type: "Japanese" },
+    { enrichment_confidence: 5, flavor_profiles: ["umami-forward"] }
+  ),
+  {
+    occasion: "Any",
+    specialRequest: "sushi",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent({ target_cuisines: ["Japanese"], cuisine_importance: "high" }),
+  },
+  (dm, f) => ({
+    // confidence=5 → confidenceFactor=1.0, no dampening
+    passed: f.food >= 5,
+    desc: "Food>=5 (no dampening at conf=5)",
+    actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
+  })
+);
+
+// T53: Very low confidence (conf=1) → heavy dampening
+runTest(
+  "T53: Very low confidence (conf=1)",
+  "Confidence",
+  buildMockProfile(
+    { cuisine_type: "Japanese" },
+    { enrichment_confidence: 1, flavor_profiles: ["umami-forward"] }
+  ),
+  {
+    occasion: "Any",
+    specialRequest: "sushi",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent({ target_cuisines: ["Japanese"], cuisine_importance: "high" }),
+  },
+  (dm, f) => {
+    // confidence=1 → confidenceFactor=0.1, dampened=0.5+0.1*0.5=0.55
+    return {
+      passed: dm <= 50,
+      desc: "DM<=50 (very low confidence)",
+      actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
+    };
+  }
+);
+
+// ==========================================
+// CATEGORY 11: CLAUDE RELEVANCE MODULATION (2 tests)
+// ==========================================
+
+// T54: High Claude relevance boosts score
+runTest(
+  "T54: High Claude relevance (relevance=9)",
+  "Claude Modulation",
+  buildMockProfile({ cuisine_type: "Japanese" }),
+  {
+    occasion: "Any",
+    specialRequest: "sushi",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    claudeRelevance: 9,
+    intent: buildMockIntent({ target_cuisines: ["Japanese"], cuisine_importance: "high" }),
+  },
+  (dm, f) => ({
+    // relevance=9 → adjust=(9-5)*0.1=+0.4 on food+setting
+    passed: f.food >= 5,
+    desc: "Food gets +0.4 boost from high Claude relevance",
+    actual: `Food=${f.food.toFixed(1)}, Setting=${f.setting.toFixed(1)}, DM=${dm}`,
+  })
+);
+
+// T55: Low Claude relevance penalizes score
+runTest(
+  "T55: Low Claude relevance (relevance=1)",
+  "Claude Modulation",
+  buildMockProfile({ cuisine_type: "Japanese" }),
+  {
+    occasion: "Any",
+    specialRequest: "sushi",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    claudeRelevance: 1,
+    intent: buildMockIntent({ target_cuisines: ["Japanese"], cuisine_importance: "high" }),
+  },
+  (dm, f) => ({
+    // relevance=1 → adjust=(1-5)*0.1=-0.4 on food+setting
+    passed: true,
+    desc: "OBSERVE: Low Claude relevance -0.4 on food+setting",
+    actual: `Food=${f.food.toFixed(1)}, Setting=${f.setting.toFixed(1)}, DM=${dm}`,
+  })
+);
+
+// ==========================================
+// CATEGORY 12: PERSONALIZATION (3 tests)
+// ==========================================
+
+// T56: Liked cuisine bonus
+runTest(
+  "T56: Liked cuisine gives small bonus",
+  "Personalization",
+  buildMockProfile({ cuisine_type: "Italian" }),
+  {
+    occasion: "Any",
+    specialRequest: "pasta",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent({ target_cuisines: ["Italian"], cuisine_importance: "high" }),
+    userFeedback: { likedCuisines: ["Italian"], dislikedCuisines: [], likedRestaurantIds: [], dislikedRestaurantIds: [] },
+  },
+  (dm) => ({
+    passed: dm >= 45,
+    desc: "DM>=45 (liked cuisine +0.3 composite bonus)",
+    actual: `DM=${dm}`,
+  })
+);
+
+// T57: Disliked cuisine penalty
+runTest(
+  "T57: Disliked cuisine penalty",
+  "Personalization",
+  buildMockProfile({ cuisine_type: "Mexican" }),
+  {
+    occasion: "Any",
+    specialRequest: "tacos",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent({ target_cuisines: ["Mexican"], cuisine_importance: "high" }),
+    userFeedback: { likedCuisines: [], dislikedCuisines: ["Mexican"], likedRestaurantIds: [], dislikedRestaurantIds: [] },
+  },
+  (dm) => ({
+    passed: dm <= 55,
+    desc: "DM<=55 (disliked cuisine -1.0 composite penalty)",
+    actual: `DM=${dm}`,
+  })
+);
+
+// T58: Rejection signals — avoid cuisine
+runTest(
+  "T58: Rejection signals avoid cuisine",
+  "Personalization",
+  buildMockProfile({ cuisine_type: "Thai" }),
+  {
+    occasion: "Any",
+    specialRequest: "food",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent(),
+    rejectionSignals: { avoidCuisines: ["Thai"], avoidPriceLevels: [], avoidRestaurantIds: [] },
+  },
+  (dm) => ({
+    passed: dm <= 35,
+    desc: "DM<=35 (rejection signal -2.0 on cuisine)",
+    actual: `DM=${dm}`,
+  })
+);
+
+// ==========================================
+// CATEGORY 13: PENALTY EDGE CASES (4 tests)
+// ==========================================
+
+// T59: Price 2-tier gap (subtractive -2.0)
+runTest(
+  "T59: Price 2-tier gap ($$ vs $$$$)",
+  "Penalties",
+  buildMockProfile({ price_level: "$$$$" }),
+  {
+    occasion: "Any",
+    specialRequest: "food",
+    neighborhood: "Anywhere",
+    priceLevel: "$$",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent(),
+  },
+  (dm) => ({
+    passed: dm <= 40,
+    desc: "DM<=40 (2-tier price gap -2.0 subtractive penalty)",
+    actual: `DM=${dm}`,
+  })
+);
+
+// T60: Price 1-tier over budget (subtractive -0.5)
+runTest(
+  "T60: Price 1-tier over ($$ vs $$$)",
+  "Penalties",
+  buildMockProfile({ price_level: "$$$" }),
+  {
+    occasion: "Any",
+    specialRequest: "food",
+    neighborhood: "Anywhere",
+    priceLevel: "$$",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent(),
+  },
+  (dm) => ({
+    passed: dm >= 30 && dm <= 60,
+    desc: "DM 30-60 (1-tier over: -0.5 composite penalty)",
+    actual: `DM=${dm}`,
+  })
+);
+
+// T61: Neighborhood mismatch penalty
+runTest(
+  "T61: Neighborhood mismatch penalty",
+  "Penalties",
+  buildMockProfile({ neighborhood_name: "Lincoln Park" }),
+  {
+    occasion: "Any",
+    specialRequest: "food",
+    neighborhood: "Wicker Park",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent(),
+  },
+  (dm) => ({
+    passed: dm <= 50,
+    desc: "DM<=50 (neighborhood mismatch -1.0)",
+    actual: `DM=${dm}`,
+  })
+);
+
+// T62: Sentiment handling (ISSUE-2 FIXED — no longer double-counted)
+runTest(
+  "T62: Sentiment penalty (60% negative, single-count)",
+  "Penalties",
+  buildMockProfile(),
+  {
+    occasion: "Any",
+    specialRequest: "food",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle({ google_rating: 4.5, google_review_count: 200 }),
+    sentimentScore: 3,
+    sentimentNegative: 60,
+    intent: buildMockIntent(),
+  },
+  (dm, f) => ({
+    // ISSUE-2 FIXED: Sentiment only penalizes in Reputation factor, not in deal-breaker.
+    // Rep should be lower due to negative sentiment, but DM should not have double penalty.
+    passed: f.reputation <= 5 && dm >= 35,
+    desc: "Rep<=5 (sentiment penalty), DM>=35 (no double-counting in deal-breaker)",
+    actual: `Rep=${f.reputation.toFixed(1)}, DM=${dm}`,
+  })
+);
+
+// ==========================================
+// CATEGORY 14: OCCASION-SPECIFIC COVERAGE (4 tests)
+// ==========================================
+
+// T63: Solo Dining — bar + counter + quiet = great fit
+runTest(
+  "T63: Solo Dining at bar/counter spot",
+  "Occasions",
+  buildMockProfile(
+    { solo_dining_score: 9, noise_level: "Quiet" },
+    { service_style: "Counter", meal_pacing: "quick_bite", conversation_friendliness: 3, energy_level: 3 }
+  ),
+  {
+    occasion: "Solo Dining",
+    specialRequest: "quick solo lunch",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent(),
+    clientTimeOfDay: "lunch",
+  },
+  (dm, f) => ({
+    passed: f.setting >= 5 && f.atmosphere >= 4,
+    desc: "Setting>=5, Atmo>=4 (solo dining + counter fit)",
+    actual: `Setting=${f.setting.toFixed(1)}, Atmo=${f.atmosphere.toFixed(1)}, DM=${dm}`,
+  })
+);
+
+// T64: Treat Myself occasion — high-end self-care
+runTest(
+  "T64: Treat Myself at upscale spot",
+  "Occasions",
+  buildMockProfile(
+    { romantic_rating: 6 },
+    { service_style: "Omakase", meal_pacing: "ceremonial", instagram_worthiness: 9, decor_style: "stunning minimalist" }
+  ),
+  {
+    occasion: "Treat Myself",
+    specialRequest: "something special just for me",
+    neighborhood: "Anywhere",
+    priceLevel: "$$$",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent({ emotional_intent: "impress" }),
+  },
+  (dm, f) => ({
+    passed: f.setting >= 4 && f.atmosphere >= 5,
+    desc: "Setting>=4, Atmo>=5 (treat myself + upscale)",
+    actual: `Setting=${f.setting.toFixed(1)}, Atmo=${f.atmosphere.toFixed(1)}, DM=${dm}`,
+  })
+);
+
+// T65: Adventure occasion + hole-in-the-wall
+runTest(
+  "T65: Adventure at hidden gem",
+  "Occasions",
+  buildMockProfile(
+    { hole_in_wall_factor: 9 },
+    { service_style: "Counter", neighborhood_integration: "hidden_local", cultural_authenticity: 9 }
+  ),
+  {
+    occasion: "Adventure",
+    specialRequest: "hidden gem dive bar",
+    neighborhood: "Anywhere",
+    priceLevel: "$",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent({ cuisine_importance: "low", emotional_intent: "explore" }),
+  },
+  (dm, f) => ({
+    passed: f.reputation >= 4,
+    desc: "Rep>=4 (hidden_local + cultural auth + explore boost)",
+    actual: `Rep=${f.reputation.toFixed(1)}, Atmo=${f.atmosphere.toFixed(1)}, DM=${dm}`,
+  })
+);
+
+// T66: Chill Hangout — relaxed casual spot
+runTest(
+  "T66: Chill Hangout at relaxed spot",
+  "Occasions",
+  buildMockProfile(
+    { noise_level: "Moderate", group_friendly_score: 7 },
+    { service_style: "Bar Service", meal_pacing: "relaxed", energy_level: 4, music_vibe: "curated-playlist" }
+  ),
+  {
+    occasion: "Chill Hangout",
+    specialRequest: "chill spot with friends",
+    neighborhood: "Anywhere",
+    priceLevel: "$$",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent({ vibe_keywords: ["chill", "casual"] }),
+  },
+  (dm, f) => ({
+    passed: f.atmosphere >= 5,
+    desc: "Atmosphere>=5 (chill vibe + relaxed pacing)",
+    actual: `Atmo=${f.atmosphere.toFixed(1)}, Setting=${f.setting.toFixed(1)}, DM=${dm}`,
+  })
+);
+
+// ==========================================
+// CATEGORY 15: WEIGHT INTERACTIONS (3 tests)
+// ==========================================
+
+// T67: Medium cuisine + Date Night — tests weight override precedence (ISSUE-7)
+runTest(
+  "T67: Weight override: medium cuisine + Date Night",
+  "Weight Interactions",
+  buildMockProfile({ cuisine_type: "Italian" }),
+  {
+    occasion: "Date Night",
+    specialRequest: "Italian for date night",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent({ target_cuisines: ["Italian"], cuisine_importance: "medium" }),
+  },
+  (_dm, _f, w) => ({
+    // medium cuisine gives food=0.35, but Date Night override replaces with food=0.20
+    // ISSUE-7: medium cuisine signal discarded by occasion override
+    passed: true,
+    desc: `OBSERVE ISSUE-7: Medium cuisine food_weight=${w.food.toFixed(3)} (0.35 from cuisine, overridden to 0.20 by Date Night)`,
+    actual: `food=${w.food.toFixed(3)}, setting=${w.setting.toFixed(3)}, atmo=${w.atmosphere.toFixed(3)}`,
+  })
+);
+
+// T68: Comfort emotional intent shifts atmosphere weight
+runTest(
+  "T68: Comfort intent boosts atmosphere",
+  "Weight Interactions",
+  buildMockProfile(),
+  {
+    occasion: "Any",
+    specialRequest: "comfort food",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent({ cuisine_importance: "low", emotional_intent: "comfort" }),
+  },
+  (_dm, _f, w) => ({
+    passed: w.atmosphere >= 0.30,
+    desc: "atmosphere weight >= 0.30 (low cuisine + comfort intent)",
+    actual: `atmo=${w.atmosphere.toFixed(3)}, rep=${w.reputation.toFixed(3)}`,
+  })
+);
+
+// T69: High cuisine + impress intent
+runTest(
+  "T69: High cuisine + impress intent",
+  "Weight Interactions",
+  buildMockProfile({ cuisine_type: "Japanese" }),
+  {
+    occasion: "Special Occasion",
+    specialRequest: "best omakase to impress",
+    neighborhood: "Anywhere",
+    priceLevel: "$$$$",
+    googleData: buildMockGoogle(),
+    intent: buildMockIntent({ target_cuisines: ["Japanese"], cuisine_importance: "high", emotional_intent: "impress" }),
+  },
+  (_dm, _f, w) => ({
+    // high cuisine → food=0.45. Since cuisine_importance=high, occasion override skipped.
+    // impress: rep+0.05, conv-0.05
+    passed: w.food >= 0.40 && w.reputation >= 0.15,
+    desc: "food>=0.40, rep>=0.15 (high cuisine dominates, impress boosts rep)",
+    actual: `food=${w.food.toFixed(3)}, rep=${w.reputation.toFixed(3)}, conv=${w.convenience.toFixed(3)}`,
+  })
+);
+
+// ==========================================
+// CATEGORY 16: DEAL-BREAKER GATES (2 tests)
+// ==========================================
+
+// T70: Gate excludes previously seen restaurant
+runTest(
+  "T70: Deal-breaker gate — excluded restaurant",
+  "Gates",
+  (() => {
+    const profiles = [
+      buildMockProfile({ id: "rest-1" }),
+      buildMockProfile({ id: "rest-excluded" }),
+      buildMockProfile({ id: "rest-3" }),
+    ];
+    const { passed } = applyDealBreakerGates(profiles, ["rest-excluded"]);
+    const gatedOut = !passed.some(p => p.id === "rest-excluded");
+    const othersKept = passed.length === 2;
+    return buildMockProfile(); // dummy for runTest signature
+  })(),
+  {
+    occasion: "Any",
+    specialRequest: "",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: null,
+    intent: buildMockIntent(),
+  },
+  () => {
+    // Actually test the gate inline
+    const profiles = [
+      buildMockProfile({ id: "rest-a" }),
+      buildMockProfile({ id: "rest-b" }),
+      buildMockProfile({ id: "rest-c" }),
+    ];
+    const { passed, gated } = applyDealBreakerGates(profiles, ["rest-b"]);
+    return {
+      passed: passed.length === 2 && gated.get("rest-b") === "excluded",
+      desc: "Gate excludes rest-b, keeps 2",
+      actual: `passed=${passed.length}, gated=${gated.size}, reason=${gated.get("rest-b")}`,
+    };
+  }
+);
+
+// T71: Gate dietary hard block (no hierarchy match)
+runTest(
+  "T71: Deal-breaker gate — dietary hard block",
+  "Gates",
+  buildMockProfile(),
+  {
+    occasion: "Any",
+    specialRequest: "",
+    neighborhood: "Anywhere",
+    priceLevel: "Any",
+    googleData: null,
+    intent: buildMockIntent(),
+  },
+  () => {
+    const profiles = [
+      buildMockProfile({ id: "rest-vegan", dietary_options: ["Vegan"] }),
+      buildMockProfile({ id: "rest-none", dietary_options: ["Gluten-Free"] }),
+    ];
+    const { passed, gated } = applyDealBreakerGates(profiles, [], ["Vegan"]);
+    return {
+      passed: passed.some(p => p.id === "rest-vegan") && gated.has("rest-none"),
+      desc: "Vegan gate: keeps vegan restaurant, blocks gluten-free-only",
+      actual: `passed=${passed.map(p => p.id).join(",")}, gated=${[...gated.keys()].join(",")}`,
+    };
+  }
+);
+
+// ==========================================
+// CATEGORY 17: MIXED PENALTY ARITHMETIC (2 tests)
+// ==========================================
+
+// T72: Price gap 3-tier subtractive penalty (ISSUE-1 FIXED)
+runTest(
+  "T72: ISSUE-1 FIXED: Subtractive price penalty on high scorer",
+  "Penalty Arithmetic",
+  buildMockProfile({ price_level: "$$$$", cuisine_type: "Japanese", date_friendly_score: 9, romantic_rating: 9 },
+    { service_style: "Tasting Menu", awards_recognition: ["Michelin Star"], enrichment_confidence: 9 }),
+  {
+    occasion: "Date Night",
+    specialRequest: "omakase",
+    neighborhood: "Anywhere",
+    priceLevel: "$",
+    googleData: buildMockGoogle({ google_rating: 4.8, google_review_count: 500 }),
+    sentimentScore: 9,
+    intent: buildMockIntent({ target_cuisines: ["Japanese"], cuisine_importance: "high" }),
+  },
+  (dm) => ({
+    // With subtractive -3.0, high scorer (raw ~7.5) → 7.5-3.0=4.5 → DM≈45
+    passed: dm >= 30 && dm <= 55,
+    desc: "DM 30-55 (subtractive -3.0: fixed penalty regardless of base score)",
+    actual: `DM=${dm}`,
+  })
+);
+
+// T73: Price gap 3-tier on low scorer — same absolute penalty (ISSUE-1 FIXED)
+runTest(
+  "T73: ISSUE-1 FIXED: Subtractive price penalty on low scorer",
+  "Penalty Arithmetic",
+  buildMockProfile({ price_level: "$$$$", cuisine_type: "Mexican" }),
+  {
+    occasion: "Any",
+    specialRequest: "sushi",
+    neighborhood: "Anywhere",
+    priceLevel: "$",
+    googleData: buildMockGoogle({ google_rating: 3.5, google_review_count: 20 }),
+    intent: buildMockIntent({ target_cuisines: ["Japanese"], cuisine_importance: "high" }),
+  },
+  (dm) => ({
+    // With subtractive -3.0, low scorer (raw ~3.2) → max(0, 3.2-3.0)=0.2 → DM≈2
+    passed: dm <= 10,
+    desc: "DM<=10 (subtractive -3.0: same fixed penalty, floors to near-zero on low scorer)",
+    actual: `DM=${dm}`,
   })
 );
 

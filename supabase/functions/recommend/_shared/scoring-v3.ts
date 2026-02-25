@@ -372,8 +372,11 @@ export function computeFoodMatch(
   // No food intent → floor at neutral 5
   // When cuisine_importance is "low" (experience query like "byob spot, live music"),
   // or when there's no special request at all, don't punish food score.
+  // EXCEPTION: Do NOT apply floor when dietary restrictions are present —
+  // the dietary signal must be preserved (ANOMALY-1 fix).
   if (targetCuisines.length === 0) {
-    if (intent?.cuisine_importance === "low" || !specialRequest || specialRequest.trim().length < 3) {
+    if ((intent?.cuisine_importance === "low" || !specialRequest || specialRequest.trim().length < 3)
+        && (!dietaryRestrictions || dietaryRestrictions.length === 0)) {
       return { score: Math.max(normalized, 5), dataPoints, maxDataPoints };
     }
   }
@@ -1006,14 +1009,17 @@ function applyDealBreakerPenalties(
   // alignment (0 pts for mismatch). Having a separate multiplicative penalty here
   // double-counted the miss, crushing fallback scores to near-zero (e.g., 3%).
 
-  // Price mismatch
+  // Price mismatch — unified subtractive penalties (P1 fix: ISSUE-1)
+  // All penalties are subtractive so magnitude is independent of base score
+  // and commutative with other penalties. Values calibrated to approximate
+  // previous multiplicative behavior at mean composite (~5.0).
   if (priceLevel && priceLevel !== "Any" && profile.price_level) {
     const userIdx = PRICE_ORDER.indexOf(priceLevel);
     const restIdx = PRICE_ORDER.indexOf(profile.price_level);
     if (userIdx >= 0 && restIdx >= 0) {
       const gap = restIdx - userIdx;
-      if (gap >= 3) result *= 0.5;
-      else if (gap === 2) result *= 0.7;
+      if (gap >= 3) result -= 3.0;
+      else if (gap === 2) result -= 2.0;
       else if (gap === 1) result -= 0.5;
       else if (gap === -1) result -= 0.2;
     }
@@ -1026,10 +1032,11 @@ function applyDealBreakerPenalties(
     }
   }
 
-  // Sentiment crisis
-  if (sentimentNegative != null && sentimentNegative > 40) {
-    result -= Math.min(2.0, ((sentimentNegative - 40) / 30) * 2.0);
-  }
+  // Sentiment crisis — REMOVED (P0 fix: sentiment double-counting)
+  // Sentiment is already handled in computeReputation() where negative sentiment
+  // penalizes the Reputation factor by up to -1.5. Having a second penalty here
+  // double-counts the same signal, creating a combined ~15 DM point penalty from
+  // a single source. The Reputation factor is the correct place for this signal.
 
   return Math.max(0, result);
 }
