@@ -16,6 +16,11 @@ import {
   computeDimensionWeights,
   extractUnmatchedKeywords,
 } from "./_shared/scoring.ts";
+import {
+  computeV3DondeMatch,
+  reRankV3,
+  applyDealBreakerGates,
+} from "./_shared/scoring-v3.ts";
 import { classifyIntent } from "./_shared/intent-classifier.ts";
 import {
   buildSuccessResponse,
@@ -460,20 +465,24 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    top10 = top10.slice(0, 10);
+    top10 = top10.slice(0, 25);
 
     // Enhancement 14: Analyze rejection patterns from excluded restaurants
     const rejectionSignals = exclude.length >= 2
       ? analyzeRejections(exclude, allRpcResults)
       : undefined;
 
-    // V2: Re-rank using multi-dimensional scoring (falls back to V1 if no deep profiles)
-    const hasDeepProfiles = top10.some((r) => r.deep_profile != null);
-    if (hasDeepProfiles) {
-      top10 = reRankV2(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day, dietary_restrictions);
+    // V3: Apply deal-breaker gates BEFORE scoring
+    const { passed: gatedCandidates } = applyDealBreakerGates(top10, exclude, dietary_restrictions);
+    // Graceful fallback: if gates removed all candidates, use unfiltered
+    if (gatedCandidates.length > 0) {
+      top10 = gatedCandidates;
     } else {
-      top10 = reRankWithBoosts(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day, dietary_restrictions);
+      logWarn("V3 deal-breaker gates removed all candidates, using unfiltered", { gateCount: top10.length - gatedCandidates.length });
     }
+
+    // V3: Re-rank using five-factor scoring
+    top10 = reRankV3(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day, dietary_restrictions);
 
     // Enhancement 6: Apply diversity filter
     const backfillPool = allRpcResults.filter((r) => !exclude.includes(r.id));
@@ -696,13 +705,14 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
             parsed.insider_tip = nextChosen.insider_tip;
           }
 
-          const closedMatchInputs = {
+          const closedV3Inputs = {
             occasion,
             specialRequest: special_request,
             neighborhood,
             priceLevel: price_level,
             googleData: nextGoogleData,
             claudeRelevance: parsed.relevance_score,
+            sentimentScore: parsed.sentiment_score,
             sentimentNegative: parsed.sentiment_negative,
             intent,
             rejectionSignals,
@@ -710,12 +720,14 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
             clientTimeOfDay: time_of_day,
             dietaryRestrictions: dietary_restrictions,
           };
-          let dondeMatch = nextChosen.deep_profile
-            ? computeDondeMatchV2(nextChosen, closedMatchInputs, intent)
-            : computeDondeMatch(nextChosen, closedMatchInputs);
+          const closedV3Result = computeV3DondeMatch(nextChosen, closedV3Inputs);
+          let dondeMatch = closedV3Result.dondeMatch;
           if (cuisineMismatch) dondeMatch = Math.min(dondeMatch, 65);
 
-          responseBody = buildSuccessResponse(nextChosen, parsed, nextGoogleData, dondeMatch, undefined, undefined, cuisineMismatch);
+          responseBody = buildSuccessResponse(
+            nextChosen, parsed, nextGoogleData, dondeMatch, undefined, undefined, cuisineMismatch,
+            closedV3Result.factors, closedV3Result.weights, closedV3Result.dataCompleteness
+          );
         } else {
           // Fallback if no alternatives
           responseBody = buildFallbackResponse(chosen, googleData, 55, cuisineMismatch);
@@ -731,14 +743,15 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
           parsed.insider_tip = chosen.deep_profile.best_seat_in_house;
         }
 
-        // V2: Compute donde_match using multi-dimensional scoring
-        const matchInputs = {
+        // V3: Compute donde_match using five-factor scoring
+        const v3Inputs = {
           occasion,
           specialRequest: special_request,
           neighborhood,
           priceLevel: price_level,
           googleData,
           claudeRelevance: parsed.relevance_score,
+          sentimentScore: parsed.sentiment_score,
           sentimentNegative: parsed.sentiment_negative,
           intent,
           rejectionSignals,
@@ -746,20 +759,22 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
           clientTimeOfDay: time_of_day,
           dietaryRestrictions: dietary_restrictions,
         };
-        let dondeMatch = chosen.deep_profile
-          ? computeDondeMatchV2(chosen, matchInputs, intent)
-          : computeDondeMatch(chosen, matchInputs);
+        const v3Result = computeV3DondeMatch(chosen, v3Inputs);
+        let dondeMatch = v3Result.dondeMatch;
 
         // Cap match score for cuisine mismatch — never claim a high match when we don't have the cuisine
         if (cuisineMismatch) {
           dondeMatch = Math.min(dondeMatch, 65);
         }
 
-        // V2: Compute scoring dimensions for response
+        // V2: Compute scoring dimensions for response (kept for transition)
         const dimensions = computeScoringDimensions(chosen, occasion, special_request, intent);
         const weights = computeDimensionWeights(occasion, intent);
 
-        responseBody = buildSuccessResponse(chosen, parsed, googleData, dondeMatch, dimensions, weights, cuisineMismatch);
+        responseBody = buildSuccessResponse(
+          chosen, parsed, googleData, dondeMatch, dimensions, weights, cuisineMismatch,
+          v3Result.factors, v3Result.weights, v3Result.dataCompleteness
+        );
       }
     } catch (claudeError) {
       wasFallback = true;
@@ -778,7 +793,7 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
         const nextGoogleData = nextChosen.google_place_id
           ? await fetchPlaceDetails(nextChosen.google_place_id)
           : null;
-        const closedFallbackInputs = {
+        const closedFallbackV3 = computeV3DondeMatch(nextChosen, {
           occasion,
           specialRequest: special_request,
           neighborhood,
@@ -789,16 +804,14 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
           userFeedback,
           clientTimeOfDay: time_of_day,
           dietaryRestrictions: dietary_restrictions,
-        };
-        let fallbackMatch = nextChosen.deep_profile
-          ? computeDondeMatchV2(nextChosen, closedFallbackInputs, intent)
-          : computeDondeMatch(nextChosen, closedFallbackInputs);
+        });
+        let fallbackMatch = closedFallbackV3.dondeMatch;
         if (cuisineMismatch) fallbackMatch = Math.min(fallbackMatch, 65);
         // Enhancement 19 Tier 4: Template-based response
         responseBody = buildTemplateResponse(nextChosen, nextGoogleData, fallbackMatch, occasion, cuisineMismatch);
       } else {
         // Compute donde_match deterministically (no Claude relevance available)
-        const normalFallbackInputs = {
+        const normalFallbackV3 = computeV3DondeMatch(chosen, {
           occasion,
           specialRequest: special_request,
           neighborhood,
@@ -809,10 +822,8 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
           userFeedback,
           clientTimeOfDay: time_of_day,
           dietaryRestrictions: dietary_restrictions,
-        };
-        let fallbackMatch = chosen.deep_profile
-          ? computeDondeMatchV2(chosen, normalFallbackInputs, intent)
-          : computeDondeMatch(chosen, normalFallbackInputs);
+        });
+        let fallbackMatch = normalFallbackV3.dondeMatch;
         if (cuisineMismatch) fallbackMatch = Math.min(fallbackMatch, 65);
 
         // Enhancement 19 Tier 4: Use template-based response (richer than one-liner)

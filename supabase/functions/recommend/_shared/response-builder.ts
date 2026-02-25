@@ -1,4 +1,4 @@
-import type { RestaurantProfile, ClaudeRecommendation, ScoringDimensions, DimensionWeights } from "./types.ts";
+import type { RestaurantProfile, ClaudeRecommendation, ScoringDimensions, DimensionWeights, V3Factors, V3Weights } from "./types.ts";
 import type { GooglePlaceData } from "./google-places.ts";
 
 /** Build deep_context from deep profile (V2 optional response field) */
@@ -42,7 +42,7 @@ function buildDeepContext(chosen: RestaurantProfile): Record<string, unknown> | 
   };
 }
 
-/** Build V2 scoring breakdown (optional response field) */
+/** Build V2 scoring breakdown (optional response field, kept for transition) */
 function buildScoringV2(
   dimensions?: ScoringDimensions,
   weights?: DimensionWeights
@@ -55,6 +55,30 @@ function buildScoringV2(
     practical_fit: dimensions.practicalFit,
     discovery_value: dimensions.discoveryValue,
     weights_used: weights,
+  };
+}
+
+/** Build V3 scoring breakdown */
+function buildScoringV3(
+  factors?: V3Factors | null,
+  weights?: V3Weights | null,
+  dataCompleteness?: number
+): Record<string, unknown> | null {
+  if (!factors || !weights) return null;
+  return {
+    food_match: Math.round(factors.food * 10) / 10,
+    setting_fit: Math.round(factors.setting * 10) / 10,
+    atmosphere: Math.round(factors.atmosphere * 10) / 10,
+    reputation: Math.round(factors.reputation * 10) / 10,
+    convenience: Math.round(factors.convenience * 10) / 10,
+    weights_used: {
+      food: Math.round(weights.food * 100) / 100,
+      setting: Math.round(weights.setting * 100) / 100,
+      atmosphere: Math.round(weights.atmosphere * 100) / 100,
+      reputation: Math.round(weights.reputation * 100) / 100,
+      convenience: Math.round(weights.convenience * 100) / 100,
+    },
+    data_completeness: Math.round((dataCompleteness ?? 0) * 100) / 100,
   };
 }
 
@@ -140,7 +164,10 @@ export function buildSuccessResponse(
   dondeMatch: number,
   dimensions?: ScoringDimensions,
   weights?: DimensionWeights,
-  cuisineMismatch?: { requested: string } | null
+  cuisineMismatch?: { requested: string } | null,
+  v3Factors?: V3Factors | null,
+  v3Weights?: V3Weights | null,
+  v3DataCompleteness?: number
 ): Record<string, unknown> {
   return {
     success: true,
@@ -159,6 +186,7 @@ export function buildSuccessResponse(
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
     scoring_v2: buildScoringV2(dimensions, weights),
+    scoring_v3: buildScoringV3(v3Factors, v3Weights, v3DataCompleteness),
     cuisine_mismatch: cuisineMismatch ? { requested: cuisineMismatch.requested } : null,
     timestamp: new Date().toISOString(),
   };

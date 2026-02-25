@@ -13,7 +13,7 @@ import type { IntentClassification, IntentClassificationV2 } from "./intent-clas
 
 // --- Enhancement 2: Multi-score occasion weights ---
 // Each occasion maps to a weighted blend of score columns
-const OCCASION_WEIGHTS: Record<string, Record<string, number>> = {
+export const OCCASION_WEIGHTS: Record<string, Record<string, number>> = {
   "Date Night": { date_friendly_score: 1.0 },
   "Group Hangout": { group_friendly_score: 1.0 },
   "Family Dinner": { family_friendly_score: 1.0 },
@@ -62,7 +62,7 @@ function computeWeightedOccasionScore(profile: RestaurantProfile, occasion: stri
 
 // --- Keyword boosting ---
 
-const CUISINE_KEYWORDS: Record<string, string[]> = {
+export const CUISINE_KEYWORDS: Record<string, string[]> = {
   Mexican: ["mexican", "taco", "burrito", "carnitas", "enchilada", "mole"],
   Italian: ["italian", "pasta", "pizza", "risotto"],
   Japanese: ["japanese", "sushi", "ramen", "izakaya", "sake"],
@@ -93,7 +93,7 @@ const CUISINE_KEYWORDS: Record<string, string[]> = {
   BBQ: ["bbq", "barbecue", "brisket", "ribs", "pulled pork", "smoked meat", "pitmaster"],
 };
 
-const TAG_KEYWORDS: Record<string, string[]> = {
+export const TAG_KEYWORDS: Record<string, string[]> = {
   byob: ["byob", "bring your own"],
   rooftop: ["rooftop", "skyline"],
   "outdoor patio": ["outdoor", "patio", "al fresco"],
@@ -520,7 +520,7 @@ export function extractUnmatchedKeywords(specialRequest: string): string[] {
 }
 
 // --- Enhancement 5: Dietary keyword matching ---
-const DIETARY_KEYWORDS: Record<string, string[]> = {
+export const DIETARY_KEYWORDS: Record<string, string[]> = {
   "vegetarian": ["Vegetarian", "Veg"],
   "vegan": ["Vegan", "Plant-Based"],
   "gluten-free": ["Gluten-Free", "Gluten Free"],
@@ -535,7 +535,7 @@ const DIETARY_KEYWORDS: Record<string, string[]> = {
 
 // Dietary hierarchy: stricter diets subsume less strict ones
 // Vegan ⊃ Vegetarian (every vegan dish is vegetarian, but not vice versa)
-const DIETARY_HIERARCHY: Record<string, string[]> = {
+export const DIETARY_HIERARCHY: Record<string, string[]> = {
   "vegan": ["vegetarian"], // Vegan user gets partial credit for Vegetarian-only restaurant
 };
 
@@ -1184,62 +1184,11 @@ function applyHardRequirementPenalties(
     }
   }
 
-  // 2. Dietary restriction mismatch — deal-breaker for restricted diets
-  // Behavioral psychology: dietary restrictions are identity-level constraints.
-  // Violating them triggers loss aversion 3-5x stronger than equivalent gains.
-  // Three-tier penalty: no info (worst) → has info but no match (severe) → partial match (moderate).
-  if (inputs.dietaryRestrictions && inputs.dietaryRestrictions.length > 0) {
-    const restaurantDietary = profile.dietary_options || [];
-
-    // Check EACH restriction individually for precise penalty calculation
-    const matchResults = inputs.dietaryRestrictions.map((restriction) => {
-      const dietaryValues = DIETARY_KEYWORDS[restriction.toLowerCase()];
-      if (!dietaryValues) return "unknown" as const;
-      const hasMatch = restaurantDietary.some((opt) =>
-        dietaryValues.some((dv) => opt.toLowerCase().includes(dv.toLowerCase()))
-      );
-      if (hasMatch) return "match" as const;
-      // Check hierarchy: e.g., Vegan user at Vegetarian-only restaurant
-      const subsumes = DIETARY_HIERARCHY[restriction.toLowerCase()];
-      if (subsumes) {
-        const hasSubsumedMatch = subsumes.some((sub) => {
-          const subValues = DIETARY_KEYWORDS[sub];
-          if (!subValues) return false;
-          return restaurantDietary.some((opt) =>
-            subValues.some((sv) => opt.toLowerCase().includes(sv.toLowerCase()))
-          );
-        });
-        if (hasSubsumedMatch) return "partial" as const;
-      }
-      return "miss" as const;
-    });
-
-    const allMatch = matchResults.every((r) => r === "match");
-    const allMiss = matchResults.every((r) => r === "miss" || r === "unknown");
-    const hasPartial = matchResults.some((r) => r === "partial");
-
-    if (allMiss) {
-      if (restaurantDietary.length === 0) {
-        // No dietary info at all — total unknown, devastating penalty
-        composite *= 0.45;
-      } else {
-        // Restaurant has dietary options but NONE match user's restrictions
-        // e.g., lists "Gluten-Free" but user selected Vegan
-        composite *= 0.50;
-      }
-    } else if (!allMatch) {
-      if (hasPartial && !matchResults.some((r) => r === "miss")) {
-        // All restrictions are either matched or partially matched via hierarchy
-        // e.g., Vegan user at Vegetarian-only restaurant (better than nothing)
-        composite *= 0.70;
-      } else {
-        // Mixed: some restrictions met, some missed entirely
-        // e.g., user selected [Vegan, Gluten-Free] but only Vegan is listed
-        composite *= 0.65;
-      }
-    }
-    // allMatch: no penalty — handled by positive boost in computeBaseScore
-  }
+  // 2. Dietary restrictions — penalties removed.
+  // Most restaurants accommodate vegan/vegetarian without explicitly listing it,
+  // so penalties created false negatives for missing data. Positive scoring for
+  // dietary matches handled in computeBaseScore() and reRankWithBoosts().
+  // Safety nets: hard dietary filter in index.ts, Claude HARD REQUIREMENT directive.
 
   // 3. Price mismatch — behavioral psychology: budget is a hard constraint.
   // Overspending triggers regret aversion; underspending can feel like settling.
@@ -1976,6 +1925,15 @@ export function computeBaseScore(
       if (dpDietaryDepth && DIETARY_DEPTH_BONUS[dpDietaryDepth] != null) {
         composite += DIETARY_DEPTH_BONUS[dpDietaryDepth];
       }
+
+      // Vegan-dedicated amplifier: strongly reward dedicated vegan restaurants
+      // when the user explicitly selects vegan (total: +1.0 base + 2.0 dedicated + 1.5 = +4.5)
+      if (
+        inputs.dietaryRestrictions.some((r) => r.toLowerCase() === "vegan") &&
+        dpDietaryDepth === "dedicated"
+      ) {
+        composite += 1.5;
+      }
     } else {
       // Check hierarchy for partial credit: e.g., Vegan user at Vegetarian restaurant
       for (const restriction of inputs.dietaryRestrictions) {
@@ -2198,7 +2156,7 @@ export function filterAndRank(
     return compositeB - compositeA;
   });
 
-  return boosted.slice(0, 10);
+  return boosted.slice(0, 25);
 }
 
 // --- V1 Base Score: Shared core for V1 ranking AND donde_match ---
@@ -2282,6 +2240,13 @@ export function reRankWithBoosts(
         if (dpDietaryDepth && DIETARY_DEPTH_BONUS[dpDietaryDepth] != null) {
           composite += DIETARY_DEPTH_BONUS[dpDietaryDepth];
         }
+        // Vegan-dedicated amplifier (mirrors computeBaseScore logic)
+        if (
+          dietaryRestrictions!.some((r) => r.toLowerCase() === "vegan") &&
+          dpDietaryDepth === "dedicated"
+        ) {
+          composite += 1.5;
+        }
       } else {
         // Check hierarchy for partial credit
         for (const restriction of dietaryRestrictions!) {
@@ -2315,8 +2280,8 @@ export function reRankWithBoosts(
 export function ensureDiversity(
   top: RestaurantProfile[],
   backfillPool: RestaurantProfile[],
-  maxPerCuisine = 3,
-  maxPerNeighborhood = 4
+  maxPerCuisine = 5,
+  maxPerNeighborhood = 7
 ): RestaurantProfile[] {
   if (top.length <= 5) return top; // Not enough to diversify
 
