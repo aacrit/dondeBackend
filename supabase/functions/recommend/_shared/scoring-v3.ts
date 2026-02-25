@@ -1,5 +1,5 @@
 /**
- * Donde Match V3.2 — Scoring Engine (Optimized)
+ * Donde Match V3.3 — Scoring Engine (Optimized)
  *
  * Five human-intuitive factors: Food Match, Setting Fit, Atmosphere, Reputation, Convenience
  * Each factor scores 0-10. Weighted composite maps to 0-99 Donde Match via power-law scaling.
@@ -28,6 +28,13 @@
  * - Adventure weights rebalanced: setting 0.15→0.25, food 0.25→0.20 for hidden gem intent (HB6)
  * - Food+Reputation decorrelation: 0.10x overlap discount for correlated quality signals (PA1)
  * - Atmosphere denominator cap: max +3 from conditionals to prevent verbose-request dilution (PA8)
+ *
+ * V3.3 optimizations (expert review cycle 3):
+ * - Food maxPossible 10→11: Layer 1 expanded to 0-6 in V3.1 but denominator was stale (S1/PA8/PT6)
+ * - Atmosphere cold-start bypasses Bayesian gating: 3.5 neutral = no enrichment data used (S6)
+ * - avoidPriceLevels stacking prevention: skip if deal-breaker price penalty already applied (S10)
+ * - Missing occasion weight overrides: Solo Dining, Treat Myself, Chill Hangout now have tuned weights (PA1)
+ * - Inverted penalty hierarchy fix: avoidCuisine -2.0→-0.7 (inferred < explicit dislike -1.0) (PA3)
  */
 
 import type {
@@ -384,7 +391,9 @@ export function computeFoodMatch(
   }
 
   // Normalize to 0-10
-  const maxPossible = 10; // 5 + 2 + 2 + 1
+  // V3.3 (S1/PA8/PT6): maxPossible updated 10→11 — Layer 1 was expanded to 0-6 in V3.1
+  // but the denominator was left at 10 (5+2+2+1), should be 11 (6+2+2+1)
+  const maxPossible = 11; // 6 + 2 + 2 + 1
   const normalized = Math.min(10, (score / maxPossible) * 10);
 
   // No cuisine_type → cap at 4
@@ -969,6 +978,15 @@ export function computeV3Weights(
       occasionW = { food: 0.25, setting: 0.25, atmosphere: 0.15, reputation: 0.15, convenience: 0.20 };
     } else if (occasion === "Business Lunch") {
       occasionW = { food: 0.20, setting: 0.30, atmosphere: 0.25, reputation: 0.15, convenience: 0.10 };
+    } else if (occasion === "Solo Dining") {
+      // V3.3 (PA1): Solo diners prioritize convenience (walk-in, bar seating) + food quality
+      occasionW = { food: 0.30, setting: 0.15, atmosphere: 0.20, reputation: 0.15, convenience: 0.20 };
+    } else if (occasion === "Treat Myself") {
+      // V3.3 (PA1): Treat Myself emphasizes food + atmosphere (self-indulgence experience)
+      occasionW = { food: 0.30, setting: 0.15, atmosphere: 0.25, reputation: 0.20, convenience: 0.10 };
+    } else if (occasion === "Chill Hangout") {
+      // V3.3 (PA1): Chill Hangout favors atmosphere + convenience (low-key, easy access)
+      occasionW = { food: 0.20, setting: 0.20, atmosphere: 0.25, reputation: 0.10, convenience: 0.25 };
     }
     if (occasionW) {
       // Blend: medium cuisine → 40% cuisine weights + 60% occasion weights
@@ -1075,26 +1093,72 @@ function applyDealBreakerPenalties(
   neighborhood: string,
   priceLevel: string,
   intent: IntentClassification | IntentClassificationV2 | null,
-  sentimentNegative?: number | null
-): number {
+  sentimentNegative?: number | null,
+  dietaryRestrictions?: string[]
+): { result: number; priceAlreadyPenalized: boolean } {
   let result = composite;
 
   // NOTE: Cuisine mismatch penalty REMOVED — Food Match factor already handles cuisine
   // alignment (0 pts for mismatch). Having a separate multiplicative penalty here
   // double-counted the miss, crushing fallback scores to near-zero (e.g., 3%).
 
+  // V3.3 (HB4): Dietary incompatibility composite-level penalty
+  // The Food Match factor only allocates 2 of 11 points to dietary fit, which is ~18%.
+  // With low cuisine_importance (food weight 0.15), dietary mismatch has near-zero impact
+  // on the composite. A vegan user seeing a BBQ joint scored 59 ("Worth a Try") is the
+  // single most trust-damaging false positive. Apply composite penalty to fix.
+  if (dietaryRestrictions && dietaryRestrictions.length > 0) {
+    if (profile.dietary_options && profile.dietary_options.length > 0) {
+      // Restaurant has dietary data — check if any match
+      const anyMatch = dietaryRestrictions.some(dr => {
+        const keywords = DIETARY_KEYWORDS[dr.toLowerCase()];
+        if (!keywords) return false;
+        return profile.dietary_options!.some(opt =>
+          keywords.some(kw => opt.toLowerCase().includes(kw.toLowerCase()))
+        );
+      });
+      if (!anyMatch) {
+        // Check hierarchy (Vegan → Vegetarian partial credit)
+        let hasHierarchyMatch = false;
+        for (const dr of dietaryRestrictions) {
+          const subsumes = DIETARY_HIERARCHY[dr.toLowerCase()];
+          if (subsumes) {
+            hasHierarchyMatch = subsumes.some(sub => {
+              const subValues = DIETARY_KEYWORDS[sub];
+              if (!subValues) return false;
+              return profile.dietary_options!.some(opt =>
+                subValues.some(sv => opt.toLowerCase().includes(sv.toLowerCase()))
+              );
+            });
+            if (hasHierarchyMatch) break;
+          }
+        }
+        if (hasHierarchyMatch) {
+          result -= 0.8;  // Partial match (e.g., vegan at vegetarian-only place)
+        } else {
+          result -= 2.0;  // Has dietary options but none match at all
+        }
+      }
+    } else if (!profile.dietary_options || profile.dietary_options.length === 0) {
+      // No dietary data at all — unknown = risky for dietary-restricted users
+      result -= 2.5;
+    }
+  }
+
   // Price mismatch — unified subtractive penalties (P1 fix: ISSUE-1)
   // All penalties are subtractive so magnitude is independent of base score
   // and commutative with other penalties. Values calibrated to approximate
   // previous multiplicative behavior at mean composite (~5.0).
+  // V3.3 (S10): Track whether price was penalized here to prevent stacking with avoidPriceLevels
+  let priceAlreadyPenalized = false;
   if (priceLevel && priceLevel !== "Any" && profile.price_level) {
     const userIdx = PRICE_ORDER.indexOf(priceLevel);
     const restIdx = PRICE_ORDER.indexOf(profile.price_level);
     if (userIdx >= 0 && restIdx >= 0) {
       const gap = restIdx - userIdx;
-      if (gap >= 3) result -= 3.0;
-      else if (gap === 2) result -= 1.5;    // was -2.0 — diminishing sensitivity (HB6)
-      else if (gap === 1) result -= 0.5;
+      if (gap >= 3) { result -= 3.0; priceAlreadyPenalized = true; }
+      else if (gap === 2) { result -= 1.5; priceAlreadyPenalized = true; }    // was -2.0 — diminishing sensitivity (HB6)
+      else if (gap === 1) { result -= 0.5; priceAlreadyPenalized = true; }
       // Under-budget penalty removed (HB6: budgets are ceilings, not targets)
     }
   }
@@ -1116,7 +1180,7 @@ function applyDealBreakerPenalties(
 
   // V3.2 (PT4): No intermediate clamp — allow negative values to flow to personalization
   // Single clamp at Math.max(0) applied after ALL penalties in computeV3DondeMatch
-  return result;
+  return { result, priceAlreadyPenalized };
 }
 
 // ==========================================
@@ -1127,7 +1191,8 @@ function applyPersonalization(
   composite: number,
   profile: RestaurantProfile,
   rejectionSignals?: RejectionSignals,
-  userFeedback?: UserFeedbackSignals | null
+  userFeedback?: UserFeedbackSignals | null,
+  priceAlreadyPenalized?: boolean
 ): number {
   let result = composite;
 
@@ -1148,17 +1213,21 @@ function applyPersonalization(
 
   // Rejection pattern analysis
   // V3.2 (PA5): Prevent stacking — avoidCuisine skipped if already penalized by dislikedCuisines
-  // avoidCuisine is an inferred signal (from rejection patterns), not explicit user feedback;
-  // stacking -1.0 + -2.0 = -3.0 would make cuisine types permanently invisible
+  // V3.3 (PA3): Inverted hierarchy fix — avoidCuisine is inferred (weaker signal) than explicit
+  // dislikedCuisines (-1.0). Was -2.0, now -0.7 to respect: explicit dislike > inferred pattern.
   if (rejectionSignals) {
     if (profile.cuisine_type && rejectionSignals.avoidCuisines.includes(profile.cuisine_type)) {
       if (!cuisineAlreadyPenalized) {
-        result -= 2.0;
+        result -= 0.7;  // V3.3: was -2.0; inferred signal should be weaker than explicit -1.0
       }
       // else: dislikedCuisines -1.0 already applied above; skip to prevent stacking
     }
+    // V3.3 (S10): Prevent stacking — skip avoidPriceLevels if deal-breaker price penalty already applied
     if (profile.price_level && rejectionSignals.avoidPriceLevels.includes(profile.price_level)) {
-      result -= 1.5;
+      if (!priceAlreadyPenalized) {
+        result -= 1.5;
+      }
+      // else: deal-breaker price penalty already applied; skip to prevent stacking
     }
   }
 
@@ -1215,10 +1284,17 @@ export function computeV3DondeMatch(
     return PRIOR_MEAN * (1 - shrinkageWeight) + score * shrinkageWeight;
   };
 
+  // V3.3 (S6): Atmosphere cold-start (dataPoints===0) already returns neutral 3.5;
+  // gating it further toward 5.0 would INCREASE the score (Bayesian inversion).
+  // Skip gating when the factor had no enrichment data to gate.
+  const atmoScore = atmosphereResult.dataPoints === 0
+    ? atmosphereResult.score  // V3.3: cold-start bypass — 3.5 neutral is already conservative
+    : applyGating(atmosphereResult.score);
+
   const factors: V3Factors = {
     food: applyGating(foodResult.score),          // uses flavor_profiles, signature_dishes, dietary_depth
     setting: applyGating(settingResult.score),     // uses service_style, meal_pacing, kid_friendliness
-    atmosphere: applyGating(atmosphereResult.score), // uses energy_level, music_vibe, decor_style
+    atmosphere: atmoScore,                         // V3.3: cold-start bypass when no data points
     reputation: reputationResult.score,            // Google data + sentiment — independent of enrichment
     convenience: convenienceResult.score,           // timing/reservation — independent of enrichment
   };
@@ -1254,14 +1330,16 @@ export function computeV3DondeMatch(
   }
 
   // Step 5: Deal-breaker penalties
-  raw = applyDealBreakerPenalties(
+  const dealBreakerResult = applyDealBreakerPenalties(
     raw, profile,
     inputs.occasion, inputs.neighborhood, inputs.priceLevel,
-    inputs.intent, inputs.sentimentNegative
+    inputs.intent, inputs.sentimentNegative,
+    inputs.dietaryRestrictions
   );
+  raw = dealBreakerResult.result;
 
   // Step 6: Personalization
-  raw = applyPersonalization(raw, profile, inputs.rejectionSignals, inputs.userFeedback);
+  raw = applyPersonalization(raw, profile, inputs.rejectionSignals, inputs.userFeedback, dealBreakerResult.priceAlreadyPenalized);
 
   // V3.2 (PT4): Single clamp after all penalties — raw may be negative from stacked subtractive penalties
   raw = Math.max(0, raw);

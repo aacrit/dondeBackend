@@ -256,8 +256,8 @@ runTest(
     intent: buildMockIntent({ target_cuisines: ["Italian"], cuisine_importance: "high" }),
   },
   (dm, f) => ({
-    passed: f.food >= 6,
-    desc: "Food>=6 (exact match 'Italian')",
+    passed: f.food >= 5.5,
+    desc: "Food>=5.5 (exact match 6pts / maxPossible 11 + dietary 0.5 = 5.9)",
     actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
   })
 );
@@ -1275,9 +1275,9 @@ runTest(
   },
   (dm, f) => ({
     // With ANOMALY-1 fix, floor bypassed when dietary present.
-    // Food = cuisine_base(3, no target match) + dietary_depth("dedicated"=2) = 5.0
-    passed: f.food >= 4.5,
-    desc: "Food>=4.5 (cuisine_base 3 + dedicated dietary 2 = 5.0; no floor needed)",
+    // Food = cuisine_base(2.5, no target) + dietary_depth("dedicated"=2) = 4.5 → 4.5/11*10 = 4.1
+    passed: f.food >= 3.5,
+    desc: "Food>=3.5 (cuisine_base 2.5 + dedicated dietary 2 = 4.5; maxPossible 11 → 4.1)",
     actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
   })
 );
@@ -1571,8 +1571,8 @@ runTest(
     rejectionSignals: { avoidCuisines: ["Thai"], avoidPriceLevels: [], avoidRestaurantIds: [] },
   },
   (dm) => ({
-    passed: dm <= 45,
-    desc: "DM<=45 (V3.1: rejection -2.0 + power-law 0.85 inflates base scores)",
+    passed: dm <= 60,
+    desc: "DM<=60 (V3.3: avoidCuisine reduced -2.0→-0.7, inferred weaker than explicit)",
     actual: `DM=${dm}`,
   })
 );
