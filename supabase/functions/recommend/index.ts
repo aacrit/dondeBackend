@@ -600,8 +600,8 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
 
       // V4: Pre-compute preliminary scores for tone modulation using geometric mean
       // These scores are accurate for tier determination (geometric mean is transparent)
-      const prelimScores: number[] = [];
-      const prelimV4Results: V4DondeMatchResult[] = [];
+      let prelimScores: number[] = [];
+      let prelimV4Results: V4DondeMatchResult[] = [];
       for (let i = 0; i < top10.length; i++) {
         const candidate = top10[i];
         const candidateGoogle = candidate.google_place_id
@@ -626,6 +626,39 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
         prelimScores.push(prelimDM);
         prelimV4Results.push(prelimResult);
       }
+      // Post-Google re-rank: ensure top10 ordering reflects final scores (with Google data).
+      // Without this, reRankV4() (which runs without Google data) determines ordering,
+      // but reputation scores can shift significantly once real Google reviews are available.
+      // This prevents score inversions on "Try Another" where a later result scores higher.
+      const sortedIndices = prelimScores
+        .map((score, idx) => ({ idx, score }))
+        .sort((a, b) => b.score - a.score);
+
+      const orderChanged = sortedIndices.some((item, pos) => item.idx !== pos);
+      if (orderChanged) {
+        logInfo("Post-Google re-rank changed ordering", {
+          before: top10.slice(0, 5).map((r, i) => `${r.name}:${prelimScores[i]}`),
+          after: sortedIndices.slice(0, 5).map(s => `${top10[s.idx].name}:${s.score}`),
+        });
+        const reorderedTop10 = sortedIndices.map(s => top10[s.idx]);
+        const reorderedV4Results = sortedIndices.map(s => prelimV4Results[s.idx]);
+        top10 = reorderedTop10;
+        prelimScores = sortedIndices.map(s => s.score);
+        prelimV4Results = reorderedV4Results;
+
+        // Rebuild reviewsByIndex since it uses top10 indices as keys
+        reviewsByIndex.clear();
+        for (let i = 0; i < top10.length; i++) {
+          const pid = top10[i].google_place_id;
+          if (pid && googleByPlaceId.has(pid)) {
+            const gd = googleByPlaceId.get(pid)!;
+            if (gd.reviews.length > 0) {
+              reviewsByIndex.set(i, formatReviewsForPrompt(gd.reviews));
+            }
+          }
+        }
+      }
+
       // Convert V4 factors to V3 format for backward-compatible prompt building
       const prelimFactors: V3Factors[] = prelimV4Results.map(r => ({
         food: r.factors.foodQuality,
