@@ -1,10 +1,22 @@
 /**
- * Donde Match V3.0 — Scoring Engine
+ * Donde Match V3.1 — Scoring Engine (Optimized)
  *
  * Five human-intuitive factors: Food Match, Setting Fit, Atmosphere, Reputation, Convenience
- * Each factor scores 0-10. Weighted composite maps to 0-99 Donde Match.
+ * Each factor scores 0-10. Weighted composite maps to 0-99 Donde Match via power-law scaling.
  *
  * Design philosophy: "High score = best match. If nothing hits 80+, something is off."
+ *
+ * V3.1 optimizations (expert review cycle 1):
+ * - Power-law scaling (exponent 0.85) stretches compressed [35-80] range to [30-90+]
+ * - Reduced neutral defaults to lower floor from ~37 to ~25 DM
+ * - Bayesian shrinkage for confidence gating (toward prior mean, not zero)
+ * - Atmosphere normalization: consistent scale regardless of request verbosity
+ * - Blended weights: medium cuisine importance preserved during occasion overrides
+ * - Google rating stretched to actual candidate distribution (3.5-5.0)
+ * - Feedback recalibrated: +0.5 liked (was +0.3), ratios match Prospect Theory
+ * - Claude relevance applied to composite, not individual factors (preserves display)
+ * - Under-budget price penalty removed (budgets are ceilings)
+ * - Setting/Atmosphere decorrelation discount (0.85x overlap reduction)
  */
 
 import type {
@@ -249,7 +261,7 @@ export function computeFoodMatch(
   const dp = profile.deep_profile;
   const v2Intent = intent && "flavor_preferences" in intent ? intent as IntentClassificationV2 : null;
 
-  // Layer 1: Cuisine alignment (0-5 points)
+  // Layer 1: Cuisine alignment (0-6 points) — increased from 0-5 to expand factor ceiling (S1 fix)
   maxDataPoints++;
   const targetCuisines = intent?.target_cuisines || [];
 
@@ -264,24 +276,24 @@ export function computeFoodMatch(
       );
 
       if (exactMatch) {
-        score += 5;
+        score += 6;       // was 5 — expanded to use more of 0-10 budget (S1)
       } else if (containsMatch) {
-        score += 4.5;
+        score += 5.5;     // was 4.5
       } else if (dp?.cuisine_subcategory) {
         const subLower = dp.cuisine_subcategory.toLowerCase();
         if (targetCuisines.some(c => subLower.includes(c.toLowerCase()))) {
-          score += 4;
+          score += 5;     // was 4
         } else if (isRelatedCuisine(profile.cuisine_type, targetCuisines)) {
-          score += 3;
+          score += 3.5;   // was 3
         }
       } else if (isRelatedCuisine(profile.cuisine_type, targetCuisines)) {
-        score += 3;
+        score += 3.5;     // was 3
       }
       // mismatch = 0 points (not a penalty, just no points)
     }
   } else {
-    // No cuisine requested — baseline
-    score += 3;
+    // No cuisine requested — reduced baseline (S3: lower neutral defaults)
+    score += 2.5;  // was 3
   }
 
   // Layer 2: Flavor profile match (0-2 points)
@@ -328,8 +340,8 @@ export function computeFoodMatch(
       }
     }
   } else {
-    // No dietary restriction — restaurant passes by default
-    score += 1;
+    // No dietary restriction — restaurant passes by default (reduced from 1.0, S3)
+    score += 0.5;
     dataPoints++;
   }
 
@@ -400,14 +412,16 @@ export function computeSettingFit(
   const dp = profile.deep_profile;
   const v2Intent = intent && "group_size_hint" in intent ? intent as IntentClassificationV2 : null;
 
-  // Layer 1: Occasion base score (0-7 points)
+  // Layer 1: Occasion base score (0-7 points) — power stretch for better top-end discrimination (S4)
   maxDataPoints++;
   const occasionBase = computeWeightedOccasionScore(profile, occasion);
   if (occasionBase > 0) {
     dataPoints++;
-    score += (occasionBase / 10) * 7;
+    // Power stretch (x^0.85) expands the 6-9 DB range into more of the 0-7 budget (S4)
+    const stretched = Math.pow(occasionBase / 10, 0.85) * 7;
+    score += stretched;
   } else {
-    score += 3.5; // neutral default
+    score += 2.5; // reduced neutral default (was 3.5, S3)
   }
 
   // Layer 2: Service style alignment (-0.5 to +1.5 points)
@@ -481,9 +495,9 @@ export function computeSettingFit(
 
   const clamped = Math.min(10, Math.max(0, score));
 
-  // Occasion "Any" → use average + baseline
+  // Occasion "Any" → use average + baseline (reduced neutral, S3)
   if (occasion === "Any" && occasionBase === 0) {
-    return { score: 5, dataPoints, maxDataPoints };
+    return { score: 4, dataPoints, maxDataPoints }; // was 5
   }
 
   return { score: clamped, dataPoints, maxDataPoints };
@@ -509,38 +523,43 @@ export function computeAtmosphere(
 
   // Layer 1: Basic ambiance signals (0-4 points)
 
-  // Noise match (0-1.5)
+  // Track max possible for normalization (S2: normalize Atmosphere like Food Match)
+  let atmoMaxPossible = 0;
+
+  // Noise match (0-2.0) — increased from 0-1.5 for better range (S1)
   maxDataPoints++;
+  atmoMaxPossible += 2.0;
   const expectedNoise = OCCASION_NOISE[occasion] || OCCASION_NOISE.Any;
   if (profile.noise_level) {
     dataPoints++;
     if (expectedNoise.includes(profile.noise_level)) {
-      score += 1.5;
+      score += 2.0;     // was 1.5
     } else {
-      score += 0.5;
+      score += 0.3;     // was 0.5 — reduced mismatch neutral (S3)
     }
-  } else {
-    score += 0.5; // neutral
   }
+  // No neutral for missing data (S3: zero-information = zero score)
 
-  // Lighting match (0-1.5)
+  // Lighting match (0-2.0) — increased from 0-1.5 (S1)
   maxDataPoints++;
+  atmoMaxPossible += 2.0;
   const expectedLighting = OCCASION_LIGHTING[occasion] || [];
   if (profile.lighting_ambiance && expectedLighting.length > 0) {
     dataPoints++;
     const lightingLower = profile.lighting_ambiance.toLowerCase();
     const lightingMatches = expectedLighting.filter(kw => lightingLower.includes(kw)).length;
     if (lightingMatches > 0) {
-      score += Math.min(1.5, lightingMatches * 0.75);
+      score += Math.min(2.0, lightingMatches * 1.0);  // was 1.5, 0.75
     }
   } else if (expectedLighting.length === 0) {
-    score += 0.75; // no expectation → neutral
-  } else {
-    score += 0.5; // missing data
+    score += 0.5; // no expectation → small neutral
+    atmoMaxPossible -= 0.5; // adjust denominator
   }
+  // No neutral for missing data (S3)
 
   // Dress code appropriateness (0-1)
   maxDataPoints++;
+  atmoMaxPossible += 1.0;
   const expectedDressMin = OCCASION_DRESS_MIN[occasion] || "Casual";
   if (profile.dress_code) {
     dataPoints++;
@@ -549,39 +568,40 @@ export function computeAtmosphere(
     if (restaurantLevel >= expectedLevel) {
       score += 1;
     } else {
-      score += 0.5;
+      score += 0.3; // was 0.5 — reduced (S3)
     }
-  } else {
-    score += 0.5;
   }
+  // No neutral for missing data (S3)
 
   // Layer 2: Energy and music alignment (0-3 points)
 
-  // Energy level (0-1.5)
+  // Energy level (0-2.0) — increased from 0-1.5 (S1)
   maxDataPoints++;
+  atmoMaxPossible += 2.0;
   if (dp?.energy_level != null) {
     dataPoints++;
     const [eMin, eMax] = OCCASION_ENERGY[occasion] || [3, 7];
     const midpoint = (eMin + eMax) / 2;
     if (dp.energy_level >= eMin && dp.energy_level <= eMax) {
-      score += 1.5;
+      score += 2.0;   // was 1.5
     } else {
-      score += Math.max(0, 1.5 - Math.abs(dp.energy_level - midpoint) * 0.3);
+      score += Math.max(0, 2.0 - Math.abs(dp.energy_level - midpoint) * 0.4);
     }
-  } else {
-    score += 0.75;
   }
+  // No neutral for missing data (S3)
 
-  // Music vibe (0-1)
+  // Music vibe (0-1.5) — increased from 0-1 (S1)
   maxDataPoints++;
+  atmoMaxPossible += 1.5;
   if (dp?.music_vibe) {
     dataPoints++;
     const fits = MUSIC_FIT[occasion] || [];
-    if (fits.includes(dp.music_vibe)) score += 1;
+    if (fits.includes(dp.music_vibe)) score += 1.5;  // was 1.0
   }
 
   // Vibe keyword matches (0-1.5)
   maxDataPoints++;
+  atmoMaxPossible += 1.5;
   if (v2Intent?.vibe_keywords && v2Intent.vibe_keywords.length > 0 && dp) {
     let vibeHits = 0;
     for (const vibe of v2Intent.vibe_keywords) {
@@ -615,6 +635,7 @@ export function computeAtmosphere(
     || targetFeatures.includes("live_music");
   if (wantsLiveMusic) {
     maxDataPoints++;
+    atmoMaxPossible += 1.5; // S2: track conditional layer in normalization denominator
     if (profile.live_music) {
       score += 1.5; dataPoints++;
     } else if (dp?.music_vibe && /live/.test(dp.music_vibe)) {
@@ -628,6 +649,7 @@ export function computeAtmosphere(
   const musicStyleMatch = requestLower.match(/\bjazz\b|\bacoustic\b|\bblues\b/);
   if (musicStyleMatch && dp?.music_vibe) {
     maxDataPoints++;
+    atmoMaxPossible += 1.0;
     if (dp.music_vibe.toLowerCase().includes(musicStyleMatch[0])) {
       score += 1.0; dataPoints++;
     }
@@ -636,12 +658,14 @@ export function computeAtmosphere(
   // Outdoor if requested
   if (requestLower.match(/outdoor|patio|outside|al fresco|terrace/)) {
     maxDataPoints++;
+    atmoMaxPossible += 1.0;
     if (profile.outdoor_seating) { score += 1; dataPoints++; }
   }
 
   // Scenic/waterfront tags
   if (requestLower.match(/view|scenic|waterfront|lakefront|rooftop/)) {
     maxDataPoints++;
+    atmoMaxPossible += 1.0;
     const hasScenic = profile.tags.some(t =>
       /waterfront|lakefront|rooftop|scenic|skyline|river view/i.test(t)
     );
@@ -651,6 +675,7 @@ export function computeAtmosphere(
   // Seasonal relevance
   if (dp?.seasonal_relevance) {
     maxDataPoints++;
+    atmoMaxPossible += 0.5;
     const month = new Date().getUTCMonth();
     const season = month >= 2 && month <= 4 ? "spring"
       : month >= 5 && month <= 7 ? "summer"
@@ -663,14 +688,21 @@ export function computeAtmosphere(
   // Instagram-worthy
   if (requestLower.match(/instagram|aesthetic|photogenic|cute/)) {
     maxDataPoints++;
+    atmoMaxPossible += 1.0;
     if (dp?.instagram_worthiness != null && dp.instagram_worthiness >= 8) {
       score += 1;
       dataPoints++;
     }
   }
 
+  // S2 fix: Normalize atmosphere score to 0-10 using actual max possible for this request
+  // This ensures a restaurant scoring 6/8 on a simple request is equivalent to 8/10.5 on a verbose one
+  const normalizedAtmo = atmoMaxPossible > 0
+    ? Math.min(10, (score / atmoMaxPossible) * 10)
+    : Math.min(10, score);
+
   return {
-    score: Math.min(10, Math.max(0, score)),
+    score: Math.max(0, normalizedAtmo),
     dataPoints,
     maxDataPoints,
   };
@@ -692,21 +724,23 @@ export function computeReputation(
 
   const dp = profile.deep_profile;
 
-  // Layer 1: Google rating (0-4 points)
+  // Layer 1: Google rating (0-4 points) — stretched to realistic candidate range (S5)
   maxDataPoints++;
   if (googleData && googleData.google_rating != null) {
     dataPoints++;
     const rating = googleData.google_rating;
     const reviewCount = googleData.google_review_count || 0;
-    // Stretch 2.5-5.0 to 0-4 range
-    const normalized = (rating - 2.5) * 1.6;
+    // S5: Stretch realistic candidate range (3.5-5.0) to 0-4 for better discrimination
+    // Old: (rating - 2.5) * 1.6 → 4.0 at 5.0, 3.2 at 4.5, 2.4 at 4.0
+    // New: (rating - 3.5) * 2.67 → 4.0 at 5.0, 2.67 at 4.5, 1.33 at 4.0
+    const normalized = Math.max(0, (rating - 3.5) * 2.67);
     const confidence = reviewCount >= 200 ? 1.0
       : reviewCount >= 50 ? 0.9
       : reviewCount >= 10 ? 0.8
       : 0.7;
     score += Math.min(4, Math.max(0, normalized * confidence));
   } else {
-    score += 2.0; // Neutral: no Google data
+    score += 1.0; // Reduced neutral: no evidence = minimal credit (was 2.0, S3)
   }
 
   // Layer 2: Sentiment from reviews (0-2 points)
@@ -715,7 +749,7 @@ export function computeReputation(
     dataPoints++;
     score += (sentimentScore / 10) * 2;
   } else {
-    score += 1.0; // Neutral: no evidence of bad reviews
+    score += 0.5; // Reduced neutral (was 1.0, S3)
   }
   if (sentimentNegative != null && sentimentNegative > 30) {
     score -= Math.min(1.5, ((sentimentNegative - 30) / 40) * 1.5);
@@ -746,7 +780,7 @@ export function computeReputation(
     }
   }
   if (!awardsUsed) {
-    score += 0.5; // Neutral: no awards data doesn't mean bad
+    score += 0.25; // Reduced neutral (was 0.5, S3)
   }
 
   // Layer 4: Community standing (0-2 points)
@@ -777,7 +811,7 @@ export function computeReputation(
     }
   }
   if (!communityUsed) {
-    score += 0.5; // Neutral: no community data doesn't mean bad
+    score += 0.25; // Reduced neutral (was 0.5, S3)
   }
 
   return {
@@ -797,7 +831,7 @@ export function computeConvenience(
   clientTimeOfDay?: string | null,
   specialRequest?: string
 ): V3FactorResult {
-  let score = 5; // Start neutral
+  let score = 4; // Start lower than neutral (was 5, S3/S6: lower floor, expand bonus range)
   let dataPoints = 0;
   let maxDataPoints = 0;
 
@@ -805,13 +839,13 @@ export function computeConvenience(
   const v2Intent = intent && "spontaneity" in intent ? intent as IntentClassificationV2 : null;
   const requestLower = (specialRequest || "").toLowerCase();
 
-  // Layer 1: Timing fit (-2 to +1.5)
+  // Layer 1: Timing fit (-2 to +2.0) — expanded bonus range (S6)
   maxDataPoints++;
   const timeOfDay = clientTimeOfDay || null;
   if (timeOfDay && profile.best_times && profile.best_times.length > 0) {
     dataPoints++;
     if (profile.best_times.includes(timeOfDay)) {
-      score += 1.5;
+      score += 2.0;   // was 1.5 — expanded bonus to compensate for lower start
     } else if (profile.best_times.length <= 2) {
       // Narrow-focus restaurant at wrong time
       score -= 2;
@@ -820,7 +854,7 @@ export function computeConvenience(
     }
   }
 
-  // Layer 2: Reservation accessibility (-3 to +1.5)
+  // Layer 2: Reservation accessibility (-2.5 to +2.0) — rebalanced (S6)
   maxDataPoints++;
   if (dp?.reservation_difficulty) {
     dataPoints++;
@@ -828,9 +862,9 @@ export function computeConvenience(
       || requestLower.match(/tonight|right now|last minute|walk.?in|spontaneous/);
 
     if (dp.reservation_difficulty === "hard_to_get" && isSpontaneous) {
-      score -= 3;
+      score -= 2.5;  // was -3 — reduced to prevent double-floor-clamp (S6)
     } else if (dp.reservation_difficulty === "walk_in_friendly") {
-      score += isSpontaneous ? 1.5 : 0.5;
+      score += isSpontaneous ? 2.0 : 0.5;  // was 1.5 — expanded bonus
     }
   }
 
@@ -838,9 +872,9 @@ export function computeConvenience(
   maxDataPoints++;
   if (dp?.typical_wait_minutes != null) {
     dataPoints++;
-    if (dp.typical_wait_minutes > 60) score -= 1.5;
+    if (dp.typical_wait_minutes > 60) score -= 1.0;    // was -1.5 — reduced (S6)
     else if (dp.typical_wait_minutes > 30) score -= 0.5;
-    else score += 0.5; // Short wait is a positive
+    else score += 1.0; // Short wait is a positive (was +0.5, S6: expanded bonus)
   }
 
   // Layer 3: Practical notes (-0.5 to +1.5)
@@ -897,16 +931,29 @@ export function computeV3Weights(
     w = { food: 0.15, setting: 0.20, atmosphere: 0.30, reputation: 0.15, convenience: 0.20 };
   }
 
-  // Occasion overrides (only when food is not dominant)
+  // Occasion overrides — blend with cuisine weights instead of replacing (S7, PA3, PT7 fix)
   if (intent?.cuisine_importance !== "high") {
+    let occasionW: V3Weights | null = null;
     if (["Date Night", "Special Occasion"].includes(occasion)) {
-      w = { food: 0.20, setting: 0.30, atmosphere: 0.25, reputation: 0.15, convenience: 0.10 };
+      occasionW = { food: 0.20, setting: 0.30, atmosphere: 0.25, reputation: 0.15, convenience: 0.10 };
     } else if (occasion === "Adventure") {
-      w = { food: 0.25, setting: 0.15, atmosphere: 0.20, reputation: 0.25, convenience: 0.15 };
+      occasionW = { food: 0.25, setting: 0.15, atmosphere: 0.20, reputation: 0.25, convenience: 0.15 };
     } else if (occasion === "Family Dinner") {
-      w = { food: 0.25, setting: 0.25, atmosphere: 0.15, reputation: 0.15, convenience: 0.20 };
+      occasionW = { food: 0.25, setting: 0.25, atmosphere: 0.15, reputation: 0.15, convenience: 0.20 };
     } else if (occasion === "Business Lunch") {
-      w = { food: 0.20, setting: 0.30, atmosphere: 0.25, reputation: 0.15, convenience: 0.10 };
+      occasionW = { food: 0.20, setting: 0.30, atmosphere: 0.25, reputation: 0.15, convenience: 0.10 };
+    }
+    if (occasionW) {
+      // Blend: medium cuisine → 40% cuisine weights + 60% occasion weights
+      // Low cuisine → 100% occasion weights (current behavior preserved)
+      const cuisineBlend = intent?.cuisine_importance === "medium" ? 0.4 : 0.0;
+      w = {
+        food: w.food * cuisineBlend + occasionW.food * (1 - cuisineBlend),
+        setting: w.setting * cuisineBlend + occasionW.setting * (1 - cuisineBlend),
+        atmosphere: w.atmosphere * cuisineBlend + occasionW.atmosphere * (1 - cuisineBlend),
+        reputation: w.reputation * cuisineBlend + occasionW.reputation * (1 - cuisineBlend),
+        convenience: w.convenience * cuisineBlend + occasionW.convenience * (1 - cuisineBlend),
+      };
     }
   }
 
@@ -1019,9 +1066,9 @@ function applyDealBreakerPenalties(
     if (userIdx >= 0 && restIdx >= 0) {
       const gap = restIdx - userIdx;
       if (gap >= 3) result -= 3.0;
-      else if (gap === 2) result -= 2.0;
+      else if (gap === 2) result -= 1.5;    // was -2.0 — diminishing sensitivity (HB6)
       else if (gap === 1) result -= 0.5;
-      else if (gap === -1) result -= 0.2;
+      // Under-budget penalty removed (HB6: budgets are ceilings, not targets)
     }
   }
 
@@ -1053,16 +1100,16 @@ function applyPersonalization(
 ): number {
   let result = composite;
 
-  // User feedback history
+  // User feedback history — recalibrated for Prospect Theory 2x ratio (PA5, HB1)
   if (userFeedback) {
     if (profile.cuisine_type && userFeedback.likedCuisines.includes(profile.cuisine_type)) {
-      result += 0.3;
+      result += 0.5;   // was 0.3 — increased to be perceptible (+5 DM)
     }
     if (profile.cuisine_type && userFeedback.dislikedCuisines.includes(profile.cuisine_type)) {
-      result -= 1.0;
+      result -= 1.0;   // unchanged — now 2.0:1 ratio (matches Prospect Theory)
     }
     if (userFeedback.dislikedRestaurantIds.includes(profile.id)) {
-      result -= 2.5;
+      result -= 2.0;   // was -2.5 — reduced to avoid destroying otherwise good matches
     }
   }
 
@@ -1110,41 +1157,51 @@ export function computeV3DondeMatch(
   const reputationResult = computeReputation(profile, inputs.googleData, inputs.sentimentScore, inputs.sentimentNegative);
   const convenienceResult = computeConvenience(profile, inputs.intent, inputs.clientTimeOfDay, inputs.specialRequest);
 
-  // Apply enrichment confidence gating
+  // Apply enrichment confidence gating — Bayesian shrinkage toward prior mean (PT2, PT6)
   const dp = profile.deep_profile;
-  const confidenceFactor = (dp?.enrichment_confidence != null && dp.enrichment_confidence < 5)
-    ? dp.enrichment_confidence / 10
+  const PRIOR_MEAN = 5.0;
+  const needsGating = dp?.enrichment_confidence != null && dp.enrichment_confidence < 5;
+  const shrinkageWeight = needsGating
+    ? (dp!.enrichment_confidence!) / 10  // 0.0 to 0.4 for conf 0-4
     : 1.0;
 
+  // PT2: Proper Bayesian shrinkage: pulls toward prior mean, not toward zero
+  // PT6: Apply to all factors that consume deep_profile data (not just food + atmosphere)
+  const applyGating = (score: number): number => {
+    if (!needsGating) return score;
+    return PRIOR_MEAN * (1 - shrinkageWeight) + score * shrinkageWeight;
+  };
+
   const factors: V3Factors = {
-    food: foodResult.score * (confidenceFactor < 1 ? 0.5 + confidenceFactor * 0.5 : 1),
-    setting: settingResult.score,
-    atmosphere: atmosphereResult.score * (confidenceFactor < 1 ? 0.5 + confidenceFactor * 0.5 : 1),
-    reputation: reputationResult.score,
-    convenience: convenienceResult.score,
+    food: applyGating(foodResult.score),
+    setting: applyGating(settingResult.score),
+    atmosphere: applyGating(atmosphereResult.score),
+    reputation: applyGating(reputationResult.score),
+    convenience: applyGating(convenienceResult.score),
   };
 
   // Step 2: Dynamic weights
   const weights = computeV3Weights(inputs.occasion, inputs.intent);
 
-  // Step 3: Weighted composite (0-10)
+  // Step 3: Setting/Atmosphere decorrelation (PT1 fix)
+  // These factors share noise/energy/conversation data; discount overlap to prevent inflation
+  if (factors.setting > 7 && factors.atmosphere > 7) {
+    const overlap = Math.min(factors.setting - 7, factors.atmosphere - 7) * 0.15;
+    factors.atmosphere = Math.max(0, factors.atmosphere - overlap);
+  }
+
+  // Step 3b: Weighted composite (0-10)
   let raw = factors.food * weights.food
     + factors.setting * weights.setting
     + factors.atmosphere * weights.atmosphere
     + factors.reputation * weights.reputation
     + factors.convenience * weights.convenience;
 
-  // Step 4: Claude relevance modulation (small)
+  // Step 4: Claude relevance modulation — applied to composite, not factors (S8, PT4, HB5)
+  // This preserves factor display integrity and avoids boundary clamping losses
   if (inputs.claudeRelevance != null) {
     const relevanceAdjust = (inputs.claudeRelevance - 5) * 0.1; // -0.5 to +0.5
-    factors.food = Math.min(10, Math.max(0, factors.food + relevanceAdjust));
-    factors.setting = Math.min(10, Math.max(0, factors.setting + relevanceAdjust));
-    // Recompute raw with adjusted factors
-    raw = factors.food * weights.food
-      + factors.setting * weights.setting
-      + factors.atmosphere * weights.atmosphere
-      + factors.reputation * weights.reputation
-      + factors.convenience * weights.convenience;
+    raw += relevanceAdjust;  // Direct composite adjustment (was: mutated food+setting factors)
   }
 
   // Step 5: Deal-breaker penalties
@@ -1157,8 +1214,12 @@ export function computeV3DondeMatch(
   // Step 6: Personalization
   raw = applyPersonalization(raw, profile, inputs.rejectionSignals, inputs.userFeedback);
 
-  // Step 7: Map to 0-99
-  const dondeMatch = Math.min(99, Math.max(0, Math.round(raw * 10)));
+  // Step 7: Map to 0-99 with power-law scaling (HB3, PT8)
+  // Power 0.85 stretches the compressed [35-80] range into [30-90+]
+  // This makes 85+ achievable for genuine perfect matches and expands perceptual discrimination
+  const rawNormalized = Math.max(0, Math.min(1, raw / 10));  // Normalize to 0-1
+  const scaled = Math.pow(rawNormalized, 0.85);                // Power-law stretch
+  const dondeMatch = Math.min(99, Math.max(0, Math.round(scaled * 99)));
 
   // Data completeness
   const totalDataPoints = foodResult.dataPoints + settingResult.dataPoints

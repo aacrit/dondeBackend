@@ -790,8 +790,8 @@ runTest(
     intent: buildMockIntent(),
   },
   (dm, f) => ({
-    passed: f.reputation >= 3 && f.reputation <= 7,
-    desc: "Reputation 3-7 (neutral defaults)",
+    passed: f.reputation >= 1.5 && f.reputation <= 7,
+    desc: "Reputation 1.5-7 (V3.1: reduced neutrals — no-google 1.0 + no-sentiment 0.5 + lower community defaults)",
     actual: `Reputation=${f.reputation.toFixed(1)}, DM=${dm}`,
   })
 );
@@ -1401,11 +1401,11 @@ runTest(
     intent: buildMockIntent({ target_cuisines: ["Japanese"], cuisine_importance: "high" }),
   },
   (dm, f) => {
-    // confidence=3 < 5 → confidenceFactor=0.3, dampened=0.5+0.3*0.5=0.65
-    // Food and Atmosphere are dampened by 0.65x
+    // V3.1: Bayesian shrinkage toward prior 5.0 — conf=3 → shrinkageWeight=0.6
+    // Factors pulled toward 5.0 instead of crushed toward 0 — higher DM than old multiplicative dampening
     return {
-      passed: dm <= 55,
-      desc: "DM<=55 (low confidence dampens food + atmosphere)",
+      passed: dm <= 65,
+      desc: "DM<=65 (Bayesian shrinkage conf=3: factors regress toward prior 5.0)",
       actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
     };
   }
@@ -1452,10 +1452,11 @@ runTest(
     intent: buildMockIntent({ target_cuisines: ["Japanese"], cuisine_importance: "high" }),
   },
   (dm, f) => {
-    // confidence=1 → confidenceFactor=0.1, dampened=0.5+0.1*0.5=0.55
+    // V3.1: Bayesian shrinkage — conf=1 → shrinkageWeight=0.2
+    // Heavy regression toward prior 5.0, but not crushed to near-0 like old model
     return {
-      passed: dm <= 50,
-      desc: "DM<=50 (very low confidence)",
+      passed: dm <= 65,
+      desc: "DM<=65 (Bayesian shrinkage conf=1: heavy regression toward prior 5.0)",
       actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
     };
   }
@@ -1570,8 +1571,8 @@ runTest(
     rejectionSignals: { avoidCuisines: ["Thai"], avoidPriceLevels: [], avoidRestaurantIds: [] },
   },
   (dm) => ({
-    passed: dm <= 35,
-    desc: "DM<=35 (rejection signal -2.0 on cuisine)",
+    passed: dm <= 45,
+    desc: "DM<=45 (V3.1: rejection -2.0 + power-law 0.85 inflates base scores)",
     actual: `DM=${dm}`,
   })
 );
@@ -1594,8 +1595,8 @@ runTest(
     intent: buildMockIntent(),
   },
   (dm) => ({
-    passed: dm <= 40,
-    desc: "DM<=40 (2-tier price gap -2.0 subtractive penalty)",
+    passed: dm <= 50,
+    desc: "DM<=50 (V3.1: 2-tier price gap -1.5 + power-law 0.85 scaling)",
     actual: `DM=${dm}`,
   })
 );
@@ -1732,8 +1733,8 @@ runTest(
     intent: buildMockIntent({ cuisine_importance: "low", emotional_intent: "explore" }),
   },
   (dm, f) => ({
-    passed: f.reputation >= 4,
-    desc: "Rep>=4 (hidden_local + cultural auth + explore boost)",
+    passed: f.reputation >= 3,
+    desc: "Rep>=3 (V3.1: reduced neutrals — hidden_local + cultural auth + explore boost)",
     actual: `Rep=${f.reputation.toFixed(1)}, Atmo=${f.atmosphere.toFixed(1)}, DM=${dm}`,
   })
 );
