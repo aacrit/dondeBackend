@@ -2431,7 +2431,7 @@ Structure:
 OUTPUT FORMAT, respond ONLY in this exact JSON (no markdown, no backticks):
 {
   "restaurant_index": 0,
-  "recommendation": "50-80 word paragraph. Concise, grounded, opinionated. One sensory detail. One honest caveat. One sentence under 6 words.",
+  "recommendation": "60-100 word paragraph. Grounded, opinionated, score-aware. One sensory detail. One honest caveat. One sentence under 6 words. If weight shifts apply (e.g., vibe weighted higher for date night), mention it naturally.",
   "insider_tip": "One practical, grounded sentence. Under 20 words. See rules below.",
   "relevance_score": 8.5,
   "sentiment_score": 7.5,
@@ -2494,7 +2494,7 @@ SCORING:
 - sentiment_breakdown: Format EXACTLY as "X% positive, Y% neutral, Z% negative" (e.g. "80% positive, 10% neutral, 10% negative"). null if no reviews.
 - sentiment_summary: 1-2 sentences on what diners love and any common complaints from the provided reviews. null if no reviews.
 
-FINAL CHECK: Raw JSON only. 50-80 words. Zero em dashes. Zero semicolons. One sensory food detail. One honest caveat. Every fact from candidate data. Sound like a friend, not a bot.`;
+FINAL CHECK: Raw JSON only. 60-100 words. Zero em dashes. Zero semicolons. One sensory food detail. One honest caveat. Every fact from candidate data. Sound like a friend, not a bot.`;
 }
 
 // V3 Voice modulation, shifts personality based on occasion and restaurant character
@@ -2553,29 +2553,38 @@ DO: Be specific. Lead with the strongest detail. Use "we" naturally.
 DON'T: Sound generic. Don't hedge. If you're recommending it, own it.`;
 }
 
-// V3.5: Score-aware tone modulation — aligns blurb confidence with Donde Match score
+// V4: Score-aware tone modulation — calibrated for geometric mean distribution
+// Geometric mean produces tighter, more intuitive score ranges than V3's power-law
 // Synthesized from expert reviews: Copywriter (CW), UX Writer (UX), Behavioral Psychologist (BP), Food Critic (FC)
 export function getScoreToneDirective(): string {
-  return `TONE MODULATION (match score-aware):
-Each candidate below includes a preliminary Donde Match (DM) score. When writing your recommendation, calibrate your tone to match the DM of the restaurant you pick:
+  return `TONE MODULATION (V4, match score-aware):
+Each candidate below includes a preliminary Donde Match (DM) score computed via geometric mean. The five factors are Food Quality, Vibe, Service, Reputation, Convenience. Dynamic weights shift based on the user's intent (e.g., Vibe weighted higher for date night). Calibrate your tone to the DM:
 
-HIGH MATCH (DM 80+):
+OUTSTANDING (DM 85+):
 - Full confidence. Declarative, direct. "This is the one." "Order the whole fish."
 - Lead with specific, verifiable detail: the dish, the technique, the ingredient. Let specificity carry the confidence, not adjectives.
+- If a dynamic weight shift contributed to the high score, reference it naturally: "We put extra weight on vibe for your date night, and this place delivers."
 - Caveat goes LAST, as a minor qualifier the reader barely worries about. "The wait can test you on weekends, but that first bite makes you forget."
 - Insider tip: Absolute authority. Commands without softening. "Ask for the off-menu aguachile."
 
-MID MATCH (DM 55-79):
+EXCELLENT (DM 70-84):
+- Confident but acknowledge the one or two factors that aren't perfect.
 - Open with what genuinely works, then name an honest trade-off, then close on a strength tied to what the user asked for.
 - Be specific about the restaurant's real excellence: "Come for the handmade pasta. The rest of the menu is more variable."
 - Never apologize for the recommendation. Frame trade-offs as useful context, not confessions. "The room gets loud, which matters less when the short rib shows up."
 - Insider tip: Navigational and practical. "Go on a weeknight. The kitchen runs better with a smaller room."
 
-LOW MATCH (DM below 55):
-- Lead with the strongest genuine positive. One specific thing the restaurant does well.
-- Name the gap briefly and neutrally in a short clause: "Not the ramen you described, but..." then pivot hard to the genuine appeal with a vivid sensory detail.
-- End with something actionable: a specific dish to order, a time to go.
+SOLID PICK (DM 55-69):
+- Measured and honest. Highlight the 1-2 factors that score well, acknowledge the gaps.
+- "The food carries this one, though service can be uneven on busy nights."
+- If the user's query emphasis doesn't align with the restaurant's strengths, note it: "Not the lively vibe you described, but the food makes up for a quieter room."
 - Insider tip: Strategic. "Order the dumplings and skip the rest. That is where the kitchen's attention lives."
+
+WORTH A TRY (DM below 55):
+- Lead with the strongest genuine positive. One specific thing the restaurant does well.
+- Name the gap briefly and neutrally: "Not the ramen you described, but..." then pivot to the genuine appeal.
+- End with something actionable: a specific dish to order, a time to go.
+- Insider tip: Honest navigation. "The lunch special is the best value. Skip the dinner menu."
 
 ACROSS ALL TIERS: The reader should be able to cover the score and correctly guess the tier from your tone alone. Never oversell a low match or undersell a high one. Specificity is how you reconcile honesty with confidence at every tier.`;
 }
@@ -2612,9 +2621,9 @@ export function buildUserPrompt(
 
       // V3.5: Include preliminary Donde Match score for tone calibration
       const dmTag = prelimScores && prelimScores[i] != null ? ` | DM:${prelimScores[i]}` : '';
-      // V3.6: Include factor scores so Claude can emphasize strengths and acknowledge trade-offs
+      // V4: Include factor scores (V4 names) so Claude can emphasize strengths and acknowledge trade-offs
       const f = prelimFactors?.[i];
-      const factorTag = f ? ` | F:${f.food.toFixed(1)}/${f.setting.toFixed(1)}/${f.atmosphere.toFixed(1)}/${f.reputation.toFixed(1)}/${f.convenience.toFixed(1)}` : '';
+      const factorTag = f ? ` | FQ:${f.food.toFixed(1)}/VB:${f.setting.toFixed(1)}/SV:${f.atmosphere.toFixed(1)}/RP:${f.reputation.toFixed(1)}/CV:${f.convenience.toFixed(1)}` : '';
       let entry = `${i}. ${d.name} | ${d.neighborhood_name} | ${d.cuisine_type || "N/A"} | ${d.price_level} | ${occasion}:${occasionScore.toFixed(1)}/10${trending} | ${d.noise_level || "?"} noise, ${d.lighting_ambiance || "?"} | ${d.dress_code || "?"} | ${features}${dietary ? " | Diet:" + dietary : ""} | "${d.best_for_oneliner || "N/A"}" | Tags: ${d.tags.length > 0 ? d.tags.join(", ") : "none"}${dmTag}${factorTag}`;
 
       // V2: Append deep profile context (compact format to save tokens)

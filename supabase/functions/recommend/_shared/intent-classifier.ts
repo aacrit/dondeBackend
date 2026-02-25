@@ -1,11 +1,12 @@
 /**
- * Claude-powered intent pre-classification (V2).
+ * Claude-powered intent pre-classification (V2 → V4).
  *
  * Runs BEFORE the RPC query to understand what the user is really asking for.
  * V2 adds: flavor preferences, vibe keywords, practical constraints, emotional intent,
  * date type, group size hint, and spontaneity detection.
+ * V4 adds: per-signal confidence scoring for dynamic weight modulation.
  *
- * Cost: ~150 input tokens (cached system prompt) + ~100 output tokens per request.
+ * Cost: ~150 input tokens (cached system prompt) + ~120 output tokens per request.
  * Latency: ~200-400ms (runs in parallel with initial RPC call).
  */
 
@@ -18,6 +19,15 @@ export interface IntentClassification {
   cuisine_importance: "high" | "medium" | "low";
 }
 
+/** V4: Per-signal confidence levels for weight modulation */
+export interface IntentConfidence {
+  cuisine: "high" | "medium" | "low";
+  vibe: "high" | "medium" | "low";
+  occasion: "high" | "medium" | "low";
+  constraints: "high" | "medium" | "low";
+  overall: "high" | "medium" | "low";
+}
+
 /** V2 extended intent with nuanced signals for multi-dimensional ranking */
 export interface IntentClassificationV2 extends IntentClassification {
   flavor_preferences: string[];
@@ -27,6 +37,8 @@ export interface IntentClassificationV2 extends IntentClassification {
   date_type: string | null;
   group_size_hint: string | null;
   spontaneity: "planned" | "spontaneous" | "unknown";
+  /** V4: Per-signal confidence levels */
+  confidence?: IntentConfidence;
 }
 
 const INTENT_SYSTEM_PROMPT_V2 = `You classify restaurant search intent for a Chicago dining recommendation app. Given a user's request, extract structured search criteria.
@@ -52,8 +64,16 @@ Rules:
 - group_size_hint: "solo", "couple", "small_group" (3-5), "large_group" (6+), null
 - spontaneity: "spontaneous" if mentions tonight/now/walk-in/last-minute, "planned" if mentions reservation/book/next week, "unknown" otherwise
 
+Confidence scoring (V4):
+- For each signal category, assess confidence: "high" = explicitly stated, "medium" = implied from context, "low" = no signal or very vague
+- confidence.cuisine: "high" if specific food/cuisine named, "medium" if food style implied, "low" if no food signal
+- confidence.vibe: "high" if vibe words used, "medium" if occasion implies vibe, "low" if no vibe signal
+- confidence.occasion: "high" if occasion context clear, "medium" if implied, "low" if ambiguous
+- confidence.constraints: "high" if specific constraints named, "medium" if implied, "low" if none
+- confidence.overall: "high" if request is detailed (5+ words, clear intent), "medium" if moderate (3-4 words), "low" if vague (1-2 words)
+
 Respond ONLY in JSON (no markdown, no explanation):
-{"target_cuisines":[],"target_tags":[],"target_features":[],"cuisine_importance":"low","flavor_preferences":[],"vibe_keywords":[],"practical_constraints":[],"emotional_intent":"casual","date_type":null,"group_size_hint":null,"spontaneity":"unknown"}`;
+{"target_cuisines":[],"target_tags":[],"target_features":[],"cuisine_importance":"low","flavor_preferences":[],"vibe_keywords":[],"practical_constraints":[],"emotional_intent":"casual","date_type":null,"group_size_hint":null,"spontaneity":"unknown","confidence":{"cuisine":"low","vibe":"low","occasion":"low","constraints":"low","overall":"low"}}`;
 
 export async function classifyIntent(
   specialRequest: string
@@ -64,7 +84,7 @@ export async function classifyIntent(
     const response = await callClaude(
       `Classify: "${specialRequest}"`,
       INTENT_SYSTEM_PROMPT_V2,
-      { maxTokens: 250, temperature: 0.1 }
+      { maxTokens: 300, temperature: 0.1 }
     );
     const parsed = parseClaudeJson<IntentClassificationV2>(response);
 
@@ -87,6 +107,25 @@ export async function classifyIntent(
     if (parsed.group_size_hint && typeof parsed.group_size_hint !== "string") parsed.group_size_hint = null;
     if (!["planned", "spontaneous", "unknown"].includes(parsed.spontaneity)) {
       parsed.spontaneity = "unknown";
+    }
+
+    // V4: Validate confidence field
+    const validConfLevels = ["high", "medium", "low"];
+    if (parsed.confidence && typeof parsed.confidence === "object") {
+      if (!validConfLevels.includes(parsed.confidence.cuisine)) parsed.confidence.cuisine = "low";
+      if (!validConfLevels.includes(parsed.confidence.vibe)) parsed.confidence.vibe = "low";
+      if (!validConfLevels.includes(parsed.confidence.occasion)) parsed.confidence.occasion = "low";
+      if (!validConfLevels.includes(parsed.confidence.constraints)) parsed.confidence.constraints = "low";
+      if (!validConfLevels.includes(parsed.confidence.overall)) parsed.confidence.overall = "low";
+    } else {
+      // Fallback: infer confidence from signal presence
+      parsed.confidence = {
+        cuisine: parsed.target_cuisines.length > 0 ? (parsed.cuisine_importance === "high" ? "high" : "medium") : "low",
+        vibe: parsed.vibe_keywords.length > 0 ? "high" : (parsed.target_tags.length > 0 ? "medium" : "low"),
+        occasion: parsed.emotional_intent !== "casual" || parsed.date_type ? "high" : (parsed.group_size_hint ? "medium" : "low"),
+        constraints: parsed.practical_constraints.length > 0 ? "high" : (parsed.spontaneity !== "unknown" ? "medium" : "low"),
+        overall: specialRequest.trim().split(/\s+/).length >= 5 ? "high" : (specialRequest.trim().split(/\s+/).length >= 3 ? "medium" : "low"),
+      };
     }
 
     return parsed;

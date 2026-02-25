@@ -145,7 +145,7 @@ export interface DimensionWeights {
   discovery: number;
 }
 
-/** V3 five-factor scoring breakdown */
+/** V3 five-factor scoring breakdown (legacy, kept for transition) */
 export interface V3Factors {
   food: number;       // 0-10
   setting: number;    // 0-10
@@ -154,7 +154,7 @@ export interface V3Factors {
   convenience: number; // 0-10
 }
 
-/** V3 dynamic weights (sum to 1.0) */
+/** V3 dynamic weights (sum to 1.0) (legacy, kept for transition) */
 export interface V3Weights {
   food: number;
   setting: number;
@@ -163,7 +163,7 @@ export interface V3Weights {
   convenience: number;
 }
 
-/** V3 scoring breakdown for API response */
+/** V3 scoring breakdown for API response (legacy, kept for transition) */
 export interface V3ScoringBreakdown {
   food_match: number;
   setting_fit: number;
@@ -172,6 +172,70 @@ export interface V3ScoringBreakdown {
   convenience: number;
   weights_used: V3Weights;
   data_completeness: number;
+}
+
+// ==========================================
+// V4 TYPES — Dynamic-Weight Geometric Mean
+// ==========================================
+
+/** V4 five-factor scoring: renamed from V3 for clarity */
+export interface V4Factors {
+  foodQuality: number;   // 0-10 (was: food)
+  vibe: number;          // 0-10 (was: atmosphere)
+  service: number;       // 0-10 (was: setting)
+  reputation: number;    // 0-10 (unchanged)
+  convenience: number;   // 0-10 (unchanged)
+}
+
+/** V4 dynamic weights (sum to 1.0) */
+export interface V4Weights {
+  foodQuality: number;
+  vibe: number;
+  service: number;
+  reputation: number;
+  convenience: number;
+}
+
+/** Confidence level per factor — drives Bayesian regression toward 5.5 */
+export type ConfidenceLevel = "high" | "medium" | "low";
+
+/** V4 confidence per factor */
+export interface V4FactorConfidence {
+  foodQuality: ConfidenceLevel;
+  vibe: ConfidenceLevel;
+  service: ConfidenceLevel;
+  reputation: ConfidenceLevel;
+  convenience: ConfidenceLevel;
+}
+
+/** V4 sub-component detail (same shape as V3, reused) */
+export interface V4SubComponent {
+  score: number;      // actual points earned
+  max: number;        // maximum possible points for this layer
+  signal: string;     // brief human-readable explanation
+}
+
+/** V4 factor result with sub-components and confidence */
+export interface V4FactorResult {
+  score: number;           // 0-10 raw score
+  confidence: ConfidenceLevel;
+  dataPoints: number;
+  maxDataPoints: number;
+  details?: Record<string, V4SubComponent>;
+}
+
+/** V4 scoring breakdown for API response */
+export interface V4ScoringBreakdown {
+  food_quality: number;
+  vibe: number;
+  service: number;
+  reputation: number;
+  convenience: number;
+  weights_used: V4Weights;
+  weight_shift_reasons: string[];
+  confidence: V4FactorConfidence;
+  data_completeness: number;
+  factor_details?: Record<string, Record<string, V4SubComponent>>;
 }
 
 export interface ClaudeRecommendation {
