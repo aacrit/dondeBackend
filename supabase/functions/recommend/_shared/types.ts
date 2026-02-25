@@ -145,6 +145,35 @@ export interface DimensionWeights {
   discovery: number;
 }
 
+/** V3 five-factor scoring breakdown */
+export interface V3Factors {
+  food: number;       // 0-10
+  setting: number;    // 0-10
+  atmosphere: number; // 0-10
+  reputation: number; // 0-10
+  convenience: number; // 0-10
+}
+
+/** V3 dynamic weights (sum to 1.0) */
+export interface V3Weights {
+  food: number;
+  setting: number;
+  atmosphere: number;
+  reputation: number;
+  convenience: number;
+}
+
+/** V3 scoring breakdown for API response */
+export interface V3ScoringBreakdown {
+  food_match: number;
+  setting_fit: number;
+  atmosphere: number;
+  reputation: number;
+  convenience: number;
+  weights_used: V3Weights;
+  data_completeness: number;
+}
+
 export interface ClaudeRecommendation {
   restaurant_index: number;
   recommendation: string;
