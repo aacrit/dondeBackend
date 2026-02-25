@@ -1,5 +1,6 @@
-import type { RestaurantProfile, ClaudeRecommendation, ScoringDimensions, DimensionWeights, V3Factors, V3Weights } from "./types.ts";
+import type { RestaurantProfile, ClaudeRecommendation, ScoringDimensions, DimensionWeights, V3Factors, V3Weights, V4SubComponent } from "./types.ts";
 import type { V3SubComponent } from "./scoring-v3.ts";
+import type { V4DondeMatchResult } from "./scoring-v4.ts";
 import type { GooglePlaceData } from "./google-places.ts";
 
 /** Build deep_context from deep profile (V2 optional response field) */
@@ -59,7 +60,7 @@ function buildScoringV2(
   };
 }
 
-/** Build V3 scoring breakdown */
+/** Build V3 scoring breakdown (legacy, kept for transition) */
 function buildScoringV3(
   factors?: V3Factors | null,
   weights?: V3Weights | null,
@@ -97,6 +98,55 @@ function buildScoringV3(
     }
     result.factor_details = roundedDetails;
   }
+  return result;
+}
+
+/** V4: Build scoring breakdown with geometric mean factors, dynamic weights, and confidence */
+function buildScoringV4(
+  v4Result: V4DondeMatchResult | null | undefined,
+): Record<string, unknown> | null {
+  if (!v4Result) return null;
+  const { factors, weights, confidence, dataCompleteness, weightShiftReasons, factorDetails } = v4Result;
+
+  const result: Record<string, unknown> = {
+    food_quality: Math.round(factors.foodQuality * 10) / 10,
+    vibe: Math.round(factors.vibe * 10) / 10,
+    service: Math.round(factors.service * 10) / 10,
+    reputation: Math.round(factors.reputation * 10) / 10,
+    convenience: Math.round(factors.convenience * 10) / 10,
+    weights_used: {
+      food_quality: Math.round(weights.foodQuality * 100) / 100,
+      vibe: Math.round(weights.vibe * 100) / 100,
+      service: Math.round(weights.service * 100) / 100,
+      reputation: Math.round(weights.reputation * 100) / 100,
+      convenience: Math.round(weights.convenience * 100) / 100,
+    },
+    weight_shift_reasons: weightShiftReasons,
+    confidence: {
+      food_quality: confidence.foodQuality,
+      vibe: confidence.vibe,
+      service: confidence.service,
+      reputation: confidence.reputation,
+      convenience: confidence.convenience,
+    },
+    data_completeness: Math.round(dataCompleteness * 100) / 100,
+  };
+
+  if (factorDetails) {
+    const roundedDetails: Record<string, Record<string, { score: number; max: number; signal: string }>> = {};
+    for (const [factorKey, subComponents] of Object.entries(factorDetails)) {
+      roundedDetails[factorKey] = {};
+      for (const [subKey, sub] of Object.entries(subComponents)) {
+        roundedDetails[factorKey][subKey] = {
+          score: Math.round(sub.score * 10) / 10,
+          max: Math.round(sub.max * 10) / 10,
+          signal: sub.signal,
+        };
+      }
+    }
+    result.factor_details = roundedDetails;
+  }
+
   return result;
 }
 
@@ -186,7 +236,8 @@ export function buildSuccessResponse(
   v3Factors?: V3Factors | null,
   v3Weights?: V3Weights | null,
   v3DataCompleteness?: number,
-  v3FactorDetails?: Record<string, Record<string, V3SubComponent>> | null
+  v3FactorDetails?: Record<string, Record<string, V3SubComponent | V4SubComponent>> | null,
+  v4Result?: V4DondeMatchResult | null,
 ): Record<string, unknown> {
   return {
     success: true,
@@ -205,7 +256,8 @@ export function buildSuccessResponse(
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
     scoring_v2: buildScoringV2(dimensions, weights),
-    scoring_v3: buildScoringV3(v3Factors, v3Weights, v3DataCompleteness, v3FactorDetails),
+    scoring_v3: buildScoringV3(v3Factors, v3Weights, v3DataCompleteness, v3FactorDetails as Record<string, Record<string, V3SubComponent>> | null),
+    scoring_v4: buildScoringV4(v4Result),
     cuisine_mismatch: cuisineMismatch ? { requested: cuisineMismatch.requested } : null,
     timestamp: new Date().toISOString(),
   };

@@ -19,9 +19,15 @@ import {
 import {
   computeV3DondeMatch,
   reRankV3,
-  applyDealBreakerGates,
 } from "./_shared/scoring-v3.ts";
 import type { V3Factors } from "./_shared/scoring-v3.ts";
+// V4: Geometric mean scoring engine
+import {
+  computeV4DondeMatch,
+  reRankV4,
+  applyDealBreakerGates,
+} from "./_shared/scoring-v4.ts";
+import type { V4DondeMatchResult } from "./_shared/scoring-v4.ts";
 import { classifyIntent } from "./_shared/intent-classifier.ts";
 import {
   buildSuccessResponse,
@@ -482,8 +488,8 @@ Deno.serve(async (req: Request) => {
       logWarn("V3 deal-breaker gates removed all candidates, using unfiltered", { gateCount: top10.length - gatedCandidates.length });
     }
 
-    // V3: Re-rank using five-factor scoring
-    top10 = reRankV3(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day, dietary_restrictions);
+    // V4: Re-rank using geometric mean five-factor scoring
+    top10 = reRankV4(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day, dietary_restrictions);
 
     // Enhancement 6: Apply diversity filter
     const backfillPool = allRpcResults.filter((r) => !exclude.includes(r.id));
@@ -592,24 +598,21 @@ Keep the pivot acknowledgment to ONE brief clause, not a full sentence. The tone
 Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
       }
 
-      // V3.5: Pre-compute preliminary V3 scores for tone modulation
-      // These scores omit Claude-dependent inputs (±3-5 DM points) but are accurate enough
-      // for tier determination (HIGH/MID/LOW boundaries are 20+ points apart)
-      // V3.6: Also capture factor scores for prompt injection (Claude can emphasize strengths/trade-offs)
+      // V4: Pre-compute preliminary scores for tone modulation using geometric mean
+      // These scores are accurate for tier determination (geometric mean is transparent)
       const prelimScores: number[] = [];
-      const prelimFactors: V3Factors[] = [];
+      const prelimV4Results: V4DondeMatchResult[] = [];
       for (let i = 0; i < top10.length; i++) {
         const candidate = top10[i];
         const candidateGoogle = candidate.google_place_id
           ? googleByPlaceId.get(candidate.google_place_id) || null
           : null;
-        const prelimResult = computeV3DondeMatch(candidate, {
+        const prelimResult = computeV4DondeMatch(candidate, {
           occasion,
           specialRequest: special_request,
           neighborhood,
           priceLevel: price_level,
           googleData: candidateGoogle,
-          claudeRelevance: undefined,
           sentimentScore: null,
           sentimentNegative: null,
           intent,
@@ -621,8 +624,16 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
         let prelimDM = prelimResult.dondeMatch;
         if (cuisineMismatch) prelimDM = Math.min(prelimDM, 65);
         prelimScores.push(prelimDM);
-        prelimFactors.push(prelimResult.factors);
+        prelimV4Results.push(prelimResult);
       }
+      // Convert V4 factors to V3 format for backward-compatible prompt building
+      const prelimFactors: V3Factors[] = prelimV4Results.map(r => ({
+        food: r.factors.foodQuality,
+        setting: r.factors.service,
+        atmosphere: r.factors.vibe,
+        reputation: r.factors.reputation,
+        convenience: r.factors.convenience,
+      }));
 
       // V3.5: Build system prompt with tone directive (after pre-computation)
       const systemPrompt = buildSystemPrompt(occasion, price_level, true);
@@ -739,13 +750,12 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
             parsed.insider_tip = nextChosen.insider_tip;
           }
 
-          const closedV3Inputs = {
+          const closedV4Inputs = {
             occasion,
             specialRequest: special_request,
             neighborhood,
             priceLevel: price_level,
             googleData: nextGoogleData,
-            claudeRelevance: parsed.relevance_score,
             sentimentScore: parsed.sentiment_score,
             sentimentNegative: parsed.sentiment_negative,
             intent,
@@ -754,13 +764,29 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
             clientTimeOfDay: time_of_day,
             dietaryRestrictions: dietary_restrictions,
           };
-          const closedV3Result = computeV3DondeMatch(nextChosen, closedV3Inputs);
-          let dondeMatch = closedV3Result.dondeMatch;
+          const closedV4Result = computeV4DondeMatch(nextChosen, closedV4Inputs);
+          let dondeMatch = closedV4Result.dondeMatch;
           if (cuisineMismatch) dondeMatch = Math.min(dondeMatch, 65);
+
+          const closedV3Compat = {
+            food: closedV4Result.factors.foodQuality,
+            setting: closedV4Result.factors.service,
+            atmosphere: closedV4Result.factors.vibe,
+            reputation: closedV4Result.factors.reputation,
+            convenience: closedV4Result.factors.convenience,
+          };
+          const closedV3CompatW = {
+            food: closedV4Result.weights.foodQuality,
+            setting: closedV4Result.weights.service,
+            atmosphere: closedV4Result.weights.vibe,
+            reputation: closedV4Result.weights.reputation,
+            convenience: closedV4Result.weights.convenience,
+          };
 
           responseBody = buildSuccessResponse(
             nextChosen, parsed, nextGoogleData, dondeMatch, undefined, undefined, cuisineMismatch,
-            closedV3Result.factors, closedV3Result.weights, closedV3Result.dataCompleteness, closedV3Result.factorDetails
+            closedV3Compat, closedV3CompatW, closedV4Result.dataCompleteness, closedV4Result.factorDetails,
+            closedV4Result,
           );
         } else {
           // Fallback if no alternatives
@@ -777,14 +803,13 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
           parsed.insider_tip = chosen.deep_profile.best_seat_in_house;
         }
 
-        // V3: Compute donde_match using five-factor scoring
-        const v3Inputs = {
+        // V4: Compute donde_match using geometric mean five-factor scoring
+        const v4Inputs = {
           occasion,
           specialRequest: special_request,
           neighborhood,
           priceLevel: price_level,
           googleData,
-          claudeRelevance: parsed.relevance_score,
           sentimentScore: parsed.sentiment_score,
           sentimentNegative: parsed.sentiment_negative,
           intent,
@@ -793,21 +818,34 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
           clientTimeOfDay: time_of_day,
           dietaryRestrictions: dietary_restrictions,
         };
-        const v3Result = computeV3DondeMatch(chosen, v3Inputs);
-        let dondeMatch = v3Result.dondeMatch;
+        const v4Result = computeV4DondeMatch(chosen, v4Inputs);
+        let dondeMatch = v4Result.dondeMatch;
 
         // Cap match score for cuisine mismatch — never claim a high match when we don't have the cuisine
         if (cuisineMismatch) {
           dondeMatch = Math.min(dondeMatch, 65);
         }
 
-        // V2: Compute scoring dimensions for response (kept for transition)
-        const dimensions = computeScoringDimensions(chosen, occasion, special_request, intent);
-        const weights = computeDimensionWeights(occasion, intent);
+        // V4: Build V3-compatible factor/weight objects for response builder (transition)
+        const v3CompatFactors = {
+          food: v4Result.factors.foodQuality,
+          setting: v4Result.factors.service,
+          atmosphere: v4Result.factors.vibe,
+          reputation: v4Result.factors.reputation,
+          convenience: v4Result.factors.convenience,
+        };
+        const v3CompatWeights = {
+          food: v4Result.weights.foodQuality,
+          setting: v4Result.weights.service,
+          atmosphere: v4Result.weights.vibe,
+          reputation: v4Result.weights.reputation,
+          convenience: v4Result.weights.convenience,
+        };
 
         responseBody = buildSuccessResponse(
-          chosen, parsed, googleData, dondeMatch, dimensions, weights, cuisineMismatch,
-          v3Result.factors, v3Result.weights, v3Result.dataCompleteness, v3Result.factorDetails
+          chosen, parsed, googleData, dondeMatch, undefined, undefined, cuisineMismatch,
+          v3CompatFactors, v3CompatWeights, v4Result.dataCompleteness, v4Result.factorDetails,
+          v4Result,
         );
       }
     } catch (claudeError) {
@@ -827,7 +865,7 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
         const nextGoogleData = nextChosen.google_place_id
           ? await fetchPlaceDetails(nextChosen.google_place_id)
           : null;
-        const closedFallbackV3 = computeV3DondeMatch(nextChosen, {
+        const closedFallbackV4 = computeV4DondeMatch(nextChosen, {
           occasion,
           specialRequest: special_request,
           neighborhood,
@@ -839,13 +877,12 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
           clientTimeOfDay: time_of_day,
           dietaryRestrictions: dietary_restrictions,
         });
-        let fallbackMatch = closedFallbackV3.dondeMatch;
+        let fallbackMatch = closedFallbackV4.dondeMatch;
         if (cuisineMismatch) fallbackMatch = Math.min(fallbackMatch, 65);
-        // Enhancement 19 Tier 4: Template-based response
         responseBody = buildTemplateResponse(nextChosen, nextGoogleData, fallbackMatch, occasion, cuisineMismatch);
       } else {
-        // Compute donde_match deterministically (no Claude relevance available)
-        const normalFallbackV3 = computeV3DondeMatch(chosen, {
+        // Compute donde_match deterministically using V4 geometric mean
+        const normalFallbackV4 = computeV4DondeMatch(chosen, {
           occasion,
           specialRequest: special_request,
           neighborhood,
@@ -857,10 +894,9 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
           clientTimeOfDay: time_of_day,
           dietaryRestrictions: dietary_restrictions,
         });
-        let fallbackMatch = normalFallbackV3.dondeMatch;
+        let fallbackMatch = normalFallbackV4.dondeMatch;
         if (cuisineMismatch) fallbackMatch = Math.min(fallbackMatch, 65);
 
-        // Enhancement 19 Tier 4: Use template-based response (richer than one-liner)
         responseBody = buildTemplateResponse(chosen, googleData, fallbackMatch, occasion, cuisineMismatch);
       }
     }
