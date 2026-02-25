@@ -340,7 +340,7 @@ flowchart TD
     end
 
     subgraph "Step 6: Deal-Breaker Penalties"
-        DBP["Price mismatch: ×0.5 to -0.5\nNeighborhood mismatch: -1.0\nSentiment crisis: up to -2.0"]
+        DBP["Price mismatch: -3.0 to -0.2\nNeighborhood mismatch: -1.0"]
     end
 
     subgraph "Step 7: Personalization"
@@ -829,8 +829,8 @@ Applied after the composite is computed, these penalties address hard requiremen
 
 | Gap | Penalty | Example |
 |-----|---------|---------|
-| 3+ tiers over-budget | `composite × 0.5` | Asked for $, got $$$$ |
-| 2 tiers over-budget | `composite × 0.7` | Asked for $, got $$$ |
+| 3+ tiers over-budget | `composite − 3.0` | Asked for $, got $$$$ |
+| 2 tiers over-budget | `composite − 2.0` | Asked for $, got $$$ |
 | 1 tier over-budget | `composite − 0.5` | Asked for $$, got $$$ |
 | 1 tier under-budget | `composite − 0.2` | Asked for $$$, got $$ |
 
@@ -841,13 +841,11 @@ When relaxation cascade expands beyond the requested neighborhood:
 composite -= 1.0
 ```
 
-### Sentiment Crisis
+### ~~Sentiment Crisis~~ — REMOVED
 
-When negative review percentage exceeds 40%:
-```
-penalty = min(2.0, ((negPercent − 40) / 30) × 2.0)
-composite -= penalty
-```
+~~When negative review percentage exceeds 40%, a penalty was applied to the composite.~~
+
+**Removed (P0 fix — ISSUE-2):** Sentiment is now handled solely in `computeReputation()` (up to -1.5 on the factor at >30% negative). The deal-breaker sentiment penalty was double-counting the same signal, causing combined penalties of ~15 DM points from a single source.
 
 ### Cuisine Mismatch — Design Note
 
@@ -1115,34 +1113,60 @@ Note: The `scoring_v2` field name is retained for API compatibility but contains
 | `recommend/_shared/types.ts` | ~188 | TypeScript interfaces |
 | `recommend/_shared/claude.ts` | ~60 | Anthropic API client |
 | `recommend/_shared/google-places.ts` | ~100 | Google Places live fetch |
-| `tests/scoring-v3-test.ts` | ~1489 | V3 scoring test harness (50 scenarios) |
+| `tests/scoring-v3-test.ts` | ~2062 | V3 scoring test harness (73 scenarios) |
 
 ---
 
-## 26. Test Results Summary (50 Scenarios)
+## 26. Test Results Summary (73 Scenarios)
 
-**Run date:** 2026-02-25 | **Result:** 50/50 PASSED (100%)
+**Run date:** 2026-02-25 | **Result:** 73/73 PASSED (100%)
 
-### Score Distribution
+### Test Coverage (73 scenarios across 17 categories)
+
+| Category | Tests | Coverage |
+|----------|-------|----------|
+| Cuisine Match/Mismatch | T01-T12 (12) | Exact, contains, subcategory, family, mismatch at high/medium/low importance |
+| Setting Fit | T13-T18 (6) | Date Night, Business Lunch, Family, Any, Group Size, Special Occasion |
+| Atmosphere | T19-T24 (6) | Noise, lighting, outdoor, scenic, vibe keywords, Instagram |
+| Reputation | T25-T28 (4) | Outstanding, poor, no data, negative sentiment |
+| Convenience | T29-T32 (4) | Walk-in+BYOB, hard-to-get, timing+parking, cash-only |
+| Weight System | T33-T36 (4) | High/low cuisine importance, adventure, normalization |
+| End-to-End | T37-T42 (6) | Perfect match, terrible match, food/conv divergence, dietary, disliked, price |
+| Penalty Models | T43-T45 (3) | Model A/B/C comparison for cuisine mismatch |
+| Dietary Edge Cases | T46-T50 (5) | Dedicated vegan, BBQ mismatch, hierarchy, token, multi-restriction |
+| Enrichment Confidence | T51-T53 (3) | Low (3), boundary (5), very low (1) |
+| Claude Modulation | T54-T55 (2) | High relevance (+0.4), low relevance (-0.4) |
+| Personalization | T56-T58 (3) | Liked cuisine, disliked cuisine, rejection signals |
+| Penalty Edge Cases | T59-T62 (4) | 2-tier price, 1-tier price, neighborhood, sentiment single-count |
+| Occasion-Specific | T63-T66 (4) | Solo Dining, Treat Myself, Adventure, Chill Hangout |
+| Weight Interactions | T67-T69 (3) | Medium cuisine+Date Night override, comfort intent, high cuisine+impress |
+| Deal-Breaker Gates | T70-T71 (2) | Exclude list, dietary hard block |
+| Penalty Arithmetic | T72-T73 (2) | Subtractive penalty on high/low scorer (ISSUE-1 verified) |
+
+### Score Distribution (post-P0 fixes)
 
 | Metric | Min | Max | Mean | Median |
 |--------|-----|-----|------|--------|
-| **Donde Match** | 0 | 81 | 50.2 | 54 |
-| **Food Match** | 0.7 | 8.4 | 4.4 | 5.0 |
-| **Setting Fit** | 1.4 | 8.8 | 5.6 | 5.4 |
-| **Atmosphere** | 1.6 | 8.5 | 5.8 | 5.8 |
-| **Reputation** | 1.5 | 9.5 | 5.3 | 5.1 |
+| **Donde Match** | 0 | 81 | 49.9 | 53 |
+| **Food Match** | 0.7 | 8.4 | 4.6 | 5.0 |
+| **Setting Fit** | 1.4 | 8.8 | 5.4 | 4.1 |
+| **Atmosphere** | 1.6 | 8.5 | 5.7 | 5.8 |
+| **Reputation** | 1.5 | 9.5 | 5.2 | 5.1 |
 | **Convenience** | 2.0 | 10.0 | 6.4 | 6.5 |
 
 ### Key Findings
 
 1. **Cuisine mismatch is well-handled by Food factor alone.** With `cuisine_importance: "high"`, a complete mismatch yields Food=1.0, dragging DM to ~38–42 even when other factors are excellent (T05, T10). Model A (no separate penalty) already produces reasonable scores.
 
-2. **DM ceiling at ~81.** Even a "perfect" scenario (T37) with all factors 7.5–8.8 only reaches DM=81. This is a property of weighted averaging — reaching 90+ would require near-perfect 9+ across all factors, which is extremely rare. This is acceptable for a 0–99 range.
+2. **DM ceiling at ~81.** Even a "perfect" scenario (T37) with all factors 7.5–8.8 only reaches DM=81. This is a property of weighted averaging — reaching 90+ would require near-perfect 9+ across all factors, which is extremely rare.
 
 3. **Convenience factor has high default.** Median=6.5, min=2.0. The base of 5 + various bonuses (BYOB, parking) pushes convenience high by default. This is intentional — most restaurants are "convenient enough."
 
-4. **Data completeness averages 71%.** Most mock profiles are well-enriched. Real production data may have lower completeness for newer restaurants.
+4. **ANOMALY-1 FIXED:** Dietary floor bypass now works correctly. T40 (Vegan at no-option restaurant) dropped from Food=5.0 to Food=3.0. T47 (Vegan at BBQ) dropped from Food=5.0 to Food=3.0. Dietary mismatch is now properly reflected in the score.
+
+5. **Sentiment double-counting FIXED:** T28 (high rating + 60% negative sentiment) improved from DM=39 to DM=52 after removing redundant deal-breaker sentiment penalty. Sentiment is now correctly handled solely in the Reputation factor.
+
+6. **Price penalties unified to subtractive (ISSUE-1 FIXED):** T42 (3-tier gap) now applies -3.0 instead of ×0.5, making penalty magnitude independent of base score. T72/T73 confirm: high scorer loses DM=37 vs DM=1 for low scorer — the fixed penalty now applies identically (-3.0) to both, but floor clamp at 0 explains the difference.
 
 ### Cuisine Penalty Model Comparison
 
@@ -1154,41 +1178,33 @@ Scenario: "best sushi omakase" → Italian restaurant with outstanding Setting=8
 | **B: Tiered cap at 65** | 44 | Cap irrelevant — score already below 65 |
 | **C: Continuous -2.5** | 19 | Overly harsh double-penalty on already-low score |
 
-**Conclusion:** Model A is sufficient. The V3 weight system with `cuisine_importance: "high"` → food_weight=0.45 already ensures a cuisine mismatch (Food=1.0) dominates the composite. The concern from V2 (T76-T80 scores of 83-89%) was caused by V2's narrower 45-99% range and different weight distribution, not an architectural flaw in the factor model.
+**Conclusion:** Model A is sufficient.
 
 ---
 
 ## 27. Known Scoring Anomalies
 
-### ANOMALY-1: No-Intent Floor Masks Dietary Mismatch
+### ANOMALY-1: No-Intent Floor Masks Dietary Mismatch — **FIXED**
 
-**Location:** `computeFoodMatch()` lines 375-378
+**Location:** `computeFoodMatch()` lines 375-380
 
-**Behavior:** When `targetCuisines.length === 0` and `cuisine_importance === "low"`, a floor of 5.0 is applied to the Food factor. This was designed for experience-first queries ("fun lively spot with good drinks") where no food intent exists. However, the floor also activates when a user has dietary restrictions but no cuisine target — masking the dietary penalty.
+**Status:** ✅ Fixed. The no-intent floor now has a dietary guard clause.
 
-**Example:**
-- Request: "vegan dinner" → intent: `{ target_cuisines: [], cuisine_importance: "low", dietaryRestrictions: ["Vegan"] }`
-- Restaurant: BBQ joint with no vegan options
-- Expected Food: ≤4 (bad dietary match)
-- Actual Food: 5.0 (floor overrides)
-
-**Impact:** A vegan at a BBQ joint scores identically (DM=54) to a vegan at a dedicated vegan restaurant (DM=54). The dietary signal is completely hidden.
-
-**Proposed Fix:** Exempt the floor when `dietaryRestrictions` is non-empty:
+**Fix applied:**
 ```typescript
-// Current (line 376):
-if (intent?.cuisine_importance === "low" || !specialRequest || specialRequest.trim().length < 3) {
-  return { score: Math.max(normalized, 5), dataPoints, maxDataPoints };
-}
-
-// Proposed:
 if ((intent?.cuisine_importance === "low" || !specialRequest || specialRequest.trim().length < 3)
     && (!dietaryRestrictions || dietaryRestrictions.length === 0)) {
   return { score: Math.max(normalized, 5), dataPoints, maxDataPoints };
 }
 ```
 
-**Test scenarios affected:** T40, T46, T47
+**Before/After:**
+| Scenario | Before (Food) | After (Food) |
+|----------|--------------|--------------|
+| T40: Vegan at no-option restaurant | 5.0 (floor) | 3.0 (correct) |
+| T47: Vegan at BBQ joint | 5.0 (floor) | 3.0 (correct) |
+| T46: Vegan at dedicated vegan restaurant | 5.0 (floor) | 5.0 (dietary_depth "dedicated" earns 2 pts) |
+| T07: Low importance vibe query (no dietary) | 5.0 (floor) | 5.0 (floor, unchanged) |
 
 ### ANOMALY-2: Food Factor Ceiling
 
@@ -1202,135 +1218,145 @@ In practice, cuisine match + flavor + no dietary restriction defaults to ~7.7 ma
 
 ---
 
-## 28. Expert Review Synthesis (5 Specialists)
+## 28. Expert Review Synthesis (5 Specialists) — Round 2
 
-Five expert subagents reviewed the V3 design and test results on 2026-02-25. This section consolidates their findings, organized by severity and cross-referencing which experts raised each issue.
+Five expert subagents reviewed the V3 design and test results (73 scenarios) on 2026-02-25. This section consolidates their findings. Items marked ✅ were fixed in this cycle.
 
 ### 28.1 Critical Issues (Must Fix)
 
-#### ISSUE-1: Mixed Penalty Arithmetic (Statistician, Probability, Behavioral)
+#### ISSUE-1: Mixed Penalty Arithmetic — ✅ FIXED
 
-**Problem:** `applyDealBreakerPenalties()` mixes multiplicative (`result *= 0.5`) and subtractive (`result -= 1.0`) penalties on the same composite. A multiplicative penalty has variable absolute impact — a restaurant scoring 8.0 loses 4.0 points from `*0.5`, while one scoring 4.0 loses only 2.0. This means high-quality restaurants are penalized more severely in absolute terms, which is counterintuitive. Sequential application also creates order-dependent distortion.
+**Problem:** Price mismatch penalties used multiplicative (`×0.5`, `×0.7`) for large gaps and subtractive for small gaps. Multiplicative penalties have variable absolute impact — high-quality restaurants penalized more severely.
 
-**All 3 experts recommend:** Unify to subtractive penalties. Replace `result *= 0.5` (3-tier price gap) with `result -= 3.0` and `result *= 0.7` (2-tier gap) with `result -= 2.0`. This makes penalty magnitude predictable and independent of base score.
+**Fix applied:** Unified all penalties to subtractive: `gap≥3 → -3.0`, `gap=2 → -2.0`. Penalty magnitude is now independent of base score. Confirmed by all 3 experts (Statistician, Probability, Behavioral).
 
-**Code location:** `scoring-v3.ts` lines 994-1035
+**Before/After:** T72 (high scorer, 3-tier gap): DM 33→37 | T73 (low scorer, 3-tier gap): DM 16→1
 
-#### ISSUE-2: Sentiment Double-Counting (Statistician, Predictive Analytics)
+#### ISSUE-2: Sentiment Double-Counting — ✅ FIXED
 
-**Problem:** Negative sentiment is penalized twice:
-1. In `computeReputation()` (lines 717-719): penalty up to -1.5 on Reputation factor
-2. In `applyDealBreakerPenalties()` (lines 1030-1032): penalty up to -2.0 on composite
+**Problem:** Negative sentiment penalized in both `computeReputation()` (-1.5 on factor) and `applyDealBreakerPenalties()` (-2.0 on composite). At 60% negative: combined ≈ -15 DM points from same signal.
 
-At 60% negative sentiment, combined penalty ≈ -15 DM points from the same signal. Thresholds are misaligned (Reputation triggers at >30%, deal-breaker at >40%).
+**Fix applied:** Removed sentiment from deal-breaker penalties. Reputation factor is the sole home for sentiment signal. Confirmed by Statistician and Predictive Analytics experts.
 
-**Recommendation:** Remove sentiment from deal-breaker penalties and rely solely on the Reputation factor. If extreme cases need a deal-breaker, raise threshold to >55-60% and apply a cap rather than subtraction.
+**Before/After:** T28 (60% negative): DM 39→52 | T62: DM 39→52
 
-#### ISSUE-3: ANOMALY-1 Confirmation (All 5 experts)
+#### ISSUE-3: ANOMALY-1 Dietary Floor — ✅ FIXED
 
-All five experts independently confirmed that the no-intent floor masking dietary mismatch (Section 27, ANOMALY-1) is critical. The Behavioral expert noted this is a "trust catastrophe" — dietary restrictions are identity-salient constraints (Rozin & Fallon, 1987), and violating them damages trust more severely than any other mismatch type.
+All five experts independently confirmed this as critical. The Behavioral expert characterized it as a "trust catastrophe" — dietary restrictions are identity-salient constraints (Rozin & Fallon, 1987).
 
-**Fix:** Already proposed in Section 27. Implement immediately.
+**Fix applied:** See Section 27.
 
 ### 28.2 Significant Concerns (Should Address)
 
 #### ISSUE-4: Setting/Atmosphere Factor Correlation (Predictive Analytics, Probability, Behavioral)
 
-**Problem:** Setting Fit and Atmosphere share substantial signal overlap — both are conditioned on `occasion`, both evaluate "is this the right kind of place?" Combined weight of 45% (25% + 20%) means correlated factors dominate the score. The Probability expert estimates Corr(S, A) ≈ 0.7, making their combined effective influence closer to 50-55% due to double-counted shared variance.
+**Problem:** Setting Fit and Atmosphere share substantial signal overlap — both conditioned on `occasion`. Combined weight of 45% (25% + 20%) with estimated Corr(S, A) ≈ 0.7 creates effective influence of 50-55%. The Probability expert provided formal variance analysis showing the covariance cross-term inflates the joint contribution.
 
-**Options (requires design decision):**
-- **Option A:** Merge into single "Venue Fit" factor (4-factor model, cleaner). Predictive Analytics recommends this.
-- **Option B:** Orthogonalize — move all occasion-driven ambiance (noise expectations, lighting expectations) exclusively into Setting; make Atmosphere purely request-driven (vibe keywords, music, outdoor, Instagram). This preserves 5 factors while reducing correlation.
-- **Option C:** Keep as-is but add documentation that this is an intentional design choice trading statistical purity for user-facing granularity.
+**Status:** DECIDED: Merge into "Venue Fit" (4-factor model) — see Section 29.1
 
 #### ISSUE-5: Score Range Compression & Perception (Statistician, Behavioral)
 
-**Problem:** DM range is effectively 0-81 with mean=50.2. On a 0-99 scale, users invoke a "percentage grade" mental model where 50 = "F" (failing). Half of all recommendations will feel like failures even when they represent reasonable matches. The 90-99 tier ("Perfect Match") is essentially unreachable.
+**Problem:** DM range effectively 0-81, mean=49.9. The Behavioral expert provided extensive analysis of the "school grade" mental model (Bartlett, 1932): users conditioned to interpret 50 as "F" (failing). Half of recommendations fall in "Fair Match" tier. The 90-99 "Perfect Match" tier is unreachable.
 
-**Options:**
-- **Option A (Statistician):** Apply power-law scaling: `DM = round(pow(raw/10, 0.9) * 99)`. Maps raw=8.6→DM=87 instead of 86. Stretches upper range without dramatically changing mid-range.
-- **Option B (Behavioral):** Apply sigmoid stretch centered at composite=5.5 with gain=1.3. Maps current mean of 50 to ~60 on display.
-- **Option C:** Keep linear mapping but redefine tier labels: "Great Match" at 75+ instead of 80+, "Good Match" at 55+ instead of 65+.
-- **Option D (Behavioral):** Implement display floor of 20-25 for any restaurant passing deal-breaker gates. Internal score stays 0-99 for ranking; display score clamps minimum.
+**Behavioral expert recommends more aggressive scaling** (exponent 0.82-0.85) vs. the decided 0.9.
+
+**Status:** DECIDED: Implement power-law 0.9 (conservative) — see Section 29.2. May revisit after 4-factor merge changes distribution.
 
 #### ISSUE-6: Enrichment Confidence Discontinuity (Statistician, Predictive Analytics, Probability)
 
-**Problem:** At confidence=5, multiplier jumps from 0.745 to 1.0 (a 34% boost). This cliff function means a restaurant oscillating around confidence 4.9-5.0 sees dramatic score swings.
+**Problem:** At confidence=5, multiplier jumps from 0.745 to 1.0 (34% boost). Cliff function causes score instability for restaurants near boundary.
 
-**All 3 recommend:** Smooth continuous function. Statistician proposes: `multiplier = min(1.0, confidence / 5.0)`. Probability proposes: `multiplier = 0.5 + 0.5 * min(1.0, confidence / 10.0)`. Both eliminate the discontinuity.
+**All 3 recommend:** Smooth continuous function. Multiple proposals: `min(1.0, confidence/5.0)`, `0.5 + 0.5 * min(1.0, confidence/10.0)`, `0.5 + (confidence/16)`.
+
+**Status:** P1 — to be implemented in next cycle
 
 #### ISSUE-7: Weight Override Precedence (Statistician, Predictive Analytics)
 
-**Problem:** When `cuisine_importance="medium"` and `occasion="Date Night"`, the occasion override completely replaces medium-cuisine weights (35/20/20/15/10) with Date Night weights (20/30/25/15/10). The user's "medium" cuisine signal is entirely discarded for 5 of 9 specific occasions.
+**Problem:** `cuisine_importance="medium"` + `occasion="Date Night"` → food weight drops from 0.35 to 0.20 (43% reduction). User's cuisine signal entirely discarded for 5 of 9 occasions. Probability expert: "Discarding one of two Bayesian observations loses information."
 
-**Recommendation:** Blend weights instead of overriding: `finalWeight = alpha * cuisineWeight + (1-alpha) * occasionWeight` where alpha depends on cuisine_importance (e.g., 1.0 for high, 0.6 for medium, 0.3 for low).
+**Recommendation:** Blend: `finalWeight = alpha * cuisineWeight + (1-alpha) * occasionWeight` where alpha = {high: 1.0, medium: 0.6, low: 0.3}
+
+**Status:** P1 — to be implemented in next cycle
 
 #### ISSUE-8: Convenience Upward Bias (Statistician, Predictive Analytics)
 
-**Problem:** Convenience starts at 5.0 with median=6.5, contributing near-constant positive signal. At 10% weight, its discriminating power is only ~0.5 DM points between typical restaurants. Effectively a tiebreaker, not a discriminator.
+**Problem:** Starts at 5.0, median=6.5, weight=10%. Effective discrimination ≈ 2 DM points. Predictive Analytics: "AUC near 0.5 — not a discriminating factor." Behavioral expert notes the constant axis on radar chart trains users to ignore it.
 
-**Options:**
-- Lower starting point to 3.0 and recalibrate bonuses for wider range
-- Accept as intentional tiebreaker and document
-- Fold into deal-breaker penalties and replace with "Value" factor (Behavioral expert suggestion)
+**Status:** P3 — accept as intentional tiebreaker for now, revisit with 4-factor model
 
 ### 28.3 Visualization Recommendations (Data Visualization Expert)
 
 #### ISSUE-9: Radar Chart Weight Mismatch
 
-**Problem:** Chart shows raw 0-10 factor scores, but DM uses dynamic weights. A user seeing Food=3 + four other factors at 8+ will mentally average "mostly good" while DM=38 due to 45% food weight. Visual area misleads.
+**Problem:** Chart shows raw 0-10 scores but DM uses dynamic weights. Food=3 on a large polygon looks fine; DM=38 because food=45% weight. "Area illusion" (Cleveland & McGill, 1984).
 
-**Recommendation:** Display weighted contribution per axis OR visually encode weight as axis thickness/opacity. Add a "weight context" micro-bar below the chart showing the weight distribution.
+**Recommendation:** Scale axis lengths proportional to weight, OR add weight donut/bar below the chart. The 4-factor diamond (post-merge) reduces the severity of this issue.
 
 #### ISSUE-10: Mobile Rendering
 
-Minimum 220px diameter for labeled radar. Below that, use compact shape-only mode (120px) with colored dots at vertices. Tap to expand.
+Breakpoints: 220px+ for labeled radar, 140-219px for shape-only with tap-to-show, below 140px collapse to horizontal bars.
 
 #### ISSUE-11: Per-Axis Confidence
 
-Use visual treatment per axis: solid line (≥70% complete), dashed (40-69%), dotted with "?" (<40%). More informative than a single aggregate percentage.
+Solid line (≥70% complete), dashed (40-69%), dotted with "?" (<40%). **Note:** Per-factor completeness is computed but not currently surfaced in API response. Backend change needed in `response-builder.ts`.
 
 #### ISSUE-12: Comparison Mode
 
-For 2 restaurants: reference polygon (fill) + second as stroke-only. For 3+: side-by-side small multiples (per Cleveland & McGill).
+2 restaurants: overlay (fill + stroke-only). 3+: side-by-side small multiples. The 4-factor diamond is perceptually better for comparison than the 5-factor pentagon.
+
+#### ISSUE-20 (NEW): Claude Modulation Contaminates Displayed Factors
+
+The Data Visualization expert independently confirmed ISSUE-19: mutating `factors.food` and `factors.setting` with Claude's relevance adjustment means the radar chart shows contaminated values that don't reconcile with the sub-component math. This breaks the "Full truth" design philosophy.
+
+#### ISSUE-21 (NEW): Per-Factor Completeness Not Surfaced in API
+
+`buildScoringV3()` in `response-builder.ts` only emits aggregate `data_completeness`. Individual factor completeness ratios are computed in `computeV3DondeMatch()` but discarded before the response is built. Frontend has no way to render per-axis confidence.
+
+#### ISSUE-22 (NEW): `scoring_v2` Field Name Carries V3 Data
+
+V3 factor values shipped under `scoring_v2` key with V2 terminology (`occasion_fit`, `craving_match`) creates mapping confusion. Frontend consuming wrong key will display mismatched labels.
 
 ### 28.4 Behavioral Recommendations (Human Behavioral Expert)
 
 #### ISSUE-13: "Fair Match" Label is Euphemistic
 
-"Fair" has positive connotations. Rename the 45-64 tier to **"Partial Match"** — communicates "some factors matched, some didn't."
+**Updated recommendation:** Rename to **"Mixed Fit"** — explicitly communicates "some factors matched, some didn't." Also rename "Stretch" to **"Loose Fit"** (removes judgment connotation) and "Poor Match" to **"Not Recommended"** (more actionable).
 
 #### ISSUE-14: Anchoring in "Try Another" Cycles
 
-First score becomes anchor. When subsequent scores decline, add contextual framing: "Exploring a different direction" or "Different vibe, closer to you."
+When subsequent scores decline, add contextual framing highlighting the new recommendation's strongest factor ("Closer to you", "Better vibe", "More authentic"). Consider not showing numeric score on Try Another cycles — show tier label and radar shape only.
 
 #### ISSUE-15: Claude ±0.5 Below JND
 
-The ±0.5 modulation translates to ~2-3 DM points, below the just-noticeable difference threshold of 5-8 points. Either increase to ±1.0-1.5 for perceptibility, or accept as invisible tiebreaker (current intent).
+Weber's Law analysis confirms ±0.5 (≈2-3 DM points) is below JND threshold (5-8 points at typical magnitudes). **Behavioral expert strongly recommends:** accept as invisible tiebreaker; stop mutating factor values (apply to composite only).
 
 #### ISSUE-16: Missing "Price/Value" Factor
 
-Users consistently rank Price/Value in top 3 restaurant selection criteria (NRA surveys, Zagat research). Currently handled only as penalty + filter, not visible in factor breakdown.
+Users rank Price/Value top-3 (NRA surveys, Zagat). Currently only a penalty + filter, not visible in factor breakdown. Creates "gulf of evaluation" (Norman, 1988) — price penalty is felt but unexplained.
+
+**New recommendation:** Add a `price_alignment` badge ("Within Budget" / "Slight Splurge" / "Over Budget") alongside the score, making the invisible penalty legible. Long-term: consider replacing Convenience with "Value" in the 4-factor model.
 
 ### 28.5 Predictive Analytics Recommendations
 
 #### ISSUE-17: CUISINE_FAMILIES Coverage Gaps
 
-Missing: American family (American, New American, Southern, Cajun, BBQ), European (French, Spanish, British), African (Ethiopian, Nigerian, Moroccan). South Asian only has "Indian" — missing Nepalese, Pakistani, Sri Lankan.
+Missing: American (American, New American, Southern, BBQ), European (French, Polish), African (Ethiopian). South Asian incomplete (only Indian). Impact is asymmetric: Thai↔Vietnamese gets partial credit, Ethiopian→Nigerian does not.
 
 #### ISSUE-18: Feedback Loop Validation Pipeline
 
-To validate predictive accuracy:
-- Log V3 factor vectors + final score at recommendation time
-- Track user feedback (like/dislike, "try another", save, share)
-- After 1000 events: train logistic regression `P(like) ~ factors` and compare learned weights to hand-tuned weights
-- Track "score surprise" metric: DM≥80 but disliked, or DM<60 but liked
+Instrument scoring (factor vectors + final DM), track user outcomes (like/dislike/try-another/save/share), after 1000 events fit logistic regression to compare learned vs. hand-tuned weights, track "score surprise" metric.
 
 #### ISSUE-19: Claude Modulation Contaminates Factor Values
 
-Claude adjustment modifies `factors.food` and `factors.setting` directly (lines 1131-1141), meaning returned factor values no longer represent pure deterministic computation. If displayed on radar chart, users see contaminated values.
+**Confirmed by Data Visualization expert.** Apply modulation to composite: `raw += relevanceAdjust * (weights.food + weights.setting)`.
 
-**Recommendation:** Apply modulation to raw composite directly: `raw += relevanceAdjust * (weights.food + weights.setting)`, preserving semantic purity of per-factor scores.
+#### ISSUE-23 (NEW): Parking Bonus Missing maxDataPoints Tracking
+
+Parking check at line 866 adds +0.5 to Convenience but does not increment `maxDataPoints`, making data completeness metric slightly understated.
+
+#### ISSUE-24 (NEW): Seasonal Relevance Uses UTC Without Timezone Offset
+
+`new Date().getUTCMonth()` without Chicago timezone adjustment. Minor impact (1-2 days at season boundaries).
 
 ### 28.6 Expert Strengths Consensus
 
@@ -1341,23 +1367,30 @@ All 5 experts praised:
 4. **Weight normalization robustness** — tolerance-based with correct floating-point handling
 5. **Cuisine family graceful degradation** — smooth 5/4.5/4/3/0 partial-credit gradient
 6. **Design document honesty** — self-identified anomalies before deployment
+7. **Graceful cold-start behavior** — missing data defaults to neutral, never penalizes (Predictive Analytics)
+8. **Dynamic weight adaptation** — correctly models context-dependent preference (Behavioral)
 
-### 28.7 Priority Action Matrix
+### 28.7 Priority Action Matrix (Updated)
 
-| Priority | Issue | Impact | Effort | Experts |
-|----------|-------|--------|--------|---------|
-| P0 | ANOMALY-1: Dietary floor fix | High | Low (1 line) | All 5 |
-| P0 | Sentiment double-counting | High | Low | 2 |
-| P1 | Mixed penalty arithmetic | Medium | Medium | 3 |
-| P1 | Enrichment confidence smoothing | Medium | Low | 3 |
-| P1 | Weight override → blend | Medium | Medium | 2 |
-| P2 | Setting/Atmosphere → merge to 4 factors | Medium | High | 3 | **DECIDED: Merge** |
-| P2 | Score range → nonlinear scaling | Medium | Medium | 2 | **DECIDED: Implement** |
-| P2 | Radar chart weight display | Medium | Medium | 1 |
-| P3 | CUISINE_FAMILIES expansion | Low | Low | 1 |
-| P3 | "Fair" → "Partial" relabel | Low | Low | 1 |
-| P3 | Convenience bias | Low | Medium | 2 |
-| P3 | Claude factor contamination | Low | Low | 1 |
+| Priority | Issue | Impact | Effort | Status |
+|----------|-------|--------|--------|--------|
+| P0 | ~~ANOMALY-1: Dietary floor fix~~ | High | Low | ✅ **FIXED** |
+| P0 | ~~Sentiment double-counting~~ | High | Low | ✅ **FIXED** |
+| P0 | ~~Mixed penalty arithmetic~~ | High | Medium | ✅ **FIXED** (promoted from P1) |
+| P1 | Enrichment confidence smoothing | Medium | Low | Pending |
+| P1 | Weight override → blend | Medium | Medium | Pending |
+| P1 | Claude factor contamination → composite-only | Medium | Low | Pending |
+| P2 | Setting/Atmosphere → merge to 4 factors | Medium | High | **DECIDED: Merge** |
+| P2 | Score range → nonlinear scaling | Medium | Medium | **DECIDED: Implement** |
+| P2 | Radar chart weight display | Medium | Medium | Pending |
+| P2 | Per-factor completeness in API response | Medium | Low | NEW |
+| P2 | Price alignment badge | Medium | Low | NEW |
+| P3 | CUISINE_FAMILIES expansion | Low | Low | Pending |
+| P3 | "Fair" → "Mixed Fit", "Stretch" → "Loose Fit" | Low | Low | Pending |
+| P3 | Convenience bias | Low | Medium | Accept as tiebreaker |
+| P3 | Parking maxDataPoints tracking | Low | Low | NEW |
+| P3 | Seasonal timezone fix | Low | Low | NEW |
+| P3 | `scoring_v2` field naming cleanup | Low | Low | NEW |
 
 ---
 
@@ -1426,15 +1459,32 @@ dondeMatch = Math.min(99, Math.max(0, Math.round(Math.pow(raw / 10, 0.9) * 99)))
 
 **Reviewer:** Comprehensive design review agent (2026-02-25)
 
-**Verdict: READY TO COMMIT**
+**Verdict: READY TO COMMIT** (after P0 fixes applied)
+
+### Round 2 Changes Applied
+
+Three P0 fixes were implemented and verified:
+
+1. **ANOMALY-1 (Dietary Floor Fix):** `computeFoodMatch()` no longer applies the no-intent floor when `dietaryRestrictions` is present. Dietary mismatch now correctly penalizes the Food factor.
+   - Code: `scoring-v3.ts` lines 375-380
+   - Tests: T40, T46, T47 updated with correct assertions
+
+2. **Sentiment Double-Counting (ISSUE-2):** Removed sentiment penalty from `applyDealBreakerPenalties()`. Sentiment is now handled solely in `computeReputation()`.
+   - Code: `scoring-v3.ts` lines 1029-1032 (removed)
+   - Tests: T28, T38, T62 assertions updated
+
+3. **Mixed Penalty Arithmetic (ISSUE-1):** Price mismatch penalties unified to subtractive: `gap≥3 → -3.0`, `gap=2 → -2.0`. Penalty magnitude is now score-independent.
+   - Code: `scoring-v3.ts` lines 1014-1016
+   - Tests: T42, T59, T72, T73 assertions updated
+
+### Test Results
+
+- **73/73 PASSED (100%)**
+- Test coverage expanded from 50 to 73 scenarios across 17 categories
+- New coverage: enrichment confidence, Claude modulation, personalization, penalty edge cases, occasion-specific (Solo Dining, Treat Myself, Adventure, Chill Hangout), weight interactions, deal-breaker gates, penalty arithmetic
 
 ### Findings Summary
 
-- **Formula accuracy:** All formulas in the document match the code implementation exactly. Verified across all 5 factors, weight tables, penalty functions, and score mapping.
+- **Formula accuracy:** All formulas in the document match the code implementation. Verified across all 5 factors, weight tables, penalty functions, and score mapping.
 - **Internal consistency:** All sections agree. Weight tables, tier definitions, and source references are correct.
-- **Minor documentation gaps fixed:**
-  - Music Fit table expanded from 4 to 9 occasions
-  - Live music tag fallback path added to Atmosphere signals
-  - Blues added to specific music style matching
-  - Mermaid weight flowchart fixed to show both medium and low flowing to occasion override
 - **No blocking issues found.**
