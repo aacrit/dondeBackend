@@ -524,10 +524,6 @@ Deno.serve(async (req: Request) => {
         .map((r) => r.google_place_id)
         .filter(Boolean) as string[];
 
-      // Enhancement 7: True parallel execution — fire Google + Claude together
-      // Build Claude prompt first (without reviews), then race with Google
-      const systemPrompt = buildSystemPrompt(occasion, price_level);
-
       // Get neighborhood description for prompt (Enhancement 15)
       const neighborhoodDescription = top10[0]?.neighborhood_description || null;
 
@@ -595,7 +591,38 @@ Keep the pivot acknowledgment to ONE brief clause, not a full sentence. The tone
 Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
       }
 
-      // Build user prompt with reviews (if available from Google)
+      // V3.5: Pre-compute preliminary V3 scores for tone modulation
+      // These scores omit Claude-dependent inputs (±3-5 DM points) but are accurate enough
+      // for tier determination (HIGH/MID/LOW boundaries are 20+ points apart)
+      const prelimScores: number[] = [];
+      for (let i = 0; i < top10.length; i++) {
+        const candidate = top10[i];
+        const candidateGoogle = candidate.google_place_id
+          ? googleByPlaceId.get(candidate.google_place_id) || null
+          : null;
+        let prelimDM = computeV3DondeMatch(candidate, {
+          occasion,
+          specialRequest: special_request,
+          neighborhood,
+          priceLevel: price_level,
+          googleData: candidateGoogle,
+          claudeRelevance: undefined,
+          sentimentScore: null,
+          sentimentNegative: null,
+          intent,
+          rejectionSignals,
+          userFeedback,
+          clientTimeOfDay: time_of_day,
+          dietaryRestrictions: dietary_restrictions,
+        }).dondeMatch;
+        if (cuisineMismatch) prelimDM = Math.min(prelimDM, 65);
+        prelimScores.push(prelimDM);
+      }
+
+      // V3.5: Build system prompt with tone directive (after pre-computation)
+      const systemPrompt = buildSystemPrompt(occasion, price_level, true);
+
+      // Build user prompt with reviews and preliminary DM scores
       const userPrompt = buildUserPrompt(
         top10,
         occasion,
@@ -606,7 +633,8 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
         neighborhoodDescription,
         rejectionContext,
         cuisineMismatchContext,
-        dietary_restrictions.length > 0 ? dietary_restrictions : undefined
+        dietary_restrictions.length > 0 ? dietary_restrictions : undefined,
+        prelimScores
       );
 
       // Call Claude
