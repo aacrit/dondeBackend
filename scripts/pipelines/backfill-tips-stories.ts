@@ -122,7 +122,7 @@ async function main() {
     .select(`
       id, name, cuisine_type, price_level, best_for_oneliner, insider_tip,
       neighborhoods!inner(name),
-      restaurant_tags(tag_text),
+      tags(tag_text),
       restaurant_deep_profiles(
         origin_story, signature_dishes, unique_selling_point,
         best_seat_in_house, wow_factors, chef_notable, awards_recognition
@@ -151,7 +151,7 @@ async function main() {
     best_for_oneliner: r.best_for_oneliner as string | null,
     insider_tip: r.insider_tip as string | null,
     neighborhood_name: (r.neighborhoods as Record<string, unknown>)?.name as string | null ?? null,
-    tags: ((r.restaurant_tags as Array<Record<string, unknown>>) || []).map((t) => t.tag_text as string),
+    tags: ((r.tags as Array<Record<string, unknown>>) || []).map((t) => t.tag_text as string),
     deep_profile: Array.isArray(r.restaurant_deep_profiles) && r.restaurant_deep_profiles.length > 0
       ? r.restaurant_deep_profiles[0] as Record<string, unknown>
       : null,
