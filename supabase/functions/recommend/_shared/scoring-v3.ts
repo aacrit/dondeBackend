@@ -258,9 +258,15 @@ export function computeFoodMatch(
     if (profile.cuisine_type) {
       const cuisineLower = profile.cuisine_type.toLowerCase();
       const exactMatch = targetCuisines.some(c => c.toLowerCase() === cuisineLower);
+      // Substring match: "Modern Indian" contains "Indian", "New American" contains "American"
+      const containsMatch = !exactMatch && targetCuisines.some(c =>
+        cuisineLower.includes(c.toLowerCase()) || c.toLowerCase().includes(cuisineLower)
+      );
 
       if (exactMatch) {
         score += 5;
+      } else if (containsMatch) {
+        score += 4.5;
       } else if (dp?.cuisine_subcategory) {
         const subLower = dp.cuisine_subcategory.toLowerCase();
         if (targetCuisines.some(c => subLower.includes(c.toLowerCase()))) {
@@ -363,10 +369,12 @@ export function computeFoodMatch(
     return { score: Math.min(4, normalized), dataPoints, maxDataPoints };
   }
 
-  // No intent → default to 5
-  if (!specialRequest || specialRequest.trim().length < 3) {
-    if (targetCuisines.length === 0) {
-      return { score: 5, dataPoints, maxDataPoints };
+  // No food intent → floor at neutral 5
+  // When cuisine_importance is "low" (experience query like "byob spot, live music"),
+  // or when there's no special request at all, don't punish food score.
+  if (targetCuisines.length === 0) {
+    if (intent?.cuisine_importance === "low" || !specialRequest || specialRequest.trim().length < 3) {
+      return { score: Math.max(normalized, 5), dataPoints, maxDataPoints };
     }
   }
 
@@ -594,7 +602,33 @@ export function computeAtmosphere(
     }
   }
 
-  // Layer 3: Bonus signals (0-3 points)
+  // Layer 3: Request-driven signals
+
+  // Live music / entertainment if requested (from specialRequest or intent tags)
+  const targetTags = intent?.target_tags || [];
+  const targetFeatures = intent?.target_features || [];
+  const wantsLiveMusic = requestLower.match(/live music|live band|live jazz|live dj|karaoke|entertainment/)
+    || targetTags.some(t => /music|entertainment|dj|karaoke/i.test(t))
+    || targetFeatures.includes("live_music");
+  if (wantsLiveMusic) {
+    maxDataPoints++;
+    if (profile.live_music) {
+      score += 1.5; dataPoints++;
+    } else if (dp?.music_vibe && /live/.test(dp.music_vibe)) {
+      score += 1.0; dataPoints++;
+    } else if (profile.tags.some(t => /live music|live band|live jazz/i.test(t))) {
+      score += 1.0; dataPoints++;
+    }
+  }
+
+  // Specific music style matching (jazz, acoustic, blues)
+  const musicStyleMatch = requestLower.match(/\bjazz\b|\bacoustic\b|\bblues\b/);
+  if (musicStyleMatch && dp?.music_vibe) {
+    maxDataPoints++;
+    if (dp.music_vibe.toLowerCase().includes(musicStyleMatch[0])) {
+      score += 1.0; dataPoints++;
+    }
+  }
 
   // Outdoor if requested
   if (requestLower.match(/outdoor|patio|outside|al fresco|terrace/)) {
@@ -677,6 +711,8 @@ export function computeReputation(
   if (sentimentScore != null) {
     dataPoints++;
     score += (sentimentScore / 10) * 2;
+  } else {
+    score += 1.0; // Neutral: no evidence of bad reviews
   }
   if (sentimentNegative != null && sentimentNegative > 30) {
     score -= Math.min(1.5, ((sentimentNegative - 30) / 40) * 1.5);
@@ -684,9 +720,9 @@ export function computeReputation(
 
   // Layer 3: Awards and recognition (0-2 points)
   maxDataPoints++;
+  let awardsUsed = false;
   if (dp) {
     let awardsScore = 0;
-    let awardsUsed = false;
 
     if (dp.awards_recognition && dp.awards_recognition.length > 0) {
       awardsScore += 1.0;
@@ -706,12 +742,15 @@ export function computeReputation(
       score += Math.min(2, awardsScore);
     }
   }
+  if (!awardsUsed) {
+    score += 0.5; // Neutral: no awards data doesn't mean bad
+  }
 
   // Layer 4: Community standing (0-2 points)
   maxDataPoints++;
+  let communityUsed = false;
   if (dp) {
     let communityScore = 0;
-    let communityUsed = false;
 
     if (dp.neighborhood_integration === "institution") {
       communityScore += 1.5;
@@ -734,6 +773,9 @@ export function computeReputation(
       score += Math.min(2, communityScore);
     }
   }
+  if (!communityUsed) {
+    score += 0.5; // Neutral: no community data doesn't mean bad
+  }
 
   return {
     score: Math.min(10, Math.max(0, score)),
@@ -752,7 +794,7 @@ export function computeConvenience(
   clientTimeOfDay?: string | null,
   specialRequest?: string
 ): V3FactorResult {
-  let score = 7; // Start optimistic
+  let score = 5; // Start neutral
   let dataPoints = 0;
   let maxDataPoints = 0;
 
@@ -760,13 +802,13 @@ export function computeConvenience(
   const v2Intent = intent && "spontaneity" in intent ? intent as IntentClassificationV2 : null;
   const requestLower = (specialRequest || "").toLowerCase();
 
-  // Layer 1: Timing fit (-2 to +1)
+  // Layer 1: Timing fit (-2 to +1.5)
   maxDataPoints++;
   const timeOfDay = clientTimeOfDay || null;
   if (timeOfDay && profile.best_times && profile.best_times.length > 0) {
     dataPoints++;
     if (profile.best_times.includes(timeOfDay)) {
-      score += 1;
+      score += 1.5;
     } else if (profile.best_times.length <= 2) {
       // Narrow-focus restaurant at wrong time
       score -= 2;
@@ -775,7 +817,7 @@ export function computeConvenience(
     }
   }
 
-  // Layer 2: Reservation accessibility (-3 to +1)
+  // Layer 2: Reservation accessibility (-3 to +1.5)
   maxDataPoints++;
   if (dp?.reservation_difficulty) {
     dataPoints++;
@@ -784,8 +826,8 @@ export function computeConvenience(
 
     if (dp.reservation_difficulty === "hard_to_get" && isSpontaneous) {
       score -= 3;
-    } else if (dp.reservation_difficulty === "walk_in_friendly" && isSpontaneous) {
-      score += 1;
+    } else if (dp.reservation_difficulty === "walk_in_friendly") {
+      score += isSpontaneous ? 1.5 : 0.5;
     }
   }
 
@@ -795,6 +837,7 @@ export function computeConvenience(
     dataPoints++;
     if (dp.typical_wait_minutes > 60) score -= 1.5;
     else if (dp.typical_wait_minutes > 30) score -= 0.5;
+    else score += 0.5; // Short wait is a positive
   }
 
   // Layer 3: Practical notes (-0.5 to +1.5)
@@ -804,10 +847,24 @@ export function computeConvenience(
     score -= 0.5;
   }
 
-  if (dp?.byob_policy === "full_byob" && requestLower.includes("byob")) {
+  // BYOB matching (broader detection — from specialRequest or intent practical_constraints)
+  const v2IntentForConstraints = intent && "practical_constraints" in intent ? intent as IntentClassificationV2 : null;
+  const constraints = v2IntentForConstraints?.practical_constraints || [];
+  const wantsByob = requestLower.includes("byob") || constraints.includes("byob_preference");
+  if (wantsByob) {
     maxDataPoints++;
-    dataPoints++;
-    score += 1.5;
+    if (dp?.byob_policy && dp.byob_policy.toLowerCase().includes("byob")) {
+      dataPoints++;
+      score += 1.5;
+    } else if (profile.tags.some(t => /byob/i.test(t))) {
+      dataPoints++;
+      score += 1.5;
+    }
+  }
+
+  // Parking positive signal
+  if (profile.parking_availability && !/none|no /i.test(profile.parking_availability)) {
+    score += 0.5;
   }
 
   return {
@@ -828,11 +885,13 @@ export function computeV3Weights(
   let w: V3Weights = { food: 0.30, setting: 0.25, atmosphere: 0.20, reputation: 0.15, convenience: 0.10 };
   const v2Intent = intent && "emotional_intent" in intent ? intent as IntentClassificationV2 : null;
 
-  // Cuisine-driven requests: food dominates
+  // Cuisine-driven requests: food dominates; experience queries: atmosphere/convenience dominate
   if (intent?.cuisine_importance === "high") {
     w = { food: 0.45, setting: 0.15, atmosphere: 0.15, reputation: 0.15, convenience: 0.10 };
   } else if (intent?.cuisine_importance === "medium") {
     w = { food: 0.35, setting: 0.20, atmosphere: 0.20, reputation: 0.15, convenience: 0.10 };
+  } else if (intent?.cuisine_importance === "low") {
+    w = { food: 0.15, setting: 0.20, atmosphere: 0.30, reputation: 0.15, convenience: 0.20 };
   }
 
   // Occasion overrides (only when food is not dominant)
@@ -943,19 +1002,9 @@ function applyDealBreakerPenalties(
 ): number {
   let result = composite;
 
-  // Cuisine mismatch
-  if (intent?.target_cuisines && intent.target_cuisines.length > 0 && profile.cuisine_type) {
-    const cuisineMatch = intent.target_cuisines.some(
-      c => c.toLowerCase() === profile.cuisine_type!.toLowerCase()
-    );
-    if (!cuisineMatch) {
-      if (intent.cuisine_importance === "high") {
-        result *= 0.6;
-      } else if (intent.cuisine_importance === "medium") {
-        result *= 0.8;
-      }
-    }
-  }
+  // NOTE: Cuisine mismatch penalty REMOVED — Food Match factor already handles cuisine
+  // alignment (0 pts for mismatch). Having a separate multiplicative penalty here
+  // double-counted the miss, crushing fallback scores to near-zero (e.g., 3%).
 
   // Price mismatch
   if (priceLevel && priceLevel !== "Any" && profile.price_level) {
@@ -1154,13 +1203,31 @@ export function reRankV3(
 // ==========================================
 
 function isRelatedCuisine(cuisine: string, targets: string[]): boolean {
-  const family = CUISINE_TO_FAMILY[cuisine];
+  // Try exact key lookup first
+  let family = CUISINE_TO_FAMILY[cuisine];
+
+  // Fallback: substring match for variants like "Modern Indian" → find "Indian" in keys
+  if (!family) {
+    const cuisineLower = cuisine.toLowerCase();
+    const match = Object.entries(CUISINE_TO_FAMILY).find(
+      ([key]) => cuisineLower.includes(key.toLowerCase())
+    );
+    if (match) family = match[1];
+  }
+
   if (!family) return false;
   return targets.some(t => {
     // Direct family match (e.g., "Mediterranean" when "Greek" is the restaurant)
-    if (t.toLowerCase() === family.toLowerCase()) return true;
+    if (t.toLowerCase() === family!.toLowerCase()) return true;
     // Same family match (e.g., "Greek" restaurant when "Italian" requested — both Mediterranean)
-    const targetFamily = CUISINE_TO_FAMILY[t];
+    let targetFamily = CUISINE_TO_FAMILY[t];
+    if (!targetFamily) {
+      const tLower = t.toLowerCase();
+      const tmatch = Object.entries(CUISINE_TO_FAMILY).find(
+        ([key]) => tLower.includes(key.toLowerCase())
+      );
+      if (tmatch) targetFamily = tmatch[1];
+    }
     return targetFamily === family;
   });
 }
