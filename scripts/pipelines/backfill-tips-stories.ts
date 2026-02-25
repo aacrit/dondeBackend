@@ -115,8 +115,18 @@ async function main() {
   console.log(`Model: ${MODEL}`);
   console.log(`Limit: ${LIMIT === Infinity ? "all" : LIMIT}\n`);
 
-  // Fetch restaurants needing enrichment
-  // Join with deep_profiles to get existing enrichment data
+  // Fetch restaurants needing enrichment (missing insider_tip OR missing origin_story)
+  // Step 1: Find restaurant IDs whose deep profile is missing origin_story
+  const { data: missingStoryProfiles } = await supabase
+    .from("restaurant_deep_profiles")
+    .select("restaurant_id")
+    .or("origin_story.is.null,origin_story.eq.");
+
+  const missingStoryIds = new Set(
+    (missingStoryProfiles || []).map((p) => p.restaurant_id)
+  );
+
+  // Step 2: Fetch all active restaurants with full data
   const { data: restaurants, error } = await supabase
     .from("restaurants")
     .select(`
@@ -129,21 +139,37 @@ async function main() {
       )
     `)
     .eq("is_active", true)
-    .or("insider_tip.is.null,insider_tip.eq.")
-    .limit(LIMIT === Infinity ? 10000 : LIMIT);
+    .limit(10000);
 
   if (error) {
     console.error("Failed to fetch restaurants:", error);
     process.exit(1);
   }
 
-  if (!restaurants || restaurants.length === 0) {
+  // Step 3: Filter to restaurants needing either tip or story
+  const needsEnrichment = (restaurants || []).filter((r) => {
+    const missingTip = !r.insider_tip;
+    const missingStory = missingStoryIds.has(r.id as string);
+    // Also catch restaurants with no deep profile at all
+    const noProfile = !Array.isArray(r.restaurant_deep_profiles) ||
+      r.restaurant_deep_profiles.length === 0;
+    return missingTip || missingStory || noProfile;
+  });
+
+  // Apply limit after filtering
+  const limitedRestaurants = needsEnrichment.slice(0, LIMIT === Infinity ? 10000 : LIMIT);
+
+  if (limitedRestaurants.length === 0) {
     console.log("No restaurants need enrichment. All tips and stories are present.");
     return;
   }
 
+  console.log(`Restaurants missing insider_tip: ${needsEnrichment.filter(r => !r.insider_tip).length}`);
+  console.log(`Restaurants missing origin_story: ${missingStoryIds.size}`);
+  console.log(`Total needing enrichment: ${needsEnrichment.length} (processing ${limitedRestaurants.length})\n`);
+
   // Flatten joined data
-  const flatRestaurants: RestaurantData[] = restaurants.map((r: Record<string, unknown>) => ({
+  const flatRestaurants: RestaurantData[] = limitedRestaurants.map((r: Record<string, unknown>) => ({
     id: r.id as string,
     name: r.name as string,
     cuisine_type: r.cuisine_type as string | null,
@@ -157,7 +183,7 @@ async function main() {
       : null,
   }));
 
-  console.log(`Found ${flatRestaurants.length} restaurants needing enrichment.\n`);
+  console.log(`Processing ${flatRestaurants.length} restaurants...\n`);
 
   // Audit log
   const auditLog: EnrichmentResult[] = [];
