@@ -1,5 +1,5 @@
 /**
- * Donde Match V3.4 — Scoring Engine (Optimized)
+ * Donde Match V3.5 — Scoring Engine (Optimized + Tone Modulation)
  *
  * Five human-intuitive factors: Food Match, Setting Fit, Atmosphere, Reputation, Convenience
  * Each factor scores 0-10. Weighted composite maps to 0-99 Donde Match via power-law scaling.
@@ -43,6 +43,11 @@
  * - Reputation neutral defaults raised: sparse data ≠ bad reputation (S4/PT9)
  * - Liked cuisine bonus 0.5→1.0 (S9: rebalance like/dislike ratio)
  * - Decorrelation coefficients softened: 0.15→0.10, 0.10→0.05 (S7/PT5)
+ *
+ * V3.5 tone modulation (expert review cycle 6: CW/UX/BP/FC):
+ * - Pre-compute preliminary DM before Claude call (without Claude-dependent inputs)
+ * - Inject score-tier tone directive into system prompt for blurb confidence calibration
+ * - Show preliminary DM per candidate in user prompt for tone-aware recommendation writing
  */
 
 import type {

@@ -2339,9 +2339,12 @@ export function ensureDiversity(
 
 // Enhancement 10: Expanded system prompt with static reference data for better cache utilization
 // V2: Voice modulation, cultural grounding, dynamic hooks, deep profile awareness
-export function buildSystemPrompt(occasion?: string, priceLevel?: string): string {
+// V3.5: Score-aware tone modulation — preliminary DM drives blurb confidence calibration
+export function buildSystemPrompt(occasion?: string, priceLevel?: string, includeToneDirective?: boolean): string {
   // Voice modulation directive — shifts personality based on context
   const voiceDirective = getVoiceDirective(occasion || "Any", priceLevel || "$$");
+  // V3.5: Tone modulation directive — calibrates confidence to Donde Match score tier
+  const toneDirective = includeToneDirective ? `\n\n${getScoreToneDirective()}` : '';
 
   return `You are Donde, a sharp, opinionated Chicago dining guide. You sound like a food-obsessed friend who eats out five nights a week and has strong opinions about every restaurant in the city. Use "we" as Donde's voice. You write with the confidence of someone who knows the scene cold, but every specific claim must come from the candidate data provided.
 
@@ -2365,7 +2368,7 @@ OCCASION VIBE GUIDE:
 - Adventure: Any vibe, Casual, hidden gems preferred
 - Chill Hangout: Moderate/Quiet, warm/dim, Casual
 
-${voiceDirective}
+${voiceDirective}${toneDirective}
 
 CULTURAL GROUNDING, use the actual vocabulary of each cuisine:
 - Mexican: Regional distinctions matter (Oaxacan ≠ Tex-Mex ≠ Pueblan). Say "mole negro" not "dark sauce." Say "taquero" not "cook." Respect the complexity.
@@ -2550,6 +2553,33 @@ DO: Be specific. Lead with the strongest detail. Use "we" naturally.
 DON'T: Sound generic. Don't hedge. If you're recommending it, own it.`;
 }
 
+// V3.5: Score-aware tone modulation — aligns blurb confidence with Donde Match score
+// Synthesized from expert reviews: Copywriter (CW), UX Writer (UX), Behavioral Psychologist (BP), Food Critic (FC)
+export function getScoreToneDirective(): string {
+  return `TONE MODULATION (match score-aware):
+Each candidate below includes a preliminary Donde Match (DM) score. When writing your recommendation, calibrate your tone to match the DM of the restaurant you pick:
+
+HIGH MATCH (DM 80+):
+- Full confidence. Declarative, direct. "This is the one." "Order the whole fish."
+- Lead with specific, verifiable detail: the dish, the technique, the ingredient. Let specificity carry the confidence, not adjectives.
+- Caveat goes LAST, as a minor qualifier the reader barely worries about. "The wait can test you on weekends, but that first bite makes you forget."
+- Insider tip: Absolute authority. Commands without softening. "Ask for the off-menu aguachile."
+
+MID MATCH (DM 55-79):
+- Open with what genuinely works, then name an honest trade-off, then close on a strength tied to what the user asked for.
+- Be specific about the restaurant's real excellence: "Come for the handmade pasta. The rest of the menu is more variable."
+- Never apologize for the recommendation. Frame trade-offs as useful context, not confessions. "The room gets loud, which matters less when the short rib shows up."
+- Insider tip: Navigational and practical. "Go on a weeknight. The kitchen runs better with a smaller room."
+
+LOW MATCH (DM below 55):
+- Lead with the strongest genuine positive. One specific thing the restaurant does well.
+- Name the gap briefly and neutrally in a short clause: "Not the ramen you described, but..." then pivot hard to the genuine appeal with a vivid sensory detail.
+- End with something actionable: a specific dish to order, a time to go.
+- Insider tip: Strategic. "Order the dumplings and skip the rest. That is where the kitchen's attention lives."
+
+ACROSS ALL TIERS: The reader should be able to cover the score and correctly guess the tier from your tone alone. Never oversell a low match or undersell a high one. Specificity is how you reconcile honesty with confidence at every tier.`;
+}
+
 // V2: Enhanced candidate format with deep profile data
 export function buildUserPrompt(
   top10: RestaurantProfile[],
@@ -2561,7 +2591,8 @@ export function buildUserPrompt(
   neighborhoodDescription?: string | null,
   rejectionContext?: string,
   cuisineMismatchContext?: string | null,
-  dietaryRestrictions?: string[]
+  dietaryRestrictions?: string[],
+  prelimScores?: number[]       // V3.5: preliminary Donde Match scores for tone calibration
 ): string {
   const restaurantList = top10
     .map((d, i) => {
@@ -2578,7 +2609,9 @@ export function buildUserPrompt(
       const occasionScore = computeWeightedOccasionScore(d, occasion);
       const trending = d.trending_score ? ` T:${d.trending_score.toFixed(1)}` : "";
 
-      let entry = `${i}. ${d.name} | ${d.neighborhood_name} | ${d.cuisine_type || "N/A"} | ${d.price_level} | ${occasion}:${occasionScore.toFixed(1)}/10${trending} | ${d.noise_level || "?"} noise, ${d.lighting_ambiance || "?"} | ${d.dress_code || "?"} | ${features}${dietary ? " | Diet:" + dietary : ""} | "${d.best_for_oneliner || "N/A"}" | Tags: ${d.tags.length > 0 ? d.tags.join(", ") : "none"}`;
+      // V3.5: Include preliminary Donde Match score for tone calibration
+      const dmTag = prelimScores && prelimScores[i] != null ? ` | DM:${prelimScores[i]}` : '';
+      let entry = `${i}. ${d.name} | ${d.neighborhood_name} | ${d.cuisine_type || "N/A"} | ${d.price_level} | ${occasion}:${occasionScore.toFixed(1)}/10${trending} | ${d.noise_level || "?"} noise, ${d.lighting_ambiance || "?"} | ${d.dress_code || "?"} | ${features}${dietary ? " | Diet:" + dietary : ""} | "${d.best_for_oneliner || "N/A"}" | Tags: ${d.tags.length > 0 ? d.tags.join(", ") : "none"}${dmTag}`;
 
       // V2: Append deep profile context (compact format to save tokens)
       const dp = d.deep_profile;
