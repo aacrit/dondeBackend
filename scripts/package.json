@@ -11,7 +11,11 @@
     "backfill": "tsx pipelines/backfill-new-fields.ts",
     "populate": "tsx pipelines/populate-all.ts",
     "discovery:targeted": "TARGET_CUISINES=Japanese INCLUDE_VARIANTS=true tsx pipelines/discovery.ts",
-    "discovery:gaps": "DRY_RUN=true tsx pipelines/discovery.ts"
+    "discovery:gaps": "DRY_RUN=true tsx pipelines/discovery.ts",
+    "audit": "tsx pipelines/audit-full-dataset.ts",
+    "enrich": "tsx pipelines/enrich-full-dataset.ts",
+    "enrich:live": "tsx pipelines/enrich-full-dataset.ts --live",
+    "enrich:test": "tsx pipelines/enrich-full-dataset.ts --limit 3"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

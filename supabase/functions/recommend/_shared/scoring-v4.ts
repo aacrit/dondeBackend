@@ -79,12 +79,13 @@ function computeFoodConfidence(
   const dp = profile.deep_profile;
   const enrichConf = dp?.enrichment_confidence ?? 0;
 
-  // High: enrichment data + explicit cuisine intent
-  if (enrichConf >= 5 && intent?.cuisine_importance === "high") return "high";
-  if (enrichConf >= 5 && profile.cuisine_type) return "high";
+  // enrichment_confidence is a 0-1 ratio (data completeness)
+  // High: good enrichment + explicit cuisine intent
+  if (enrichConf >= 0.5 && intent?.cuisine_importance === "high") return "high";
+  if (enrichConf >= 0.5 && profile.cuisine_type) return "high";
 
   // Medium: some enrichment or basic DB data
-  if (enrichConf >= 3 || profile.cuisine_type) return "medium";
+  if (enrichConf >= 0.3 || profile.cuisine_type) return "medium";
 
   // Low: no enrichment, no cuisine type
   return "low";
@@ -99,8 +100,8 @@ function computeVibeConfidence(
   const enrichConf = dp?.enrichment_confidence ?? 0;
   const dataRatio = vibeMaxDataPoints > 0 ? vibeDataPoints / vibeMaxDataPoints : 0;
 
-  if (enrichConf >= 5 && dataRatio >= 0.5) return "high";
-  if (enrichConf >= 3 || dataRatio >= 0.3) return "medium";
+  if (enrichConf >= 0.5 && dataRatio >= 0.5) return "high";
+  if (enrichConf >= 0.3 || dataRatio >= 0.3) return "medium";
   return "low";
 }
 
@@ -113,8 +114,8 @@ function computeServiceConfidence(
     || (profile.group_friendly_score ?? 0) > 0
     || (profile.family_friendly_score ?? 0) > 0;
 
-  if (enrichConf >= 5 && hasOccasionScores) return "high";
-  if (enrichConf >= 3 || hasOccasionScores) return "medium";
+  if (enrichConf >= 0.5 && hasOccasionScores) return "high";
+  if (enrichConf >= 0.3 || hasOccasionScores) return "medium";
   return "low";
 }
 
