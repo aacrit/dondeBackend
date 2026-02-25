@@ -1099,8 +1099,8 @@ runTest(
     clientTimeOfDay: "dinner",
   },
   (dm, f) => ({
-    passed: f.food >= 5.5 && f.convenience <= 3 && dm >= 35 && dm <= 65,
-    desc: "Food>=5.5, Conv<=3, DM 35-65 (food good but no flavor bonus; convenience punished)",
+    passed: f.food >= 5.5 && f.convenience <= 3 && dm >= 45 && dm <= 75,
+    desc: "Food>=5.5, Conv<=3, DM 45-75 (V3.4: power-law uplift; food good, convenience punished)",
     actual: `Food=${f.food.toFixed(1)}, Conv=${f.convenience.toFixed(1)}, DM=${dm}`,
   })
 );
@@ -1143,8 +1143,8 @@ runTest(
     userFeedback: { likedCuisines: [], dislikedCuisines: [], likedRestaurantIds: [], dislikedRestaurantIds: ["rest-disliked-123"] },
   },
   (dm) => ({
-    passed: dm <= 50,
-    desc: "DM<=50 (V3.2: disliked restaurant -2.0 + 105x multiplier inflates base)",
+    passed: dm <= 58,
+    desc: "DM<=58 (V3.4: disliked restaurant -2.0 + 114x multiplier inflates base)",
     actual: `DM=${dm}`,
   })
 );
@@ -1163,8 +1163,8 @@ runTest(
     intent: buildMockIntent(),
   },
   (dm) => ({
-    passed: dm <= 35,
-    desc: "DM<=35 (V3.2: heavy price -3.0 + 105x multiplier inflates residual)",
+    passed: dm <= 48,
+    desc: "DM<=48 (V3.4: heavy price -3.0 + 114x multiplier inflates residual)",
     actual: `DM=${dm}`,
   })
 );
@@ -1404,8 +1404,8 @@ runTest(
     // V3.1: Bayesian shrinkage toward prior 5.0 — conf=3 → shrinkageWeight=0.6
     // Factors pulled toward 5.0 instead of crushed toward 0 — higher DM than old multiplicative dampening
     return {
-      passed: dm <= 65,
-      desc: "DM<=65 (Bayesian shrinkage conf=3: factors regress toward prior 5.0)",
+      passed: dm <= 80,
+      desc: "DM<=80 (V3.4: conf=3 no longer gated; threshold reduced to <3)",
       actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
     };
   }
@@ -1455,8 +1455,8 @@ runTest(
     // V3.1: Bayesian shrinkage — conf=1 → shrinkageWeight=0.2
     // Heavy regression toward prior 5.0, but not crushed to near-0 like old model
     return {
-      passed: dm <= 65,
-      desc: "DM<=65 (Bayesian shrinkage conf=1: heavy regression toward prior 5.0)",
+      passed: dm <= 78,
+      desc: "DM<=78 (V3.4: conf=1 still gated toward prior 5.5, but less aggressive)",
       actual: `Food=${f.food.toFixed(1)}, DM=${dm}`,
     };
   }
@@ -1550,8 +1550,8 @@ runTest(
     userFeedback: { likedCuisines: [], dislikedCuisines: ["Mexican"], likedRestaurantIds: [], dislikedRestaurantIds: [] },
   },
   (dm) => ({
-    passed: dm <= 60,
-    desc: "DM<=60 (V3.2: disliked cuisine -1.0 + 105x multiplier inflates base)",
+    passed: dm <= 70,
+    desc: "DM<=70 (V3.4: disliked cuisine -1.0 + 114x multiplier inflates base)",
     actual: `DM=${dm}`,
   })
 );
@@ -1571,8 +1571,8 @@ runTest(
     rejectionSignals: { avoidCuisines: ["Thai"], avoidPriceLevels: [], avoidRestaurantIds: [] },
   },
   (dm) => ({
-    passed: dm <= 60,
-    desc: "DM<=60 (V3.3: avoidCuisine reduced -2.0→-0.7, inferred weaker than explicit)",
+    passed: dm <= 70,
+    desc: "DM<=70 (V3.4: avoidCuisine -0.7 + power-law uplift)",
     actual: `DM=${dm}`,
   })
 );
@@ -1595,8 +1595,8 @@ runTest(
     intent: buildMockIntent(),
   },
   (dm) => ({
-    passed: dm <= 50,
-    desc: "DM<=50 (V3.1: 2-tier price gap -1.5 + power-law 0.85 scaling)",
+    passed: dm <= 65,
+    desc: "DM<=65 (V3.4: 2-tier price gap -1.5 + power-law 0.76 scaling)",
     actual: `DM=${dm}`,
   })
 );
@@ -1615,8 +1615,8 @@ runTest(
     intent: buildMockIntent(),
   },
   (dm) => ({
-    passed: dm >= 30 && dm <= 60,
-    desc: "DM 30-60 (1-tier over: -0.5 composite penalty)",
+    passed: dm >= 40 && dm <= 75,
+    desc: "DM 40-75 (V3.4: 1-tier over -0.5 + power-law uplift)",
     actual: `DM=${dm}`,
   })
 );
@@ -1635,8 +1635,8 @@ runTest(
     intent: buildMockIntent(),
   },
   (dm) => ({
-    passed: dm <= 60,
-    desc: "DM<=60 (V3.2: neighborhood mismatch -0.6 + 105x multiplier inflates base)",
+    passed: dm <= 72,
+    desc: "DM<=72 (V3.4: neighborhood mismatch -0.6 + 114x multiplier inflates base)",
     actual: `DM=${dm}`,
   })
 );
@@ -1921,8 +1921,8 @@ runTest(
   },
   (dm) => ({
     // With subtractive -3.0, high scorer (raw ~7.5) → 7.5-3.0=4.5 → DM≈45
-    passed: dm >= 30 && dm <= 55,
-    desc: "DM 30-55 (subtractive -3.0: fixed penalty regardless of base score)",
+    passed: dm >= 40 && dm <= 70,
+    desc: "DM 40-70 (V3.4: subtractive -3.0 + power-law uplift on high scorer)",
     actual: `DM=${dm}`,
   })
 );

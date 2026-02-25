@@ -1,5 +1,5 @@
 /**
- * Donde Match V3.3 — Scoring Engine (Optimized)
+ * Donde Match V3.4 — Scoring Engine (Optimized)
  *
  * Five human-intuitive factors: Food Match, Setting Fit, Atmosphere, Reputation, Convenience
  * Each factor scores 0-10. Weighted composite maps to 0-99 Donde Match via power-law scaling.
@@ -35,6 +35,14 @@
  * - avoidPriceLevels stacking prevention: skip if deal-breaker price penalty already applied (S10)
  * - Missing occasion weight overrides: Solo Dining, Treat Myself, Chill Hangout now have tuned weights (PA1)
  * - Inverted penalty hierarchy fix: avoidCuisine -2.0→-0.7 (inferred < explicit dislike -1.0) (PA3)
+ *
+ * V3.4 optimizations (expert review cycles 4-5):
+ * - Power-law exponent 0.85→0.73, multiplier 105→116 (S1/S2/PT4: ceiling and mean uplift)
+ * - Quality match bonus: +0.5 multi-factor excellence, +0.3 well-rounded, +0.3 strong lead (S8)
+ * - Bayesian prior 5.0→5.5, threshold 5→3 (S3/PT1: reduce mediocrity trap)
+ * - Reputation neutral defaults raised: sparse data ≠ bad reputation (S4/PT9)
+ * - Liked cuisine bonus 0.5→1.0 (S9: rebalance like/dislike ratio)
+ * - Decorrelation coefficients softened: 0.15→0.10, 0.10→0.05 (S7/PT5)
  */
 
 import type {
@@ -774,7 +782,7 @@ export function computeReputation(
       : 0.7;
     score += Math.min(4, Math.max(0, normalized * confidence));
   } else {
-    score += 1.0; // Reduced neutral: no evidence = minimal credit (was 2.0, S3)
+    score += 2.0; // V3.4 (S4/PT9): no evidence ≠ bad reputation; restored (was 1.0)
   }
 
   // Layer 2: Sentiment from reviews (0-2 points)
@@ -783,7 +791,7 @@ export function computeReputation(
     dataPoints++;
     score += (sentimentScore / 10) * 2;
   } else {
-    score += 0.5; // Reduced neutral (was 1.0, S3)
+    score += 1.0; // V3.4 (S4/PT9): restored neutral (was 0.5)
   }
   if (sentimentNegative != null && sentimentNegative > 30) {
     score -= Math.min(1.5, ((sentimentNegative - 30) / 40) * 1.5);
@@ -814,7 +822,7 @@ export function computeReputation(
     }
   }
   if (!awardsUsed) {
-    score += 0.25; // Reduced neutral (was 0.5, S3)
+    score += 0.5; // V3.4 (S4/PT9): restored neutral (was 0.25)
   }
 
   // Layer 4: Community standing (0-2 points)
@@ -845,7 +853,7 @@ export function computeReputation(
     }
   }
   if (!communityUsed) {
-    score += 0.25; // Reduced neutral (was 0.5, S3)
+    score += 0.5; // V3.4 (S4/PT9): restored neutral (was 0.25)
   }
 
   return {
@@ -1200,7 +1208,7 @@ function applyPersonalization(
   let cuisineAlreadyPenalized = false;
   if (userFeedback) {
     if (profile.cuisine_type && userFeedback.likedCuisines.includes(profile.cuisine_type)) {
-      result += 0.5;   // was 0.3 — increased to be perceptible (+5 DM)
+      result += 1.0;   // V3.4 (S9): 1:1 ratio with dislike -1.0 (was 0.5)
     }
     if (profile.cuisine_type && userFeedback.dislikedCuisines.includes(profile.cuisine_type)) {
       result -= 1.0;   // unchanged — now 2.0:1 ratio (matches Prospect Theory)
@@ -1271,12 +1279,12 @@ export function computeV3DondeMatch(
   // Reputation (Google API + sentiment) and Convenience (timing/reservation) are NOT gated
   // because enrichment_confidence measures AI enrichment quality, not Google/DB data quality
   const dp = profile.deep_profile;
-  const PRIOR_MEAN = 5.0;
+  const PRIOR_MEAN = 5.5;  // V3.4 (PT1): raised toward population mean (was 5.0)
   // V3.2 (PA3): null deep_profile = lowest confidence (was: bypassed gating entirely)
   const enrichConf = dp?.enrichment_confidence ?? 0;
-  const needsGating = enrichConf < 5;
+  const needsGating = enrichConf < 3;  // V3.4 (S3): only gate very-low-confidence (was < 5)
   const shrinkageWeight = needsGating
-    ? enrichConf / 10  // 0.0 to 0.4 for conf 0-4
+    ? enrichConf / 6   // V3.4: 0.0 to 0.33 for conf 0-2 (was enrichConf / 10)
     : 1.0;
 
   const applyGating = (score: number): number => {
@@ -1305,13 +1313,13 @@ export function computeV3DondeMatch(
   // Step 3: Factor decorrelation — discount overlapping quality signals
   // Setting/Atmosphere: share noise/energy/conversation data (PT1 fix)
   if (factors.setting > 7 && factors.atmosphere > 7) {
-    const overlap = Math.min(factors.setting - 7, factors.atmosphere - 7) * 0.15;
+    const overlap = Math.min(factors.setting - 7, factors.atmosphere - 7) * 0.10; // V3.4 (S7/PT5): was 0.15
     factors.atmosphere = Math.max(0, factors.atmosphere - overlap);
   }
   // V3.2 (PA1): Food/Reputation: share quality signals via cuisine alignment + awards/authenticity
   // Coefficient 0.10 (smaller than Setting/Atmo's 0.15 — correlation is weaker)
   if (factors.food > 7 && factors.reputation > 7) {
-    const qualityOverlap = Math.min(factors.food - 7, factors.reputation - 7) * 0.10;
+    const qualityOverlap = Math.min(factors.food - 7, factors.reputation - 7) * 0.05; // V3.4 (S7/PT5): was 0.10
     factors.reputation = Math.max(0, factors.reputation - qualityOverlap);
   }
 
@@ -1321,6 +1329,18 @@ export function computeV3DondeMatch(
     + factors.atmosphere * weights.atmosphere
     + factors.reputation * weights.reputation
     + factors.convenience * weights.convenience;
+
+  // Step 3c: Quality match bonus — rewards multi-factor excellence (V3.4 S1/S8)
+  let qualityBonus = 0;
+  const factorScores = [factors.food, factors.setting, factors.atmosphere,
+                        factors.reputation, factors.convenience];
+  const highFactors = factorScores.filter(f => f >= 6.5).length;
+  const allAboveFloor = factorScores.every(f => f >= 5.0);
+  const dominantScore = Math.max(...factorScores);
+  if (highFactors >= 3) qualityBonus += 0.5;       // Multi-factor excellence
+  if (allAboveFloor) qualityBonus += 0.3;           // Well-rounded match
+  if (dominantScore >= 8.0) qualityBonus += 0.3;    // Strong lead factor
+  raw += Math.min(0.8, qualityBonus);                // Cap total quality bonus at +0.8
 
   // Step 4: Claude relevance modulation — applied to composite, not factors (S8, PT4, HB5)
   // This preserves factor display integrity and avoids boundary clamping losses
@@ -1345,12 +1365,12 @@ export function computeV3DondeMatch(
   raw = Math.max(0, raw);
 
   // Step 7: Map to 0-99 with power-law scaling (HB3, PT8)
-  // Power 0.85 stretches the compressed [35-80] range into [30-90+]
-  // V3.2 (S1): Multiplier raised 99→105 so raw 8.5 → DM 91 (was 86); makes 90+ tier reachable
-  // Clamp at 99 prevents overflow; practical max ~97 for genuine perfect matches
+  // V3.4 (S1/S2/PT4): Exponent 0.85→0.73 lifts mid-range scores; multiplier 105→116 scales ceiling
+  // Combined effect: mean ~55→70, median ~58→75, max 88→95+
+  // Clamp at 99 prevents overflow; practical max ~97-99 for genuine perfect matches
   const rawNormalized = Math.max(0, Math.min(1, raw / 10));  // Normalize to 0-1
-  const scaled = Math.pow(rawNormalized, 0.85);                // Power-law stretch
-  const dondeMatch = Math.min(99, Math.max(0, Math.round(scaled * 105)));
+  const scaled = Math.pow(rawNormalized, 0.73);                // V3.4: power-law stretch (was 0.85)
+  const dondeMatch = Math.min(99, Math.max(0, Math.round(scaled * 116))); // V3.4: scale (was 105)
 
   // Data completeness
   const totalDataPoints = foodResult.dataPoints + settingResult.dataPoints
