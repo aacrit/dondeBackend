@@ -1,10 +1,48 @@
 /**
- * Donde Match V3.0 — Scoring Engine
+ * Donde Match V3.4 — Scoring Engine (Optimized)
  *
  * Five human-intuitive factors: Food Match, Setting Fit, Atmosphere, Reputation, Convenience
- * Each factor scores 0-10. Weighted composite maps to 0-99 Donde Match.
+ * Each factor scores 0-10. Weighted composite maps to 0-99 Donde Match via power-law scaling.
  *
  * Design philosophy: "High score = best match. If nothing hits 80+, something is off."
+ *
+ * V3.1 optimizations (expert review cycle 1):
+ * - Power-law scaling (exponent 0.85) stretches compressed [35-80] range to [30-90+]
+ * - Reduced neutral defaults to lower floor from ~37 to ~25 DM
+ * - Bayesian shrinkage for confidence gating (toward prior mean, not zero)
+ * - Atmosphere normalization: consistent scale regardless of request verbosity
+ * - Blended weights: medium cuisine importance preserved during occasion overrides
+ * - Google rating stretched to actual candidate distribution (3.5-5.0)
+ * - Feedback recalibrated: +0.5 liked (was +0.3), ratios match Prospect Theory
+ * - Claude relevance applied to composite, not individual factors (preserves display)
+ * - Under-budget price penalty removed (budgets are ceilings)
+ * - Setting/Atmosphere decorrelation discount (0.85x overlap reduction)
+ *
+ * V3.2 optimizations (expert review cycle 2):
+ * - Scale multiplier 99→105 to make 90+ DM reachable for genuine perfect matches (S1)
+ * - Bayesian gating scoped to enrichment-dependent factors only: food, setting, atmosphere (PT2)
+ * - Cold start: atmosphere neutral 3.5 when zero data; null deep_profile triggers gating (PA3)
+ * - Single penalty clamp: removed intermediate max(0) from deal-breaker + personalization (PT4)
+ * - Rejection signal stacking prevention: avoidCuisine skipped if already penalized (PA5)
+ * - Neighborhood penalty reduced -1.0→-0.6: 2.5:1 ratio vs price matches mental accounting (HB3)
+ * - Adventure weights rebalanced: setting 0.15→0.25, food 0.25→0.20 for hidden gem intent (HB6)
+ * - Food+Reputation decorrelation: 0.10x overlap discount for correlated quality signals (PA1)
+ * - Atmosphere denominator cap: max +3 from conditionals to prevent verbose-request dilution (PA8)
+ *
+ * V3.3 optimizations (expert review cycle 3):
+ * - Food maxPossible 10→11: Layer 1 expanded to 0-6 in V3.1 but denominator was stale (S1/PA8/PT6)
+ * - Atmosphere cold-start bypasses Bayesian gating: 3.5 neutral = no enrichment data used (S6)
+ * - avoidPriceLevels stacking prevention: skip if deal-breaker price penalty already applied (S10)
+ * - Missing occasion weight overrides: Solo Dining, Treat Myself, Chill Hangout now have tuned weights (PA1)
+ * - Inverted penalty hierarchy fix: avoidCuisine -2.0→-0.7 (inferred < explicit dislike -1.0) (PA3)
+ *
+ * V3.4 optimizations (expert review cycles 4-5):
+ * - Power-law exponent 0.85→0.73, multiplier 105→116 (S1/S2/PT4: ceiling and mean uplift)
+ * - Quality match bonus: +0.5 multi-factor excellence, +0.3 well-rounded, +0.3 strong lead (S8)
+ * - Bayesian prior 5.0→5.5, threshold 5→3 (S3/PT1: reduce mediocrity trap)
+ * - Reputation neutral defaults raised: sparse data ≠ bad reputation (S4/PT9)
+ * - Liked cuisine bonus 0.5→1.0 (S9: rebalance like/dislike ratio)
+ * - Decorrelation coefficients softened: 0.15→0.10, 0.10→0.05 (S7/PT5)
  */
 
 import type {
@@ -249,7 +287,7 @@ export function computeFoodMatch(
   const dp = profile.deep_profile;
   const v2Intent = intent && "flavor_preferences" in intent ? intent as IntentClassificationV2 : null;
 
-  // Layer 1: Cuisine alignment (0-5 points)
+  // Layer 1: Cuisine alignment (0-6 points) — increased from 0-5 to expand factor ceiling (S1 fix)
   maxDataPoints++;
   const targetCuisines = intent?.target_cuisines || [];
 
@@ -264,24 +302,24 @@ export function computeFoodMatch(
       );
 
       if (exactMatch) {
-        score += 5;
+        score += 6;       // was 5 — expanded to use more of 0-10 budget (S1)
       } else if (containsMatch) {
-        score += 4.5;
+        score += 5.5;     // was 4.5
       } else if (dp?.cuisine_subcategory) {
         const subLower = dp.cuisine_subcategory.toLowerCase();
         if (targetCuisines.some(c => subLower.includes(c.toLowerCase()))) {
-          score += 4;
+          score += 5;     // was 4
         } else if (isRelatedCuisine(profile.cuisine_type, targetCuisines)) {
-          score += 3;
+          score += 3.5;   // was 3
         }
       } else if (isRelatedCuisine(profile.cuisine_type, targetCuisines)) {
-        score += 3;
+        score += 3.5;     // was 3
       }
       // mismatch = 0 points (not a penalty, just no points)
     }
   } else {
-    // No cuisine requested — baseline
-    score += 3;
+    // No cuisine requested — reduced baseline (S3: lower neutral defaults)
+    score += 2.5;  // was 3
   }
 
   // Layer 2: Flavor profile match (0-2 points)
@@ -328,8 +366,8 @@ export function computeFoodMatch(
       }
     }
   } else {
-    // No dietary restriction — restaurant passes by default
-    score += 1;
+    // No dietary restriction — restaurant passes by default (reduced from 1.0, S3)
+    score += 0.5;
     dataPoints++;
   }
 
@@ -361,7 +399,9 @@ export function computeFoodMatch(
   }
 
   // Normalize to 0-10
-  const maxPossible = 10; // 5 + 2 + 2 + 1
+  // V3.3 (S1/PA8/PT6): maxPossible updated 10→11 — Layer 1 was expanded to 0-6 in V3.1
+  // but the denominator was left at 10 (5+2+2+1), should be 11 (6+2+2+1)
+  const maxPossible = 11; // 6 + 2 + 2 + 1
   const normalized = Math.min(10, (score / maxPossible) * 10);
 
   // No cuisine_type → cap at 4
@@ -400,14 +440,16 @@ export function computeSettingFit(
   const dp = profile.deep_profile;
   const v2Intent = intent && "group_size_hint" in intent ? intent as IntentClassificationV2 : null;
 
-  // Layer 1: Occasion base score (0-7 points)
+  // Layer 1: Occasion base score (0-7 points) — power stretch for better top-end discrimination (S4)
   maxDataPoints++;
   const occasionBase = computeWeightedOccasionScore(profile, occasion);
   if (occasionBase > 0) {
     dataPoints++;
-    score += (occasionBase / 10) * 7;
+    // Power stretch (x^0.85) expands the 6-9 DB range into more of the 0-7 budget (S4)
+    const stretched = Math.pow(occasionBase / 10, 0.85) * 7;
+    score += stretched;
   } else {
-    score += 3.5; // neutral default
+    score += 2.5; // reduced neutral default (was 3.5, S3)
   }
 
   // Layer 2: Service style alignment (-0.5 to +1.5 points)
@@ -481,9 +523,9 @@ export function computeSettingFit(
 
   const clamped = Math.min(10, Math.max(0, score));
 
-  // Occasion "Any" → use average + baseline
+  // Occasion "Any" → use average + baseline (reduced neutral, S3)
   if (occasion === "Any" && occasionBase === 0) {
-    return { score: 5, dataPoints, maxDataPoints };
+    return { score: 4, dataPoints, maxDataPoints }; // was 5
   }
 
   return { score: clamped, dataPoints, maxDataPoints };
@@ -509,38 +551,43 @@ export function computeAtmosphere(
 
   // Layer 1: Basic ambiance signals (0-4 points)
 
-  // Noise match (0-1.5)
+  // Track max possible for normalization (S2: normalize Atmosphere like Food Match)
+  let atmoMaxPossible = 0;
+
+  // Noise match (0-2.0) — increased from 0-1.5 for better range (S1)
   maxDataPoints++;
+  atmoMaxPossible += 2.0;
   const expectedNoise = OCCASION_NOISE[occasion] || OCCASION_NOISE.Any;
   if (profile.noise_level) {
     dataPoints++;
     if (expectedNoise.includes(profile.noise_level)) {
-      score += 1.5;
+      score += 2.0;     // was 1.5
     } else {
-      score += 0.5;
+      score += 0.3;     // was 0.5 — reduced mismatch neutral (S3)
     }
-  } else {
-    score += 0.5; // neutral
   }
+  // No neutral for missing data (S3: zero-information = zero score)
 
-  // Lighting match (0-1.5)
+  // Lighting match (0-2.0) — increased from 0-1.5 (S1)
   maxDataPoints++;
+  atmoMaxPossible += 2.0;
   const expectedLighting = OCCASION_LIGHTING[occasion] || [];
   if (profile.lighting_ambiance && expectedLighting.length > 0) {
     dataPoints++;
     const lightingLower = profile.lighting_ambiance.toLowerCase();
     const lightingMatches = expectedLighting.filter(kw => lightingLower.includes(kw)).length;
     if (lightingMatches > 0) {
-      score += Math.min(1.5, lightingMatches * 0.75);
+      score += Math.min(2.0, lightingMatches * 1.0);  // was 1.5, 0.75
     }
   } else if (expectedLighting.length === 0) {
-    score += 0.75; // no expectation → neutral
-  } else {
-    score += 0.5; // missing data
+    score += 0.5; // no expectation → small neutral
+    atmoMaxPossible -= 0.5; // adjust denominator
   }
+  // No neutral for missing data (S3)
 
   // Dress code appropriateness (0-1)
   maxDataPoints++;
+  atmoMaxPossible += 1.0;
   const expectedDressMin = OCCASION_DRESS_MIN[occasion] || "Casual";
   if (profile.dress_code) {
     dataPoints++;
@@ -549,39 +596,40 @@ export function computeAtmosphere(
     if (restaurantLevel >= expectedLevel) {
       score += 1;
     } else {
-      score += 0.5;
+      score += 0.3; // was 0.5 — reduced (S3)
     }
-  } else {
-    score += 0.5;
   }
+  // No neutral for missing data (S3)
 
   // Layer 2: Energy and music alignment (0-3 points)
 
-  // Energy level (0-1.5)
+  // Energy level (0-2.0) — increased from 0-1.5 (S1)
   maxDataPoints++;
+  atmoMaxPossible += 2.0;
   if (dp?.energy_level != null) {
     dataPoints++;
     const [eMin, eMax] = OCCASION_ENERGY[occasion] || [3, 7];
     const midpoint = (eMin + eMax) / 2;
     if (dp.energy_level >= eMin && dp.energy_level <= eMax) {
-      score += 1.5;
+      score += 2.0;   // was 1.5
     } else {
-      score += Math.max(0, 1.5 - Math.abs(dp.energy_level - midpoint) * 0.3);
+      score += Math.max(0, 2.0 - Math.abs(dp.energy_level - midpoint) * 0.4);
     }
-  } else {
-    score += 0.75;
   }
+  // No neutral for missing data (S3)
 
-  // Music vibe (0-1)
+  // Music vibe (0-1.5) — increased from 0-1 (S1)
   maxDataPoints++;
+  atmoMaxPossible += 1.5;
   if (dp?.music_vibe) {
     dataPoints++;
     const fits = MUSIC_FIT[occasion] || [];
-    if (fits.includes(dp.music_vibe)) score += 1;
+    if (fits.includes(dp.music_vibe)) score += 1.5;  // was 1.0
   }
 
   // Vibe keyword matches (0-1.5)
   maxDataPoints++;
+  atmoMaxPossible += 1.5;
   if (v2Intent?.vibe_keywords && v2Intent.vibe_keywords.length > 0 && dp) {
     let vibeHits = 0;
     for (const vibe of v2Intent.vibe_keywords) {
@@ -615,6 +663,7 @@ export function computeAtmosphere(
     || targetFeatures.includes("live_music");
   if (wantsLiveMusic) {
     maxDataPoints++;
+    atmoMaxPossible += 1.5; // S2: track conditional layer in normalization denominator
     if (profile.live_music) {
       score += 1.5; dataPoints++;
     } else if (dp?.music_vibe && /live/.test(dp.music_vibe)) {
@@ -628,6 +677,7 @@ export function computeAtmosphere(
   const musicStyleMatch = requestLower.match(/\bjazz\b|\bacoustic\b|\bblues\b/);
   if (musicStyleMatch && dp?.music_vibe) {
     maxDataPoints++;
+    atmoMaxPossible += 1.0;
     if (dp.music_vibe.toLowerCase().includes(musicStyleMatch[0])) {
       score += 1.0; dataPoints++;
     }
@@ -636,12 +686,14 @@ export function computeAtmosphere(
   // Outdoor if requested
   if (requestLower.match(/outdoor|patio|outside|al fresco|terrace/)) {
     maxDataPoints++;
+    atmoMaxPossible += 1.0;
     if (profile.outdoor_seating) { score += 1; dataPoints++; }
   }
 
   // Scenic/waterfront tags
   if (requestLower.match(/view|scenic|waterfront|lakefront|rooftop/)) {
     maxDataPoints++;
+    atmoMaxPossible += 1.0;
     const hasScenic = profile.tags.some(t =>
       /waterfront|lakefront|rooftop|scenic|skyline|river view/i.test(t)
     );
@@ -651,6 +703,7 @@ export function computeAtmosphere(
   // Seasonal relevance
   if (dp?.seasonal_relevance) {
     maxDataPoints++;
+    atmoMaxPossible += 0.5;
     const month = new Date().getUTCMonth();
     const season = month >= 2 && month <= 4 ? "spring"
       : month >= 5 && month <= 7 ? "summer"
@@ -663,14 +716,35 @@ export function computeAtmosphere(
   // Instagram-worthy
   if (requestLower.match(/instagram|aesthetic|photogenic|cute/)) {
     maxDataPoints++;
+    atmoMaxPossible += 1.0;
     if (dp?.instagram_worthiness != null && dp.instagram_worthiness >= 8) {
       score += 1;
       dataPoints++;
     }
   }
 
+  // V3.2 (PA3): Cold-start safety — if no atmosphere data points at all, return conservative neutral
+  // A restaurant with zero data should score ~3.5, not 0 (absence ≠ evidence of badness)
+  if (dataPoints === 0) {
+    return { score: 3.5, dataPoints: 0, maxDataPoints };
+  }
+
+  // S2 fix: Normalize atmosphere score to 0-10 using actual max possible for this request
+  // V3.2 (PA8): Cap denominator inflation from conditional layers to prevent verbose-request dilution
+  // Base atmosphere dimensions contribute up to 10.0; conditional layers capped at +3.0 extra
+  const baseDenominator = 10.0;
+  const conditionalExtra = Math.max(0, atmoMaxPossible - baseDenominator);
+  const cappedConditional = Math.min(conditionalExtra, 3.0);
+  const effectiveMax = atmoMaxPossible <= baseDenominator
+    ? atmoMaxPossible
+    : baseDenominator + cappedConditional;
+
+  const normalizedAtmo = effectiveMax > 0
+    ? Math.min(10, (score / effectiveMax) * 10)
+    : Math.min(10, score);
+
   return {
-    score: Math.min(10, Math.max(0, score)),
+    score: Math.max(0, normalizedAtmo),
     dataPoints,
     maxDataPoints,
   };
@@ -692,21 +766,23 @@ export function computeReputation(
 
   const dp = profile.deep_profile;
 
-  // Layer 1: Google rating (0-4 points)
+  // Layer 1: Google rating (0-4 points) — stretched to realistic candidate range (S5)
   maxDataPoints++;
   if (googleData && googleData.google_rating != null) {
     dataPoints++;
     const rating = googleData.google_rating;
     const reviewCount = googleData.google_review_count || 0;
-    // Stretch 2.5-5.0 to 0-4 range
-    const normalized = (rating - 2.5) * 1.6;
+    // S5: Stretch realistic candidate range (3.5-5.0) to 0-4 for better discrimination
+    // Old: (rating - 2.5) * 1.6 → 4.0 at 5.0, 3.2 at 4.5, 2.4 at 4.0
+    // New: (rating - 3.5) * 2.67 → 4.0 at 5.0, 2.67 at 4.5, 1.33 at 4.0
+    const normalized = Math.max(0, (rating - 3.5) * 2.67);
     const confidence = reviewCount >= 200 ? 1.0
       : reviewCount >= 50 ? 0.9
       : reviewCount >= 10 ? 0.8
       : 0.7;
     score += Math.min(4, Math.max(0, normalized * confidence));
   } else {
-    score += 2.0; // Neutral: no Google data
+    score += 2.0; // V3.4 (S4/PT9): no evidence ≠ bad reputation; restored (was 1.0)
   }
 
   // Layer 2: Sentiment from reviews (0-2 points)
@@ -715,7 +791,7 @@ export function computeReputation(
     dataPoints++;
     score += (sentimentScore / 10) * 2;
   } else {
-    score += 1.0; // Neutral: no evidence of bad reviews
+    score += 1.0; // V3.4 (S4/PT9): restored neutral (was 0.5)
   }
   if (sentimentNegative != null && sentimentNegative > 30) {
     score -= Math.min(1.5, ((sentimentNegative - 30) / 40) * 1.5);
@@ -746,7 +822,7 @@ export function computeReputation(
     }
   }
   if (!awardsUsed) {
-    score += 0.5; // Neutral: no awards data doesn't mean bad
+    score += 0.5; // V3.4 (S4/PT9): restored neutral (was 0.25)
   }
 
   // Layer 4: Community standing (0-2 points)
@@ -777,7 +853,7 @@ export function computeReputation(
     }
   }
   if (!communityUsed) {
-    score += 0.5; // Neutral: no community data doesn't mean bad
+    score += 0.5; // V3.4 (S4/PT9): restored neutral (was 0.25)
   }
 
   return {
@@ -797,7 +873,7 @@ export function computeConvenience(
   clientTimeOfDay?: string | null,
   specialRequest?: string
 ): V3FactorResult {
-  let score = 5; // Start neutral
+  let score = 4; // Start lower than neutral (was 5, S3/S6: lower floor, expand bonus range)
   let dataPoints = 0;
   let maxDataPoints = 0;
 
@@ -805,13 +881,13 @@ export function computeConvenience(
   const v2Intent = intent && "spontaneity" in intent ? intent as IntentClassificationV2 : null;
   const requestLower = (specialRequest || "").toLowerCase();
 
-  // Layer 1: Timing fit (-2 to +1.5)
+  // Layer 1: Timing fit (-2 to +2.0) — expanded bonus range (S6)
   maxDataPoints++;
   const timeOfDay = clientTimeOfDay || null;
   if (timeOfDay && profile.best_times && profile.best_times.length > 0) {
     dataPoints++;
     if (profile.best_times.includes(timeOfDay)) {
-      score += 1.5;
+      score += 2.0;   // was 1.5 — expanded bonus to compensate for lower start
     } else if (profile.best_times.length <= 2) {
       // Narrow-focus restaurant at wrong time
       score -= 2;
@@ -820,7 +896,7 @@ export function computeConvenience(
     }
   }
 
-  // Layer 2: Reservation accessibility (-3 to +1.5)
+  // Layer 2: Reservation accessibility (-2.5 to +2.0) — rebalanced (S6)
   maxDataPoints++;
   if (dp?.reservation_difficulty) {
     dataPoints++;
@@ -828,9 +904,9 @@ export function computeConvenience(
       || requestLower.match(/tonight|right now|last minute|walk.?in|spontaneous/);
 
     if (dp.reservation_difficulty === "hard_to_get" && isSpontaneous) {
-      score -= 3;
+      score -= 2.5;  // was -3 — reduced to prevent double-floor-clamp (S6)
     } else if (dp.reservation_difficulty === "walk_in_friendly") {
-      score += isSpontaneous ? 1.5 : 0.5;
+      score += isSpontaneous ? 2.0 : 0.5;  // was 1.5 — expanded bonus
     }
   }
 
@@ -838,9 +914,9 @@ export function computeConvenience(
   maxDataPoints++;
   if (dp?.typical_wait_minutes != null) {
     dataPoints++;
-    if (dp.typical_wait_minutes > 60) score -= 1.5;
+    if (dp.typical_wait_minutes > 60) score -= 1.0;    // was -1.5 — reduced (S6)
     else if (dp.typical_wait_minutes > 30) score -= 0.5;
-    else score += 0.5; // Short wait is a positive
+    else score += 1.0; // Short wait is a positive (was +0.5, S6: expanded bonus)
   }
 
   // Layer 3: Practical notes (-0.5 to +1.5)
@@ -897,16 +973,40 @@ export function computeV3Weights(
     w = { food: 0.15, setting: 0.20, atmosphere: 0.30, reputation: 0.15, convenience: 0.20 };
   }
 
-  // Occasion overrides (only when food is not dominant)
+  // Occasion overrides — blend with cuisine weights instead of replacing (S7, PA3, PT7 fix)
   if (intent?.cuisine_importance !== "high") {
+    let occasionW: V3Weights | null = null;
     if (["Date Night", "Special Occasion"].includes(occasion)) {
-      w = { food: 0.20, setting: 0.30, atmosphere: 0.25, reputation: 0.15, convenience: 0.10 };
+      occasionW = { food: 0.20, setting: 0.30, atmosphere: 0.25, reputation: 0.15, convenience: 0.10 };
     } else if (occasion === "Adventure") {
-      w = { food: 0.25, setting: 0.15, atmosphere: 0.20, reputation: 0.25, convenience: 0.15 };
+      // V3.2 (HB6): Increased setting 0.15→0.25 (where hole_in_wall_factor lives),
+      // decreased food 0.25→0.20 (users explicitly de-prioritize cuisine for adventure)
+      occasionW = { food: 0.20, setting: 0.25, atmosphere: 0.15, reputation: 0.25, convenience: 0.15 };
     } else if (occasion === "Family Dinner") {
-      w = { food: 0.25, setting: 0.25, atmosphere: 0.15, reputation: 0.15, convenience: 0.20 };
+      occasionW = { food: 0.25, setting: 0.25, atmosphere: 0.15, reputation: 0.15, convenience: 0.20 };
     } else if (occasion === "Business Lunch") {
-      w = { food: 0.20, setting: 0.30, atmosphere: 0.25, reputation: 0.15, convenience: 0.10 };
+      occasionW = { food: 0.20, setting: 0.30, atmosphere: 0.25, reputation: 0.15, convenience: 0.10 };
+    } else if (occasion === "Solo Dining") {
+      // V3.3 (PA1): Solo diners prioritize convenience (walk-in, bar seating) + food quality
+      occasionW = { food: 0.30, setting: 0.15, atmosphere: 0.20, reputation: 0.15, convenience: 0.20 };
+    } else if (occasion === "Treat Myself") {
+      // V3.3 (PA1): Treat Myself emphasizes food + atmosphere (self-indulgence experience)
+      occasionW = { food: 0.30, setting: 0.15, atmosphere: 0.25, reputation: 0.20, convenience: 0.10 };
+    } else if (occasion === "Chill Hangout") {
+      // V3.3 (PA1): Chill Hangout favors atmosphere + convenience (low-key, easy access)
+      occasionW = { food: 0.20, setting: 0.20, atmosphere: 0.25, reputation: 0.10, convenience: 0.25 };
+    }
+    if (occasionW) {
+      // Blend: medium cuisine → 40% cuisine weights + 60% occasion weights
+      // Low cuisine → 100% occasion weights (current behavior preserved)
+      const cuisineBlend = intent?.cuisine_importance === "medium" ? 0.4 : 0.0;
+      w = {
+        food: w.food * cuisineBlend + occasionW.food * (1 - cuisineBlend),
+        setting: w.setting * cuisineBlend + occasionW.setting * (1 - cuisineBlend),
+        atmosphere: w.atmosphere * cuisineBlend + occasionW.atmosphere * (1 - cuisineBlend),
+        reputation: w.reputation * cuisineBlend + occasionW.reputation * (1 - cuisineBlend),
+        convenience: w.convenience * cuisineBlend + occasionW.convenience * (1 - cuisineBlend),
+      };
     }
   }
 
@@ -1001,34 +1101,82 @@ function applyDealBreakerPenalties(
   neighborhood: string,
   priceLevel: string,
   intent: IntentClassification | IntentClassificationV2 | null,
-  sentimentNegative?: number | null
-): number {
+  sentimentNegative?: number | null,
+  dietaryRestrictions?: string[]
+): { result: number; priceAlreadyPenalized: boolean } {
   let result = composite;
 
   // NOTE: Cuisine mismatch penalty REMOVED — Food Match factor already handles cuisine
   // alignment (0 pts for mismatch). Having a separate multiplicative penalty here
   // double-counted the miss, crushing fallback scores to near-zero (e.g., 3%).
 
+  // V3.3 (HB4): Dietary incompatibility composite-level penalty
+  // The Food Match factor only allocates 2 of 11 points to dietary fit, which is ~18%.
+  // With low cuisine_importance (food weight 0.15), dietary mismatch has near-zero impact
+  // on the composite. A vegan user seeing a BBQ joint scored 59 ("Worth a Try") is the
+  // single most trust-damaging false positive. Apply composite penalty to fix.
+  if (dietaryRestrictions && dietaryRestrictions.length > 0) {
+    if (profile.dietary_options && profile.dietary_options.length > 0) {
+      // Restaurant has dietary data — check if any match
+      const anyMatch = dietaryRestrictions.some(dr => {
+        const keywords = DIETARY_KEYWORDS[dr.toLowerCase()];
+        if (!keywords) return false;
+        return profile.dietary_options!.some(opt =>
+          keywords.some(kw => opt.toLowerCase().includes(kw.toLowerCase()))
+        );
+      });
+      if (!anyMatch) {
+        // Check hierarchy (Vegan → Vegetarian partial credit)
+        let hasHierarchyMatch = false;
+        for (const dr of dietaryRestrictions) {
+          const subsumes = DIETARY_HIERARCHY[dr.toLowerCase()];
+          if (subsumes) {
+            hasHierarchyMatch = subsumes.some(sub => {
+              const subValues = DIETARY_KEYWORDS[sub];
+              if (!subValues) return false;
+              return profile.dietary_options!.some(opt =>
+                subValues.some(sv => opt.toLowerCase().includes(sv.toLowerCase()))
+              );
+            });
+            if (hasHierarchyMatch) break;
+          }
+        }
+        if (hasHierarchyMatch) {
+          result -= 0.8;  // Partial match (e.g., vegan at vegetarian-only place)
+        } else {
+          result -= 2.0;  // Has dietary options but none match at all
+        }
+      }
+    } else if (!profile.dietary_options || profile.dietary_options.length === 0) {
+      // No dietary data at all — unknown = risky for dietary-restricted users
+      result -= 2.5;
+    }
+  }
+
   // Price mismatch — unified subtractive penalties (P1 fix: ISSUE-1)
   // All penalties are subtractive so magnitude is independent of base score
   // and commutative with other penalties. Values calibrated to approximate
   // previous multiplicative behavior at mean composite (~5.0).
+  // V3.3 (S10): Track whether price was penalized here to prevent stacking with avoidPriceLevels
+  let priceAlreadyPenalized = false;
   if (priceLevel && priceLevel !== "Any" && profile.price_level) {
     const userIdx = PRICE_ORDER.indexOf(priceLevel);
     const restIdx = PRICE_ORDER.indexOf(profile.price_level);
     if (userIdx >= 0 && restIdx >= 0) {
       const gap = restIdx - userIdx;
-      if (gap >= 3) result -= 3.0;
-      else if (gap === 2) result -= 2.0;
-      else if (gap === 1) result -= 0.5;
-      else if (gap === -1) result -= 0.2;
+      if (gap >= 3) { result -= 3.0; priceAlreadyPenalized = true; }
+      else if (gap === 2) { result -= 1.5; priceAlreadyPenalized = true; }    // was -2.0 — diminishing sensitivity (HB6)
+      else if (gap === 1) { result -= 0.5; priceAlreadyPenalized = true; }
+      // Under-budget penalty removed (HB6: budgets are ceilings, not targets)
     }
   }
 
-  // Neighborhood mismatch (relaxation cascade)
+  // Neighborhood mismatch — V3.2 (HB3): reduced -1.0→-0.6
+  // 2.5:1 ratio vs 2-tier price penalty matches mental accounting asymmetry (Thaler, 1985)
+  // Price = direct out-of-pocket loss; neighborhood = soft logistical inconvenience
   if (neighborhood && neighborhood !== "Anywhere" && profile.neighborhood_name) {
     if (profile.neighborhood_name.toLowerCase() !== neighborhood.toLowerCase()) {
-      result -= 1.0;
+      result -= 0.6;
     }
   }
 
@@ -1038,7 +1186,9 @@ function applyDealBreakerPenalties(
   // double-counts the same signal, creating a combined ~15 DM point penalty from
   // a single source. The Reputation factor is the correct place for this signal.
 
-  return Math.max(0, result);
+  // V3.2 (PT4): No intermediate clamp — allow negative values to flow to personalization
+  // Single clamp at Math.max(0) applied after ALL penalties in computeV3DondeMatch
+  return { result, priceAlreadyPenalized };
 }
 
 // ==========================================
@@ -1049,34 +1199,48 @@ function applyPersonalization(
   composite: number,
   profile: RestaurantProfile,
   rejectionSignals?: RejectionSignals,
-  userFeedback?: UserFeedbackSignals | null
+  userFeedback?: UserFeedbackSignals | null,
+  priceAlreadyPenalized?: boolean
 ): number {
   let result = composite;
 
-  // User feedback history
+  // User feedback history — recalibrated for Prospect Theory 2x ratio (PA5, HB1)
+  let cuisineAlreadyPenalized = false;
   if (userFeedback) {
     if (profile.cuisine_type && userFeedback.likedCuisines.includes(profile.cuisine_type)) {
-      result += 0.3;
+      result += 1.0;   // V3.4 (S9): 1:1 ratio with dislike -1.0 (was 0.5)
     }
     if (profile.cuisine_type && userFeedback.dislikedCuisines.includes(profile.cuisine_type)) {
-      result -= 1.0;
+      result -= 1.0;   // unchanged — now 2.0:1 ratio (matches Prospect Theory)
+      cuisineAlreadyPenalized = true;
     }
     if (userFeedback.dislikedRestaurantIds.includes(profile.id)) {
-      result -= 2.5;
+      result -= 2.0;   // was -2.5 — reduced to avoid destroying otherwise good matches
     }
   }
 
   // Rejection pattern analysis
+  // V3.2 (PA5): Prevent stacking — avoidCuisine skipped if already penalized by dislikedCuisines
+  // V3.3 (PA3): Inverted hierarchy fix — avoidCuisine is inferred (weaker signal) than explicit
+  // dislikedCuisines (-1.0). Was -2.0, now -0.7 to respect: explicit dislike > inferred pattern.
   if (rejectionSignals) {
     if (profile.cuisine_type && rejectionSignals.avoidCuisines.includes(profile.cuisine_type)) {
-      result -= 2.0;
+      if (!cuisineAlreadyPenalized) {
+        result -= 0.7;  // V3.3: was -2.0; inferred signal should be weaker than explicit -1.0
+      }
+      // else: dislikedCuisines -1.0 already applied above; skip to prevent stacking
     }
+    // V3.3 (S10): Prevent stacking — skip avoidPriceLevels if deal-breaker price penalty already applied
     if (profile.price_level && rejectionSignals.avoidPriceLevels.includes(profile.price_level)) {
-      result -= 1.5;
+      if (!priceAlreadyPenalized) {
+        result -= 1.5;
+      }
+      // else: deal-breaker price penalty already applied; skip to prevent stacking
     }
   }
 
-  return Math.max(0, result);
+  // V3.2 (PT4): No intermediate clamp — single clamp in computeV3DondeMatch after all penalties
+  return result;
 }
 
 // ==========================================
@@ -1110,55 +1274,103 @@ export function computeV3DondeMatch(
   const reputationResult = computeReputation(profile, inputs.googleData, inputs.sentimentScore, inputs.sentimentNegative);
   const convenienceResult = computeConvenience(profile, inputs.intent, inputs.clientTimeOfDay, inputs.specialRequest);
 
-  // Apply enrichment confidence gating
+  // Apply enrichment confidence gating — Bayesian shrinkage toward prior mean
+  // V3.2 (PT2, PA9, S4): Only gate factors that depend on deep_profile enrichment data
+  // Reputation (Google API + sentiment) and Convenience (timing/reservation) are NOT gated
+  // because enrichment_confidence measures AI enrichment quality, not Google/DB data quality
   const dp = profile.deep_profile;
-  const confidenceFactor = (dp?.enrichment_confidence != null && dp.enrichment_confidence < 5)
-    ? dp.enrichment_confidence / 10
+  const PRIOR_MEAN = 5.5;  // V3.4 (PT1): raised toward population mean (was 5.0)
+  // V3.2 (PA3): null deep_profile = lowest confidence (was: bypassed gating entirely)
+  const enrichConf = dp?.enrichment_confidence ?? 0;
+  const needsGating = enrichConf < 3;  // V3.4 (S3): only gate very-low-confidence (was < 5)
+  const shrinkageWeight = needsGating
+    ? enrichConf / 6   // V3.4: 0.0 to 0.33 for conf 0-2 (was enrichConf / 10)
     : 1.0;
 
+  const applyGating = (score: number): number => {
+    if (!needsGating) return score;
+    return PRIOR_MEAN * (1 - shrinkageWeight) + score * shrinkageWeight;
+  };
+
+  // V3.3 (S6): Atmosphere cold-start (dataPoints===0) already returns neutral 3.5;
+  // gating it further toward 5.0 would INCREASE the score (Bayesian inversion).
+  // Skip gating when the factor had no enrichment data to gate.
+  const atmoScore = atmosphereResult.dataPoints === 0
+    ? atmosphereResult.score  // V3.3: cold-start bypass — 3.5 neutral is already conservative
+    : applyGating(atmosphereResult.score);
+
   const factors: V3Factors = {
-    food: foodResult.score * (confidenceFactor < 1 ? 0.5 + confidenceFactor * 0.5 : 1),
-    setting: settingResult.score,
-    atmosphere: atmosphereResult.score * (confidenceFactor < 1 ? 0.5 + confidenceFactor * 0.5 : 1),
-    reputation: reputationResult.score,
-    convenience: convenienceResult.score,
+    food: applyGating(foodResult.score),          // uses flavor_profiles, signature_dishes, dietary_depth
+    setting: applyGating(settingResult.score),     // uses service_style, meal_pacing, kid_friendliness
+    atmosphere: atmoScore,                         // V3.3: cold-start bypass when no data points
+    reputation: reputationResult.score,            // Google data + sentiment — independent of enrichment
+    convenience: convenienceResult.score,           // timing/reservation — independent of enrichment
   };
 
   // Step 2: Dynamic weights
   const weights = computeV3Weights(inputs.occasion, inputs.intent);
 
-  // Step 3: Weighted composite (0-10)
+  // Step 3: Factor decorrelation — discount overlapping quality signals
+  // Setting/Atmosphere: share noise/energy/conversation data (PT1 fix)
+  if (factors.setting > 7 && factors.atmosphere > 7) {
+    const overlap = Math.min(factors.setting - 7, factors.atmosphere - 7) * 0.10; // V3.4 (S7/PT5): was 0.15
+    factors.atmosphere = Math.max(0, factors.atmosphere - overlap);
+  }
+  // V3.2 (PA1): Food/Reputation: share quality signals via cuisine alignment + awards/authenticity
+  // Coefficient 0.10 (smaller than Setting/Atmo's 0.15 — correlation is weaker)
+  if (factors.food > 7 && factors.reputation > 7) {
+    const qualityOverlap = Math.min(factors.food - 7, factors.reputation - 7) * 0.05; // V3.4 (S7/PT5): was 0.10
+    factors.reputation = Math.max(0, factors.reputation - qualityOverlap);
+  }
+
+  // Step 3b: Weighted composite (0-10)
   let raw = factors.food * weights.food
     + factors.setting * weights.setting
     + factors.atmosphere * weights.atmosphere
     + factors.reputation * weights.reputation
     + factors.convenience * weights.convenience;
 
-  // Step 4: Claude relevance modulation (small)
+  // Step 3c: Quality match bonus — rewards multi-factor excellence (V3.4 S1/S8)
+  let qualityBonus = 0;
+  const factorScores = [factors.food, factors.setting, factors.atmosphere,
+                        factors.reputation, factors.convenience];
+  const highFactors = factorScores.filter(f => f >= 6.5).length;
+  const allAboveFloor = factorScores.every(f => f >= 5.0);
+  const dominantScore = Math.max(...factorScores);
+  if (highFactors >= 3) qualityBonus += 0.5;       // Multi-factor excellence
+  if (allAboveFloor) qualityBonus += 0.3;           // Well-rounded match
+  if (dominantScore >= 8.0) qualityBonus += 0.3;    // Strong lead factor
+  raw += Math.min(0.8, qualityBonus);                // Cap total quality bonus at +0.8
+
+  // Step 4: Claude relevance modulation — applied to composite, not factors (S8, PT4, HB5)
+  // This preserves factor display integrity and avoids boundary clamping losses
   if (inputs.claudeRelevance != null) {
     const relevanceAdjust = (inputs.claudeRelevance - 5) * 0.1; // -0.5 to +0.5
-    factors.food = Math.min(10, Math.max(0, factors.food + relevanceAdjust));
-    factors.setting = Math.min(10, Math.max(0, factors.setting + relevanceAdjust));
-    // Recompute raw with adjusted factors
-    raw = factors.food * weights.food
-      + factors.setting * weights.setting
-      + factors.atmosphere * weights.atmosphere
-      + factors.reputation * weights.reputation
-      + factors.convenience * weights.convenience;
+    raw += relevanceAdjust;  // Direct composite adjustment (was: mutated food+setting factors)
   }
 
   // Step 5: Deal-breaker penalties
-  raw = applyDealBreakerPenalties(
+  const dealBreakerResult = applyDealBreakerPenalties(
     raw, profile,
     inputs.occasion, inputs.neighborhood, inputs.priceLevel,
-    inputs.intent, inputs.sentimentNegative
+    inputs.intent, inputs.sentimentNegative,
+    inputs.dietaryRestrictions
   );
+  raw = dealBreakerResult.result;
 
   // Step 6: Personalization
-  raw = applyPersonalization(raw, profile, inputs.rejectionSignals, inputs.userFeedback);
+  raw = applyPersonalization(raw, profile, inputs.rejectionSignals, inputs.userFeedback, dealBreakerResult.priceAlreadyPenalized);
 
-  // Step 7: Map to 0-99
-  const dondeMatch = Math.min(99, Math.max(0, Math.round(raw * 10)));
+  // V3.2 (PT4): Single clamp after all penalties — raw may be negative from stacked subtractive penalties
+  raw = Math.max(0, raw);
+
+  // Step 7: Map to 0-99 with power-law scaling (HB3, PT8)
+  // V3.4 (S1/S2/PT4): Exponent 0.85→0.73 lifts mid-range scores; multiplier 105→116 scales ceiling
+  // Combined effect: mean ~55→70, median ~58→75, max 88→95+
+  // Clamp at 99 prevents overflow; practical max ~97-99 for genuine perfect matches
+  const rawNormalized = Math.max(0, Math.min(1, raw / 10));  // Normalize to 0-1
+  const scaled = Math.pow(rawNormalized, 0.73);                // V3.4: power-law stretch (was 0.85)
+  const dondeMatch = Math.min(99, Math.max(0, Math.round(scaled * 116))); // V3.4: scale (was 105)
 
   // Data completeness
   const totalDataPoints = foodResult.dataPoints + settingResult.dataPoints
