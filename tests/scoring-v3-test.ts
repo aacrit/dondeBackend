@@ -1143,8 +1143,8 @@ runTest(
     userFeedback: { likedCuisines: [], dislikedCuisines: [], likedRestaurantIds: [], dislikedRestaurantIds: ["rest-disliked-123"] },
   },
   (dm) => ({
-    passed: dm <= 40,
-    desc: "DM<=40 (disliked restaurant heavy penalty)",
+    passed: dm <= 50,
+    desc: "DM<=50 (V3.2: disliked restaurant -2.0 + 105x multiplier inflates base)",
     actual: `DM=${dm}`,
   })
 );
@@ -1163,8 +1163,8 @@ runTest(
     intent: buildMockIntent(),
   },
   (dm) => ({
-    passed: dm <= 30,
-    desc: "DM<=30 (heavy price penalty -3.0 on composite)",
+    passed: dm <= 35,
+    desc: "DM<=35 (V3.2: heavy price -3.0 + 105x multiplier inflates residual)",
     actual: `DM=${dm}`,
   })
 );
@@ -1550,8 +1550,8 @@ runTest(
     userFeedback: { likedCuisines: [], dislikedCuisines: ["Mexican"], likedRestaurantIds: [], dislikedRestaurantIds: [] },
   },
   (dm) => ({
-    passed: dm <= 55,
-    desc: "DM<=55 (disliked cuisine -1.0 composite penalty)",
+    passed: dm <= 60,
+    desc: "DM<=60 (V3.2: disliked cuisine -1.0 + 105x multiplier inflates base)",
     actual: `DM=${dm}`,
   })
 );
@@ -1635,8 +1635,8 @@ runTest(
     intent: buildMockIntent(),
   },
   (dm) => ({
-    passed: dm <= 50,
-    desc: "DM<=50 (neighborhood mismatch -1.0)",
+    passed: dm <= 60,
+    desc: "DM<=60 (V3.2: neighborhood mismatch -0.6 + 105x multiplier inflates base)",
     actual: `DM=${dm}`,
   })
 );
