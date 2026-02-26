@@ -65,6 +65,27 @@ const SUMMARY_FILE = "incremental-enrichment-summary.json";
 const FAILURES_FILE = "incremental-enrichment-failures.json";
 
 // ==========================================
+// PAGINATED SUPABASE FETCH (bypasses 1000-row server limit)
+// ==========================================
+
+async function fetchAllRows<T extends Record<string, unknown>>(
+  query: () => ReturnType<ReturnType<typeof createAdminClient>["from"]>["select"],
+  pageSize = 1000,
+): Promise<T[]> {
+  const allRows: T[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await (query() as any).range(from, from + pageSize - 1);
+    if (error) throw new Error(`Paginated fetch failed: ${error.message}`);
+    if (!data || data.length === 0) break;
+    allRows.push(...(data as T[]));
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return allRows;
+}
+
+// ==========================================
 // CANDIDATE IDENTIFICATION
 // ==========================================
 
@@ -90,26 +111,22 @@ async function identifyCandidates(
     }
   }
 
-  // Fetch all active restaurant IDs
-  const { data: allRestaurants, error: allErr } = await supabase
-    .from("restaurants")
-    .select("id, name, insider_tip, best_for_oneliner")
-    .eq("is_active", true)
-    .range(0, 9999);
+  // Fetch all active restaurant IDs (paginated to bypass 1000-row server limit)
+  const allRestaurants = await fetchAllRows<{ id: string; name: string; insider_tip: string | null; best_for_oneliner: string | null }>(
+    () => supabase.from("restaurants").select("id, name, insider_tip, best_for_oneliner").eq("is_active", true) as any,
+  );
 
-  if (allErr) throw new Error(`Failed to fetch restaurants: ${allErr.message}`);
-  const allIds = new Set((allRestaurants || []).map((r) => r.id));
-  const restaurantNameMap = new Map((allRestaurants || []).map((r) => [r.id, r.name]));
+  const allIds = new Set(allRestaurants.map((r) => r.id));
+  const restaurantNameMap = new Map(allRestaurants.map((r) => [r.id, r.name]));
 
   console.log(`  Total active restaurants: ${allIds.size}`);
 
   // --- Check 1: No deep_profile row at all ---
-  const { data: dpRows } = await supabase
-    .from("restaurant_deep_profiles")
-    .select("restaurant_id, enriched_at, enrichment_version, enrichment_confidence, origin_story")
-    .range(0, 9999);
+  const dpRows = await fetchAllRows<{ restaurant_id: string; enriched_at: string | null; enrichment_version: number | null; enrichment_confidence: number | null; origin_story: string | null }>(
+    () => supabase.from("restaurant_deep_profiles").select("restaurant_id, enriched_at, enrichment_version, enrichment_confidence, origin_story") as any,
+  );
 
-  const dpMap = new Map((dpRows || []).map((d) => [d.restaurant_id, d]));
+  const dpMap = new Map(dpRows.map((d) => [d.restaurant_id, d]));
   let noProfileCount = 0;
   for (const id of allIds) {
     if (!dpMap.has(id)) {
@@ -170,12 +187,11 @@ async function identifyCandidates(
   console.log(`  Missing critical fields:          ${missingCriticalCount}`);
 
   // --- Check 6: No occasion_scores row ---
-  const { data: scoreRows } = await supabase
-    .from("occasion_scores")
-    .select("restaurant_id")
-    .range(0, 9999);
+  const scoreRows = await fetchAllRows<{ restaurant_id: string }>(
+    () => supabase.from("occasion_scores").select("restaurant_id") as any,
+  );
 
-  const scoreIds = new Set((scoreRows || []).map((s) => s.restaurant_id));
+  const scoreIds = new Set(scoreRows.map((s) => s.restaurant_id));
   let noScoresCount = 0;
   for (const id of allIds) {
     if (!scoreIds.has(id)) {
@@ -186,12 +202,11 @@ async function identifyCandidates(
   console.log(`  No occasion_scores:               ${noScoresCount}`);
 
   // --- Check 7: No tags ---
-  const { data: tagRows } = await supabase
-    .from("tags")
-    .select("restaurant_id")
-    .range(0, 9999);
+  const tagRows = await fetchAllRows<{ restaurant_id: string }>(
+    () => supabase.from("tags").select("restaurant_id") as any,
+  );
 
-  const tagIds = new Set((tagRows || []).map((t) => t.restaurant_id));
+  const tagIds = new Set(tagRows.map((t) => t.restaurant_id));
   let noTagsCount = 0;
   for (const id of allIds) {
     if (!tagIds.has(id)) {
