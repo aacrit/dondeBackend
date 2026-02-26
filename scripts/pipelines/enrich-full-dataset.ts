@@ -112,6 +112,24 @@ let auditLogStream: fs.WriteStream | null = null;
 // HELPERS
 // ==========================================
 
+/** Paginated fetch to bypass Supabase PostgREST 1000-row server limit */
+async function fetchAllRows<T extends Record<string, unknown>>(
+  query: () => any,
+  pageSize = 1000,
+): Promise<T[]> {
+  const allRows: T[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await query().range(from, from + pageSize - 1);
+    if (error) throw new Error(`Paginated fetch failed: ${error.message}`);
+    if (!data || data.length === 0) break;
+    allRows.push(...(data as T[]));
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+  return allRows;
+}
+
 function logAudit(
   restaurantId: string,
   restaurantName: string,
@@ -188,8 +206,10 @@ async function stage1_integrityFixes(supabase: ReturnType<typeof createAdminClie
   let fixes = 0;
 
   // 1a: Create missing deep_profile rows
-  const { data: existingDp } = await supabase.from("restaurant_deep_profiles").select("restaurant_id").range(0, 9999);
-  const dpIds = new Set((existingDp || []).map((r) => r.restaurant_id));
+  const existingDp = await fetchAllRows<{ restaurant_id: string }>(
+    () => supabase.from("restaurant_deep_profiles").select("restaurant_id"),
+  );
+  const dpIds = new Set(existingDp.map((r) => r.restaurant_id));
   const missingDp = restaurants.filter((r) => !dpIds.has(r.id));
 
   if (missingDp.length > 0) {
@@ -911,16 +931,20 @@ async function stage7_confidenceUpdate(supabase: ReturnType<typeof createAdminCl
   let success = 0;
 
   // Re-fetch all deep_profiles for accurate confidence calculation
-  const { data: allDp } = await supabase.from("restaurant_deep_profiles").select("*").range(0, 9999);
+  const allDp = await fetchAllRows<Record<string, unknown>>(
+    () => supabase.from("restaurant_deep_profiles").select("*"),
+  );
   const dpMap = new Map<string, Record<string, unknown>>();
-  for (const dp of allDp || []) {
+  for (const dp of allDp) {
     dpMap.set(dp.restaurant_id as string, dp as Record<string, unknown>);
   }
 
   // Re-fetch restaurants for updated values
-  const { data: allR } = await supabase.from("restaurants").select("id, cuisine_type, noise_level, lighting_ambiance, dress_code, price_level, dietary_options").eq("is_active", true).range(0, 9999);
+  const allR = await fetchAllRows<Record<string, unknown>>(
+    () => supabase.from("restaurants").select("id, cuisine_type, noise_level, lighting_ambiance, dress_code, price_level, dietary_options").eq("is_active", true),
+  );
   const rMap = new Map<string, Record<string, unknown>>();
-  for (const r of allR || []) {
+  for (const r of allR) {
     rMap.set(r.id as string, r as Record<string, unknown>);
   }
 
