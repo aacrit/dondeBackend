@@ -1,41 +1,38 @@
+/**
+ * Donde Match V5 — Recommendation Engine
+ *
+ * V5 pipeline: Intent → RPC → Hard Filter → Score → Google Enrich → Re-rank → Claude (blurb + boost) → Response
+ *
+ * Key V5 changes:
+ * - Deterministic intent classification (~80% zero-cost, Claude fallback ~15%)
+ * - Hard filter pipeline: exclude → neighborhood → price → dietary → cuisine → open now
+ * - Relaxation cascade at <12 candidates
+ * - 5-factor scoring with stretched Google Rating (4.0→0, 4.9→10)
+ * - 3-layer dynamic weights (base + context + data-quality + pool-size)
+ * - Claude writes blurb for engine's #1 AND may boost a lower candidate (Intent Boost)
+ * - All V1-V4 code paths removed
+ */
+
 import { corsPreflightResponse, jsonResponse } from "./_shared/cors.ts";
 import { createSupabaseClient, createServiceClient } from "./_shared/supabase.ts";
 import { callClaude, parseClaudeJson } from "./_shared/claude.ts";
 import {
-  mergeProfiles,
-  filterAndRank,
-  reRankWithBoosts,
-  reRankV2,
   ensureDiversity,
-  analyzeRejections,
-  buildSystemPrompt,
-  buildUserPrompt,
-  computeDondeMatch,
-  computeDondeMatchV2,
-  computeScoringDimensions,
-  computeDimensionWeights,
   extractUnmatchedKeywords,
 } from "./_shared/scoring.ts";
+import type { UserFeedbackSignals } from "./_shared/scoring.ts";
+// V5 engine imports
+import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
+import { runFilterPipeline } from "./_shared/filter-pipeline-v5.ts";
+import type { FilterContext } from "./_shared/filter-pipeline-v5.ts";
+import { computeV5DondeMatch, reRankV5 } from "./_shared/scoring-v5.ts";
+import { buildV5SystemPrompt, buildV5UserPrompt } from "./_shared/prompts-v5.ts";
 import {
-  computeV3DondeMatch,
-  reRankV3,
-} from "./_shared/scoring-v3.ts";
-import type { V3Factors } from "./_shared/scoring-v3.ts";
-// V4: Geometric mean scoring engine
-import {
-  computeV4DondeMatch,
-  reRankV4,
-  applyDealBreakerGates,
-} from "./_shared/scoring-v4.ts";
-import type { V4DondeMatchResult } from "./_shared/scoring-v4.ts";
-import { classifyIntent } from "./_shared/intent-classifier.ts";
-import {
-  buildSuccessResponse,
-  buildFallbackResponse,
-  buildTemplateResponse,
-  buildNoResultsResponse,
-  buildErrorResponse,
-} from "./_shared/response-builder.ts";
+  buildV5SuccessResponse,
+  buildV5FallbackResponse,
+  buildV5NoResultsResponse,
+  buildV5ErrorResponse,
+} from "./_shared/response-builder-v5.ts";
 import {
   fetchPlaceDetails,
   formatReviewsForPrompt,
@@ -43,19 +40,16 @@ import {
 import { logInfo, logWarn, logError } from "./_shared/logger.ts";
 import type {
   UserRequest,
-  Restaurant,
-  OccasionScores,
-  Tag,
-  Neighborhood,
-  ClaudeRecommendation,
   RestaurantProfile,
   DeepProfile,
 } from "./_shared/types.ts";
+import type { V5ClaudeRecommendation, V5ScoredCandidate } from "./_shared/types-v5.ts";
+import { getScoreTier } from "./_shared/types-v5.ts";
 
-// B15: API version for response headers
-const API_VERSION = "2.1.0";
+// V5 API version
+const API_VERSION = "5.0.0";
 
-// --- Enhancement 8: In-memory response cache ---
+// --- In-memory response cache ---
 interface CacheEntry {
   response: Record<string, unknown>;
   expiry: number;
@@ -78,7 +72,6 @@ function getCachedResponse(key: string): Record<string, unknown> | null {
 }
 
 function setCacheResponse(key: string, response: Record<string, unknown>): void {
-  // Evict expired entries if cache grows large
   if (RESPONSE_CACHE.size > 100) {
     const now = Date.now();
     for (const [k, v] of RESPONSE_CACHE) {
@@ -88,14 +81,14 @@ function setCacheResponse(key: string, response: Record<string, unknown>): void 
   RESPONSE_CACHE.set(key, { response, expiry: Date.now() + CACHE_TTL });
 }
 
-// --- B13: In-memory rate limiter ---
+// --- Rate limiter ---
 interface RateLimitEntry {
   count: number;
   resetAt: number;
 }
 const RATE_LIMIT_MAP = new Map<string, RateLimitEntry>();
-const RATE_LIMIT_MAX = 30; // requests per window
-const RATE_LIMIT_WINDOW = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 30;
+const RATE_LIMIT_WINDOW = 60_000;
 
 function checkRateLimit(clientIp: string): boolean {
   const now = Date.now();
@@ -109,7 +102,6 @@ function checkRateLimit(clientIp: string): boolean {
   return true;
 }
 
-// Periodic cleanup of expired rate limit entries
 function cleanupRateLimits(): void {
   if (RATE_LIMIT_MAP.size > 500) {
     const now = Date.now();
@@ -119,14 +111,11 @@ function cleanupRateLimits(): void {
   }
 }
 
-// --- B20: Input sanitization ---
+// --- Input sanitization ---
 function sanitizeInput(input: string): string {
   return input
-    // Strip control characters (keep newlines, tabs)
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
-    // Collapse excessive whitespace
     .replace(/\s{5,}/g, "    ")
-    // Strip obvious prompt injection attempts
     .replace(/ignore\s+(all\s+)?previous\s+instructions/gi, "")
     .replace(/you\s+are\s+now\s+/gi, "")
     .replace(/system\s*:\s*/gi, "")
@@ -135,20 +124,18 @@ function sanitizeInput(input: string): string {
     .trim();
 }
 
-// B7: UserFeedbackSignals type imported from scoring.ts
-import type { UserFeedbackSignals } from "./_shared/scoring.ts";
-
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return corsPreflightResponse();
   }
 
-  // B16: Health check endpoint
+  // Health check endpoint
   if (req.method === "GET") {
     return jsonResponse({
       status: "ok",
       version: API_VERSION,
+      engine: "v5",
       timestamp: new Date().toISOString(),
     });
   }
@@ -160,7 +147,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  // B13: Rate limiting
+  // Rate limiting
   cleanupRateLimits();
   const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
     || req.headers.get("x-real-ip")
@@ -173,18 +160,19 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  // Enhancement 13: Track response time
   const startTime = Date.now();
 
   try {
-    // Parse and validate input
-    const body: UserRequest = await req.json();
-    const special_request = sanitizeInput((body.special_request || "").slice(0, 500)); // B20: Length limit + sanitization
+    // ================================================================
+    // STEP 0: Parse and validate input
+    // ================================================================
+    const body: UserRequest & { open_now?: boolean } = await req.json();
+    const special_request = sanitizeInput((body.special_request || "").slice(0, 500));
     const occasion = body.occasion || "Any";
     const neighborhood = body.neighborhood || "Anywhere";
     const price_level = body.price_level || "Any";
+    const open_now = body.open_now === true; // V5: Open Now toggle
 
-    // B2: Accept client-provided time_of_day (validated)
     const VALID_TIME_PERIODS = ["breakfast", "lunch", "dinner", "late_night"];
     const time_of_day = (typeof body.time_of_day === "string" && VALID_TIME_PERIODS.includes(body.time_of_day))
       ? body.time_of_day : null;
@@ -193,35 +181,30 @@ Deno.serve(async (req: Request) => {
       .filter((id: string) => typeof id === "string" && UUID_REGEX.test(id))
       .slice(0, 15);
 
-    // F5: Dietary restrictions (validated string array, max 5)
     const dietary_restrictions = (body.dietary_restrictions || [])
       .filter((d: string) => typeof d === "string" && d.length < 30)
       .slice(0, 5);
 
-    // F9: User ID for personalization (optional, validated format)
     const user_id = (typeof body.user_id === "string" && body.user_id.length < 100)
       ? body.user_id : null;
 
-    // SSO: Extract authenticated user ID from JWT (if present)
+    // SSO: Extract authenticated user ID from JWT
     let authUserId: string | null = null;
     const authHeader = req.headers.get("authorization");
     if (authHeader?.startsWith("Bearer ")) {
       const token = authHeader.slice(7);
-      // Skip if it's the anon key (not a user JWT)
       if (token.length > 200) {
         try {
           const serviceClient = createServiceClient();
           const { data: { user: authUser } } = await serviceClient.auth.getUser(token);
-          if (authUser?.id) {
-            authUserId = authUser.id;
-          }
+          if (authUser?.id) authUserId = authUser.id;
         } catch {
           // Invalid JWT — continue as anonymous
         }
       }
     }
 
-    // F11: Process feedback if included (fire-and-forget)
+    // Process feedback if included (fire-and-forget)
     if (body.feedback?.restaurant_id && body.feedback?.feedback && user_id) {
       const supabaseForFeedback = createSupabaseClient();
       supabaseForFeedback
@@ -235,7 +218,7 @@ Deno.serve(async (req: Request) => {
         .catch((err: unknown) => logError("Failed to store feedback", { error: String(err) }));
     }
 
-    // Enhancement 8: Check cache (skip for "Try Another" requests)
+    // Check cache (skip for "Try Another" requests)
     if (exclude.length === 0) {
       const cacheKey = getCacheKey(occasion, neighborhood, price_level, special_request);
       const cached = getCachedResponse(cacheKey);
@@ -244,15 +227,15 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Initialize Supabase client
     const supabase = createSupabaseClient();
 
-    // B7: Fetch user feedback history for personalization (non-blocking)
-    // SSO: Use auth_user_id for richer feedback (50 entries) when authenticated
-    let userFeedback: UserFeedbackSignals | null = null;
+    // ================================================================
+    // STEP 1: Intent classification + User feedback + RPC (parallel)
+    // ================================================================
     const feedbackColumn = authUserId ? "auth_user_id" : "user_id";
     const feedbackValue = authUserId || user_id;
     const feedbackLimit = authUserId ? 50 : 20;
+
     const feedbackPromise = feedbackValue
       ? supabase
           .from("user_queries")
@@ -286,666 +269,465 @@ Deno.serve(async (req: Request) => {
           })
       : Promise.resolve(null);
 
-    // --- Step 0.5: Intent classification + Step 1: RPC (parallel) ---
-    let allRpcResults: RestaurantProfile[];
-    let top10: RestaurantProfile[];
+    // V5: Wider RPC fetch — we filter client-side now
+    const rpcLimit = 30;
 
-    // Enhancement 6: Request extra results for diversity backfill
-    const rpcLimit = 15 + exclude.length;
-
-    // Fire intent classification, feedback resolution, and initial RPC in parallel
-    const [intent, resolvedFeedback, initialRpc] = await Promise.all([
-      special_request ? classifyIntent(special_request) : Promise.resolve(null),
+    const [intentResult, userFeedback, initialRpc] = await Promise.all([
+      classifyIntentV5(special_request, occasion),
       feedbackPromise,
       supabase.rpc("get_ranked_restaurants", {
         p_neighborhood: neighborhood,
-        p_price_level: price_level,
+        p_price_level: "Any", // V5: Fetch broadly, filter client-side
         p_occasion: occasion,
         p_limit: rpcLimit,
-        p_target_cuisine: null, // First pass without cuisine filter
+        p_target_cuisine: null,
       }),
     ]);
 
-    userFeedback = resolvedFeedback;
+    const intent = intentResult.intent;
+    const classificationPath = intentResult.classificationPath;
+
+    logInfo("V5 intent classification", {
+      path: classificationPath,
+      cuisines: intent?.target_cuisines || [],
+      importance: intent?.cuisine_importance || "none",
+      emotional: intent?.emotional_intent || "none",
+    });
 
     let { data: rpcData, error: rpcError } = initialRpc;
 
-    // If intent has high-importance cuisine but no matches in initial results, re-query with cuisine boost
-    if (
-      intent?.cuisine_importance === "high" &&
-      intent.target_cuisines.length > 0 &&
-      rpcData &&
-      rpcData.length > 0
-    ) {
-      const targetCuisine = intent.target_cuisines[0];
-      const hasCuisineMatch = (rpcData as RestaurantProfile[]).some(
-        (r) => r.cuisine_type?.toLowerCase() === targetCuisine.toLowerCase()
-      );
-      if (!hasCuisineMatch) {
-        logInfo("Intent re-query: cuisine not found in initial results", { cuisine: targetCuisine });
-        const { data: cuisineData, error: cuisineError } = await supabase.rpc(
-          "get_ranked_restaurants",
-          {
-            p_neighborhood: neighborhood,
-            p_price_level: price_level,
-            p_occasion: occasion,
-            p_limit: rpcLimit,
-            p_target_cuisine: targetCuisine,
-          }
-        );
-        if (!cuisineError && cuisineData && cuisineData.length > 0) {
-          rpcData = cuisineData;
-          rpcError = null;
-        }
-      }
-    }
-
-    // Price relaxation: if no results with exact price, retry with "Any" price
-    if ((!rpcData || rpcData.length === 0) && !rpcError && price_level !== "Any") {
-      logInfo("Price relaxation: retrying with Any", { neighborhood, price_level });
-      const targetCuisine = (intent?.cuisine_importance === "high" && intent.target_cuisines.length > 0)
-        ? intent.target_cuisines[0] : null;
-      const { data: relaxedData, error: relaxedError } = await supabase.rpc(
-        "get_ranked_restaurants",
-        { p_neighborhood: neighborhood, p_price_level: "Any", p_occasion: occasion, p_limit: rpcLimit, p_target_cuisine: targetCuisine }
-      );
-      if (!relaxedError && relaxedData && relaxedData.length > 0) {
-        rpcData = relaxedData;
-        rpcError = null;
-      }
-    }
-
-    // Neighborhood relaxation: if still no results, retry with "Anywhere" + "Any" price
+    // V5: If neighborhood filter returned nothing, retry broader
     if ((!rpcData || rpcData.length === 0) && !rpcError && neighborhood !== "Anywhere") {
-      logInfo("Neighborhood relaxation: retrying with Anywhere", { neighborhood });
-      const targetCuisine = (intent?.cuisine_importance === "high" && intent.target_cuisines.length > 0)
-        ? intent.target_cuisines[0] : null;
-      const { data: anywhereData, error: anywhereError } = await supabase.rpc(
+      logInfo("V5: Broadening RPC to Anywhere", { neighborhood });
+      const { data: broadData, error: broadError } = await supabase.rpc(
         "get_ranked_restaurants",
-        { p_neighborhood: "Anywhere", p_price_level: "Any", p_occasion: occasion, p_limit: rpcLimit, p_target_cuisine: targetCuisine }
+        { p_neighborhood: "Anywhere", p_price_level: "Any", p_occasion: occasion, p_limit: rpcLimit, p_target_cuisine: null }
       );
-      if (!anywhereError && anywhereData && anywhereData.length > 0) {
-        rpcData = anywhereData;
+      if (!broadError && broadData && broadData.length > 0) {
+        rpcData = broadData;
         rpcError = null;
       }
     }
 
     if (rpcError || !rpcData || rpcData.length === 0) {
-      if (rpcError) {
-        logError("RPC failed, falling back to legacy queries", { error: String(rpcError) });
-      }
+      logError("RPC failed or returned no results", { error: rpcError ? String(rpcError) : "empty" });
+      return jsonResponse(buildV5NoResultsResponse(neighborhood, price_level));
+    }
 
-      // Fallback: legacy 4-query approach
-      const [restaurantsRes, scoresRes, tagsRes, neighborhoodsRes] =
-        await Promise.all([
-          supabase.from("restaurants").select("*"),
-          supabase.from("occasion_scores").select("*"),
-          supabase.from("tags").select("*"),
-          supabase.from("neighborhoods").select("*"),
-        ]);
+    // ================================================================
+    // STEP 2: Map RPC results to RestaurantProfile with deep_profile
+    // ================================================================
+    const allCandidates: RestaurantProfile[] = (rpcData as Record<string, unknown>[]).map((row) => {
+      const hasDeepProfile = row.dp_service_style != null || row.dp_flavor_profiles != null;
+      const deep_profile: DeepProfile | null = hasDeepProfile ? {
+        flavor_profiles: (row.dp_flavor_profiles as string[] | null) || null,
+        signature_dishes: (row.dp_signature_dishes as Array<{ dish: string; why: string }> | null) || null,
+        cuisine_subcategory: (row.dp_cuisine_subcategory as string | null) || null,
+        menu_depth: (row.dp_menu_depth as string | null) || null,
+        spice_level: (row.dp_spice_level as string | null) || null,
+        dietary_depth: (row.dp_dietary_depth as string | null) || null,
+        service_style: (row.dp_service_style as string | null) || null,
+        meal_pacing: (row.dp_meal_pacing as string | null) || null,
+        reservation_difficulty: (row.dp_reservation_difficulty as string | null) || null,
+        typical_wait_minutes: (row.dp_typical_wait_minutes as number | null) || null,
+        group_size_sweet_spot: (row.dp_group_size_sweet_spot as string | null) || null,
+        check_average_per_person: (row.dp_check_average_per_person as number | null) || null,
+        tipping_culture: (row.dp_tipping_culture as string | null) || null,
+        kid_friendliness: (row.dp_kid_friendliness as number | null) || null,
+        music_vibe: (row.dp_music_vibe as string | null) || null,
+        decor_style: (row.dp_decor_style as string | null) || null,
+        conversation_friendliness: (row.dp_conversation_friendliness as number | null) || null,
+        energy_level: (row.dp_energy_level as number | null) || null,
+        seating_options: (row.dp_seating_options as string[] | null) || null,
+        instagram_worthiness: (row.dp_instagram_worthiness as number | null) || null,
+        seasonal_relevance: (row.dp_seasonal_relevance as Record<string, number> | null) || null,
+        cultural_authenticity: (row.dp_cultural_authenticity as number | null) || null,
+        origin_story: (row.dp_origin_story as string | null) || null,
+        crowd_profile: (row.dp_crowd_profile as string[] | null) || null,
+        neighborhood_integration: (row.dp_neighborhood_integration as string | null) || null,
+        chef_notable: (row.dp_chef_notable as boolean | null) || null,
+        awards_recognition: (row.dp_awards_recognition as string[] | null) || null,
+        wow_factors: (row.dp_wow_factors as string[] | null) || null,
+        date_progression: (row.dp_date_progression as string | null) || null,
+        best_seat_in_house: (row.dp_best_seat_in_house as string | null) || null,
+        ideal_weather: (row.dp_ideal_weather as string[] | null) || null,
+        unique_selling_point: (row.dp_unique_selling_point as string | null) || null,
+        transit_accessibility: (row.dp_transit_accessibility as string | null) || null,
+        byob_policy: (row.dp_byob_policy as string | null) || null,
+        payment_notes: (row.dp_payment_notes as string | null) || null,
+        enrichment_confidence: (row.dp_enrichment_confidence as number | null) || null,
+      } : null;
 
-      if (restaurantsRes.error) throw restaurantsRes.error;
-      if (scoresRes.error) throw scoresRes.error;
-      if (tagsRes.error) throw tagsRes.error;
-      if (neighborhoodsRes.error) throw neighborhoodsRes.error;
+      return { ...row, deep_profile } as unknown as RestaurantProfile;
+    });
 
-      const profiles = mergeProfiles(
-        restaurantsRes.data as Restaurant[],
-        scoresRes.data as OccasionScores[],
-        tagsRes.data as Tag[],
-        neighborhoodsRes.data as Neighborhood[]
-      );
+    // ================================================================
+    // STEP 3: V5 Hard Filter Pipeline
+    // ================================================================
+    const filterContext: FilterContext = {
+      exclude,
+      neighborhood,
+      priceLevel: price_level,
+      dietaryRestrictions: dietary_restrictions,
+      cuisineImportance: (intent?.cuisine_importance as "high" | "medium" | "low") || "low",
+      targetCuisines: intent?.target_cuisines || [],
+      openNow: open_now,
+      // openNowData will be populated after Google fetch for Open Now toggle
+    };
 
-      top10 = filterAndRank(profiles, neighborhood, price_level, occasion, special_request);
-      allRpcResults = top10;
-    } else {
-      // V2: Map dp_* fields from RPC into deep_profile object on each result
-      allRpcResults = (rpcData as Record<string, unknown>[]).map((row) => {
-        const hasDeepProfile = row.dp_service_style != null || row.dp_flavor_profiles != null;
-        const deep_profile: DeepProfile | null = hasDeepProfile ? {
-          flavor_profiles: (row.dp_flavor_profiles as string[] | null) || null,
-          signature_dishes: (row.dp_signature_dishes as Array<{ dish: string; why: string }> | null) || null,
-          cuisine_subcategory: (row.dp_cuisine_subcategory as string | null) || null,
-          menu_depth: (row.dp_menu_depth as string | null) || null,
-          spice_level: (row.dp_spice_level as string | null) || null,
-          dietary_depth: (row.dp_dietary_depth as string | null) || null,
-          service_style: (row.dp_service_style as string | null) || null,
-          meal_pacing: (row.dp_meal_pacing as string | null) || null,
-          reservation_difficulty: (row.dp_reservation_difficulty as string | null) || null,
-          typical_wait_minutes: (row.dp_typical_wait_minutes as number | null) || null,
-          group_size_sweet_spot: (row.dp_group_size_sweet_spot as string | null) || null,
-          check_average_per_person: (row.dp_check_average_per_person as number | null) || null,
-          tipping_culture: (row.dp_tipping_culture as string | null) || null,
-          kid_friendliness: (row.dp_kid_friendliness as number | null) || null,
-          music_vibe: (row.dp_music_vibe as string | null) || null,
-          decor_style: (row.dp_decor_style as string | null) || null,
-          conversation_friendliness: (row.dp_conversation_friendliness as number | null) || null,
-          energy_level: (row.dp_energy_level as number | null) || null,
-          seating_options: (row.dp_seating_options as string[] | null) || null,
-          instagram_worthiness: (row.dp_instagram_worthiness as number | null) || null,
-          seasonal_relevance: (row.dp_seasonal_relevance as Record<string, number> | null) || null,
-          cultural_authenticity: (row.dp_cultural_authenticity as number | null) || null,
-          origin_story: (row.dp_origin_story as string | null) || null,
-          crowd_profile: (row.dp_crowd_profile as string[] | null) || null,
-          neighborhood_integration: (row.dp_neighborhood_integration as string | null) || null,
-          chef_notable: (row.dp_chef_notable as boolean | null) || null,
-          awards_recognition: (row.dp_awards_recognition as string[] | null) || null,
-          wow_factors: (row.dp_wow_factors as string[] | null) || null,
-          date_progression: (row.dp_date_progression as string | null) || null,
-          best_seat_in_house: (row.dp_best_seat_in_house as string | null) || null,
-          ideal_weather: (row.dp_ideal_weather as string[] | null) || null,
-          unique_selling_point: (row.dp_unique_selling_point as string | null) || null,
-          transit_accessibility: (row.dp_transit_accessibility as string | null) || null,
-          byob_policy: (row.dp_byob_policy as string | null) || null,
-          payment_notes: (row.dp_payment_notes as string | null) || null,
-          enrichment_confidence: (row.dp_enrichment_confidence as number | null) || null,
-        } : null;
+    const filterResult = runFilterPipeline(allCandidates, filterContext);
+    let filtered = filterResult.candidates;
+    const relaxationApplied = filterResult.relaxationApplied;
 
-        // Return RestaurantProfile with deep_profile attached
-        return {
-          ...row,
-          deep_profile,
-        } as unknown as RestaurantProfile;
+    if (relaxationApplied.length > 0) {
+      logInfo("V5 filter relaxation applied", { relaxed: relaxationApplied });
+    }
+
+    if (filtered.length === 0) {
+      return jsonResponse(buildV5NoResultsResponse(neighborhood, price_level));
+    }
+
+    // ================================================================
+    // STEP 4: V5 Scoring — Score ALL filtered candidates
+    // ================================================================
+    const scored = reRankV5(
+      filtered,
+      occasion,
+      special_request,
+      intent,
+      dietary_restrictions,
+      filtered.length,
+      time_of_day,
+    );
+
+    // Apply diversity filter
+    const diverseProfiles = ensureDiversity(
+      scored.map(s => s.profile),
+      allCandidates.filter(r => !exclude.includes(r.id)),
+    );
+    // Re-map to scored candidates maintaining order
+    const diverseScored = diverseProfiles.map(p => {
+      const found = scored.find(s => s.profile.id === p.id);
+      return found!;
+    }).filter(Boolean);
+
+    if (diverseScored.length === 0) {
+      return jsonResponse(buildV5NoResultsResponse(neighborhood, price_level));
+    }
+
+    // ================================================================
+    // STEP 5: Google Places enrichment (top 5 candidates)
+    // ================================================================
+    const top5PlaceIds = diverseScored
+      .slice(0, 5)
+      .map(s => s.profile.google_place_id)
+      .filter(Boolean) as string[];
+
+    const googlePromises = top5PlaceIds.map(pid => fetchPlaceDetails(pid));
+    const googleTimeout = new Promise<null>(resolve => setTimeout(() => resolve(null), 1500));
+    const googleRace = Promise.all(googlePromises);
+    const googleResultsOrTimeout = await Promise.race([googleRace, googleTimeout]);
+
+    const googleResults = googleResultsOrTimeout
+      ? (googleResultsOrTimeout as Awaited<ReturnType<typeof fetchPlaceDetails>>[])
+      : [];
+
+    const googleByPlaceId = new Map<string, Awaited<ReturnType<typeof fetchPlaceDetails>>>();
+    for (let i = 0; i < top5PlaceIds.length && i < googleResults.length; i++) {
+      const gd = googleResults[i];
+      if (gd) googleByPlaceId.set(top5PlaceIds[i], gd);
+    }
+
+    // ================================================================
+    // STEP 6: Post-Google re-rank with real Google data
+    // ================================================================
+    const rerankedScored: V5ScoredCandidate[] = diverseScored.map(sc => {
+      const googleData = sc.profile.google_place_id
+        ? googleByPlaceId.get(sc.profile.google_place_id) || null
+        : null;
+
+      // Re-compute with Google data for reputation accuracy
+      const reResult = computeV5DondeMatch(sc.profile, {
+        occasion,
+        specialRequest: special_request,
+        neighborhood: "Anywhere", // Already filtered
+        priceLevel: "Any",         // Already filtered
+        googleData,
+        sentimentScore: null,
+        sentimentNegative: null,
+        intent,
+        clientTimeOfDay: time_of_day,
+        dietaryRestrictions: dietary_restrictions,
+        candidatePoolSize: diverseScored.length,
       });
-      top10 = allRpcResults;
-    }
 
-    // Filter excluded restaurants (handles both RPC and fallback paths)
-    if (exclude.length > 0) {
-      top10 = top10.filter((r) => !exclude.includes(r.id));
-    }
-
-    // F5: Dietary restriction filtering
-    if (dietary_restrictions.length > 0) {
-      const dietaryFiltered = top10.filter((r) => {
-        if (!r.dietary_options || r.dietary_options.length === 0) return false;
-        const opts = r.dietary_options.map((d) => d.toLowerCase());
-        return dietary_restrictions.every((dr: string) =>
-          opts.some((opt) => opt.includes(dr.toLowerCase()))
-        );
-      });
-      // Graceful fallback: if no dietary matches, keep unfiltered but log
-      if (dietaryFiltered.length > 0) {
-        top10 = dietaryFiltered;
-      } else {
-        logWarn("Dietary filter matched 0 restaurants, using unfiltered", { dietary_restrictions });
-      }
-    }
-
-    top10 = top10.slice(0, 25);
-
-    // Enhancement 14: Analyze rejection patterns from excluded restaurants
-    const rejectionSignals = exclude.length >= 2
-      ? analyzeRejections(exclude, allRpcResults)
-      : undefined;
-
-    // V3: Apply deal-breaker gates BEFORE scoring
-    const { passed: gatedCandidates } = applyDealBreakerGates(top10, exclude, dietary_restrictions);
-    // Graceful fallback: if gates removed all candidates, use unfiltered
-    if (gatedCandidates.length > 0) {
-      top10 = gatedCandidates;
-    } else {
-      logWarn("V3 deal-breaker gates removed all candidates, using unfiltered", { gateCount: top10.length - gatedCandidates.length });
-    }
-
-    // V4: Re-rank using geometric mean five-factor scoring
-    top10 = reRankV4(top10, occasion, special_request, rejectionSignals, intent, userFeedback, time_of_day, dietary_restrictions);
-
-    // Enhancement 6: Apply diversity filter
-    const backfillPool = allRpcResults.filter((r) => !exclude.includes(r.id));
-    top10 = ensureDiversity(top10, backfillPool);
-
-    if (top10.length === 0) {
-      return jsonResponse(buildNoResultsResponse(neighborhood, price_level));
-    }
-
-    // Detect cuisine mismatch: user asked for specific cuisine but none of the candidates match
-    let cuisineMismatch: { requested: string; keyword: string } | null = null;
-    if (
-      intent?.cuisine_importance === "high" &&
-      intent.target_cuisines.length > 0 &&
-      !top10.some((r) =>
-        intent!.target_cuisines.some(
-          (tc) => r.cuisine_type?.toLowerCase() === tc.toLowerCase()
-        )
-      )
-    ) {
-      cuisineMismatch = {
-        requested: intent.target_cuisines[0],
-        keyword: special_request,
+      return {
+        profile: sc.profile,
+        dondeMatch: reResult.dondeMatch,
+        factors: reResult.factors,
+        weights: reResult.weights,
+        confidence: reResult.confidence,
+        dataCompleteness: reResult.dataCompleteness,
+        weightShiftReasons: reResult.weightShiftReasons,
+        factorDetails: reResult.factorDetails,
+        googleData,
       };
-      logInfo("Cuisine mismatch detected", {
-        requested: cuisineMismatch.requested,
-        candidateCuisines: [...new Set(top10.map((r) => r.cuisine_type).filter(Boolean))],
-      });
-    }
+    });
 
-    // --- Step 2: Claude recommendation with live Google reviews ---
+    // Sort by re-ranked DondeScore
+    rerankedScored.sort((a, b) => b.dondeMatch - a.dondeMatch);
+
+    // ================================================================
+    // STEP 7: Build Claude prompt — full pool + top 3 deep profiles
+    // ================================================================
     let responseBody: Record<string, unknown>;
     let wasFallback = false;
 
     try {
-      // Enhancement 3: Expand Google fetches to top 5 candidates
-      const top5PlaceIds = top10
-        .slice(0, 5)
-        .map((r) => r.google_place_id)
-        .filter(Boolean) as string[];
+      // Build review strings for top 3
+      const topCandidatesWithGoogle = rerankedScored.slice(0, 3).map(sc => {
+        const gd = sc.googleData;
+        const reviews = gd && gd.reviews.length > 0 ? formatReviewsForPrompt(gd.reviews) : "";
+        return { candidate: sc, googleData: gd, reviews };
+      });
 
-      // Get neighborhood description for prompt (Enhancement 15)
-      const neighborhoodDescription = top10[0]?.neighborhood_description || null;
+      // Determine score tier for tone modulation
+      const topScore = rerankedScored[0].dondeMatch;
+      const scoreTier = getScoreTier(topScore);
 
-      // Enhancement 14: Build rejection context for Claude
-      let rejectionContext: string | undefined;
-      if (rejectionSignals && (rejectionSignals.avoidCuisines.length > 0 || rejectionSignals.avoidPriceLevels.length > 0)) {
-        const parts: string[] = [];
-        if (rejectionSignals.avoidCuisines.length > 0) {
-          parts.push(`cuisines: ${rejectionSignals.avoidCuisines.join(", ")}`);
-        }
-        if (rejectionSignals.avoidPriceLevels.length > 0) {
-          parts.push(`price levels: ${rejectionSignals.avoidPriceLevels.join(", ")}`);
-        }
-        rejectionContext = `NOTE: The user has rejected ${exclude.length} previous suggestions. They seem to want something different from ${parts.join(" and ")}. Prioritize variety.`;
-      }
+      // Build weight context string for Claude
+      const weightContext = rerankedScored[0].weightShiftReasons.join("; ") || "Standard weights";
 
-      // Start Google fetches
-      const googlePromises = top5PlaceIds.map((pid) => fetchPlaceDetails(pid));
+      // V5 system prompt with Donde character voice + tone directive
+      const systemPrompt = buildV5SystemPrompt(scoreTier);
 
-      // Wait for Google results (with timeout to avoid blocking)
-      const googleTimeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
-      const googleRace = Promise.all(googlePromises);
-      const googleResultsOrTimeout = await Promise.race([googleRace, googleTimeout]);
-
-      const googleResults = googleResultsOrTimeout
-        ? (googleResultsOrTimeout as Awaited<ReturnType<typeof fetchPlaceDetails>>[])
-        : [];
-
-      // Map Google results back to top10 indices
-      const reviewsByIndex = new Map<number, string>();
-      const googleByPlaceId = new Map<
-        string,
-        Awaited<ReturnType<typeof fetchPlaceDetails>>
-      >();
-      for (let i = 0; i < top5PlaceIds.length && i < googleResults.length; i++) {
-        const gd = googleResults[i];
-        if (gd) {
-          googleByPlaceId.set(top5PlaceIds[i], gd);
-          // Find the index in top10
-          const top10Idx = top10.findIndex(
-            (r) => r.google_place_id === top5PlaceIds[i]
-          );
-          if (top10Idx !== -1 && gd.reviews.length > 0) {
-            reviewsByIndex.set(top10Idx, formatReviewsForPrompt(gd.reviews));
-          }
-        }
-      }
-
-      // Build cuisine mismatch context for Claude prompt
-      let cuisineMismatchContext: string | null = null;
-      if (cuisineMismatch) {
-        cuisineMismatchContext = `CUISINE MISMATCH: The user asked for "${special_request}" but we don't carry ${cuisineMismatch.requested} cuisine yet.
-
-Your job: pick the BEST alternative and write a rec that leads with what makes THIS pick genuinely worth going to. The frontend already shows a "we don't have [cuisine]" banner, so the blurb doesn't need to repeat that.
-
-MISMATCH BLURB STRUCTURE:
-- Open with what's compelling about the pick (food, vibe, story, or a bold claim)
-- Acknowledge the pivot in a brief clause, not a full confession. One phrase like "it's not the [X] you were after, but..." woven into a sentence about the restaurant's strengths
-- Close with why it's worth the detour
-
-BANNED OPENERS for mismatch blurbs: "We gotta be straight" / "We don't have" / "To be honest" / "Let's be real" / "We'll be upfront" / "Honestly" / "Full disclosure" / any variant that leads with bad news or apology.
-
-Keep the pivot acknowledgment to ONE brief clause, not a full sentence. The tone should feel like a friend saying "yeah that's not quite what you said, but trust me on this one."
-
-Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
-      }
-
-      // V4: Pre-compute preliminary scores for tone modulation using geometric mean
-      // These scores are accurate for tier determination (geometric mean is transparent)
-      let prelimScores: number[] = [];
-      let prelimV4Results: V4DondeMatchResult[] = [];
-      for (let i = 0; i < top10.length; i++) {
-        const candidate = top10[i];
-        const candidateGoogle = candidate.google_place_id
-          ? googleByPlaceId.get(candidate.google_place_id) || null
-          : null;
-        const prelimResult = computeV4DondeMatch(candidate, {
-          occasion,
-          specialRequest: special_request,
-          neighborhood,
-          priceLevel: price_level,
-          googleData: candidateGoogle,
-          sentimentScore: null,
-          sentimentNegative: null,
-          intent,
-          rejectionSignals,
-          userFeedback,
-          clientTimeOfDay: time_of_day,
-          dietaryRestrictions: dietary_restrictions,
-        });
-        let prelimDM = prelimResult.dondeMatch;
-        if (cuisineMismatch) prelimDM = Math.min(prelimDM, 65);
-        prelimScores.push(prelimDM);
-        prelimV4Results.push(prelimResult);
-      }
-      // Post-Google re-rank: ensure top10 ordering reflects final scores (with Google data).
-      // Without this, reRankV4() (which runs without Google data) determines ordering,
-      // but reputation scores can shift significantly once real Google reviews are available.
-      // This prevents score inversions on "Try Another" where a later result scores higher.
-      const sortedIndices = prelimScores
-        .map((score, idx) => ({ idx, score }))
-        .sort((a, b) => b.score - a.score);
-
-      const orderChanged = sortedIndices.some((item, pos) => item.idx !== pos);
-      if (orderChanged) {
-        logInfo("Post-Google re-rank changed ordering", {
-          before: top10.slice(0, 5).map((r, i) => `${r.name}:${prelimScores[i]}`),
-          after: sortedIndices.slice(0, 5).map(s => `${top10[s.idx].name}:${s.score}`),
-        });
-        const reorderedTop10 = sortedIndices.map(s => top10[s.idx]);
-        const reorderedV4Results = sortedIndices.map(s => prelimV4Results[s.idx]);
-        top10 = reorderedTop10;
-        prelimScores = sortedIndices.map(s => s.score);
-        prelimV4Results = reorderedV4Results;
-
-        // Rebuild reviewsByIndex since it uses top10 indices as keys
-        reviewsByIndex.clear();
-        for (let i = 0; i < top10.length; i++) {
-          const pid = top10[i].google_place_id;
-          if (pid && googleByPlaceId.has(pid)) {
-            const gd = googleByPlaceId.get(pid)!;
-            if (gd.reviews.length > 0) {
-              reviewsByIndex.set(i, formatReviewsForPrompt(gd.reviews));
-            }
-          }
-        }
-      }
-
-      // Convert V4 factors to V3 format for backward-compatible prompt building
-      const prelimFactors: V3Factors[] = prelimV4Results.map(r => ({
-        food: r.factors.foodQuality,
-        setting: r.factors.service,
-        atmosphere: r.factors.vibe,
-        reputation: r.factors.reputation,
-        convenience: r.factors.convenience,
-      }));
-
-      // V3.5: Build system prompt with tone directive (after pre-computation)
-      const systemPrompt = buildSystemPrompt(occasion, price_level, true);
-
-      // Build user prompt with reviews, preliminary DM scores, and factor breakdown
-      const userPrompt = buildUserPrompt(
-        top10,
-        occasion,
-        price_level,
-        neighborhood,
+      // V5 user prompt with full candidate pool + top 3 deep profiles
+      const userPrompt = buildV5UserPrompt(
         special_request,
-        reviewsByIndex.size > 0 ? reviewsByIndex : undefined,
-        neighborhoodDescription,
-        rejectionContext,
-        cuisineMismatchContext,
-        dietary_restrictions.length > 0 ? dietary_restrictions : undefined,
-        prelimScores,
-        prelimFactors
+        occasion,
+        neighborhood,
+        price_level,
+        dietary_restrictions,
+        rerankedScored,
+        topCandidatesWithGoogle,
+        weightContext,
       );
 
-      // Call Claude
+      // Single Claude API call — blurb + potential boost
       const claudeText = await callClaude(userPrompt, systemPrompt);
 
-      // Enhancement 19: Tiered JSON parsing
-      let parsed: ClaudeRecommendation;
+      // Parse Claude's V5 response
+      let parsed: V5ClaudeRecommendation;
       try {
-        parsed = parseClaudeJson<ClaudeRecommendation>(claudeText);
+        parsed = parseClaudeJson<V5ClaudeRecommendation>(claudeText);
       } catch (_parseError) {
-        // Tier 2: Try regex recovery from malformed JSON
-        const recovered = recoverFromMalformedClaude(claudeText);
+        // Regex recovery for malformed JSON
+        const recovered = recoverFromMalformedV5(claudeText);
         if (recovered) {
           parsed = recovered;
-          logWarn("Claude JSON parse failed, recovered via regex");
+          logWarn("V5 Claude JSON parse failed, recovered via regex");
         } else {
-          throw new Error("Claude returned unparseable response");
+          throw new Error("Claude returned unparseable V5 response");
         }
       }
 
-      // Quality guardrail: detect AI slop patterns in recommendation text
+      // ================================================================
+      // STEP 8: Process Intent Boost
+      // ================================================================
+      let chosenIdx = Math.min(Math.max(0, parsed.restaurant_index || 0), rerankedScored.length - 1);
+      let intentBoost: {
+        active: boolean;
+        reason: string;
+        boost_points: number;
+        base_score: number;
+        original_engine_rank: number;
+      } | null = null;
+
+      if (parsed.intent_boost && chosenIdx > 0) {
+        const boostedCandidate = rerankedScored[chosenIdx];
+        const engineTopScore = rerankedScored[0].dondeMatch;
+        const boostPoints = Math.min(25, Math.max(5, parsed.boost_points || 0));
+        const baseScore = boostedCandidate.dondeMatch;
+        const boostedScore = Math.min(99, baseScore + boostPoints);
+
+        // Guard rails: base score must be >= 35, boosted must beat engine #1
+        if (baseScore >= 35 && boostedScore > engineTopScore) {
+          intentBoost = {
+            active: true,
+            reason: parsed.boost_reason || "Better match for your request",
+            boost_points: boostPoints,
+            base_score: baseScore,
+            original_engine_rank: chosenIdx,
+          };
+          // Update the chosen candidate's dondeMatch to include boost
+          rerankedScored[chosenIdx] = {
+            ...boostedCandidate,
+            dondeMatch: boostedScore,
+          };
+          logInfo("V5 Intent Boost applied", {
+            from: rerankedScored[0].profile.name,
+            to: boostedCandidate.profile.name,
+            baseScore,
+            boostPoints,
+            boostedScore,
+            reason: intentBoost.reason,
+          });
+        } else {
+          // Boost rejected — use engine's #1
+          logInfo("V5 Intent Boost rejected", {
+            baseScore,
+            boostPoints,
+            boostedScore,
+            engineTopScore,
+            reason: baseScore < 35 ? "base too low" : "doesn't beat #1",
+          });
+          chosenIdx = 0;
+          intentBoost = null;
+        }
+      } else if (!parsed.intent_boost) {
+        chosenIdx = 0;
+      }
+
+      const chosen = rerankedScored[chosenIdx];
+      const dondeMatch = chosen.dondeMatch;
+
+      // Get Google data for chosen
+      let chosenGoogleData = chosen.googleData || null;
+      if (!chosenGoogleData && chosen.profile.google_place_id) {
+        chosenGoogleData = await fetchPlaceDetails(chosen.profile.google_place_id);
+      }
+
+      // Enhancement 20: Skip closed restaurants
+      if (chosenGoogleData?.business_status === "CLOSED_PERMANENTLY") {
+        logWarn("V5: Chosen restaurant permanently closed, picking next", { name: chosen.profile.name });
+        const nextIdx = rerankedScored.findIndex((s, i) => i !== chosenIdx);
+        if (nextIdx !== -1) {
+          const nextChosen = rerankedScored[nextIdx];
+          const nextGoogle = nextChosen.googleData || (nextChosen.profile.google_place_id
+            ? await fetchPlaceDetails(nextChosen.profile.google_place_id) : null);
+
+          // Use insider_tip fallback
+          if (!parsed.insider_tip && nextChosen.profile.insider_tip) {
+            parsed.insider_tip = nextChosen.profile.insider_tip;
+          }
+
+          const v5Result = {
+            dondeMatch: nextChosen.dondeMatch,
+            factors: nextChosen.factors,
+            weights: nextChosen.weights,
+            confidence: nextChosen.confidence,
+            dataCompleteness: nextChosen.dataCompleteness,
+            weightShiftReasons: nextChosen.weightShiftReasons,
+            factorDetails: nextChosen.factorDetails,
+          };
+
+          responseBody = buildV5SuccessResponse(
+            nextChosen.profile, parsed, nextGoogle, nextChosen.dondeMatch,
+            v5Result, null, relaxationApplied,
+          );
+        } else {
+          responseBody = buildV5FallbackResponse(
+            chosen.profile, chosenGoogleData, 55,
+            { dondeMatch: 55, factors: chosen.factors, weights: chosen.weights, confidence: chosen.confidence, dataCompleteness: chosen.dataCompleteness, weightShiftReasons: chosen.weightShiftReasons, factorDetails: chosen.factorDetails },
+            relaxationApplied,
+          );
+        }
+      } else {
+        // Normal path: use Claude's pick
+        if (!parsed.insider_tip && chosen.profile.insider_tip) {
+          parsed.insider_tip = chosen.profile.insider_tip;
+        }
+        if (!parsed.insider_tip && chosen.profile.deep_profile?.best_seat_in_house) {
+          parsed.insider_tip = chosen.profile.deep_profile.best_seat_in_house;
+        }
+
+        const v5Result = {
+          dondeMatch,
+          factors: chosen.factors,
+          weights: chosen.weights,
+          confidence: chosen.confidence,
+          dataCompleteness: chosen.dataCompleteness,
+          weightShiftReasons: chosen.weightShiftReasons,
+          factorDetails: chosen.factorDetails,
+        };
+
+        responseBody = buildV5SuccessResponse(
+          chosen.profile, parsed, chosenGoogleData, dondeMatch,
+          v5Result, intentBoost, relaxationApplied,
+        );
+      }
+
+      // Quality guardrail: detect AI slop patterns
       if (parsed.recommendation) {
         const SLOP_PATTERNS = [
-          // Core AI slop words
           "culinary", "gastronomic", "unforgettable", "unparalleled", "nestled",
           "tantalizing", "mouthwatering", "delectable", "exquisite", "embark",
           "elevate your", "a testament to", "truly remarkable", "a must-visit",
           "from the moment you", "whether you're looking", "taste buds",
           "culinary journey", "dining experience", "perfect harmony",
-          // Extended slop detection (V3)
           "burst of flavor", "a cut above", "doesn't disappoint",
           "will not disappoint", "not to be missed", "that will leave you",
           "perfect blend", "perfect balance", "hits all the right notes",
           "checks all the boxes", "treat your taste buds", "palate",
-          "unapologetically", "does it right", "gets it right",
-          "if you know you know", "think meets",
         ];
         const recLower = parsed.recommendation.toLowerCase();
-        const slopHits = SLOP_PATTERNS.filter((p) => recLower.includes(p));
+        const slopHits = SLOP_PATTERNS.filter(p => recLower.includes(p));
         if (slopHits.length >= 2) {
-          logWarn("Recommendation quality: slop patterns detected", { count: slopHits.length, patterns: slopHits });
+          logWarn("V5 slop patterns detected", { count: slopHits.length, patterns: slopHits });
         }
 
-        // V3: Em dash detection (major AI tell)
         const emDashCount = (parsed.recommendation.match(/\u2014/g) || []).length;
         if (emDashCount > 0) {
-          logWarn("Recommendation contains em dashes", { count: emDashCount });
+          logWarn("V5 recommendation contains em dashes", { count: emDashCount });
         }
 
-        // V3: Structural AI tell detection
-        const structuralTells = [
-          /^(ah|so|well|look|here's the thing),?\s/i,
-          /whether\s.*\sor\s/i,
-          /if you're looking for/i,
-        ];
-        const structHits = structuralTells.filter((p) => p.test(parsed.recommendation));
-        if (structHits.length > 0) {
-          logWarn("Recommendation has structural AI tells", { count: structHits.length });
-        }
-
-        // Word count check
+        // V5: Word count check (target 100-120)
         const wordCount = parsed.recommendation.split(/\s+/).length;
-        if (wordCount > 100) {
-          logWarn("Recommendation length exceeds target", { wordCount, target: "50-80" });
+        if (wordCount < 95 || wordCount > 130) {
+          logWarn("V5 recommendation word count outside target", { wordCount, target: "100-120" });
         }
       }
 
-      const idx = Math.min(
-        Math.max(0, parsed.restaurant_index || 0),
-        top10.length - 1
-      );
-      const chosen = top10[idx];
-
-      // Enhancement 20: Check for closed restaurants
-      let googleData = chosen.google_place_id
-        ? googleByPlaceId.get(chosen.google_place_id) || null
-        : null;
-
-      if (!googleData && chosen.google_place_id) {
-        // Claude picked outside top 5 — fetch individually
-        googleData = await fetchPlaceDetails(chosen.google_place_id);
-      }
-
-      // Enhancement 20: If restaurant is closed, try next candidate
-      if (googleData?.business_status === "CLOSED_PERMANENTLY") {
-        logWarn("Chosen restaurant permanently closed, picking next", { name: chosen.name });
-        const nextIdx = top10.findIndex((r, i) => i !== idx && r.id !== chosen.id);
-        if (nextIdx !== -1) {
-          const nextChosen = top10[nextIdx];
-          const nextGoogleData = nextChosen.google_place_id
-            ? googleByPlaceId.get(nextChosen.google_place_id) || await fetchPlaceDetails(nextChosen.google_place_id)
-            : null;
-
-          // Use stored insider_tip as fallback
-          if (!parsed.insider_tip && nextChosen.insider_tip) {
-            parsed.insider_tip = nextChosen.insider_tip;
-          }
-
-          const closedV4Inputs = {
-            occasion,
-            specialRequest: special_request,
-            neighborhood,
-            priceLevel: price_level,
-            googleData: nextGoogleData,
-            sentimentScore: parsed.sentiment_score,
-            sentimentNegative: parsed.sentiment_negative,
-            intent,
-            rejectionSignals,
-            userFeedback,
-            clientTimeOfDay: time_of_day,
-            dietaryRestrictions: dietary_restrictions,
-          };
-          const closedV4Result = computeV4DondeMatch(nextChosen, closedV4Inputs);
-          let dondeMatch = closedV4Result.dondeMatch;
-          if (cuisineMismatch) dondeMatch = Math.min(dondeMatch, 65);
-
-          const closedV3Compat = {
-            food: closedV4Result.factors.foodQuality,
-            setting: closedV4Result.factors.service,
-            atmosphere: closedV4Result.factors.vibe,
-            reputation: closedV4Result.factors.reputation,
-            convenience: closedV4Result.factors.convenience,
-          };
-          const closedV3CompatW = {
-            food: closedV4Result.weights.foodQuality,
-            setting: closedV4Result.weights.service,
-            atmosphere: closedV4Result.weights.vibe,
-            reputation: closedV4Result.weights.reputation,
-            convenience: closedV4Result.weights.convenience,
-          };
-
-          responseBody = buildSuccessResponse(
-            nextChosen, parsed, nextGoogleData, dondeMatch, undefined, undefined, cuisineMismatch,
-            closedV3Compat, closedV3CompatW, closedV4Result.dataCompleteness, closedV4Result.factorDetails,
-            closedV4Result,
-          );
-        } else {
-          // Fallback if no alternatives
-          responseBody = buildFallbackResponse(chosen, googleData, 55, cuisineMismatch);
-        }
-      } else {
-        // Normal path: use Claude's pick
-        // Use stored insider_tip as fallback if Claude didn't provide one
-        if (!parsed.insider_tip && chosen.insider_tip) {
-          parsed.insider_tip = chosen.insider_tip;
-        }
-        // V2: Use deep profile best_seat_in_house as ultimate insider tip fallback
-        if (!parsed.insider_tip && chosen.deep_profile?.best_seat_in_house) {
-          parsed.insider_tip = chosen.deep_profile.best_seat_in_house;
-        }
-
-        // V4: Compute donde_match using geometric mean five-factor scoring
-        const v4Inputs = {
-          occasion,
-          specialRequest: special_request,
-          neighborhood,
-          priceLevel: price_level,
-          googleData,
-          sentimentScore: parsed.sentiment_score,
-          sentimentNegative: parsed.sentiment_negative,
-          intent,
-          rejectionSignals,
-          userFeedback,
-          clientTimeOfDay: time_of_day,
-          dietaryRestrictions: dietary_restrictions,
-        };
-        const v4Result = computeV4DondeMatch(chosen, v4Inputs);
-        let dondeMatch = v4Result.dondeMatch;
-
-        // Cap match score for cuisine mismatch — never claim a high match when we don't have the cuisine
-        if (cuisineMismatch) {
-          dondeMatch = Math.min(dondeMatch, 65);
-        }
-
-        // V4: Build V3-compatible factor/weight objects for response builder (transition)
-        const v3CompatFactors = {
-          food: v4Result.factors.foodQuality,
-          setting: v4Result.factors.service,
-          atmosphere: v4Result.factors.vibe,
-          reputation: v4Result.factors.reputation,
-          convenience: v4Result.factors.convenience,
-        };
-        const v3CompatWeights = {
-          food: v4Result.weights.foodQuality,
-          setting: v4Result.weights.service,
-          atmosphere: v4Result.weights.vibe,
-          reputation: v4Result.weights.reputation,
-          convenience: v4Result.weights.convenience,
-        };
-
-        responseBody = buildSuccessResponse(
-          chosen, parsed, googleData, dondeMatch, undefined, undefined, cuisineMismatch,
-          v3CompatFactors, v3CompatWeights, v4Result.dataCompleteness, v4Result.factorDetails,
-          v4Result,
-        );
-      }
     } catch (claudeError) {
       wasFallback = true;
+      logError("V5 Claude API failed, using fallback", { error: String(claudeError) });
 
-      // Enhancement 19: Tiered fallback
-      logError("Claude API failed, using fallback", { error: String(claudeError) });
-      const chosen = top10[0];
+      const chosen = rerankedScored[0];
+      let chosenGoogleData = chosen.googleData || null;
+      if (!chosenGoogleData && chosen.profile.google_place_id) {
+        chosenGoogleData = await fetchPlaceDetails(chosen.profile.google_place_id);
+      }
 
-      const googleData = chosen.google_place_id
-        ? await fetchPlaceDetails(chosen.google_place_id)
-        : null;
+      // Skip closed restaurant in fallback
+      if (chosenGoogleData?.business_status === "CLOSED_PERMANENTLY" && rerankedScored.length > 1) {
+        const nextChosen = rerankedScored[1];
+        const nextGoogle = nextChosen.googleData || (nextChosen.profile.google_place_id
+          ? await fetchPlaceDetails(nextChosen.profile.google_place_id) : null);
 
-      // Enhancement 20: Skip closed restaurant in fallback too
-      if (googleData?.business_status === "CLOSED_PERMANENTLY" && top10.length > 1) {
-        const nextChosen = top10[1];
-        const nextGoogleData = nextChosen.google_place_id
-          ? await fetchPlaceDetails(nextChosen.google_place_id)
-          : null;
-        const closedFallbackV4 = computeV4DondeMatch(nextChosen, {
-          occasion,
-          specialRequest: special_request,
-          neighborhood,
-          priceLevel: price_level,
-          googleData: nextGoogleData,
-          intent,
-          rejectionSignals,
-          userFeedback,
-          clientTimeOfDay: time_of_day,
-          dietaryRestrictions: dietary_restrictions,
-        });
-        let fallbackMatch = closedFallbackV4.dondeMatch;
-        if (cuisineMismatch) fallbackMatch = Math.min(fallbackMatch, 65);
-        responseBody = buildTemplateResponse(nextChosen, nextGoogleData, fallbackMatch, occasion, cuisineMismatch);
+        responseBody = buildV5FallbackResponse(
+          nextChosen.profile, nextGoogle, nextChosen.dondeMatch,
+          { dondeMatch: nextChosen.dondeMatch, factors: nextChosen.factors, weights: nextChosen.weights, confidence: nextChosen.confidence, dataCompleteness: nextChosen.dataCompleteness, weightShiftReasons: nextChosen.weightShiftReasons, factorDetails: nextChosen.factorDetails },
+          relaxationApplied,
+        );
       } else {
-        // Compute donde_match deterministically using V4 geometric mean
-        const normalFallbackV4 = computeV4DondeMatch(chosen, {
-          occasion,
-          specialRequest: special_request,
-          neighborhood,
-          priceLevel: price_level,
-          googleData,
-          intent,
-          rejectionSignals,
-          userFeedback,
-          clientTimeOfDay: time_of_day,
-          dietaryRestrictions: dietary_restrictions,
-        });
-        let fallbackMatch = normalFallbackV4.dondeMatch;
-        if (cuisineMismatch) fallbackMatch = Math.min(fallbackMatch, 65);
-
-        responseBody = buildTemplateResponse(chosen, googleData, fallbackMatch, occasion, cuisineMismatch);
+        responseBody = buildV5FallbackResponse(
+          chosen.profile, chosenGoogleData, chosen.dondeMatch,
+          { dondeMatch: chosen.dondeMatch, factors: chosen.factors, weights: chosen.weights, confidence: chosen.confidence, dataCompleteness: chosen.dataCompleteness, weightShiftReasons: chosen.weightShiftReasons, factorDetails: chosen.factorDetails },
+          relaxationApplied,
+        );
       }
     }
 
-    // Enhancement 8: Cache successful responses (only for non-exclude requests)
+    // ================================================================
+    // STEP 9: Cache + Logging
+    // ================================================================
     if (exclude.length === 0) {
       const cacheKey = getCacheKey(occasion, neighborhood, price_level, special_request);
       setCacheResponse(cacheKey, responseBody);
     }
 
-    // Enhancement 13: Enriched query logging (fire-and-forget — don't block the response)
-    const chosenId = (responseBody.restaurant as Record<string, unknown>)
-      ?.id as string;
+    const chosenId = (responseBody.restaurant as Record<string, unknown>)?.id as string;
     const responseTimeMs = Date.now() - startTime;
-
-    // Continuous learning: detect keywords not matched by any dictionary
     const unmatchedKw = extractUnmatchedKeywords(special_request);
 
     supabase
@@ -954,28 +736,21 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
         occasion,
         price_level,
         special_request,
-        neighborhood_id:
-          top10[0]?.neighborhood_id || null,
+        neighborhood_id: rerankedScored[0]?.profile?.neighborhood_id || null,
         recommended_restaurant_id: chosenId || null,
         donde_match: (responseBody.donde_match as number) || null,
         exclude_count: exclude.length,
         was_fallback: wasFallback,
         response_time_ms: responseTimeMs,
-        claude_relevance_score:
-          (responseBody as Record<string, unknown>).relevance_score || null,
         unmatched_keywords: unmatchedKw.length > 0 ? unmatchedKw : null,
-        // F9: User ID for personalization tracking
         user_id: user_id || null,
-        // SSO: Link authenticated user
         auth_user_id: authUserId || null,
-        // F5: Dietary restrictions used
         dietary_restrictions: dietary_restrictions.length > 0 ? dietary_restrictions : null,
       })
       .then(() => {})
       .catch((err: unknown) => logError("Failed to log query", { error: String(err) }));
 
-    // SSO: Auto-save search to user_searches for authenticated users (fire-and-forget)
-    // Uses service client to bypass RLS (Edge Function has no user session context)
+    // SSO: Auto-save search for authenticated users
     if (authUserId && chosenId) {
       const chosenRestaurant = responseBody.restaurant as Record<string, unknown>;
       const serviceForSave = createServiceClient();
@@ -1003,52 +778,50 @@ Set relevance_score to 5.0 or below. Do NOT pretend it matches their request.`;
         .catch((err: unknown) => logError("Failed to auto-save search", { error: String(err) }));
     }
 
-    logInfo("Recommendation served", {
+    logInfo("V5 recommendation served", {
       responseTimeMs,
       occasion, neighborhood, price_level,
       wasFallback,
       excludeCount: exclude.length,
-      hasUserFeedback: !!userFeedback,
-      timeOfDay: time_of_day,
+      classificationPath,
+      intentBoost: !!(responseBody as Record<string, unknown>).intent_boost,
+      relaxation: relaxationApplied,
+      candidatePool: rerankedScored.length,
+      engine: "v5",
     });
 
-    // B15: Include API version in response headers
     const response = jsonResponse(responseBody);
     response.headers.set("X-API-Version", API_VERSION);
+    response.headers.set("X-Engine", "v5");
     return response;
   } catch (error) {
-    logError("Recommendation engine error", { error: String(error) });
-    return jsonResponse(buildErrorResponse(error), 500);
+    logError("V5 engine error", { error: String(error) });
+    return jsonResponse(buildV5ErrorResponse(error), 500);
   }
 });
 
-// Enhancement 19 Tier 2: Regex recovery for malformed Claude JSON
-function recoverFromMalformedClaude(text: string): ClaudeRecommendation | null {
+// V5 Regex recovery for malformed Claude JSON
+function recoverFromMalformedV5(text: string): V5ClaudeRecommendation | null {
   try {
     const indexMatch = text.match(/"restaurant_index"\s*:\s*(\d+)/);
     const recMatch = text.match(/"recommendation"\s*:\s*"((?:[^"\\]|\\.)*)"/);
     if (indexMatch && recMatch) {
       const tipMatch = text.match(/"insider_tip"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-      const relMatch = text.match(/"relevance_score"\s*:\s*([\d.]+)/);
+      const boostMatch = text.match(/"intent_boost"\s*:\s*(true|false)/);
+      const boostReasonMatch = text.match(/"boost_reason"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+      const boostPointsMatch = text.match(/"boost_points"\s*:\s*(\d+)/);
       const sentMatch = text.match(/"sentiment_score"\s*:\s*([\d.]+)/);
-      const breakdownMatch = text.match(/"sentiment_breakdown"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-
       const summaryMatch = text.match(/"sentiment_summary"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-      const posMatch = text.match(/"sentiment_positive"\s*:\s*(\d+)/);
-      const negMatch = text.match(/"sentiment_negative"\s*:\s*(\d+)/);
-      const neuMatch = text.match(/"sentiment_neutral"\s*:\s*(\d+)/);
 
       return {
         restaurant_index: parseInt(indexMatch[1]),
         recommendation: recMatch[1].replace(/\\"/g, '"'),
         insider_tip: tipMatch ? tipMatch[1].replace(/\\"/g, '"') : null,
-        relevance_score: relMatch ? parseFloat(relMatch[1]) : 7.0,
+        intent_boost: boostMatch ? boostMatch[1] === "true" : false,
+        boost_reason: boostReasonMatch ? boostReasonMatch[1].replace(/\\"/g, '"') : null,
+        boost_points: boostPointsMatch ? parseInt(boostPointsMatch[1]) : 0,
         sentiment_score: sentMatch ? parseFloat(sentMatch[1]) : null,
-        sentiment_breakdown: breakdownMatch ? breakdownMatch[1].replace(/\\"/g, '"') : null,
         sentiment_summary: summaryMatch ? summaryMatch[1].replace(/\\"/g, '"') : null,
-        sentiment_positive: posMatch ? parseInt(posMatch[1]) : null,
-        sentiment_negative: negMatch ? parseInt(negMatch[1]) : null,
-        sentiment_neutral: neuMatch ? parseInt(neuMatch[1]) : null,
       };
     }
   } catch (_e) {

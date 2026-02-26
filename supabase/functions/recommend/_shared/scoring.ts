@@ -63,34 +63,34 @@ function computeWeightedOccasionScore(profile: RestaurantProfile, occasion: stri
 // --- Keyword boosting ---
 
 export const CUISINE_KEYWORDS: Record<string, string[]> = {
-  Mexican: ["mexican", "taco", "burrito", "carnitas", "enchilada", "mole", "elote", "pozole", "tamale", "churro", "sopapilla", "quesadilla", "birria", "chilaquiles", "al pastor", "nachos", "margarita", "tequila"],
-  Italian: ["italian", "pasta", "pizza", "risotto", "carbonara", "lasagna", "ravioli", "parmigiana", "margherita", "giardiniera", "gnocchi", "tiramisu", "osso buco", "focaccia", "bruschetta", "arancini", "prosciutto", "cacio e pepe"],
-  Japanese: ["japanese", "sushi", "ramen", "izakaya", "sake", "chirashi", "omakase", "tonkatsu", "yakitori", "udon", "tempura", "katsu", "sashimi", "gyoza", "matcha", "poke"],
-  Thai: ["thai", "pad thai", "curry", "basil"],
-  Chinese: ["chinese", "dim sum", "dumpling", "noodle"],
-  Korean: ["korean", "bibimbap", "bbq", "kimchi", "bulgogi", "japchae", "tteokbokki", "galbi", "banchan", "budae jjigae", "soju"],
-  Indian: ["indian", "curry", "tandoori", "naan", "masala", "biryani", "tikka", "samosa", "vindaloo", "idli", "dosa", "uttapam", "sambar", "rasam", "vada", "paneer", "dal", "chutney", "appam", "korma", "rogan josh", "butter chicken", "palak", "pongal", "upma", "chana masala"],
+  Mexican: ["mexican", "taco", "burrito", "carnitas", "enchilada", "mole", "elote", "pozole", "tamale", "churro", "sopapilla", "quesadilla", "birria", "chilaquiles", "al pastor", "nachos", "margarita", "tequila", "horchata", "agua fresca", "cochinita pibil", "suadero", "barbacoa", "carne asada", "huarache", "gordita", "sope", "tlayuda", "mezcal"],
+  Italian: ["italian", "pasta", "pizza", "risotto", "carbonara", "lasagna", "ravioli", "parmigiana", "margherita", "giardiniera", "gnocchi", "tiramisu", "osso buco", "focaccia", "bruschetta", "arancini", "prosciutto", "cacio e pepe", "cannoli", "panna cotta", "cioppino", "panzanella", "crostini", "affogato", "limoncello", "caprese", "antipasto"],
+  Japanese: ["japanese", "sushi", "ramen", "izakaya", "sake", "chirashi", "omakase", "tonkatsu", "yakitori", "udon", "tempura", "katsu", "sashimi", "gyoza", "matcha", "poke", "takoyaki", "okonomiyaki", "miso", "edamame", "katsudon", "tsukemen", "kakigori", "donburi", "onigiri", "natto", "shabu shabu", "sukiyaki", "teppanyaki"],
+  Thai: ["thai", "pad thai", "curry", "basil", "khao soi", "mango sticky rice", "som tum", "boat noodles", "larb", "massaman", "panang", "satay", "tom kha", "sticky rice", "pad see ew", "drunken noodles", "papaya salad"],
+  Chinese: ["chinese", "dim sum", "dumpling", "noodle", "mapo tofu", "xiao long bao", "dan dan noodles", "char siu", "lo mein", "kung pao", "wonton", "congee", "scallion pancakes", "bubble tea", "boba", "chow mein", "hot pot", "peking duck", "fried rice", "egg drop soup"],
+  Korean: ["korean", "bibimbap", "bbq", "kimchi", "bulgogi", "japchae", "tteokbokki", "galbi", "banchan", "budae jjigae", "soju", "bingsu", "dak galbi", "sundubu jjigae", "jajangmyeon", "kimbap", "chimaek", "corn dogs", "naengmyeon", "hoddeok", "mandu"],
+  Indian: ["indian", "curry", "tandoori", "naan", "masala", "biryani", "tikka", "samosa", "vindaloo", "idli", "dosa", "uttapam", "sambar", "rasam", "vada", "paneer", "dal", "chutney", "appam", "korma", "rogan josh", "butter chicken", "palak", "pongal", "upma", "chana masala", "chai", "lassi", "chaat", "pav bhaji", "chole", "paratha", "thali", "gulab jamun", "jalebi", "kulfi", "kheer", "raita", "panipuri", "bhel puri"],
   French: ["french", "bistro", "crepe", "coq au vin", "duck confit", "creme brulee", "bourguignon", "tartare", "souffle", "ratatouille", "escargot", "croissant"],
   Seafood: ["seafood", "fish", "lobster", "oyster", "crab", "shrimp", "scampi", "octopus", "clam chowder", "calamari"],
   Steak: ["steak", "steakhouse", "filet", "wagyu", "porterhouse", "ribeye", "filet mignon", "tomahawk", "surf and turf"],
-  Mediterranean: ["mediterranean", "mezze", "tabbouleh", "lamb", "sangria", "tapas"],
-  Vietnamese: ["vietnamese", "pho", "banh mi", "bun bo hue", "spring rolls", "com tam", "vermicelli"],
+  Mediterranean: ["mediterranean", "mezze", "tabbouleh", "lamb", "sangria", "tapas", "fattoush", "kibbeh", "borek", "halloumi", "shakshuka", "dolma", "labneh", "manakeesh"],
+  Vietnamese: ["vietnamese", "pho", "banh mi", "bun bo hue", "spring rolls", "com tam", "vermicelli", "bo kho", "che", "goi cuon", "bun cha", "cao lau", "mi quang", "banh xeo"],
   Brunch: ["brunch", "pancake", "waffle", "mimosa"],
-  American: ["burger", "american", "wings", "hot dog"],
+  American: ["burger", "american", "wings", "hot dog", "mac and cheese", "fried chicken", "cheesesteak", "lobster roll", "corn dog", "meatloaf", "pot pie", "biscuits and gravy", "club sandwich", "philly cheesesteak"],
   "Brewery/Beer Bar": ["beer", "craft beer", "brewery", "brewpub", "ale", "ipa", "lager", "stout", "tap room", "taproom", "pub", "pint", "old style"],
-  Ethiopian: ["ethiopian", "injera", "tibs", "kitfo", "doro wat", "berbere", "misir wot"],
+  Ethiopian: ["ethiopian", "injera", "tibs", "kitfo", "doro wat", "berbere", "misir wot", "shiro", "awaze", "sambusa", "yemisir wot", "gomen"],
   Peruvian: ["peruvian", "ceviche", "lomo saltado", "anticucho", "causa", "aji de gallina", "tiradito", "huancaina"],
   Brazilian: ["brazilian", "churrasco", "feijoada", "picanha", "rodizio", "caipirinha", "coxinha", "pao de queijo", "acai"],
   Vegan: ["vegan", "plant-based", "plant based", "meatless"],
   "Cocktail Bar": ["cocktail bar", "speakeasy", "mixology", "cocktail lounge", "cocktail", "mojito", "martini", "whiskey", "bourbon", "mezcal", "old fashioned", "aperol", "absinthe", "negroni"],
-  "Coffee/Cafe": ["coffee shop", "cafe", "espresso", "latte", "cappuccino", "cortado"],
+  "Coffee/Cafe": ["coffee shop", "cafe", "espresso", "latte", "cappuccino", "cortado", "chai latte", "cold brew", "pour over", "drip coffee", "matcha latte", "americano", "mocha", "flat white", "nitro cold brew"],
   Polish: ["polish", "pierogi", "kielbasa", "bigos", "golabki", "potato pancake"],
   "Puerto Rican": ["puerto rican", "mofongo", "pernil", "tostones", "alcapurria", "arroz con gandules", "jibarito", "pastelillo"],
   "Southern/Soul Food": ["soul food", "southern", "fried chicken", "collard greens", "cornbread", "gumbo", "jambalaya", "catfish", "cajun", "creole", "grits", "po boy", "hush puppies", "crawfish"],
   "Middle Eastern": ["middle eastern", "shawarma", "kebab", "falafel", "hummus", "baba ganoush", "pita", "lebanese", "turkish", "manakeesh", "shakshuka", "fattoush", "labneh", "kibbeh"],
   Greek: ["greek", "gyro", "souvlaki", "moussaka", "spanakopita", "tzatziki", "saganaki", "baklava"],
   Fusion: ["fusion", "eclectic", "cross-cultural"],
-  BBQ: ["bbq", "barbecue", "brisket", "ribs", "pulled pork", "smoked meat", "pitmaster", "burnt ends", "smoked"],
+  BBQ: ["bbq", "barbecue", "brisket", "ribs", "pulled pork", "smoked meat", "pitmaster", "burnt ends", "smoked", "tri-tip", "beef rib", "sausage", "hot links", "smoked chicken", "cornbread", "coleslaw"],
 };
 
 export const TAG_KEYWORDS: Record<string, string[]> = {
@@ -113,6 +113,16 @@ export const TAG_KEYWORDS: Record<string, string[]> = {
   "gluten free": ["gluten free", "celiac", "gluten-free"],
   "lively atmosphere": ["bustling", "vibrant", "energetic", "buzzing", "lively", "happening", "high energy", "animated", "festive", "sports bar", "karaoke", "nightlife", "pool hall"],
   "craft beer": ["craft beer", "brewery", "beer garden", "tap room", "taproom", "ale house", "beer selection", "draft beer", "beer list", "beer", "pub", "pint"],
+  "date spot": ["date spot", "date night spot", "romantic dinner"],
+  "instagrammable": ["instagrammable", "instagram worthy", "photogenic", "aesthetic"],
+  "tasting menu": ["tasting menu", "prix fixe", "multi-course", "chef's table"],
+  "fine dining": ["fine dining", "upscale", "high end", "white tablecloth"],
+  "wine bar": ["wine bar", "wine list", "wine selection", "sommelier", "natural wine"],
+  "happy hour": ["happy hour", "drink specials", "after work drinks"],
+  "all you can eat": ["all you can eat", "unlimited", "ayce", "buffet"],
+  "counter service": ["counter service", "fast casual", "order at counter", "quick service"],
+  "food truck": ["food truck", "street food", "food stand", "food cart"],
+  "kid friendly": ["kid friendly", "kids menu", "children", "family", "high chair"],
 };
 
 // --- Enhancement 4: Semantic intent expansion ---
@@ -256,13 +266,17 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "late night food": { tags: ["late night"] },
   "midnight": { tags: ["late night"] },
   "early bird": { tags: ["great value"] },
+  "breakfast": { tags: ["brunch spot"] },
+  "hangover food": { cuisines: ["American", "Mexican"], tags: ["great value"] },
+  "cheap eats": { tags: ["great value", "hidden gem"] },
+  "fast casual": { tags: ["counter service", "great value"] },
 
   // --- Price & value ---
   "quick": { tags: ["great value"] },
   "fast": { tags: ["great value"] },
   "cheap": { tags: ["great value", "hidden gem"] },
   "affordable": { tags: ["great value", "hidden gem"] },
-  "healthy": { cuisines: ["Mediterranean"], tags: ["farm-to-table", "vegan friendly"] },
+  "healthy": { cuisines: ["Vegan", "Mediterranean"], tags: ["farm-to-table", "vegan friendly"] },
 
   // --- Discovery & character ---
   "unique": { tags: ["hidden gem"] },
@@ -529,6 +543,12 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "michelin": { tags: ["romantic", "trendy"] },
   "chef": { tags: ["trendy"] },
   "casual": { tags: ["great value"] },
+  "kid friendly": { tags: ["kid friendly"] },
+  "pet friendly": { features: ["pet_friendly"] },
+  "walk-in": { tags: ["great value"] },
+  "no reservation": { tags: ["great value"] },
+  "quiet spot": { tags: ["quiet"] },
+  "crowded": { tags: ["lively atmosphere"] },
 
   // --- Additional dish → cuisine entries ---
   "rogan josh": { cuisines: ["Indian"] },
@@ -540,6 +560,25 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "huancaina": { cuisines: ["Peruvian"] },
   "surf and turf": { cuisines: ["Steak", "Seafood"] },
   "potato pancake": { cuisines: ["Polish"] },
+
+  // --- Standalone food item → cuisine intents ---
+  "sushi": { cuisines: ["Japanese"] },
+  "tacos": { cuisines: ["Mexican"] },
+  "pizza": { cuisines: ["Italian"] },
+  "pasta": { cuisines: ["Italian"] },
+  "burger": { cuisines: ["American"] },
+  "steak": { cuisines: ["Steak"] },
+  "seafood": { cuisines: ["Seafood"] },
+  "ramen": { cuisines: ["Japanese"] },
+  "brunch": { tags: ["brunch spot"] },
+  "chai": { cuisines: ["Indian", "Coffee/Cafe"] },
+  "boba": { cuisines: ["Chinese", "Coffee/Cafe"] },
+  "bubble tea": { cuisines: ["Chinese", "Coffee/Cafe"] },
+  "dumplings": { cuisines: ["Chinese", "Japanese"] },
+  "wings": { cuisines: ["American"], tags: ["great value"] },
+  "nachos": { cuisines: ["Mexican"] },
+  "pho": { cuisines: ["Vietnamese"] },
+  "curry": { cuisines: ["Indian", "Thai", "Japanese"] },
 };
 
 // --- Unmatched keyword extraction (for continuous learning) ---
