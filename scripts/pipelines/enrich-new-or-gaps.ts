@@ -289,26 +289,34 @@ async function main() {
   // Apply limit
   const targetIds = Array.from(candidateIds).slice(0, LIMIT === Infinity ? candidateIds.size : LIMIT);
 
-  const { data: rawRestaurants, error: rErr } = await supabase
-    .from("restaurants")
-    .select(`
-      id, name, address, cuisine_type, price_level, noise_level, lighting_ambiance,
-      dress_code, dietary_options, best_for_oneliner, insider_tip, outdoor_seating,
-      live_music, best_times, good_for, ambiance,
-      neighborhoods!inner(name, description),
-      tags(tag_text),
-      restaurant_deep_profiles(*)
-    `)
-    .eq("is_active", true)
-    .in("id", targetIds);
+  // Fetch in chunks of 200 to avoid PostgREST row limit and URL length limits with .in()
+  const FETCH_CHUNK = 200;
+  const allRawRestaurants: Record<string, unknown>[] = [];
+  for (let i = 0; i < targetIds.length; i += FETCH_CHUNK) {
+    const chunk = targetIds.slice(i, i + FETCH_CHUNK);
+    const { data, error } = await supabase
+      .from("restaurants")
+      .select(`
+        id, name, address, cuisine_type, price_level, noise_level, lighting_ambiance,
+        dress_code, dietary_options, best_for_oneliner, insider_tip, outdoor_seating,
+        live_music, best_times, good_for, ambiance,
+        neighborhoods!inner(name, description),
+        tags(tag_text),
+        restaurant_deep_profiles(*)
+      `)
+      .eq("is_active", true)
+      .in("id", chunk);
 
-  if (rErr) {
-    console.error("Failed to fetch restaurants:", rErr);
-    process.exit(1);
+    if (error) {
+      console.error(`Failed to fetch restaurants chunk ${Math.floor(i / FETCH_CHUNK) + 1}:`, error);
+      process.exit(1);
+    }
+    allRawRestaurants.push(...((data || []) as Record<string, unknown>[]));
+    console.log(`  Fetched ${allRawRestaurants.length}/${targetIds.length} restaurants...`);
   }
 
   // Flatten joined data (same as full pipeline)
-  const restaurants: RestaurantFull[] = ((rawRestaurants || []) as Record<string, unknown>[]).map((r) => ({
+  const restaurants: RestaurantFull[] = allRawRestaurants.map((r) => ({
     id: r.id as string,
     name: r.name as string,
     address: r.address as string,
