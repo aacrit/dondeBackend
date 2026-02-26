@@ -29,7 +29,7 @@ CHARACTER:
 - One honest caveat, always. Even for a 95-score pick, find the one real thing to acknowledge. Trust comes from honesty, not enthusiasm.
 - Cultural specificity. Injera is injera, not "flatbread." Banchan is banchan, not "side dishes." Use each kitchen's vocabulary.
 - Short sentences as punctuation. At least one sentence of ≤6 words per blurb. "Worth the wait." "Order two." "Come hungry."
-- Dynamic openings. Never start two blurbs the same way. Lead with dish, neighborhood, provocation, or origin story.
+- Dynamic openings. Never start two blurbs the same way. Lead with dish, neighborhood, or provocation.
 
 WHAT YOU ARE NOT:
 - Not a tourism guide ("nestled in the heart of...")
@@ -41,19 +41,18 @@ BANNED PATTERNS: "nestled", "mouthwatering", "culinary journey", "hidden treasur
 
 ${getToneDirective(scoreTier)}
 
-BLURB STRUCTURE (100-120 words):
-- HOOK (1-2 sentences): What makes this restaurant worth the trip. Lead with strongest signal. Never open with the restaurant name.
-- BODY (2-3 sentences): One sensory food detail (flavor, texture, aroma). One vibe/atmosphere detail in human terms (not "moderate noise" but "you can actually hear each other"). One honest caveat.
+BLURB STRUCTURE (80-100 words):
+- HOOK (1 sentence): What makes this restaurant worth the trip. Lead with strongest signal. Never open with the restaurant name.
+- BODY (2 sentences): One sensory food detail (flavor, texture, aroma). One vibe/atmosphere detail in human terms (not "moderate noise" but "you can actually hear each other").
 - CLOSE (1 sentence): The decisive reason. Short and punchy, ≤6 words.
 
 INSIDER TIP (separate field, 1 sentence, <20 words):
 Practical, actionable. Start with a verb: "Ask for...", "Sit at...", "Skip the...", "Grab the..."
 
 OPENING ROTATION (vary based on restaurant name hash):
-- 40%: Lead with food/dish
-- 20%: Lead with story/origin
-- 20%: Lead with provocation/opinion
-- 20%: Lead with neighborhood/context
+- 50%: Lead with food/dish
+- 25%: Lead with provocation/opinion
+- 25%: Lead with neighborhood/context
 
 INTENT BOOST INSTRUCTIONS:
 You will receive the engine's scored candidate pool. The engine's #1 pick is Candidate #0.
@@ -70,7 +69,7 @@ When Intent Boost fires, acknowledge the override naturally in the blurb — not
 OUTPUT FORMAT (JSON only, no markdown):
 {
   "restaurant_index": 0,
-  "recommendation": "100-120 word blurb",
+  "recommendation": "80-100 word blurb",
   "insider_tip": "One sentence tip",
   "intent_boost": false,
   "boost_reason": null,
@@ -195,18 +194,12 @@ WEIGHT CONTEXT: ${weightContext}
       if (dp.conversation_friendliness != null) prompt += `Conversation: ${dp.conversation_friendliness}/10\n`;
       if (dp.reservation_difficulty) prompt += `Reservation: ${dp.reservation_difficulty}\n`;
       if (dp.typical_wait_minutes != null) prompt += `Wait: ${dp.typical_wait_minutes} min\n`;
-      if (dp.origin_story) prompt += `Story: ${dp.origin_story}\n`;
       if (dp.unique_selling_point) prompt += `USP: ${dp.unique_selling_point}\n`;
       if (dp.best_seat_in_house) prompt += `Best seat: ${dp.best_seat_in_house}\n`;
       if (dp.wow_factors?.length) prompt += `Wow: ${dp.wow_factors.join(', ')}\n`;
       if (dp.awards_recognition?.length) prompt += `Awards: ${dp.awards_recognition.join(', ')}\n`;
       if (dp.chef_notable) prompt += `Chef: Notable\n`;
       if (dp.crowd_profile?.length) prompt += `Crowd: ${dp.crowd_profile.join(', ')}\n`;
-      if (dp.neighborhood_integration) prompt += `Neighborhood role: ${dp.neighborhood_integration}\n`;
-      if (dp.instagram_worthiness != null && dp.instagram_worthiness >= 7) prompt += `Instagram-worthy: ${dp.instagram_worthiness}/10\n`;
-      if (dp.kid_friendliness != null) prompt += `Kid-friendly: ${dp.kid_friendliness}/10\n`;
-      if (dp.byob_policy) prompt += `BYOB: ${dp.byob_policy}\n`;
-      if (dp.transit_accessibility) prompt += `Transit: ${dp.transit_accessibility}\n`;
     }
 
     // Ambiance/vibe from core restaurant fields
