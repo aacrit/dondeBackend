@@ -205,25 +205,53 @@ async function main() {
 
   const supabase = createAdminClient();
 
-  // Step 1: Query unenriched restaurants
-  let query = supabase
-    .from("restaurants")
-    .select("id, name, address, google_place_id, created_at")
-    .is("noise_level", null)
-    .or("is_active.is.null,is_active.eq.true");
+  // Step 1: Query unenriched restaurants (paginated — Supabase caps at 1000 rows)
+  const PAGE_SIZE = 1000;
+  const restaurants: { id: string; name: string; address: string; google_place_id: string | null; created_at: string }[] = [];
 
   if (SINCE_YESTERDAY) {
     const yesterday = new Date(Date.now() - 86400000).toISOString();
-    query = query.gte("created_at", yesterday);
     console.log(`Filter: Only restaurants added since ${yesterday.slice(0, 10)}`);
+
+    let page = 0;
+    while (true) {
+      const { data, error } = await supabase
+        .from("restaurants")
+        .select("id, name, address, google_place_id, created_at")
+        .is("noise_level", null)
+        .or("is_active.is.null,is_active.eq.true")
+        .gte("created_at", yesterday)
+        .order("created_at", { ascending: true })
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+      restaurants.push(...data);
+      console.log(`  fetched page ${page + 1}: ${data.length} rows`);
+      if (data.length < PAGE_SIZE) break;
+      page++;
+    }
   } else {
     console.log("Filter: All unenriched restaurants");
+
+    let page = 0;
+    while (true) {
+      const { data, error } = await supabase
+        .from("restaurants")
+        .select("id, name, address, google_place_id, created_at")
+        .is("noise_level", null)
+        .or("is_active.is.null,is_active.eq.true")
+        .order("created_at", { ascending: true })
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+      restaurants.push(...data);
+      console.log(`  fetched page ${page + 1}: ${data.length} rows`);
+      if (data.length < PAGE_SIZE) break;
+      page++;
+    }
   }
 
-  const { data: restaurants, error: fetchError } = await query.limit(2000);
-  if (fetchError) throw fetchError;
-
-  if (!restaurants || restaurants.length === 0) {
+  if (restaurants.length === 0) {
     console.log("\nNo unenriched restaurants found. Nothing to clean.");
     return;
   }
