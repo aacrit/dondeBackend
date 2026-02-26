@@ -2,7 +2,7 @@ name: Deploy Edge Function
 
 on:
   push:
-    branches: [main, 'claude/**']
+    branches: [main]
     paths:
       - 'supabase/functions/recommend/**'
   workflow_dispatch: {}    # Manual trigger
