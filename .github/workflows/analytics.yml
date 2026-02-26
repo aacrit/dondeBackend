@@ -1,9 +1,7 @@
 name: Analytics Pipeline
 
 on:
-  schedule:
-    - cron: '0 2 * * *'  # Daily at 2am UTC
-  workflow_dispatch: {}
+  workflow_dispatch: {}    # Manual trigger ONLY
 
 jobs:
   analytics:
