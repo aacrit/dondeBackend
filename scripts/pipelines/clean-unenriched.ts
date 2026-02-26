@@ -220,7 +220,7 @@ async function main() {
     console.log("Filter: All unenriched restaurants");
   }
 
-  const { data: restaurants, error: fetchError } = await query.limit(2000);
+  const { data: restaurants, error: fetchError } = await query.limit(3000);
   if (fetchError) throw fetchError;
 
   if (!restaurants || restaurants.length === 0) {
