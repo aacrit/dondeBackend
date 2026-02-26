@@ -1,8 +1,8 @@
 name: Restaurant Enrichment
 
 on:
-  schedule:
-    - cron: '0 5 1 * *'  # 1st of every month, 5am UTC (reduced from 2x/week to save Claude API credits)
+  workflow_dispatch: {}    # Manual trigger ONLY
+  
   # Enhancement 16: Auto-trigger when discovery completes
   workflow_run:
     workflows: ["Restaurant Discovery"]
