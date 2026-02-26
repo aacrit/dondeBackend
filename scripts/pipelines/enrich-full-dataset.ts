@@ -188,7 +188,7 @@ async function stage1_integrityFixes(supabase: ReturnType<typeof createAdminClie
   let fixes = 0;
 
   // 1a: Create missing deep_profile rows
-  const { data: existingDp } = await supabase.from("restaurant_deep_profiles").select("restaurant_id");
+  const { data: existingDp } = await supabase.from("restaurant_deep_profiles").select("restaurant_id").range(0, 9999);
   const dpIds = new Set((existingDp || []).map((r) => r.restaurant_id));
   const missingDp = restaurants.filter((r) => !dpIds.has(r.id));
 
@@ -911,14 +911,14 @@ async function stage7_confidenceUpdate(supabase: ReturnType<typeof createAdminCl
   let success = 0;
 
   // Re-fetch all deep_profiles for accurate confidence calculation
-  const { data: allDp } = await supabase.from("restaurant_deep_profiles").select("*");
+  const { data: allDp } = await supabase.from("restaurant_deep_profiles").select("*").range(0, 9999);
   const dpMap = new Map<string, Record<string, unknown>>();
   for (const dp of allDp || []) {
     dpMap.set(dp.restaurant_id as string, dp as Record<string, unknown>);
   }
 
   // Re-fetch restaurants for updated values
-  const { data: allR } = await supabase.from("restaurants").select("id, cuisine_type, noise_level, lighting_ambiance, dress_code, price_level, dietary_options").eq("is_active", true);
+  const { data: allR } = await supabase.from("restaurants").select("id, cuisine_type, noise_level, lighting_ambiance, dress_code, price_level, dietary_options").eq("is_active", true).range(0, 9999);
   const rMap = new Map<string, Record<string, unknown>>();
   for (const r of allR || []) {
     rMap.set(r.id as string, r as Record<string, unknown>);

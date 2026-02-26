@@ -94,7 +94,8 @@ async function identifyCandidates(
   const { data: allRestaurants, error: allErr } = await supabase
     .from("restaurants")
     .select("id, name, insider_tip, best_for_oneliner")
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .range(0, 9999);
 
   if (allErr) throw new Error(`Failed to fetch restaurants: ${allErr.message}`);
   const allIds = new Set((allRestaurants || []).map((r) => r.id));
@@ -105,7 +106,8 @@ async function identifyCandidates(
   // --- Check 1: No deep_profile row at all ---
   const { data: dpRows } = await supabase
     .from("restaurant_deep_profiles")
-    .select("restaurant_id, enriched_at, enrichment_version, enrichment_confidence, origin_story");
+    .select("restaurant_id, enriched_at, enrichment_version, enrichment_confidence, origin_story")
+    .range(0, 9999);
 
   const dpMap = new Map((dpRows || []).map((d) => [d.restaurant_id, d]));
   let noProfileCount = 0;
@@ -170,7 +172,8 @@ async function identifyCandidates(
   // --- Check 6: No occasion_scores row ---
   const { data: scoreRows } = await supabase
     .from("occasion_scores")
-    .select("restaurant_id");
+    .select("restaurant_id")
+    .range(0, 9999);
 
   const scoreIds = new Set((scoreRows || []).map((s) => s.restaurant_id));
   let noScoresCount = 0;
@@ -185,7 +188,8 @@ async function identifyCandidates(
   // --- Check 7: No tags ---
   const { data: tagRows } = await supabase
     .from("tags")
-    .select("restaurant_id");
+    .select("restaurant_id")
+    .range(0, 9999);
 
   const tagIds = new Set((tagRows || []).map((t) => t.restaurant_id));
   let noTagsCount = 0;
