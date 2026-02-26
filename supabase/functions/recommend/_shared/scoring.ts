@@ -63,67 +63,67 @@ function computeWeightedOccasionScore(profile: RestaurantProfile, occasion: stri
 // --- Keyword boosting ---
 
 export const CUISINE_KEYWORDS: Record<string, string[]> = {
-  Mexican: ["mexican", "taco", "burrito", "carnitas", "enchilada", "mole"],
-  Italian: ["italian", "pasta", "pizza", "risotto"],
-  Japanese: ["japanese", "sushi", "ramen", "izakaya", "sake"],
+  Mexican: ["mexican", "taco", "burrito", "carnitas", "enchilada", "mole", "elote", "pozole", "tamale", "churro", "sopapilla", "quesadilla", "birria", "chilaquiles", "al pastor", "nachos", "margarita", "tequila"],
+  Italian: ["italian", "pasta", "pizza", "risotto", "carbonara", "lasagna", "ravioli", "parmigiana", "margherita", "giardiniera", "gnocchi", "tiramisu", "osso buco", "focaccia", "bruschetta", "arancini", "prosciutto", "cacio e pepe"],
+  Japanese: ["japanese", "sushi", "ramen", "izakaya", "sake", "chirashi", "omakase", "tonkatsu", "yakitori", "udon", "tempura", "katsu", "sashimi", "gyoza", "matcha", "poke"],
   Thai: ["thai", "pad thai", "curry", "basil"],
   Chinese: ["chinese", "dim sum", "dumpling", "noodle"],
-  Korean: ["korean", "bibimbap", "bbq", "kimchi"],
+  Korean: ["korean", "bibimbap", "bbq", "kimchi", "bulgogi", "japchae", "tteokbokki", "galbi", "banchan", "budae jjigae", "soju"],
   Indian: ["indian", "curry", "tandoori", "naan", "masala", "biryani", "tikka", "samosa", "vindaloo", "idli", "dosa", "uttapam", "sambar", "rasam", "vada", "paneer", "dal", "chutney", "appam", "korma", "rogan josh", "butter chicken", "palak", "pongal", "upma", "chana masala"],
-  French: ["french", "bistro", "crepe"],
-  Seafood: ["seafood", "fish", "lobster", "oyster", "crab"],
-  Steak: ["steak", "steakhouse", "filet"],
-  Mediterranean: ["mediterranean", "mezze", "tabbouleh", "lamb"],
-  Vietnamese: ["vietnamese", "pho", "banh mi"],
+  French: ["french", "bistro", "crepe", "coq au vin", "duck confit", "creme brulee", "bourguignon", "tartare", "souffle", "ratatouille", "escargot", "croissant"],
+  Seafood: ["seafood", "fish", "lobster", "oyster", "crab", "shrimp", "scampi", "octopus", "clam chowder", "calamari"],
+  Steak: ["steak", "steakhouse", "filet", "wagyu", "porterhouse", "ribeye", "filet mignon", "tomahawk", "surf and turf"],
+  Mediterranean: ["mediterranean", "mezze", "tabbouleh", "lamb", "sangria", "tapas"],
+  Vietnamese: ["vietnamese", "pho", "banh mi", "bun bo hue", "spring rolls", "com tam", "vermicelli"],
   Brunch: ["brunch", "pancake", "waffle", "mimosa"],
-  American: ["burger", "american", "wings"],
-  "Brewery/Beer Bar": ["beer", "craft beer", "brewery", "brewpub", "ale", "ipa", "lager", "stout", "tap room", "taproom"],
-  Ethiopian: ["ethiopian", "injera", "tibs", "kitfo", "doro wat", "berbere"],
-  Peruvian: ["peruvian", "ceviche", "lomo saltado", "anticucho", "causa"],
-  Brazilian: ["brazilian", "churrasco", "feijoada", "picanha", "rodizio", "caipirinha"],
+  American: ["burger", "american", "wings", "hot dog"],
+  "Brewery/Beer Bar": ["beer", "craft beer", "brewery", "brewpub", "ale", "ipa", "lager", "stout", "tap room", "taproom", "pub", "pint", "old style"],
+  Ethiopian: ["ethiopian", "injera", "tibs", "kitfo", "doro wat", "berbere", "misir wot"],
+  Peruvian: ["peruvian", "ceviche", "lomo saltado", "anticucho", "causa", "aji de gallina", "tiradito", "huancaina"],
+  Brazilian: ["brazilian", "churrasco", "feijoada", "picanha", "rodizio", "caipirinha", "coxinha", "pao de queijo", "acai"],
   Vegan: ["vegan", "plant-based", "plant based", "meatless"],
-  "Cocktail Bar": ["cocktail bar", "speakeasy", "mixology", "cocktail lounge"],
-  "Coffee/Cafe": ["coffee shop", "cafe", "espresso", "latte", "cappuccino"],
-  Polish: ["polish", "pierogi", "kielbasa", "bigos", "golabki"],
-  "Puerto Rican": ["puerto rican", "mofongo", "pernil", "tostones", "alcapurria", "arroz con gandules"],
-  "Southern/Soul Food": ["soul food", "southern", "fried chicken", "collard greens", "cornbread", "gumbo", "jambalaya", "catfish"],
-  "Middle Eastern": ["middle eastern", "shawarma", "kebab", "falafel", "hummus", "baba ganoush", "pita"],
-  Greek: ["greek", "gyro", "souvlaki", "moussaka", "spanakopita", "tzatziki"],
+  "Cocktail Bar": ["cocktail bar", "speakeasy", "mixology", "cocktail lounge", "cocktail", "mojito", "martini", "whiskey", "bourbon", "mezcal", "old fashioned", "aperol", "absinthe", "negroni"],
+  "Coffee/Cafe": ["coffee shop", "cafe", "espresso", "latte", "cappuccino", "cortado"],
+  Polish: ["polish", "pierogi", "kielbasa", "bigos", "golabki", "potato pancake"],
+  "Puerto Rican": ["puerto rican", "mofongo", "pernil", "tostones", "alcapurria", "arroz con gandules", "jibarito", "pastelillo"],
+  "Southern/Soul Food": ["soul food", "southern", "fried chicken", "collard greens", "cornbread", "gumbo", "jambalaya", "catfish", "cajun", "creole", "grits", "po boy", "hush puppies", "crawfish"],
+  "Middle Eastern": ["middle eastern", "shawarma", "kebab", "falafel", "hummus", "baba ganoush", "pita", "lebanese", "turkish", "manakeesh", "shakshuka", "fattoush", "labneh", "kibbeh"],
+  Greek: ["greek", "gyro", "souvlaki", "moussaka", "spanakopita", "tzatziki", "saganaki", "baklava"],
   Fusion: ["fusion", "eclectic", "cross-cultural"],
-  BBQ: ["bbq", "barbecue", "brisket", "ribs", "pulled pork", "smoked meat", "pitmaster"],
+  BBQ: ["bbq", "barbecue", "brisket", "ribs", "pulled pork", "smoked meat", "pitmaster", "burnt ends", "smoked"],
 };
 
 export const TAG_KEYWORDS: Record<string, string[]> = {
   byob: ["byob", "bring your own"],
   rooftop: ["rooftop", "skyline"],
-  "outdoor patio": ["outdoor", "patio", "al fresco"],
+  "outdoor patio": ["outdoor", "patio", "al fresco", "terrace", "sidewalk"],
   "hidden gem": ["hidden gem", "hidden", "secret"],
-  "late night": ["late night", "late", "after midnight"],
-  "craft cocktails": ["cocktail", "mixology", "craft drinks"],
-  "live music": ["live music", "jazz", "band"],
-  "farm-to-table": ["farm to table", "organic", "local ingredients"],
+  "late night": ["late night", "late", "after midnight", "midnight", "24 hour"],
+  "craft cocktails": ["cocktail", "mixology", "craft drinks", "martini", "whiskey", "bourbon", "mezcal", "old fashioned", "aperol", "absinthe", "espresso martini", "tequila", "mojito"],
+  "live music": ["live music", "jazz", "band", "blues"],
+  "farm-to-table": ["farm to table", "farm-to-table", "organic", "local ingredients"],
   "scenic view": ["view", "scenic", "panoramic", "waterfront", "lakefront", "river view"],
   romantic: ["romantic", "intimate", "candlelit", "cozy date"],
   trendy: ["trendy", "hip", "instagram", "modern", "stylish"],
   quiet: ["quiet", "peaceful", "calm", "serene"],
   "great value": ["cheap", "affordable", "deal", "value", "budget"],
   "brunch spot": ["brunch", "breakfast", "morning"],
-  waterfront: ["waterfront", "lakefront", "riverwalk", "lake view"],
+  waterfront: ["waterfront", "lakefront", "riverwalk", "lake view", "river view"],
   "vegan friendly": ["vegan", "plant-based", "plant based"],
   "gluten free": ["gluten free", "celiac", "gluten-free"],
-  "lively atmosphere": ["bustling", "vibrant", "energetic", "buzzing", "lively", "happening", "high energy", "animated", "festive"],
-  "craft beer": ["craft beer", "brewery", "beer garden", "tap room", "taproom", "ale house", "beer selection", "draft beer", "beer list"],
+  "lively atmosphere": ["bustling", "vibrant", "energetic", "buzzing", "lively", "happening", "high energy", "animated", "festive", "sports bar", "karaoke", "nightlife", "pool hall"],
+  "craft beer": ["craft beer", "brewery", "beer garden", "tap room", "taproom", "ale house", "beer selection", "draft beer", "beer list", "beer", "pub", "pint"],
 };
 
 // --- Enhancement 4: Semantic intent expansion ---
 // Maps natural-language intents to structured boost signals
-interface IntentSignal {
+export interface IntentSignal {
   cuisines?: string[];
   tags?: string[];
   features?: (keyof RestaurantProfile)[];
 }
 
-const INTENT_MAP: Record<string, IntentSignal> = {
+export const INTENT_MAP: Record<string, IntentSignal> = {
   // --- Cuisine cravings ---
   "spicy": { cuisines: ["Thai", "Indian", "Korean", "Mexican"] },
   "spice": { cuisines: ["Thai", "Indian", "Korean", "Mexican"] },
@@ -182,8 +182,8 @@ const INTENT_MAP: Record<string, IntentSignal> = {
   "festive": { tags: ["lively atmosphere", "trendy", "craft cocktails"] },
   "noisy": { tags: ["live music", "trendy"] },
   "hopping": { tags: ["lively atmosphere", "trendy"] },
-  "loud": { tags: ["live music", "trendy"] },
-  "lively": { tags: ["live music", "trendy"] },
+  "loud": { tags: ["lively atmosphere", "live music", "trendy"] },
+  "lively": { tags: ["lively atmosphere", "live music", "trendy"] },
   "fun": { tags: ["trendy", "live music"] },
   "mellow": { tags: ["quiet", "hidden gem"] },
   "relaxed": { tags: ["quiet", "hidden gem"] },
@@ -237,7 +237,7 @@ const INTENT_MAP: Record<string, IntentSignal> = {
 
   // --- Drinks ---
   "drinks": { tags: ["craft cocktails", "byob"] },
-  "cocktails": { tags: ["craft cocktails"] },
+  "cocktail": { tags: ["craft cocktails"] },
   "wine": { tags: ["romantic"], cuisines: ["Italian", "French"] },
   "beer": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
   "craft beer": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
@@ -474,6 +474,72 @@ const INTENT_MAP: Record<string, IntentSignal> = {
   "ribeye": { cuisines: ["Steak"] },
   "wagyu": { cuisines: ["Steak", "Japanese"] },
   "porterhouse": { cuisines: ["Steak"] },
+
+  // --- Additional gap-fill entries ---
+  "steakhouse": { cuisines: ["Steak"] },
+  "hot dog": { cuisines: ["American"] },
+  "jibarito": { cuisines: ["Puerto Rican"] },
+  "giardiniera": { cuisines: ["Italian"] },
+  "hidden gem": { tags: ["hidden gem"] },
+  "date night": { tags: ["romantic"] },
+  "budget": { tags: ["great value", "hidden gem"] },
+  "small plates": { tags: ["trendy"] },
+  "coffee": { cuisines: ["Coffee/Cafe"], tags: ["brunch spot"] },
+
+  // --- Vibe & occasion intent entries ---
+  "quiet": { tags: ["quiet"] },
+  "trendy": { tags: ["trendy"] },
+  "luxurious": { tags: ["trendy", "romantic"] },
+  "impress": { tags: ["romantic", "trendy"] },
+  "celebration": { tags: ["romantic", "trendy"] },
+  "bachelorette": { tags: ["trendy", "craft cocktails"] },
+  "special occasion": { tags: ["romantic"] },
+  "treat myself": { tags: ["quiet", "hidden gem"] },
+  "self care": { tags: ["quiet", "hidden gem"] },
+  "alone": { tags: ["quiet", "hidden gem"] },
+  "adventure": { tags: ["hidden gem"] },
+  "adventurous": { tags: ["hidden gem"] },
+  "explore": { tags: ["hidden gem"] },
+  "something new": { tags: ["hidden gem"] },
+  "corporate": { tags: ["quiet"] },
+  "networking": { tags: ["quiet"] },
+  "neighborhood": { tags: ["hidden gem", "great value"] },
+
+  // --- Additional drink intent entries ---
+  "champagne": { tags: ["romantic"] },
+  "prosecco": { tags: ["romantic"] },
+  "margarita": { cuisines: ["Mexican"], tags: ["craft cocktails"] },
+  "tequila": { cuisines: ["Mexican"], tags: ["craft cocktails"] },
+  "sangria": { cuisines: ["Mediterranean"], tags: ["craft cocktails"] },
+  "mojito": { tags: ["craft cocktails"] },
+  "bourbon": { tags: ["craft cocktails"] },
+  "whiskey": { tags: ["craft cocktails"] },
+  "mezcal": { tags: ["craft cocktails"] },
+  "martini": { tags: ["craft cocktails"] },
+  "absinthe": { tags: ["craft cocktails"] },
+  "aperol": { tags: ["craft cocktails"] },
+
+  // --- Feature/ambiance intent entries ---
+  "farm-to-table": { tags: ["farm-to-table"] },
+  "farm to table": { tags: ["farm-to-table"] },
+  "live music": { tags: ["live music", "lively atmosphere"] },
+  "river view": { tags: ["waterfront", "scenic view"] },
+  "late night": { tags: ["late night"] },
+  "instagram": { tags: ["trendy", "rooftop", "scenic view"] },
+  "michelin": { tags: ["romantic", "trendy"] },
+  "chef": { tags: ["trendy"] },
+  "casual": { tags: ["great value"] },
+
+  // --- Additional dish → cuisine entries ---
+  "rogan josh": { cuisines: ["Indian"] },
+  "idli": { cuisines: ["Indian"] },
+  "vada": { cuisines: ["Indian"] },
+  "pao de queijo": { cuisines: ["Brazilian"] },
+  "banh mi": { cuisines: ["Vietnamese"] },
+  "pastelillo": { cuisines: ["Puerto Rican"] },
+  "huancaina": { cuisines: ["Peruvian"] },
+  "surf and turf": { cuisines: ["Steak", "Seafood"] },
+  "potato pancake": { cuisines: ["Polish"] },
 };
 
 // --- Unmatched keyword extraction (for continuous learning) ---
@@ -530,6 +596,10 @@ export const DIETARY_KEYWORDS: Record<string, string[]> = {
   "dairy-free": ["Dairy-Free", "Dairy Free"],
   "nut-free": ["Nut-Free", "Nut Free"],
   "keto": ["Keto", "Low-Carb"],
+  "low carb": ["Keto", "Low-Carb"],
+  "dairy free": ["Dairy-Free", "Dairy Free"],
+  "nut free": ["Nut-Free", "Nut Free"],
+  "veggie": ["Vegetarian", "Veg"],
   "paleo": ["Paleo"],
 };
 
