@@ -1,19 +1,28 @@
 /**
- * Donde Match V5.0 — Stretched-Reputation Geometric Mean Scoring Engine
+ * Donde Match V5.1 — Stretched-Reputation Geometric Mean Scoring Engine
  *
  * Five human-intuitive factors: Food, Vibe, Service, Reputation, Convenience
  * Each factor scores 1-10. Dynamic weights driven by 3-layer + pool-size system (sum to 1.0).
- * Donde Score = (Product of Factor_i ^ Weight_i) x 10
+ * Donde Score = (Product of Factor_i ^ Weight_i) x 12
  *
  * Key V5 innovations over V4:
- * - Google Rating stretched linear: clamp((rating - 4.0) / 0.9 * 10, 0, 10)
- *   Each 0.1 increment = 1.1 points. 4.7 vs 4.3 = 4.5 point spread.
+ * - Google Rating stretched linear: clamp((rating - 3.5) / 1.5 * 10, 0, 10)
+ *   Each 0.1 increment = 0.67 points. 3.5★=0, 4.25★=5, 5.0★=10.
  *   This is the DOMINANT sublayer in Reputation (65% weight).
  * - Reputation factor restructured: 4 sublayers with Google as L1 dominant.
+ *   Adaptive denominator excludes sublayers without data (prevents awards/community gap penalty).
  * - Convenience simplified: no price/neighborhood penalties (now hard-filtered).
+ *   V5.1: +1 offset applied since V3's lower base (4) was designed for V4's absorbed penalties.
  * - Food simplified: no dietary penalty (now hard-filtered). Keeps user feedback + rejection signals.
  * - Weight engine: 3-layer adaptive + candidate pool adaptation (weight-config-v5.ts).
  * - Confidence system unchanged from V4 (regression toward 5.5 prior).
+ *
+ * V5.1 calibration fixes (score uplift for easy matches):
+ * - Google stretch widened: (rating - 4.0)/0.9 → (rating - 3.5)/1.5. A 4.3★ = 5.33 (was 3.33).
+ * - Reputation adaptive denominator: only counts sublayers with data (was fixed 11.5).
+ * - Convenience +1 offset: V3 base 4 → effective 5 (price/neighborhood now hard-filtered).
+ * - Vibe cold-start raised: 4.0 → 5.5 (true neutral for geometric mean).
+ * - GM multiplier: ×10 → ×12 (maps GM 5-8 → DM 60-96, matching tier expectations).
  */
 
 import type { RestaurantProfile } from "./types.ts";
@@ -146,9 +155,9 @@ function computeReputationConfidence(
  * V5 Reputation Factor — 4 sublayers, Google Rating as dominant sublayer.
  *
  * L1: Google Rating (0-10) — stretched linear, confidence-gated. 65% weight.
- *     Formula: clamp((rating - 4.0) / 0.9 * 10, 0, 10)
- *     Each 0.1 star increment = 1.1 points.
- *     4.0 = 0, 4.45 = 5, 4.9 = 10.
+ *     Formula: clamp((rating - 3.5) / 1.5 * 10, 0, 10)
+ *     Each 0.1 star increment = 0.67 points.
+ *     3.5 = 0, 4.25 = 5, 5.0 = 10.
  *     Review count gates confidence (same thresholds as V3).
  *
  * L2: Review sentiment (0-2) — from Claude sentiment analysis of Google reviews.
@@ -157,7 +166,8 @@ function computeReputationConfidence(
  *
  * L4: Community signal (0-1.5) — trending_score, cultural_authenticity.
  *
- * Normalization: reputation = min(10, (L1 * 0.65 + L2 + L3 + L4) / max_possible * 10)
+ * Normalization: reputation = min(10, (L1 * 0.65 + L2 + L3 + L4) / adaptive_max * 10)
+ * V5.1: adaptive_max only includes sublayers with data (floor 8.5).
  */
 function computeReputationV5(
   profile: RestaurantProfile,
@@ -178,10 +188,11 @@ function computeReputationV5(
     const rating = googleData.google_rating;
     const reviewCount = googleData.google_review_count || 0;
 
-    // V5 stretch: linear mapping from 4.0-4.9 to 0-10
-    // clamp((rating - 4.0) / 0.9 * 10, 0, 10)
-    // Each 0.1 star = 1.11 points. 4.3 vs 4.7 = 4.44 point spread.
-    const rawGoogleScore = Math.max(0, Math.min(10, (rating - 4.0) / 0.9 * 10));
+    // V5.1 stretch: linear mapping from 3.5-5.0 to 0-10
+    // clamp((rating - 3.5) / 1.5 * 10, 0, 10)
+    // Each 0.1 star = 0.67 points. 4.3★=5.33, 4.5★=6.67, 4.7★=8.0.
+    // V5.0 used (rating-4.0)/0.9 which penalized 4.0-4.3★ restaurants too harshly.
+    const rawGoogleScore = Math.max(0, Math.min(10, (rating - 3.5) / 1.5 * 10));
 
     // Review count confidence gate (same thresholds as V3)
     const reviewConfidence = reviewCount >= 200 ? 1.0
@@ -286,11 +297,16 @@ function computeReputationV5(
     };
   }
 
-  // ---- Normalization: reputation = min(10, (L1 * 0.65 + L2 + L3 + L4) / max_possible * 10) ----
-  // max_possible = 10 * 0.65 + 2 + 1.5 + 1.5 = 6.5 + 2 + 1.5 + 1.5 = 11.5
-  const MAX_POSSIBLE = 10 * 0.65 + 2 + 1.5 + 1.5; // 11.5
+  // ---- Normalization: adaptive denominator (V5.1) ----
+  // Only include sublayers that have actual data in the denominator.
+  // Prevents missing awards/community (95% of restaurants) from penalizing the score.
+  // V5.0 used fixed MAX_POSSIBLE=11.5 which created a permanent 3-point gap for normal restaurants.
+  const adaptiveMax = 10 * 0.65 + 2       // L1 (Google, always active) + L2 (sentiment, always active)
+    + (awardsUsed ? 1.5 : 0)              // L3 only if awards data exists
+    + (communityUsed ? 1.5 : 0);          // L4 only if community data exists
+  const effectiveDenom = Math.max(adaptiveMax, 8.5); // Floor prevents over-inflation from sparse data
   const rawReputation = googleScore * 0.65 + sentScore + awardsScore + communityScore;
-  const reputation = Math.min(10, Math.max(0, (rawReputation / MAX_POSSIBLE) * 10));
+  const reputation = Math.min(10, Math.max(0, (rawReputation / effectiveDenom) * 10));
 
   return {
     score: reputation,
@@ -326,8 +342,12 @@ function computeConvenienceV5(
   // which we deliberately skip here.
   const v3Result = computeConvenience(profile, intent, clientTimeOfDay, specialRequest);
 
+  // V5.1: Apply +1 offset because V3's base of 4 was designed for V4's price/neighborhood
+  // penalties which V5 removed (now hard-filtered). Without those penalties, base 4 is too low.
+  const v5Score = Math.min(10, v3Result.score + 1);
+
   return {
-    score: v3Result.score,
+    score: v5Score,
     confidence: "high", // Convenience always has high confidence
     dataPoints: v3Result.dataPoints,
     maxDataPoints: v3Result.maxDataPoints,
@@ -415,9 +435,18 @@ export function computeV5DondeMatch(
     profile, inputs.intent, inputs.dietaryRestrictions, inputs.specialRequest,
   );
   const settingResult = computeSettingFit(profile, inputs.occasion, inputs.intent);
-  const atmosphereResult = computeAtmosphere(
+  let atmosphereResult = computeAtmosphere(
     profile, inputs.occasion, inputs.intent, inputs.specialRequest,
   );
+
+  // V5.1: Override V3 cold-start atmosphere (4.0 → 5.5 neutral)
+  // V3 returns 4.0 for zero-data profiles, designed for its power-law scaling.
+  // In V5's geometric mean, 4.0 is below neutral and drags the entire score down.
+  // 5.5 is the true confidence prior — cold-start should be neutral, not penalizing.
+  if (atmosphereResult.dataPoints === 0) {
+    atmosphereResult = { ...atmosphereResult, score: 5.5 };
+  }
+
   const reputationResult = computeReputationV5(
     profile, inputs.googleData, inputs.sentimentScore, inputs.sentimentNegative,
   );
@@ -474,7 +503,10 @@ export function computeV5DondeMatch(
 
   // ==========================================
   // Step 6: Geometric mean
-  // Donde Score = (Product of Factor_i ^ Weight_i) x 10
+  // Donde Score = (Product of Factor_i ^ Weight_i) x 12
+  // V5.1: multiplier raised from 10→12 to map factor averages of 5-8 to DM 60-96.
+  // With ×10, honest factor averages (5-6) clustered DM in 50-60 even for good matches.
+  // ×12 aligns with tier expectations: Strong Pick (75+), Solid Option (60-74).
   // ==========================================
 
   const geometricMean =
@@ -484,7 +516,7 @@ export function computeV5DondeMatch(
     Math.pow(factors.reputation, weights.reputation) *
     Math.pow(factors.convenience, weights.convenience);
 
-  const dondeMatch = Math.min(99, Math.max(0, Math.round(geometricMean * 10)));
+  const dondeMatch = Math.min(99, Math.max(0, Math.round(geometricMean * 12)));
 
   // ==========================================
   // Step 7: Data completeness
