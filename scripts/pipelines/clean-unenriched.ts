@@ -24,7 +24,6 @@
  */
 
 import { createAdminClient } from "../lib/supabase.js";
-import { getPlaceDetails } from "../lib/google-places.js";
 import { processBatches } from "../lib/batch.js";
 import { CHICAGO_COORDS } from "../lib/config.js";
 
@@ -135,6 +134,60 @@ function isFoodEstablishment(types: string[]): boolean {
   );
 }
 
+/**
+ * Direct Google Places API call with proper error logging.
+ * Does NOT use the shared getPlaceDetails() which silently swallows errors.
+ * Pattern borrowed from validate-status.ts.
+ */
+let firstApiError: string | null = null;
+
+async function fetchPlaceForCleanup(
+  placeId: string,
+  apiKey: string
+): Promise<PlaceDetailsWithStatus | null> {
+  try {
+    const params = new URLSearchParams({
+      place_id: placeId,
+      fields: GOOGLE_FIELDS,
+      key: apiKey,
+    });
+
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?${params}`
+    );
+
+    if (!res.ok) {
+      const errText = `HTTP ${res.status} ${res.statusText}`;
+      if (!firstApiError) {
+        firstApiError = errText;
+        console.error(`\n  *** GOOGLE API HTTP ERROR: ${errText} ***`);
+      }
+      return null;
+    }
+
+    const data = await res.json();
+
+    if (data.status !== "OK") {
+      const errMsg = `${data.status} — ${data.error_message || "no details"}`;
+      if (!firstApiError) {
+        firstApiError = errMsg;
+        console.error(`\n  *** GOOGLE API ERROR: ${errMsg} ***`);
+        console.error(`  Check: Is GOOGLE_PLACES_API_KEY valid? Is Places API enabled? Is billing active?\n`);
+      }
+      return null;
+    }
+
+    return data.result || null;
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    if (!firstApiError) {
+      firstApiError = errMsg;
+      console.error(`\n  *** FETCH ERROR: ${errMsg} ***`);
+    }
+    return null;
+  }
+}
+
 // --- Main ---
 
 async function main() {
@@ -145,6 +198,10 @@ async function main() {
   console.log("============================================");
   console.log(`Mode: ${DRY_RUN ? "DRY RUN (set DRY_RUN=false to delete)" : "LIVE — deletions will execute"}`);
   console.log(`Radius: ${RADIUS_MILES} miles | Min rating: ${MIN_RATING} | Min reviews: ${MIN_REVIEWS}`);
+
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) throw new Error("Missing GOOGLE_PLACES_API_KEY environment variable");
+  console.log(`Google API key: ${apiKey.slice(0, 8)}...${apiKey.slice(-4)}`);
 
   const supabase = createAdminClient();
 
@@ -191,20 +248,41 @@ async function main() {
   }
 
   // Step 3: Batch-fetch Google Places details and evaluate
+  // Uses direct fetch (NOT shared getPlaceDetails which swallows errors)
+  let processed = 0;
+  let apiSuccessCount = 0;
+
   await processBatches(
     withPlaceId,
     BATCH_SIZE,
-    async (batch) => {
+    async (batch, batchIndex) => {
       for (const restaurant of batch) {
-        const details = (await getPlaceDetails(
+        const details = await fetchPlaceForCleanup(
           restaurant.google_place_id!,
-          GOOGLE_FIELDS
-        )) as PlaceDetailsWithStatus | null;
+          apiKey
+        );
+
+        processed++;
 
         if (!details) {
           apiSkipped++;
-          console.log(`  SKIP: ${restaurant.name} — Google API returned null`);
+
+          // Early abort: if first full batch ALL failed, stop wasting API calls
+          if (batchIndex === 1 && apiSkipped >= BATCH_SIZE && apiSuccessCount === 0) {
+            throw new Error(
+              `\nABORTING: First ${BATCH_SIZE} API calls ALL failed.\n` +
+              `Google API error: ${firstApiError}\n` +
+              `Fix the issue above and retry.`
+            );
+          }
           continue;
+        }
+
+        apiSuccessCount++;
+
+        // Log first successful response as proof the API is working
+        if (apiSuccessCount === 1) {
+          console.log(`  API confirmed working — first result: ${details.name} (rating: ${details.rating}, types: ${details.types?.slice(0, 3).join(", ")})`);
         }
 
         const reasons: DeletionReason[] = [];
@@ -266,6 +344,13 @@ async function main() {
             details: detailMsgs,
           });
         }
+      }
+
+      // Progress logging every 50 restaurants
+      if (processed % 50 < BATCH_SIZE) {
+        console.log(
+          `  Progress: ${processed}/${withPlaceId.length} — ${flagged.length} flagged, ${apiSkipped} skipped`
+        );
       }
     },
     BATCH_DELAY_MS
