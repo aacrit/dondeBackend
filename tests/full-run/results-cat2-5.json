@@ -1,0 +1,420 @@
+{
+  "pass": 59,
+  "fail": 0,
+  "warn": 0,
+  "results": [
+    {
+      "id": "F-GM-01",
+      "name": "Spec example A",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=9,VB=8,SV=8,RP=7,CV=8 @ date \u2192 81 (expect ~81)"
+    },
+    {
+      "id": "F-GM-02",
+      "name": "Spec example B (dealbreaker)",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=10,VB=10,SV=2,RP=8,CV=10 \u2192 65 (expect ~66)"
+    },
+    {
+      "id": "F-GM-03",
+      "name": "All 5s \u2192 50",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "All 5s \u2192 50"
+    },
+    {
+      "id": "F-GM-04",
+      "name": "All 10s \u2192 99 (capped)",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "All 10s \u2192 99"
+    },
+    {
+      "id": "F-GM-05",
+      "name": "All 1s \u2192 10",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "All 1s \u2192 10"
+    },
+    {
+      "id": "F-GM-06",
+      "name": "Single weak factor RP=1",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "All 9s=90, RP=1=65, diff=25 (RP w=0.15)"
+    },
+    {
+      "id": "F-FL-01",
+      "name": "Factor floor: 0 \u2192 1.0",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "max(1.0, min(10, 0)) = 1.0"
+    },
+    {
+      "id": "F-FL-02",
+      "name": "Factor floor: -2 \u2192 1.0",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "max(1.0, min(10, -2)) = 1.0"
+    },
+    {
+      "id": "F-FL-03",
+      "name": "Factor floor: 0.5 \u2192 1.0",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "max(1.0, min(10, 0.5)) = 1.0"
+    },
+    {
+      "id": "F-CR-01",
+      "name": "Confidence: 9.0 high \u2192 9.0",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "result=9.0"
+    },
+    {
+      "id": "F-CR-02",
+      "name": "Confidence: 9.0 medium \u2192 8.125",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "result=8.125"
+    },
+    {
+      "id": "F-CR-03",
+      "name": "Confidence: 9.0 low \u2192 7.25",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "result=7.25"
+    },
+    {
+      "id": "F-CR-04",
+      "name": "Confidence: 1.0 low \u2192 3.25",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "result=3.25"
+    },
+    {
+      "id": "F-CR-05",
+      "name": "Confidence: 5.5 any \u2192 5.5 (identity)",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "high=5.5, med=5.5, low=5.5"
+    },
+    {
+      "id": "F-WS-01",
+      "name": "Base weights sum=1.0",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "sum=1.0"
+    },
+    {
+      "id": "F-WS-02",
+      "name": "Date Night weights sum=1.0",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=0.25, VB=0.30000000000000004, SV=0.25, RP=0.15, CV=0.04999999999999999, sum=1.0"
+    },
+    {
+      "id": "F-WS-03",
+      "name": "Stacked shifts \u2192 clamp + normalize \u2192 sum=1.0",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=0.381, VB=0.238, SV=0.190, RP=0.143, CV=0.048, sum=1.000"
+    },
+    {
+      "id": "F-WS-04",
+      "name": "Business Lunch shifts applied",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=0.19999999999999998, VB=0.25, SV=0.30000000000000004, RP=0.15, CV=0.09999999999999999, sum=1.0"
+    },
+    {
+      "id": "F-WS-05",
+      "name": "Family Dinner shifts applied",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=0.3, VB=0.1, SV=0.25, RP=0.09999999999999999, CV=0.25, sum=1.0"
+    },
+    {
+      "id": "F-WS-06",
+      "name": "Spontaneous + Price Sensitive stacking",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "CV=0.368 (should be dominant), sum=1.000"
+    },
+    {
+      "id": "F-FQ-01",
+      "name": "Perfect cuisine match \u2192 6/6",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=6, max=6, signal=Exact: Chinese"
+    },
+    {
+      "id": "F-FQ-02",
+      "name": "No/weak cuisine match",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "IC06 (hmm): cuisine score=2.5/6"
+    },
+    {
+      "id": "F-FQ-03",
+      "name": "Flavor sub-component exists",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=0, max=2"
+    },
+    {
+      "id": "F-FQ-04",
+      "name": "Dietary sub-component exists",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=0.5, max=2"
+    },
+    {
+      "id": "F-FQ-05",
+      "name": "Menu sub-component exists",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=1, max=1"
+    },
+    {
+      "id": "F-VB-01",
+      "name": "Vibe noise sub-component",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=2/2, signal=Moderate"
+    },
+    {
+      "id": "F-VB-02",
+      "name": "Noise match for date input",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "IC02 noise=2/2, signal=Moderate"
+    },
+    {
+      "id": "F-VB-03",
+      "name": "Vibe score exists for vague input",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "IC06 vibe=9.3"
+    },
+    {
+      "id": "F-VB-04",
+      "name": "Vibe has multiple sub-layers",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "IC01 vibe layers: ['noise', 'lighting', 'dress', 'energy', 'music']"
+    },
+    {
+      "id": "F-VB-05",
+      "name": "Music sub-component exists",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=1.5/1.5, signal=ambient"
+    },
+    {
+      "id": "F-SV-01",
+      "name": "Date Night occasion drives service base",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "IC02 occasion=7/7, signal=Date Night 10.0/10"
+    },
+    {
+      "id": "F-SV-02",
+      "name": "Service style sub-component",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=1.5/1.5, signal=Full Table Service"
+    },
+    {
+      "id": "F-SV-03",
+      "name": "Social dynamics sub-component",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=0/1.5"
+    },
+    {
+      "id": "F-RP-01",
+      "name": "Google rating sub-component (many reviews)",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=3.8/5, signal=4.5\u2605 (1290 reviews)"
+    },
+    {
+      "id": "F-RP-02",
+      "name": "Sentiment sub-component",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=1/2, signal=Score 4.8/10"
+    },
+    {
+      "id": "F-RP-03",
+      "name": "Awards + Community sub-components",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "awards=2/2, community=1/2"
+    },
+    {
+      "id": "F-CV-01",
+      "name": "Convenience timing sub-component",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=4/6, signal=No time data"
+    },
+    {
+      "id": "F-CV-02",
+      "name": "Reservation sub-component",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=1/2, signal=recommended"
+    },
+    {
+      "id": "F-CV-03",
+      "name": "Practical sub-component",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=1.5/2, signal=Street parking and nearby paid lots"
+    },
+    {
+      "id": "F-DW-01",
+      "name": "Date Night weight fingerprint",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=0.24, VB=0.29, SV=0.24, RP=0.19, CV=0.05"
+    },
+    {
+      "id": "F-DW-02",
+      "name": "Business Lunch weight fingerprint",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=0.2, VB=0.25, SV=0.3, RP=0.15, CV=0.1"
+    },
+    {
+      "id": "F-DW-03",
+      "name": "Adventure weight fingerprint",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=0.2, VB=0.2, SV=0.15, RP=0.3, CV=0.15"
+    },
+    {
+      "id": "F-DW-04",
+      "name": "Family Dinner weight fingerprint",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=0.3, VB=0.1, SV=0.25, RP=0.1, CV=0.25"
+    },
+    {
+      "id": "F-DW-05",
+      "name": "Solo Dining weight fingerprint",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=0.35, VB=0.15, SV=0.1, RP=0.15, CV=0.25"
+    },
+    {
+      "id": "F-DW-06",
+      "name": "Treat Myself weight fingerprint",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=0.37, VB=0.26, SV=0.19, RP=0.14, CV=0.05"
+    },
+    {
+      "id": "F-DW-07",
+      "name": "Chill Hangout weight fingerprint",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "FQ=0.2, VB=0.3, SV=0.2, RP=0.1, CV=0.2"
+    },
+    {
+      "id": "F-DW-08",
+      "name": "All weights sum to 1.0",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "sums=[1.01, 1.0, 1.0, 1.0, 1.0, 1.01, 1.0]"
+    },
+    {
+      "id": "F-DW-09",
+      "name": "No weight < 0.05",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "mins=[0.05, 0.1, 0.15, 0.1, 0.1, 0.05, 0.1]"
+    },
+    {
+      "id": "F-DW-10",
+      "name": "No weight > 0.60",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "maxs=[0.29, 0.3, 0.3, 0.3, 0.35, 0.37, 0.3]"
+    },
+    {
+      "id": "F-DW-11",
+      "name": "Date VB >= Chill VB",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "Date VB=0.29, Chill VB=0.3"
+    },
+    {
+      "id": "F-DW-12",
+      "name": "Business SV is top-2 weight",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "Weight ranking: [('service', 0.3), ('vibe', 0.25), ('food_quality', 0.2), ('reputation', 0.15), ('convenience', 0.1)]"
+    },
+    {
+      "id": "F-XA-01",
+      "name": "GM verify dw01",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "reported=68, computed=70, diff=2, factors=[5,7.6,9.5,6,5.5], w=[0.24,0.29,0.24,0.19,0.05]"
+    },
+    {
+      "id": "F-XA-02",
+      "name": "GM verify dw02",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "reported=66, computed=66, diff=0, factors=[5,6.5,8.4,6.7,5.5], w=[0.2,0.25,0.3,0.15,0.1]"
+    },
+    {
+      "id": "F-XA-03",
+      "name": "GM verify dw03",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "reported=68, computed=68, diff=0, factors=[5,8,8.5,7,6], w=[0.2,0.2,0.15,0.3,0.15]"
+    },
+    {
+      "id": "F-XA-04",
+      "name": "GM verify dw04",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "reported=65, computed=65, diff=0, factors=[5,8.1,9.2,6.2,6], w=[0.3,0.1,0.25,0.1,0.25]"
+    },
+    {
+      "id": "F-XA-05",
+      "name": "GM verify dw05",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "reported=62, computed=62, diff=0, factors=[5,7,8.4,7.7,6], w=[0.35,0.15,0.1,0.15,0.25]"
+    },
+    {
+      "id": "F-XA-06",
+      "name": "GM verify dw06",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "reported=63, computed=64, diff=1, factors=[5,7.6,7.9,6.5,5.5], w=[0.37,0.26,0.19,0.14,0.05]"
+    },
+    {
+      "id": "F-XA-07",
+      "name": "GM verify dw07",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "reported=66, computed=65, diff=1, factors=[5,7.6,8,5.7,6], w=[0.2,0.3,0.2,0.1,0.2]"
+    },
+    {
+      "id": "F-XA-08",
+      "name": "Score distribution sanity",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "scores=[68, 66, 68, 65, 62, 63, 66], range=6, narrow_bands=1, wide_bands=1"
+    }
+  ]
+}

@@ -1,0 +1,231 @@
+{
+  "pass": 28,
+  "fail": 4,
+  "warn": 0,
+  "results": [
+    {
+      "id": "F-BL-01",
+      "name": "Word count 40-130",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "range=[55-79], fails=[]"
+    },
+    {
+      "id": "F-BL-02",
+      "name": "No slop patterns",
+      "severity": "CRITICAL",
+      "status": "FAIL",
+      "details": "violations=[\"ta05-3.json:'perfectly'\"]"
+    },
+    {
+      "id": "F-BL-03",
+      "name": "No em dashes (U+2014)",
+      "severity": "CRITICAL",
+      "status": "FAIL",
+      "details": "violations=['dr01-vegan.json', 'dr04-halal.json', 'ta01-3.json', 'ta04-1.json']"
+    },
+    {
+      "id": "F-BL-04",
+      "name": "No structural tells",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "clean"
+    },
+    {
+      "id": "F-BL-05",
+      "name": "\"We\" voice presence",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "8/37 blurbs (22%) use we/our"
+    },
+    {
+      "id": "F-BL-06",
+      "name": "Restaurant name in blurb",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "missing=['dr04-halal.json:Basil Leaf Cafe', 'ec03-special.json:AO Hawaiian Hideout']"
+    },
+    {
+      "id": "F-BL-07",
+      "name": "No hallucinated cuisine",
+      "severity": "CRITICAL",
+      "status": "FAIL",
+      "details": "mismatches=['dw07-chill.json:tacosvscocktail bar', 'ta05-3.json:tacosvskorean']"
+    },
+    {
+      "id": "F-BL-08",
+      "name": "Single paragraph (no line breaks)",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "all single paragraphs"
+    },
+    {
+      "id": "F-BL-09",
+      "name": "Outstanding (85+) confident tone",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "no 85+ scores"
+    },
+    {
+      "id": "F-BL-10",
+      "name": "Excellent (70-84) confident tone",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "16 blurbs in excellent range"
+    },
+    {
+      "id": "F-BL-11",
+      "name": "Solid Pick (55-69) measured tone",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "20 blurbs in solid range"
+    },
+    {
+      "id": "F-BL-12",
+      "name": "Worth a Try (<55) honest tone",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "1 blurbs below 55"
+    },
+    {
+      "id": "F-BL-13",
+      "name": "Tone-score alignment",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "Checked across all tiers"
+    },
+    {
+      "id": "F-BL-14",
+      "name": "No overselling low scores",
+      "severity": "MAJOR",
+      "status": "FAIL",
+      "details": "violations=['ta05-3.json:DM=33']"
+    },
+    {
+      "id": "F-BL-15",
+      "name": "Weight-awareness in blurbs",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "25/30 (83%) reference weight context"
+    },
+    {
+      "id": "F-BL-16",
+      "name": "Cuisine specificity",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "26/37 (70%) mention specific dish/cuisine"
+    },
+    {
+      "id": "F-BL-17",
+      "name": "Neighborhood grounding",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "Most queries used Anywhere \u2014 neighborhood grounding N/A for most"
+    },
+    {
+      "id": "F-BL-18",
+      "name": "Insider tip echo",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "Blurbs reference restaurant-specific data (validated manually)"
+    },
+    {
+      "id": "F-BL-19",
+      "name": "Occasion relevance",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "30 blurbs show occasion relevance"
+    },
+    {
+      "id": "F-BL-20",
+      "name": "Cuisine mismatch honesty",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "1 responses with cuisine_mismatch flag"
+    },
+    {
+      "id": "F-RC-01",
+      "name": "Top-level fields present",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "all 11 present"
+    },
+    {
+      "id": "F-RC-02",
+      "name": "Restaurant object fields",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "all 21 present"
+    },
+    {
+      "id": "F-RC-03",
+      "name": "scoring_v4 complete",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "all fields present"
+    },
+    {
+      "id": "F-RC-04",
+      "name": "scoring_v3 backward compat",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "all V3 fields present"
+    },
+    {
+      "id": "F-RC-05",
+      "name": "V3\u2194V4 factor mapping",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "exact match"
+    },
+    {
+      "id": "F-RC-06",
+      "name": "Google data present",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "rating=4.5, reviews=47"
+    },
+    {
+      "id": "F-RC-07",
+      "name": "Sentiment fields present",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "6/6 sentiment fields present"
+    },
+    {
+      "id": "F-RC-08",
+      "name": "Tags array >= 1",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "tags=['charming', 'Mediterranean', 'family-style', 'vegan friendly', 'date night']"
+    },
+    {
+      "id": "F-RC-09",
+      "name": "donde_match integer 0-99",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "donde_match=57"
+    },
+    {
+      "id": "F-RC-10",
+      "name": "Timestamp ISO 8601",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "timestamp=2026-02-25T23:53:42.387Z"
+    },
+    {
+      "id": "F-RC-11",
+      "name": "Restaurant ID UUID format",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "id=c87d4fa6-2b58-4a80-b551-aadd1029d595"
+    },
+    {
+      "id": "F-RC-12",
+      "name": "No null critical fields",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "all present"
+    }
+  ]
+}

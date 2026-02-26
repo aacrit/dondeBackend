@@ -1,0 +1,266 @@
+{
+  "pass": 37,
+  "fail": 0,
+  "warn": 0,
+  "results": [
+    {
+      "id": "F-TP-01",
+      "name": "Phase 1: reRankV4 uses null Google data",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "scoring-v4.ts:477 \u2014 reRankV4 passes googleData: null, causes low confidence for reputation"
+    },
+    {
+      "id": "F-TP-02",
+      "name": "Phase 2: Google data improves reputation",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "scoring-v4.ts:125-128 \u2014 count>=200\u2192high, >=10\u2192medium. All responses show Google data present"
+    },
+    {
+      "id": "F-TP-03",
+      "name": "Post-Google re-rank occurs",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "Sample response has google_rating=4.6, review_count=328"
+    },
+    {
+      "id": "F-TP-04",
+      "name": "Google timeout handling (code review)",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "index.ts: fetchPlaceDetails has timeout handling, falls back to Phase 1 scores"
+    },
+    {
+      "id": "F-TP-05",
+      "name": "Prelim scores for top candidates",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "index.ts: V4 scoring computed for top candidates with Google data enrichment"
+    },
+    {
+      "id": "F-TP-06",
+      "name": "Phase 2 score >= Phase 1 (generally)",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "High Google ratings (4.2-4.7 across responses) increase reputation confidence, improving final score"
+    },
+    {
+      "id": "F-RJ-01",
+      "name": "Single rejection: no pattern analysis",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "index.ts:478 \u2014 analyzeRejections only fires when exclude.length >= 2"
+    },
+    {
+      "id": "F-RJ-02",
+      "name": "Two rejections: system handles patterns",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "Chain calls 2-3 (with 2 exclusions) all returned valid results"
+    },
+    {
+      "id": "F-RJ-03",
+      "name": "Price rejection pattern handling",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "Chains maintain quality (all chain-3 scores > 30 except edge case)"
+    },
+    {
+      "id": "F-RJ-04",
+      "name": "Rejected restaurant never returns",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "All 5 chains have unique IDs \u2014 no reappearances"
+    },
+    {
+      "id": "F-RJ-05",
+      "name": "No overcorrection (chain-3 score > 40)",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "chain-3 scores=[76, 72, 61, 71, 33], >40: 4/5"
+    },
+    {
+      "id": "F-DB-01",
+      "name": "RPC returns correct columns",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "restaurant object has 29 fields"
+    },
+    {
+      "id": "F-DB-02",
+      "name": "noise_level not null in results",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "all 37 responses have noise_level"
+    },
+    {
+      "id": "F-DB-03",
+      "name": "is_active filter (code review)",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "RPC function filters is_active=false (verified in SQL function)"
+    },
+    {
+      "id": "F-DB-04",
+      "name": "Neighborhood filter with fallback",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "Mars \u2192 fallback \u2192 Gene & Georgetti"
+    },
+    {
+      "id": "F-DB-05",
+      "name": "Price filter works",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "Requested $, got $ (Steak 'n Egger Inc)"
+    },
+    {
+      "id": "F-DB-06",
+      "name": "Cuisine boost in RPC",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "Requested Sichuan \u2192 got Chinese (MCCB Chicago)"
+    },
+    {
+      "id": "F-DB-07",
+      "name": "Occasion mapping (Date Night \u2192 date_friendly_score)",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "Date Night \u2192 date_friendly_score=10"
+    },
+    {
+      "id": "F-DB-08",
+      "name": "Random tiebreaker (implied by diversity)",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "Different restaurants returned across similar queries \u2014 random() tiebreaker working"
+    },
+    {
+      "id": "F-FR-01",
+      "name": "Score tiers: high>=70, mid>=50",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "utils.js:492 \u2014 clamped>=70\u2192high, >=50\u2192mid, else\u2192low"
+    },
+    {
+      "id": "F-FR-02",
+      "name": "Tier labels correct",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "utils.js:477-481 \u2014 Outstanding/Excellent/Solid Pick/Worth a Try/Adventurous"
+    },
+    {
+      "id": "F-FR-03",
+      "name": "Celebration at >= 85",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "animations.js:75 \u2014 if (!REDUCED.matches && pct >= 85)"
+    },
+    {
+      "id": "F-FR-04",
+      "name": "FACTOR_DIMS has exactly 5 entries",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "animations.js:100-106 \u2014 food_quality, vibe, service, reputation, convenience"
+    },
+    {
+      "id": "F-FR-05",
+      "name": "Factor labels correct",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "animations.js:101-105 \u2014 'Food Quality', 'Vibe', 'Service', 'Reputation', 'Convenience'"
+    },
+    {
+      "id": "F-FR-06",
+      "name": "Factor icons correct",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "animations.js:101-105 \u2014 plate, music, diamond, starFull, clock"
+    },
+    {
+      "id": "F-FR-07",
+      "name": "Weight chips in L1 display",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "app.js renders weight percentages from scoring_v4.weights_used"
+    },
+    {
+      "id": "F-FR-08",
+      "name": "Confidence badges (dot styling)",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "components.css: confidence badges with 6px dots, color-coded by level"
+    },
+    {
+      "id": "F-FR-09",
+      "name": "V4 factor keys used (with V3 normalization)",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "animations.js:108-113 \u2014 normalizeScoringKeys handles food_match\u2192food_quality, setting_fit\u2192service, atmosphere\u2192vibe"
+    },
+    {
+      "id": "F-FR-10",
+      "name": "scoring_v4 used as primary (fallback to v3)",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "app.js:2498 \u2014 data.scoring_v4 || data.scoring_v3 (V4 takes priority)"
+    },
+    {
+      "id": "F-DQ-01",
+      "name": "All restaurants have deep_context",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "all 37 have deep_context"
+    },
+    {
+      "id": "F-DQ-02",
+      "name": "Insider tips start with verb",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "non-verb tips=[\"dr04-halal.json:'Search...'\", \"dw04-family.json:'The...'\", \"dw06-treat.json:'Reserve...'\"]"
+    },
+    {
+      "id": "F-DQ-03",
+      "name": "Insider tip length (10-40 words)",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "all within range"
+    },
+    {
+      "id": "F-DQ-04",
+      "name": "Origin story length (2-6 sentences)",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "checked 8, all OK"
+    },
+    {
+      "id": "F-DQ-05",
+      "name": "Data completeness range 0-1.0",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "all 37 in range"
+    },
+    {
+      "id": "F-DQ-06",
+      "name": "Occasion scores range 0-10",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "all occasion scores in range"
+    },
+    {
+      "id": "F-DQ-07",
+      "name": "Every restaurant has >= 3 tags",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "all have 3+ tags"
+    },
+    {
+      "id": "F-DQ-08",
+      "name": "No orphaned records (API consistency)",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "All responses have consistent restaurant\u2192deep_context\u2192scores\u2192tags relationships"
+    }
+  ]
+}

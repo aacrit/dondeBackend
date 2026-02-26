@@ -1,0 +1,143 @@
+{
+  "timestamp": "2026-02-26T00:07:26.148644Z",
+  "cycles_run": 1,
+  "final_verdict": "CONDITIONAL PASS",
+  "pass_rate": 0.9742,
+  "total_tests": 194,
+  "passed": 189,
+  "failed": 4,
+  "warned": 1,
+  "api_calls_used": 38,
+  "wall_clock_seconds": 300,
+  "categories": {
+    "1_intent_classification": {
+      "pass": 18,
+      "fail": 0,
+      "warn": 0,
+      "total": 18
+    },
+    "2_scoring_engine": {
+      "pass": 20,
+      "fail": 0,
+      "warn": 0,
+      "total": 20
+    },
+    "3_factor_computation": {
+      "pass": 15,
+      "fail": 0,
+      "warn": 0,
+      "total": 15
+    },
+    "4_dynamic_weights": {
+      "pass": 12,
+      "fail": 0,
+      "warn": 0,
+      "total": 12
+    },
+    "5_score_accuracy": {
+      "pass": 8,
+      "fail": 0,
+      "warn": 0,
+      "total": 8
+    },
+    "6_try_another": {
+      "pass": 31,
+      "fail": 0,
+      "warn": 1,
+      "total": 32
+    },
+    "7_blurb_generation": {
+      "pass": 16,
+      "fail": 4,
+      "warn": 0,
+      "total": 20
+    },
+    "8_response_contract": {
+      "pass": 12,
+      "fail": 0,
+      "warn": 0,
+      "total": 12
+    },
+    "9_dietary": {
+      "pass": 6,
+      "fail": 0,
+      "warn": 0,
+      "total": 6
+    },
+    "10_edge_cases": {
+      "pass": 10,
+      "fail": 0,
+      "warn": 0,
+      "total": 10
+    },
+    "11_two_phase": {
+      "pass": 6,
+      "fail": 0,
+      "warn": 0,
+      "total": 6
+    },
+    "12_rejection": {
+      "pass": 5,
+      "fail": 0,
+      "warn": 0,
+      "total": 5
+    },
+    "13_rpc_database": {
+      "pass": 8,
+      "fail": 0,
+      "warn": 0,
+      "total": 8
+    },
+    "14_frontend": {
+      "pass": 10,
+      "fail": 0,
+      "warn": 0,
+      "total": 10
+    },
+    "15_data_quality": {
+      "pass": 8,
+      "fail": 0,
+      "warn": 0,
+      "total": 8
+    }
+  },
+  "failures": [
+    {
+      "id": "F-BL-02",
+      "name": "No slop patterns",
+      "severity": "CRITICAL",
+      "status": "FAIL",
+      "details": "violations=[\"ta05-3.json:'perfectly'\"]"
+    },
+    {
+      "id": "F-BL-03",
+      "name": "No em dashes (U+2014)",
+      "severity": "CRITICAL",
+      "status": "FAIL",
+      "details": "violations=['dr01-vegan.json', 'dr04-halal.json', 'ta01-3.json', 'ta04-1.json']"
+    },
+    {
+      "id": "F-BL-07",
+      "name": "No hallucinated cuisine",
+      "severity": "CRITICAL",
+      "status": "FAIL",
+      "details": "mismatches=['dw07-chill.json:tacosvscocktail bar', 'ta05-3.json:tacosvskorean']"
+    },
+    {
+      "id": "F-BL-14",
+      "name": "No overselling low scores",
+      "severity": "MAJOR",
+      "status": "FAIL",
+      "details": "violations=['ta05-3.json:DM=33']"
+    }
+  ],
+  "warnings": [
+    {
+      "id": "F-TA-08",
+      "name": "Score deltas reasonable (\u226425)",
+      "severity": "MAJOR",
+      "status": "WARN",
+      "details": "max_drop=40 violations: chain 5: 73\u219233 (drop=40)"
+    }
+  ]
+}

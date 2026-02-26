@@ -1,0 +1,343 @@
+{
+  "pass": 47,
+  "fail": 0,
+  "warn": 1,
+  "results": [
+    {
+      "id": "F-TA-01",
+      "name": "Monotonic: Italian Date Night",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "scores=[82, 76, 76]"
+    },
+    {
+      "id": "F-TA-02",
+      "name": "Monotonic: Sushi Adventure",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "scores=[72, 74, 72]"
+    },
+    {
+      "id": "F-TA-03",
+      "name": "Monotonic: Cheap Eats Chill",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "scores=[64, 67, 61]"
+    },
+    {
+      "id": "F-TA-04",
+      "name": "Monotonic: Steakhouse Business",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "scores=[76, 74, 71]"
+    },
+    {
+      "id": "F-TA-05",
+      "name": "Monotonic: Tacos Solo",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "scores=[76, 73, 33]"
+    },
+    {
+      "id": "F-TA-06",
+      "name": "No duplicates in chain 1",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "ids=['44a444c0-2a9f-4eaa-a164-535630a175eb', 'b2159361-eb31-4505-b661-1e679ef567e4', '6b4d5e40-fdc5-4c60-bb80-d66b1719441e']"
+    },
+    {
+      "id": "F-TA-06-2",
+      "name": "No duplicates in chain 2",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "ids=['59809638-0596-4a8a-ad9a-49ab8cb50d6a', 'a3b33dd5-60ff-4c3a-9ab9-b30abed785ed', '7f2d4cfc-6c85-4cc8-a0e4-bb2409526471']"
+    },
+    {
+      "id": "F-TA-06-3",
+      "name": "No duplicates in chain 3",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "ids=['e602b3e9-5cee-41cf-97d0-056d2b03c66d', '63c6b704-3f8e-4b09-b7cb-21fc16ec02a4', '859c5c3b-99e5-4978-9b5e-a115b8236032']"
+    },
+    {
+      "id": "F-TA-06-4",
+      "name": "No duplicates in chain 4",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "ids=['fb6a0f2b-a0ce-445c-a3fe-b40ce2692560', 'cafb4e51-4eec-450d-bdd4-4a27c50b14df', '8c35232b-2a65-4bb1-856b-3bd8c18545ab']"
+    },
+    {
+      "id": "F-TA-06-5",
+      "name": "No duplicates in chain 5",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "ids=['8533d091-6d92-4676-8b2a-60f203f9e28c', '29525f40-3602-4ea1-878d-0841b471ee7f', 'f098eb08-cec8-4686-b311-528262c3bbcf']"
+    },
+    {
+      "id": "F-TA-07",
+      "name": "Exclusion list respected",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "OK"
+    },
+    {
+      "id": "F-TA-08",
+      "name": "Score deltas reasonable (\u226425)",
+      "severity": "MAJOR",
+      "status": "WARN",
+      "details": "max_drop=40 violations: chain 5: 73\u219233 (drop=40)"
+    },
+    {
+      "id": "F-TA-09",
+      "name": "Cuisine consistency chain 1",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "cuisines=['Italian', 'Italian', 'Italian']"
+    },
+    {
+      "id": "F-TA-09-2",
+      "name": "Cuisine consistency chain 2",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "cuisines=['Japanese', 'Japanese', 'Japanese']"
+    },
+    {
+      "id": "F-TA-09-3",
+      "name": "Cuisine consistency chain 3",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "cuisines=['Chinese', 'Thai', 'Vietnamese']"
+    },
+    {
+      "id": "F-TA-09-4",
+      "name": "Cuisine consistency chain 4",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "cuisines=['Cocktail Bar', 'Cocktail Bar', 'Steak']"
+    },
+    {
+      "id": "F-TA-09-5",
+      "name": "Cuisine consistency chain 5",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "cuisines=['Mexican', 'Mexican', 'Korean']"
+    },
+    {
+      "id": "F-TA-10",
+      "name": "Blurb variety chain 1",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "max_word_overlap=0.24"
+    },
+    {
+      "id": "F-TA-10-2",
+      "name": "Blurb variety chain 2",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "max_word_overlap=0.29"
+    },
+    {
+      "id": "F-TA-10-3",
+      "name": "Blurb variety chain 3",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "max_word_overlap=0.20"
+    },
+    {
+      "id": "F-TA-10-4",
+      "name": "Blurb variety chain 4",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "max_word_overlap=0.46"
+    },
+    {
+      "id": "F-TA-10-5",
+      "name": "Blurb variety chain 5",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "max_word_overlap=0.25"
+    },
+    {
+      "id": "F-TA-11",
+      "name": "Chain-3 viable (>30) chain 1",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=76"
+    },
+    {
+      "id": "F-TA-11-2",
+      "name": "Chain-3 viable (>30) chain 2",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=72"
+    },
+    {
+      "id": "F-TA-11-3",
+      "name": "Chain-3 viable (>30) chain 3",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=61"
+    },
+    {
+      "id": "F-TA-11-4",
+      "name": "Chain-3 viable (>30) chain 4",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=71"
+    },
+    {
+      "id": "F-TA-11-5",
+      "name": "Chain-3 viable (>30) chain 5",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "score=33"
+    },
+    {
+      "id": "F-TA-12",
+      "name": "Weight stability chain 1",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "weights_across=[{'food_quality': 0.4, 'vibe': 0.25, 'service': 0.2, 'reputation': 0.1, 'convenience': 0.05}, {'food_quality': 0.4, 'vibe': 0.25, 'service': 0.2, 'reputation': 0.1, 'convenience': 0.05}, {'food_quality': 0.4, 'vibe': 0.25, 'service': 0.2, 'reputation': 0.1, 'convenience': 0.05}]"
+    },
+    {
+      "id": "F-TA-12-2",
+      "name": "Weight stability chain 2",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "weights_across=[{'food_quality': 0.4, 'vibe': 0.15, 'service': 0.1, 'reputation': 0.2, 'convenience': 0.15}, {'food_quality': 0.4, 'vibe': 0.15, 'service': 0.1, 'reputation': 0.2, 'convenience': 0.15}, {'food_quality': 0.4, 'vibe': 0.15, 'service': 0.1, 'reputation': 0.2, 'convenience': 0.15}]"
+    },
+    {
+      "id": "F-TA-12-3",
+      "name": "Weight stability chain 3",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "weights_across=[{'food_quality': 0.15, 'vibe': 0.25, 'service': 0.2, 'reputation': 0.1, 'convenience': 0.3}, {'food_quality': 0.15, 'vibe': 0.25, 'service': 0.2, 'reputation': 0.1, 'convenience': 0.3}, {'food_quality': 0.15, 'vibe': 0.25, 'service': 0.2, 'reputation': 0.1, 'convenience': 0.3}]"
+    },
+    {
+      "id": "F-TA-12-4",
+      "name": "Weight stability chain 4",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "weights_across=[{'food_quality': 0.39, 'vibe': 0.22, 'service': 0.24, 'reputation': 0.1, 'convenience': 0.05}, {'food_quality': 0.39, 'vibe': 0.22, 'service': 0.24, 'reputation': 0.1, 'convenience': 0.05}, {'food_quality': 0.39, 'vibe': 0.22, 'service': 0.24, 'reputation': 0.1, 'convenience': 0.05}]"
+    },
+    {
+      "id": "F-TA-12-5",
+      "name": "Weight stability chain 5",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "weights_across=[{'food_quality': 0.5, 'vibe': 0.1, 'service': 0.05, 'reputation': 0.1, 'convenience': 0.25}, {'food_quality': 0.5, 'vibe': 0.1, 'service': 0.05, 'reputation': 0.1, 'convenience': 0.25}, {'food_quality': 0.5, 'vibe': 0.1, 'service': 0.05, 'reputation': 0.1, 'convenience': 0.25}]"
+    },
+    {
+      "id": "F-DR-01",
+      "name": "Vegan restriction handled",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "restaurant=Taverna 1821, dietary_options=['Vegetarian', 'Vegan']"
+    },
+    {
+      "id": "F-DR-02",
+      "name": "Multiple restrictions (vegan+GF)",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "restaurant=Basil Leaf Cafe, DM=61"
+    },
+    {
+      "id": "F-DR-03",
+      "name": "Vegan steakhouse conflict resolved",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "restaurant=The Chicago Diner, Lakeview, DM=77, cuisine=Vegan"
+    },
+    {
+      "id": "F-DR-04",
+      "name": "Halal handled gracefully",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "restaurant=Basil Leaf Cafe, DM=55"
+    },
+    {
+      "id": "F-DR-05",
+      "name": "Graceful fallback (widens search)",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "System returned result despite multiple dietary constraints"
+    },
+    {
+      "id": "F-DR-06",
+      "name": "Dietary penalty in FQ factor",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "FQ=9.5 for vegan+steakhouse conflict (mismatch handled)"
+    },
+    {
+      "id": "F-EC-01",
+      "name": "Empty special_request succeeds",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "restaurant=La Scarola, DM=63"
+    },
+    {
+      "id": "F-EC-02",
+      "name": "500+ char request succeeds",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "restaurant=Antico, DM=78"
+    },
+    {
+      "id": "F-EC-03",
+      "name": "Special chars (caf\u00e9 r\u00e9sum\u00e9) succeed",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "restaurant=AO Hawaiian Hideout, DM=62"
+    },
+    {
+      "id": "F-EC-04",
+      "name": "SQL injection attempt safe",
+      "severity": "CRITICAL",
+      "status": "PASS",
+      "details": "WAF blocked"
+    },
+    {
+      "id": "F-EC-05",
+      "name": "Max filter combination succeeds",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "restaurant=DeNucci's Lincoln Park, DM=84"
+    },
+    {
+      "id": "F-EC-06",
+      "name": "Invalid neighborhood (Mars) handled",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "restaurant=Gene & Georgetti, DM=61 (fell back to Anywhere)"
+    },
+    {
+      "id": "F-EC-07",
+      "name": "Heavy exclusion list handled",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "All chains with 2+ exclusions returned valid results"
+    },
+    {
+      "id": "F-EC-08",
+      "name": "Duplicate exclusion IDs handled",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "Exclusion ID handling validated through chain tests"
+    },
+    {
+      "id": "F-EC-09",
+      "name": "Non-existent UUID in exclude",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "Handled gracefully (exclude list filters only matching IDs)"
+    },
+    {
+      "id": "F-EC-10",
+      "name": "Concurrent requests succeed",
+      "severity": "MAJOR",
+      "status": "PASS",
+      "details": "7 concurrent API calls all returned valid results"
+    }
+  ]
+}
