@@ -237,7 +237,8 @@ export function buildV5SuccessResponse(
     base_score: number;
     original_engine_rank: number;
   } | null,
-  relaxationApplied: string[]
+  relaxationApplied: string[],
+  cuisineMismatch?: { requested: string; got: string } | null,
 ): Record<string, unknown> {
   return {
     success: true,
@@ -252,6 +253,7 @@ export function buildV5SuccessResponse(
     recommendation: claude.recommendation,
     insider_tip: claude.insider_tip || null,
     donde_match: dondeMatch,
+    cuisine_mismatch: cuisineMismatch ?? null,
     scoring_v5: buildScoringV5(v5Result),
     intent_boost: intentBoost
       ? {
