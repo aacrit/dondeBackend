@@ -589,7 +589,34 @@ Deno.serve(async (req: Request) => {
       }
 
       const chosen = rerankedScored[chosenIdx];
-      const dondeMatch = chosen.dondeMatch;
+      let dondeMatch = chosen.dondeMatch;
+
+      // Cuisine mismatch detection: cap score at 65 when user explicitly requested a cuisine
+      // that the chosen restaurant doesn't match (implements the cuisine_mismatch field/T76-T80)
+      let cuisineMismatch: { requested: string; got: string } | null = null;
+      if (intent?.cuisine_importance === "high" && intent.target_cuisines?.length > 0) {
+        const chosenCuisine = (chosen.profile.cuisine_type || "").toLowerCase();
+        const subcategory = (chosen.profile.deep_profile?.cuisine_subcategory || "").toLowerCase();
+        const cuisineMatch = intent.target_cuisines.some((tc: string) => {
+          const tcLower = tc.toLowerCase();
+          return chosenCuisine.includes(tcLower) || tcLower.includes(chosenCuisine)
+            || subcategory.includes(tcLower) || tcLower.includes(subcategory);
+        });
+        if (!cuisineMatch) {
+          cuisineMismatch = {
+            requested: intent.target_cuisines.join(", "),
+            got: chosen.profile.cuisine_type || "Unknown",
+          };
+          const original = dondeMatch;
+          dondeMatch = Math.min(dondeMatch, 65);
+          logInfo("V5 cuisine_mismatch: score capped", {
+            requested: intent.target_cuisines,
+            got: chosen.profile.cuisine_type,
+            originalScore: original,
+            cappedScore: dondeMatch,
+          });
+        }
+      }
 
       // Get Google data for chosen
       let chosenGoogleData = chosen.googleData || null;
@@ -653,7 +680,7 @@ Deno.serve(async (req: Request) => {
 
         responseBody = buildV5SuccessResponse(
           chosen.profile, parsed, chosenGoogleData, dondeMatch,
-          v5Result, intentBoost, relaxationApplied,
+          v5Result, intentBoost, relaxationApplied, cuisineMismatch,
         );
       }
 
@@ -679,6 +706,12 @@ Deno.serve(async (req: Request) => {
         const emDashCount = (parsed.recommendation.match(/\u2014/g) || []).length;
         if (emDashCount > 0) {
           logWarn("V5 recommendation contains em dashes", { count: emDashCount });
+          // Strip em dashes — replace with comma+space, then clean up double separators
+          parsed.recommendation = parsed.recommendation.replace(/\u2014/g, ", ").replace(/ , /g, ", ").replace(/,\s*,/g, ",");
+        }
+        // Strip em dashes from insider_tip as well
+        if (parsed.insider_tip) {
+          parsed.insider_tip = parsed.insider_tip.replace(/\u2014/g, ", ").replace(/ , /g, ", ").replace(/,\s*,/g, ",");
         }
 
         // V5: Word count check (target 100-120)

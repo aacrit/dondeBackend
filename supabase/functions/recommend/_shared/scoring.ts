@@ -2389,10 +2389,10 @@ export function reRankWithBoosts(
 export function ensureDiversity(
   top: RestaurantProfile[],
   backfillPool: RestaurantProfile[],
-  maxPerCuisine = 5,
-  maxPerNeighborhood = 7
+  maxPerCuisine = 3,
+  maxPerNeighborhood = 5
 ): RestaurantProfile[] {
-  if (top.length <= 5) return top; // Not enough to diversify
+  if (top.length <= 2) return top; // Not enough to diversify
 
   const result: RestaurantProfile[] = [];
   const cuisineCount = new Map<string, number>();
