@@ -1,9 +1,7 @@
 name: Validate Restaurant Status
 
 on:
-  schedule:
-    - cron: '0 4 1 * *'  # Monthly on the 1st at 4am UTC
-  workflow_dispatch: {}
+  workflow_dispatch: {}    # Manual trigger ONLY
 
 jobs:
   validate:
