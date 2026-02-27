@@ -1,7 +1,6 @@
 name: Occasion Scores & Tags
 
 on:
-  workflow_dispatch: {}    # Manual trigger ONLY
   # Enhancement 16: Auto-trigger when enrichment completes
   workflow_run:
     workflows: ["Restaurant Enrichment"]
