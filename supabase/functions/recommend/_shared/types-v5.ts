@@ -195,6 +195,7 @@ export interface V5ScoringBreakdown {
 /** V5 Claude recommendation output (parsed from JSON response) */
 export interface V5ClaudeRecommendation {
   restaurant_index: number;
+  match_headline: string | null;
   recommendation: string;
   insider_tip: string | null;
   intent_boost: boolean;
