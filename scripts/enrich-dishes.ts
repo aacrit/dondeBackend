@@ -24,7 +24,11 @@ interface RestaurantRow {
   id: string;
   name: string;
   cuisine_type: string | null;
-  tags: string[];
+}
+
+interface TagRow {
+  restaurant_id: string;
+  tag_text: string;
 }
 
 interface DeepProfileRow {
@@ -99,7 +103,7 @@ async function main() {
   // Fetch restaurants
   let query = supabase
     .from("restaurants")
-    .select("id, name, cuisine_type, tags");
+    .select("id, name, cuisine_type");
 
   if (cuisineFilter) {
     query = query.ilike("cuisine_type", `%${cuisineFilter}%`);
@@ -120,8 +124,21 @@ async function main() {
   if (cuisineFilter) console.log(`Cuisine filter: ${cuisineFilter}`);
   if (limitArg) console.log(`Limit: ${limitArg}`);
 
-  // Fetch existing deep profiles
+  // Fetch tags from the separate tags table
   const ids = restaurants.map((r: RestaurantRow) => r.id);
+  const { data: tagRows, error: tagError } = await supabase
+    .from("tags")
+    .select("restaurant_id, tag_text")
+    .in("restaurant_id", ids);
+  if (tagError) throw new Error(`Failed to fetch tags: ${tagError.message}`);
+
+  const tagMap = new Map<string, string[]>();
+  for (const t of (tagRows || []) as TagRow[]) {
+    const existing = tagMap.get(t.restaurant_id) || [];
+    existing.push(t.tag_text);
+    tagMap.set(t.restaurant_id, existing);
+  }
+
   const { data: profiles, error: profError } = await supabase
     .from("restaurant_deep_profiles")
     .select("restaurant_id, signature_dishes, menu_highlights, flavor_profiles")
@@ -155,7 +172,7 @@ async function main() {
             r.name,
             r.cuisine_type,
             profile?.signature_dishes || null,
-            r.tags || [],
+            tagMap.get(r.id) || [],
             profile?.flavor_profiles || null,
           );
 
