@@ -1,4 +1,6 @@
 /**
+ * @deprecated Use weight-config-v7.ts instead. V5 weights replaced by V7 5-layer system.
+ *
  * V5 Weight Configuration — 3-Layer Adaptive Dynamic Weight System
  *
  * Layer 1: Base weights (Food: 0.25, Vibe: 0.18, Service: 0.17, Reputation: 0.25, Convenience: 0.15)

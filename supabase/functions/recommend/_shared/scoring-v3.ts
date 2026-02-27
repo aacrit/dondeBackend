@@ -1,4 +1,7 @@
 /**
+ * @deprecated V3 factor computations (computeFoodMatch, computeSettingFit, etc.)
+ * are now imported by scoring-v7.ts. This file is kept for those imports.
+ *
  * Donde Match V3.5 — Scoring Engine (Optimized + Tone Modulation)
  *
  * Five human-intuitive factors: Food Match, Setting Fit, Atmosphere, Reputation, Convenience

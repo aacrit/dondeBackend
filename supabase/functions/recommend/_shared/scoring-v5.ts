@@ -1,4 +1,6 @@
 /**
+ * @deprecated Use scoring-v7.ts instead. V5 scoring replaced by V7 engine.
+ *
  * Donde Match V5.1 — Stretched-Reputation Geometric Mean Scoring Engine
  *
  * Five human-intuitive factors: Food, Vibe, Service, Reputation, Convenience

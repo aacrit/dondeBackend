@@ -1,4 +1,6 @@
 /**
+ * @deprecated Use response-builder-v7.ts instead. V5 response builder replaced by V7.
+ *
  * Donde Match V5 — Response Builder
  *
  * Constructs API responses for the V5 engine. Replaces the legacy
