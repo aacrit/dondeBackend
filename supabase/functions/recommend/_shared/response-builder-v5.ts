@@ -250,6 +250,7 @@ export function buildV5SuccessResponse(
       negative: null,
       neutral: null,
     }),
+    match_headline: claude.match_headline || null,
     recommendation: claude.recommendation,
     insider_tip: claude.insider_tip || null,
     donde_match: dondeMatch,

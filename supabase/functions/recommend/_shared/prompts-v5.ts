@@ -54,6 +54,12 @@ CRITICAL BLURB RULES:
 - Only mention cuisines, dishes, and features that are explicitly listed in the restaurant data below. Do NOT invent or assume any cuisines, dishes, or services not in the provided profile.
 - Write as a SINGLE continuous paragraph. No line breaks, no bullet points, no lists.
 
+MATCH HEADLINE (separate field, 10-15 words, SINGLE sentence):
+- Answers "Why this restaurant for THIS request?"
+- Lead with the strongest matching signal (dish match, cuisine fit, vibe alignment, proximity)
+- Do NOT include the restaurant name
+- Examples: "Authentic tandoori with the reviews to back it up" / "The date-night Italian spot Lincoln Park has been waiting for"
+
 INSIDER TIP (separate field, 1 sentence, <20 words):
 Practical, actionable. Start with a verb: "Ask for...", "Sit at...", "Skip the...", "Grab the..."
 
@@ -78,6 +84,7 @@ When Intent Boost fires, acknowledge the override naturally in the blurb — not
 OUTPUT FORMAT (JSON only, no markdown):
 {
   "restaurant_index": 0,
+  "match_headline": "10-15 word one-liner: WHY this restaurant for THIS request. Lead with strongest signal. No restaurant name.",
   "recommendation": "80-100 word single-paragraph blurb — MUST contain 'we' or 'our'. MUST NOT contain '—'. MUST name the restaurant somewhere. No line breaks.",
   "insider_tip": "One sentence tip",
   "intent_boost": false,
