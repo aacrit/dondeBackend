@@ -190,6 +190,15 @@ export const V5_WEIGHT_SHIFT_RULES: V5WeightShiftRule[] = [
     deltas: { vibe: +0.08, food: -0.05, convenience: -0.03 },
     label: "Cocktail/bar query: vibe co-elevated with food",
   },
+
+  // V6.2: Bar/nightlife vibe queries — when the user explicitly asks for a bar type
+  // or nightlife experience, vibe dominates over food and reputation.
+  // Uses targetTags since INTENT_MAP maps these terms to tags (live music, craft cocktails, etc.)
+  {
+    condition: { targetTags: ["live music", "lively atmosphere", "late night"] },
+    deltas: { vibe: +0.10, food: -0.05, reputation: -0.05 },
+    label: "Bar/nightlife query: vibe dominates",
+  },
 ];
 
 // ==========================================
@@ -246,6 +255,13 @@ function matchesCondition(
       intent?.vibe_keywords?.some(vk => vk.toLowerCase().includes(kw.toLowerCase()))
     );
     if (!hasKeyword) return false;
+  }
+
+  if (condition.targetTags) {
+    const hasTag = condition.targetTags.some(kw =>
+      intent?.target_tags?.some((tt: string) => tt.toLowerCase().includes(kw.toLowerCase()))
+    );
+    if (!hasTag) return false;
   }
 
   if (condition.targetCuisineIsBar !== undefined) {

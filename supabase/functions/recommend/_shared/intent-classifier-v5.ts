@@ -79,7 +79,7 @@ const DATE_TYPE_PATTERNS: Array<{ type: string; pattern: RegExp }> = [
 const GROUP_SIZE_PATTERNS: Array<{ size: string; pattern: RegExp }> = [
   { size: "solo", pattern: /\bsolo\b|\balone\b|by myself|just me|one person|table for one/ },
   { size: "couple", pattern: /\bcouple\b|two of us|\btwo\b|partner|girlfriend|boyfriend|wife|husband|\bdate\b/ },
-  { size: "large_group", pattern: /large group|big group|party of|big party|\b([6-9]|1[0-9]|20)\b.*(people|friends|group)/ },
+  { size: "large_group", pattern: /large group|big group|party of \d+|group of \d+|big party|table for ([6-9]|1[0-9]|2[0-9])|dinner for ([6-9]|1[0-9]|2[0-9])|\b([6-9]|1[0-9]|20)\b.*(people|friends|group)/ },
   { size: "small_group", pattern: /\bgroup\b|\bcrew\b|\bfriends\b|small group|\b[3-5]\b.*(people|friends|group)/ },
 ];
 
@@ -93,7 +93,7 @@ const PLANNED_WORDS = /reservation|book|reserve|next week|next month|plan|planni
 
 const INTENT_SYSTEM_PROMPT_V2 = `You classify restaurant search intent for a Chicago dining recommendation app. Given a user's request, extract structured search criteria.
 
-Available cuisines: Mexican, American, Italian, Japanese, Thai, Chinese, Korean, French, Seafood, Steak, Mediterranean, Vietnamese, Indian, Ethiopian, Peruvian, Brazilian, Brunch, Vegan, Cocktail Bar, Coffee/Cafe, Polish, Puerto Rican, Southern/Soul Food, Middle Eastern, Greek, Fusion, BBQ, Brewery/Beer Bar
+Available cuisines: Mexican, American, Italian, Japanese, Thai, Chinese, Korean, French, Seafood, Steak, Mediterranean, Vietnamese, Indian, Ethiopian, Peruvian, Brazilian, Brunch, Vegan, Cocktail Bar, Coffee/Cafe, Polish, Puerto Rican, Southern/Soul Food, Middle Eastern, Greek, Fusion, BBQ, Brewery/Beer Bar, Caribbean/Jamaican, Filipino
 
 Available tags: byob, rooftop, outdoor patio, hidden gem, late night, craft cocktails, craft beer, live music, farm-to-table, scenic view, romantic, trendy, quiet, great value, brunch spot, waterfront, vegan friendly, gluten free, lively atmosphere
 
@@ -337,7 +337,41 @@ export async function classifyIntentV5(
   const targetFeatures: string[] = [];
   let intentMapMatchCount = 0;
 
+  // Step 3a: Pre-scan full input for multi-word INTENT_MAP phrases.
+  // This catches phrases like "korean fried chicken", "soup dumplings",
+  // "bottomless brunch" that tokenization might split incorrectly or miss.
+  const matchedPhrases = new Set<string>();
+  for (const [phrase, signal] of Object.entries(INTENT_MAP)) {
+    if (phrase.includes(" ") && input.includes(phrase)) {
+      matchedPhrases.add(phrase);
+      intentMapMatchCount++;
+      if (signal.cuisines) {
+        for (const c of signal.cuisines) {
+          if (!matchedCuisines.has(c)) {
+            intentMapCuisines.add(c);
+          }
+        }
+      }
+      if (signal.tags) {
+        for (const t of signal.tags) {
+          if (!matchedTags.has(t)) {
+            intentMapTags.add(t);
+          }
+        }
+      }
+      if (signal.features) {
+        for (const f of signal.features as string[]) {
+          if (!targetFeatures.includes(f)) {
+            targetFeatures.push(f);
+          }
+        }
+      }
+    }
+  }
+
+  // Step 3b: Token-level INTENT_MAP scanning (for unigram/bigram/trigram matches)
   for (const token of tokens) {
+    if (matchedPhrases.has(token)) continue; // Already matched as a phrase
     const signal = INTENT_MAP[token];
     if (signal) {
       intentMapMatchCount++;
@@ -368,12 +402,35 @@ export async function classifyIntentV5(
   // Merge intent map finds into primary arrays
   for (const c of intentMapCuisines) targetCuisines.push(c);
   for (const t of intentMapTags) matchedTags.add(t);
+
+  // Step 3c: Negation detection — remove signals preceded by negation words.
+  // Handles "not too loud", "no spicy", "without crowds", "don't want lively"
+  const NEGATION_PATTERN = /\b(?:not|no|without|don'?t want|avoid|skip|never)\s+(\w+)/gi;
+  const negatedWords = new Set<string>();
+  let negMatch;
+  while ((negMatch = NEGATION_PATTERN.exec(input)) !== null) {
+    negatedWords.add(negMatch[1].toLowerCase());
+  }
+
+  // If negated words triggered any tags, remove those tags
+  if (negatedWords.size > 0) {
+    for (const negWord of negatedWords) {
+      for (const [tag, keywords] of Object.entries(TAG_KEYWORDS)) {
+        if (keywords.some((kw) => kw.toLowerCase().includes(negWord))) {
+          matchedTags.delete(tag);
+        }
+      }
+    }
+  }
+
   const targetTags = Array.from(matchedTags);
 
   // Update cuisine importance if intent map brought in cuisine signals
-  // V6: Only upgrade from "low" → "medium" (never downgrade "high" from CUISINE_KEYWORDS)
+  // V6.1: Upgrade to "high" when INTENT_MAP match includes cuisine signals from a
+  // specific dish/food term (e.g., "soup dumplings" → Chinese should be "high").
+  // This ensures the cuisine hard filter fires for all dish-level queries.
   if (cuisineImportance === "low" && intentMapCuisines.size > 0) {
-    cuisineImportance = "medium";
+    cuisineImportance = "high";
   }
 
   // -----------------------------------------------------------------------
