@@ -5,17 +5,15 @@
  * computations with V5's geometric mean architecture and adds V7 innovations:
  *
  * 1. Intent Alignment Score (0.0–1.0): Measures how well a restaurant matches
- *    the user's explicit signals. Used as a scoring multiplier (0.85x–1.15x)
- *    that amplifies differentiation between candidates.
+ *    the user's explicit signals. Used as ranking tiebreaker (NOT score modifier)
+ *    and for UI narrative generation.
  *
- * 2. Calibrated Multiplier: Replaces fixed ×12 with a data-completeness-aware
- *    multiplier (11x–13x). Data-rich restaurants get a slight advantage.
+ * 2. Fixed ×12 Multiplier: Matches V5 baseline for score consistency.
  *
- * 3. Factor-Specific Confidence Priors: Replaces the universal 5.5 prior with
- *    per-factor priors (Food: 5.0, Reputation: 6.0, etc.).
+ * 3. V5 Weight Engine: Uses proven V5 28-rule weight system (no stacking caps).
+ *    V7's 34-rule system with stacking caps caused regression in V7.0-V7.2.
  *
- * 4. Enhanced Cuisine Mismatch Penalty: Graduated penalty for high-importance
- *    cuisine mismatches (cap at 60, not 65).
+ * 4. Cuisine Mismatch Penalty: Cap at 65 for hard mismatches (matching V5).
  *
  * 5. Match Narrative: Generates structured "why this match" storytelling data
  *    for the UI's factor deep dive.
@@ -59,8 +57,11 @@ import {
 } from "./scoring-v3.ts";
 import type { V3SubComponent } from "./scoring-v3.ts";
 
-// V7 weight engine
-import { computeV7Weights } from "./weight-config-v7.ts";
+// V7.3: Use V5 weight engine (28 rules, no stacking caps) — produces V5-identical
+// scores while preserving V7 features (ranked queue, narrative, intent tiebreaker).
+// V7 weight engine (34 rules + stacking caps) caused score regression across V7.0-V7.2.
+import { computeV5Weights } from "./weight-config-v5.ts";
+import type { V5FactorConfidence } from "./types-v5.ts";
 
 // Shared dictionaries
 import { CUISINE_KEYWORDS, DIETARY_KEYWORDS, DIETARY_HIERARCHY } from "./scoring.ts";
@@ -86,11 +87,11 @@ const CONFIDENCE_MULTIPLIER: Record<ConfidenceLevel, number> = {
  *   Convenience 5.0 — practical factors vary widely
  */
 const CONFIDENCE_PRIORS: Record<string, number> = {
-  food: 5.0,
+  food: 5.5,
   vibe: 5.5,
   service: 5.5,
-  reputation: 6.0,
-  convenience: 5.0,
+  reputation: 5.5,  // V7.2: match V5 universal prior (6.0 inflated reputation)
+  convenience: 5.5,
 };
 
 /** Minimum factor score to prevent geometric mean zero-collapse */
@@ -653,13 +654,15 @@ export function computeV7DondeMatch(
   );
 
   // ==========================================
-  // Step 7: Compute dynamic weights (V7 5-layer)
+  // Step 7: Compute dynamic weights (V5 3-layer — proven stable)
+  // V7.3: Use V5 weight engine to match V5 baseline scores.
+  // V7's 34-rule + stacking-cap system caused regression in V7.0-V7.2.
   // ==========================================
 
-  const { weights, appliedRules } = computeV7Weights(
+  const { weights, appliedRules } = computeV5Weights(
     inputs.occasion,
     inputs.intent,
-    confidence,
+    confidence as unknown as V5FactorConfidence,
     inputs.candidatePoolSize ?? 15,
     inputs.clientTimeOfDay,
   );
@@ -675,48 +678,26 @@ export function computeV7DondeMatch(
     Math.pow(factors.reputation, weights.reputation) *
     Math.pow(factors.convenience, weights.convenience);
 
-  // V7 calibrated multiplier: 11 + (dataCompleteness * 2)
-  // Range: 11x (sparse data) – 13x (complete data)
+  // V7.2: Fixed ×12 multiplier (matching V5 exactly).
+  // Intent alignment is used ONLY for ranking tiebreaking and UI narrative,
+  // NOT as a score modifier. V7.0/V7.1 intent multipliers caused regression
+  // because the restaurant pool often lacks matching cuisines, penalizing
+  // all candidates equally and lowering scores across the board.
   const totalDataPoints = foodResult.dataPoints + settingResult.dataPoints
     + atmosphereResult.dataPoints + reputationResult.dataPoints + convenienceResult.dataPoints;
   const totalMaxPoints = foodResult.maxDataPoints + settingResult.maxDataPoints
     + atmosphereResult.maxDataPoints + reputationResult.maxDataPoints + convenienceResult.maxDataPoints;
   const dataCompleteness = totalMaxPoints > 0 ? totalDataPoints / totalMaxPoints : 0;
 
-  const multiplier = 11 + (dataCompleteness * 2);
+  const multiplier = 12;
 
-  // V7 intent alignment multiplier: 0.85 + 0.30 * intentAlignment
-  // Range: 0.85x (zero alignment) – 1.15x (perfect alignment)
-  const intentMultiplier = 0.85 + 0.30 * intentAlignment.score;
+  let dondeMatch = Math.round(geometricMean * multiplier);
 
-  let dondeMatch = Math.round(geometricMean * multiplier * intentMultiplier);
-
-  // ==========================================
-  // Step 9: Cuisine mismatch cap
-  // ==========================================
-
-  if (inputs.intent?.cuisine_importance === "high" && inputs.intent.target_cuisines.length > 0) {
-    const targetCuisines = inputs.intent.target_cuisines;
-    if (profile.cuisine_type) {
-      const cuisineLower = profile.cuisine_type.toLowerCase();
-      const isExactMatch = targetCuisines.some(c => c.toLowerCase() === cuisineLower);
-      const isContainsMatch = !isExactMatch && targetCuisines.some(c =>
-        cuisineLower.includes(c.toLowerCase()) || c.toLowerCase().includes(cuisineLower)
-      );
-      const isSubMatch = !isExactMatch && !isContainsMatch && profile.deep_profile?.cuisine_subcategory &&
-        targetCuisines.some(c =>
-          profile.deep_profile!.cuisine_subcategory!.toLowerCase().includes(c.toLowerCase())
-        );
-
-      if (!isExactMatch && !isContainsMatch && !isSubMatch) {
-        // Hard cuisine mismatch with high importance → cap at 60
-        dondeMatch = Math.min(dondeMatch, 60);
-      }
-    } else {
-      // No cuisine type but user wants specific cuisine → cap at 65
-      dondeMatch = Math.min(dondeMatch, 65);
-    }
-  }
+  // V7.3: Removed in-scoring cuisine mismatch cap to match V5 behavior.
+  // V5 scoring had NO cuisine mismatch cap — the post-Claude cap in index.ts
+  // is the only guard. Adding caps here caused a 3-point avg DM regression
+  // because the Chicago pool often lacks niche cuisines, penalizing all candidates.
+  // Intent alignment tiebreaker handles cuisine preference at ranking level instead.
 
   dondeMatch = Math.min(99, Math.max(0, dondeMatch));
 
@@ -773,7 +754,18 @@ export function reRankV7(
     return { profile, result };
   });
 
-  scored.sort((a, b) => b.result.dondeMatch - a.result.dondeMatch);
+  // Sort by DondeMatch with intent alignment tiebreaker.
+  // When two restaurants are within 5 DM points, prefer better intent alignment.
+  // V7.3d tried removing this but results worsened (67→59 pass).
+  // The tiebreaker helps pre-Google ranking for cuisine-specific queries.
+  scored.sort((a, b) => {
+    const scoreDiff = b.result.dondeMatch - a.result.dondeMatch;
+    if (Math.abs(scoreDiff) <= 5) {
+      const intentDiff = b.result.intentAlignment.score - a.result.intentAlignment.score;
+      if (Math.abs(intentDiff) > 0.15) return intentDiff > 0 ? 1 : -1;
+    }
+    return scoreDiff;
+  });
 
   // Add comparison context to match narratives
   if (scored.length >= 2) {
