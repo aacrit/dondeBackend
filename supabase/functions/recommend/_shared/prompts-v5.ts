@@ -192,6 +192,24 @@ WEIGHT CONTEXT: ${weightContext}
     if (!dishMatchFound) {
       prompt += `  (No exact dish matches found in signature_dishes)\n`;
     }
+    // V6: Also check menu_highlights for broader coverage
+    let highlightMatchFound = false;
+    scoredCandidates.forEach((sc, i) => {
+      const dp = sc.profile.deep_profile;
+      if (dp?.menu_highlights?.length) {
+        const matches = dp.menu_highlights.filter((item: string) =>
+          intent.dish_level_intent!.toLowerCase().includes(item.toLowerCase()) ||
+          item.toLowerCase().includes(intent.dish_level_intent!.toLowerCase())
+        );
+        if (matches.length > 0) {
+          prompt += `  #${i}. ${sc.profile.name}: menu has ${matches.join(', ')} ~\n`;
+          highlightMatchFound = true;
+        }
+      }
+    });
+    if (highlightMatchFound && !dishMatchFound) {
+      prompt += `  (~) = menu item match (not signature dish, but on the menu)\n`;
+    }
     prompt += `CRITICAL: If #0 does NOT serve "${intent.dish_level_intent}", you MUST boost a candidate that does.\n\n`;
   }
 
@@ -231,6 +249,9 @@ WEIGHT CONTEXT: ${weightContext}
     if (dp) {
       if (dp.signature_dishes?.length) {
         prompt += `Signature: ${dp.signature_dishes.slice(0, 3).map(d => `${d.dish} (${d.why})`).join('; ')}\n`;
+      }
+      if (dp.menu_highlights?.length) {
+        prompt += `Menu: ${dp.menu_highlights.slice(0, 10).join(', ')}\n`;
       }
       if (dp.flavor_profiles?.length) prompt += `Flavors: ${dp.flavor_profiles.join(', ')}\n`;
       if (dp.service_style) prompt += `Service: ${dp.service_style}\n`;
