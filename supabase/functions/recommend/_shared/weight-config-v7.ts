@@ -85,12 +85,15 @@ const CATEGORY_STACKING_CAP = 0.15;
 // LAYER 1: BASE WEIGHTS
 // ==========================================
 
+// V7.2: Match V5 base weights to prevent score regression.
+// V7.0 used 0.22/0.20/0.18/0.22/0.18 but the lower food+reputation
+// weights reduced DondeMatch for food/reputation queries.
 export const V7_BASE_WEIGHTS: V7Weights = {
-  food: 0.22,
-  vibe: 0.20,
-  service: 0.18,
-  reputation: 0.22,
-  convenience: 0.18,
+  food: 0.25,
+  vibe: 0.18,
+  service: 0.17,
+  reputation: 0.25,
+  convenience: 0.15,
 };
 
 // ==========================================

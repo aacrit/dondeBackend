@@ -86,11 +86,11 @@ const CONFIDENCE_MULTIPLIER: Record<ConfidenceLevel, number> = {
  *   Convenience 5.0 — practical factors vary widely
  */
 const CONFIDENCE_PRIORS: Record<string, number> = {
-  food: 5.5,       // V7.1: reverted from 5.0 — lower prior was dropping food scores
+  food: 5.5,
   vibe: 5.5,
   service: 5.5,
-  reputation: 6.0,  // Google selection bias → listed places tend to be decent
-  convenience: 5.5, // V7.1: reverted from 5.0 — lower prior was dropping convenience scores
+  reputation: 5.5,  // V7.2: match V5 universal prior (6.0 inflated reputation)
+  convenience: 5.5,
 };
 
 /** Minimum factor score to prevent geometric mean zero-collapse */
@@ -675,24 +675,20 @@ export function computeV7DondeMatch(
     Math.pow(factors.reputation, weights.reputation) *
     Math.pow(factors.convenience, weights.convenience);
 
-  // V7 multiplier: Fixed ×12 baseline (matching V5) with minor data completeness bonus
-  // Range: 12x (baseline) – 12.5x (complete data). V7.0 used 11-13x but this
-  // caused universal score drop for sparse-data restaurants.
+  // V7.2: Fixed ×12 multiplier (matching V5 exactly).
+  // Intent alignment is used ONLY for ranking tiebreaking and UI narrative,
+  // NOT as a score modifier. V7.0/V7.1 intent multipliers caused regression
+  // because the restaurant pool often lacks matching cuisines, penalizing
+  // all candidates equally and lowering scores across the board.
   const totalDataPoints = foodResult.dataPoints + settingResult.dataPoints
     + atmosphereResult.dataPoints + reputationResult.dataPoints + convenienceResult.dataPoints;
   const totalMaxPoints = foodResult.maxDataPoints + settingResult.maxDataPoints
     + atmosphereResult.maxDataPoints + reputationResult.maxDataPoints + convenienceResult.maxDataPoints;
   const dataCompleteness = totalMaxPoints > 0 ? totalDataPoints / totalMaxPoints : 0;
 
-  const multiplier = 12 + (dataCompleteness * 0.5);
+  const multiplier = 12;
 
-  // V7 intent alignment: downward-only penalty for mismatched restaurants.
-  // Range: 0.92x (zero alignment) – 1.0x (perfect alignment).
-  // This gently penalizes restaurants that don't match user intent
-  // without inflating scores for good matches (cuisine mismatch cap handles that).
-  const intentMultiplier = 0.92 + 0.08 * intentAlignment.score;
-
-  let dondeMatch = Math.round(geometricMean * multiplier * intentMultiplier);
+  let dondeMatch = Math.round(geometricMean * multiplier);
 
   // ==========================================
   // Step 9: Cuisine mismatch cap
