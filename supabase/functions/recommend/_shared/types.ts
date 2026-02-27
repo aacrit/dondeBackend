@@ -65,6 +65,8 @@ export interface DeepProfile {
   // Flavor & Culinary Identity
   flavor_profiles: string[] | null;
   signature_dishes: Array<{ dish: string; why: string }> | null;
+  /** V6: Commonly mentioned menu items from reviews — broader coverage than signature_dishes */
+  menu_highlights: string[] | null;
   cuisine_subcategory: string | null;
   menu_depth: string | null;
   spice_level: string | null;

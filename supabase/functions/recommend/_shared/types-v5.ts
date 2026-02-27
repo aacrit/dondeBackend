@@ -74,6 +74,8 @@ export interface V5WeightShiftCondition {
   vibeKeywords?: string[];
   /** True if intent.target_cuisines contains a bar/cocktail venue type */
   targetCuisineIsBar?: boolean;
+  /** V6: True when intent has a dish-level query (e.g., "tandoori chicken") */
+  dishLevelIntent?: boolean;
 }
 
 export interface V5WeightShiftRule {

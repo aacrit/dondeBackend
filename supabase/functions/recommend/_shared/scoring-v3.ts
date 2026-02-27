@@ -301,7 +301,14 @@ export function computeFoodMatch(
   const dp = profile.deep_profile;
   const v2Intent = intent && "flavor_preferences" in intent ? intent as IntentClassificationV2 : null;
 
-  // Layer 1: Cuisine alignment (0-6 points) — increased from 0-5 to expand factor ceiling (S1 fix)
+  // V6: Detect dish-level intent for layer rebalancing
+  const isDishLevel = v2Intent?.dish_level_intent != null;
+
+  // Layer 1: Cuisine alignment
+  // V6: When dish-level intent detected, cuisine ceiling reduced from 6→4 to make room
+  // for elevated dish matching (Layer 4: 1→4). This ensures "tandoori chicken" doesn't
+  // give equal scores to all Indian restaurants regardless of their menu.
+  const cuisineMax = isDishLevel ? 4 : 6;
   maxDataPoints++;
   const targetCuisines = intent?.target_cuisines || [];
   let cuisineScore = 0;
@@ -318,22 +325,22 @@ export function computeFoodMatch(
       );
 
       if (exactMatch) {
-        cuisineScore = 6;
+        cuisineScore = cuisineMax;
         cuisineSignal = `Exact: ${profile.cuisine_type}`;
       } else if (containsMatch) {
-        cuisineScore = 5.5;
+        cuisineScore = isDishLevel ? 3.5 : 5.5;
         cuisineSignal = `Close: ${profile.cuisine_type}`;
       } else if (dp?.cuisine_subcategory) {
         const subLower = dp.cuisine_subcategory.toLowerCase();
         if (targetCuisines.some(c => subLower.includes(c.toLowerCase()))) {
-          cuisineScore = 5;
+          cuisineScore = isDishLevel ? 3 : 5;
           cuisineSignal = `Sub-match: ${dp.cuisine_subcategory}`;
         } else if (isRelatedCuisine(profile.cuisine_type, targetCuisines)) {
-          cuisineScore = 3.5;
+          cuisineScore = isDishLevel ? 2 : 3.5;
           cuisineSignal = `Related: ${profile.cuisine_type}`;
         }
       } else if (isRelatedCuisine(profile.cuisine_type, targetCuisines)) {
-        cuisineScore = 3.5;
+        cuisineScore = isDishLevel ? 2 : 3.5;
         cuisineSignal = `Related: ${profile.cuisine_type}`;
       }
       if (cuisineScore === 0) cuisineSignal = `No match: ${profile.cuisine_type}`;
@@ -345,7 +352,7 @@ export function computeFoodMatch(
     cuisineSignal = "No cuisine filter";
   }
   score += cuisineScore;
-  details.cuisine = { score: cuisineScore, max: 6, signal: cuisineSignal };
+  details.cuisine = { score: cuisineScore, max: cuisineMax, signal: cuisineSignal };
 
   // Layer 2: Flavor profile match (0-2 points)
   maxDataPoints++;
@@ -412,19 +419,74 @@ export function computeFoodMatch(
   score += dietScore;
   details.dietary = { score: dietScore, max: 2, signal: dietSignal };
 
-  // Layer 4: Menu interest signal (0-1 point)
+  // Layer 4: Menu interest signal
+  // V6: Elevated from 0-1 → 0-4 for dish-level queries. This is the critical change
+  // that differentiates "has the requested dish" from "right cuisine but wrong menu".
+  // For "tandoori chicken": restaurant WITH it scores 4/4; without scores 0/4.
+  // That 4-point gap × Food weight 0.40-0.45 → ~15 DondeMatch point difference.
+  const menuMax = isDishLevel ? 4 : 1;
   maxDataPoints++;
   const requestLower = (specialRequest || "").toLowerCase();
   let menuScore = 0;
   let menuSignal = "";
   if (dp?.signature_dishes && Array.isArray(dp.signature_dishes) && dp.signature_dishes.length > 0 && requestLower.length > 2) {
     dataPoints++;
-    const dishMatch = dp.signature_dishes.some(d => {
-      const dishWords = d.dish.toLowerCase().split(/\s+/);
-      return dishWords.some(w => w.length > 3 && requestLower.includes(w));
-    });
-    if (dishMatch) { menuScore = 1; menuSignal = "Dish match found"; }
-    else menuSignal = "No dish match";
+
+    // V6: Phrase-aware dish matching (3 priority tiers)
+    // Priority 1: Exact dish name match (full phrase)
+    const exactDishMatch = dp.signature_dishes.some(d =>
+      requestLower.includes(d.dish.toLowerCase()) ||
+      d.dish.toLowerCase().includes(requestLower)
+    );
+
+    if (exactDishMatch) {
+      menuScore = menuMax;
+      menuSignal = "Exact dish match";
+    } else if (isDishLevel) {
+      // Priority 2: Bigram overlap (prevents "chicken" false positives)
+      // "tandoori chicken" → bigrams: ["tandoori chicken"]
+      // Won't match "Butter Chicken" because "butter chicken" ≠ "tandoori chicken"
+      const rWords = requestLower.split(/\s+/).filter(w => w.length > 2);
+      const requestBigrams: string[] = [];
+      for (let i = 0; i < rWords.length - 1; i++) {
+        requestBigrams.push(`${rWords[i]} ${rWords[i + 1]}`);
+      }
+      const bigramMatch = requestBigrams.length > 0 && dp.signature_dishes.some(d =>
+        requestBigrams.some(bg => d.dish.toLowerCase().includes(bg))
+      );
+      if (bigramMatch) {
+        menuScore = menuMax * 0.75;
+        menuSignal = "Dish phrase match";
+      } else {
+        // Priority 3: Single-word fallback (heavily discounted for dish queries)
+        const wordMatch = dp.signature_dishes.some(d => {
+          const dishWords = d.dish.toLowerCase().split(/\s+/);
+          return dishWords.some(w => w.length > 3 && requestLower.includes(w));
+        });
+        menuScore = wordMatch ? 1 : 0;
+        menuSignal = wordMatch ? "Partial word match" : "No dish match";
+      }
+    } else {
+      // Non-dish query: original V5 logic (max 1 pt)
+      const dishMatch = dp.signature_dishes.some(d => {
+        const dishWords = d.dish.toLowerCase().split(/\s+/);
+        return dishWords.some(w => w.length > 3 && requestLower.includes(w));
+      });
+      if (dishMatch) { menuScore = 1; menuSignal = "Dish match found"; }
+      else menuSignal = "No dish match";
+    }
+
+    // V6: menu_highlights fallback (broader coverage, lower confidence)
+    if (menuScore === 0 && dp?.menu_highlights?.length) {
+      const highlightMatch = dp.menu_highlights.some(item =>
+        requestLower.includes(item.toLowerCase()) ||
+        item.toLowerCase().includes(requestLower)
+      );
+      if (highlightMatch) {
+        menuScore = isDishLevel ? menuMax * 0.6 : 0.5;
+        menuSignal = "Menu highlight match";
+      }
+    }
   } else if (profile.tags.length > 0 && requestLower.length > 2) {
     dataPoints++;
     let tagMatch = false;
@@ -440,11 +502,23 @@ export function computeFoodMatch(
     }
     if (tagMatch) { menuScore = 0.5; menuSignal = "Tag match"; }
     else menuSignal = "No tag match";
+
+    // V6: Also check menu_highlights when no signature_dishes exist
+    if (menuScore === 0 && dp?.menu_highlights?.length && requestLower.length > 2) {
+      const highlightMatch = dp.menu_highlights.some(item =>
+        requestLower.includes(item.toLowerCase()) ||
+        item.toLowerCase().includes(requestLower)
+      );
+      if (highlightMatch) {
+        menuScore = isDishLevel ? menuMax * 0.5 : 0.5;
+        menuSignal = "Menu highlight match (no sig dishes)";
+      }
+    }
   } else {
     menuSignal = "No menu data";
   }
   score += menuScore;
-  details.menu = { score: menuScore, max: 1, signal: menuSignal };
+  details.menu = { score: menuScore, max: menuMax, signal: menuSignal };
 
   // Normalize to 0-10 — V3.6: adaptive denominator based on layers with scorable data
   // Previous: fixed maxPossible=11 meant perfect cuisine match + no flavor/menu data = 5.9/10
@@ -453,10 +527,11 @@ export function computeFoodMatch(
     && (v2Intent?.flavor_preferences?.length || extractFlavorIntent(specialRequest || "").length > 0);
   const hasMenuData = (dp?.signature_dishes && Array.isArray(dp.signature_dishes) && dp.signature_dishes.length > 0 && requestLower.length > 2)
     || (profile.tags.length > 0 && requestLower.length > 2);
-  const maxPossible = 6                   // Layer 1: cuisine (always active)
-    + (hasFlavorData ? 2 : 0)             // Layer 2: flavor (only if both sides have data)
-    + 2                                    // Layer 3: dietary (always active — has default)
-    + (hasMenuData ? 1 : 0);              // Layer 4: menu (only if data + request exist)
+  // V6: Denominator accounts for dish-level rebalancing
+  const maxPossible = cuisineMax              // Layer 1: cuisine (4 for dish, 6 otherwise)
+    + (hasFlavorData ? 2 : 0)                 // Layer 2: flavor (only if both sides have data)
+    + 2                                        // Layer 3: dietary (always active — has default)
+    + (hasMenuData ? menuMax : 0);            // Layer 4: menu (4 for dish, 1 otherwise)
   const effectiveDenom = Math.max(maxPossible, 8); // Floor at 8 to prevent over-inflation
   const normalized = Math.min(10, (score / effectiveDenom) * 10);
 
@@ -814,9 +889,24 @@ export function computeAtmosphere(
   // Floor at 5.0 to prevent over-inflation when only 1-2 layers have data.
   const effectiveMax = Math.max(atmoMaxPossible, 5.0);
 
+  // V6: Coverage discount — sparse atmosphere data cannot produce perfect scores.
+  // Without this, 3/6 layers matching perfectly → 10.0 (the denominator shrinks to match
+  // the numerator). The discount ensures only restaurants with complete atmosphere data
+  // can reach 10.0. 3/6 layers → max 8.5, 4/6 → max 9.0, etc.
+  const BASE_LAYER_COUNT = 6;
+  const coveredBaseLayers = [
+    profile.noise_level,
+    profile.lighting_ambiance && (OCCASION_LIGHTING[occasion] || []).length > 0,
+    profile.dress_code,
+    dp?.energy_level != null,
+    dp?.music_vibe,
+    v2Intent?.vibe_keywords && v2Intent.vibe_keywords.length > 0 && dp,
+  ].filter(Boolean).length;
+  const coverageDiscount = 0.7 + 0.3 * (coveredBaseLayers / BASE_LAYER_COUNT);
+
   const normalizedAtmo = effectiveMax > 0
-    ? Math.min(10, (score / effectiveMax) * 10)
-    : Math.min(10, score);
+    ? Math.min(10, (score / effectiveMax) * 10 * coverageDiscount)
+    : Math.min(10, score * coverageDiscount);
 
   // V3.6: Build sub-component details for UI drill-down (post-hoc from known data)
   const details: Record<string, V3SubComponent> = {};

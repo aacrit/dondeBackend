@@ -267,6 +267,7 @@ export async function classifyIntentV5(
   const matchedCuisines = new Set<string>();
   let cuisineKeywordMatchCount = 0;
   let hasExactCuisineName = false;
+  const matchedKeywordStrings: string[] = [];  // V6: track matched keywords for dish detection
 
   for (const [cuisine, keywords] of Object.entries(CUISINE_KEYWORDS)) {
     for (const kw of keywords) {
@@ -275,6 +276,7 @@ export async function classifyIntentV5(
       if (tokens.includes(kwLower) || input.includes(kwLower)) {
         matchedCuisines.add(cuisine);
         cuisineKeywordMatchCount++;
+        matchedKeywordStrings.push(kwLower);  // V6
         // Check if this is the exact cuisine name (e.g., "mexican", "italian")
         if (kwLower === cuisine.toLowerCase()) {
           hasExactCuisineName = true;
@@ -286,12 +288,28 @@ export async function classifyIntentV5(
 
   const targetCuisines = Array.from(matchedCuisines);
 
-  // cuisine_importance: 3+ matches or exact cuisine name → "high"; 1-2 → "medium"; 0 → "low"
+  // V6: Detect dish-level intent.
+  // If the matched keyword is a food item (not the exact cuisine name), the user is asking
+  // for a specific dish/food, not just a cuisine category.
+  // e.g., "tandoori" (matched Indian, but "tandoori" ≠ "Indian") → dish-level
+  //        "butter chicken" → dish-level
+  //        "indian" (exact cuisine name) → NOT dish-level
+  const cuisineNamesLower = new Set(
+    Object.keys(CUISINE_KEYWORDS).map((c) => c.toLowerCase()),
+  );
+  const matchedFoodItems = matchedKeywordStrings.filter(
+    (kw) => !cuisineNamesLower.has(kw),
+  );
+  const dishLevelIntent: string | null =
+    matchedFoodItems.length > 0 ? input : null;
+
+  // V6: cuisine_importance — any CUISINE_KEYWORDS match → "high"
+  // Previously: 1 match → "medium" which caused the cuisine hard filter to NOT fire,
+  // meaning "tandoori chicken" competed against ALL 2000 restaurants.
+  // A CUISINE_KEYWORDS match is definitively food-related, so it warrants "high" importance.
   let cuisineImportance: "high" | "medium" | "low";
-  if (cuisineKeywordMatchCount >= 3 || hasExactCuisineName) {
+  if (cuisineKeywordMatchCount >= 1) {
     cuisineImportance = "high";
-  } else if (cuisineKeywordMatchCount >= 1) {
-    cuisineImportance = "medium";
   } else {
     cuisineImportance = "low";
   }
@@ -352,7 +370,8 @@ export async function classifyIntentV5(
   for (const t of intentMapTags) matchedTags.add(t);
   const targetTags = Array.from(matchedTags);
 
-  // Update cuisine importance if intent map brought in strong cuisine signals
+  // Update cuisine importance if intent map brought in cuisine signals
+  // V6: Only upgrade from "low" → "medium" (never downgrade "high" from CUISINE_KEYWORDS)
   if (cuisineImportance === "low" && intentMapCuisines.size > 0) {
     cuisineImportance = "medium";
   }
@@ -551,12 +570,14 @@ export async function classifyIntentV5(
     group_size_hint: groupSizeHint,
     spontaneity,
     confidence,
+    dish_level_intent: dishLevelIntent,  // V6
   };
 
   console.log(
     `[V5 Intent] Deterministic: ${signalCount} signals, confidence=${overallConfidence}, ` +
     `cuisines=[${targetCuisines.join(",")}], tags=[${targetTags.slice(0, 5).join(",")}], ` +
-    `emotional=${emotionalIntent}, spontaneity=${spontaneity}`,
+    `emotional=${emotionalIntent}, spontaneity=${spontaneity}` +
+    (dishLevelIntent ? `, dish_level="${dishLevelIntent}"` : ""),
   );
 
   return { intent: result, classificationPath: "deterministic" };

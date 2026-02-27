@@ -39,6 +39,10 @@ export interface IntentClassificationV2 extends IntentClassification {
   spontaneity: "planned" | "spontaneous" | "unknown";
   /** V4: Per-signal confidence levels */
   confidence?: IntentConfidence;
+  /** V6: Specific dish query detected (e.g., "tandoori chicken", "pad thai").
+   *  Set when a cuisine keyword match is a food item (not cuisine name) — indicates
+   *  the user wants a specific dish, not just a cuisine category. */
+  dish_level_intent?: string | null;
 }
 
 const INTENT_SYSTEM_PROMPT_V2 = `You classify restaurant search intent for a Chicago dining recommendation app. Given a user's request, extract structured search criteria.
