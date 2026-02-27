@@ -15,7 +15,10 @@
     "audit": "tsx pipelines/audit-full-dataset.ts",
     "enrich": "tsx pipelines/enrich-full-dataset.ts",
     "enrich:live": "tsx pipelines/enrich-full-dataset.ts --live",
-    "enrich:test": "tsx pipelines/enrich-full-dataset.ts --limit 3"
+    "enrich:test": "tsx pipelines/enrich-full-dataset.ts --limit 3",
+    "enrich:dishes": "tsx enrich-dishes.ts --live",
+    "enrich:dishes:indian": "tsx enrich-dishes.ts --cuisine Indian --live",
+    "enrich:dishes:dry": "tsx enrich-dishes.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

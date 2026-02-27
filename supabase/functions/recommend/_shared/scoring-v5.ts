@@ -118,7 +118,10 @@ function computeVibeConfidence(
   const enrichConf = dp?.enrichment_confidence ?? 0;
   const dataRatio = vibeMaxDataPoints > 0 ? vibeDataPoints / vibeMaxDataPoints : 0;
 
-  if (enrichConf >= 0.5 && dataRatio >= 0.5) return "high";
+  // V6: Tightened from 0.5 → 0.65 so that 3/6 layers (ratio=0.5) → "medium"
+  // confidence → 25% regression toward 5.5. Prevents sparse-data restaurants
+  // from getting high-confidence inflated Vibe scores.
+  if (enrichConf >= 0.5 && dataRatio >= 0.65) return "high";
   if (enrichConf >= 0.3 || dataRatio >= 0.3) return "medium";
   return "low";
 }

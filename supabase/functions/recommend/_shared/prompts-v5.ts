@@ -67,9 +67,9 @@ You will receive the engine's scored candidate pool. The engine's #1 pick is Can
 - Write the blurb for Candidate #0 by DEFAULT.
 - Scan the FULL candidate pool. If a lower-ranked candidate uniquely matches the user's specific request in a way #0 cannot, you MAY boost that candidate.
 - IMPORTANT: If the user's request mentions a specific venue feature (rooftop, outdoor, view, patio, live music, cocktail bar, etc.), check the Tags column of EVERY candidate for that feature. A candidate marked with [feature✓] has that attribute — it is a strong boost candidate even if its DondeMatch is lower than #0.
-- To boost: set intent_boost=true, boost_reason (≤8 words explaining why), boost_points (5-25), and restaurant_index pointing to the boosted candidate.
-- Boost calibration: exact dish/cuisine match only this candidate has = 15-25 points; strong vibe/feature alignment = 8-14; slight fit improvement = 5-7.
-- Guard: boosted candidate base score must be ≥35. Max boost = 25.
+- To boost: set intent_boost=true, boost_reason (≤8 words explaining why), boost_points (5-35), and restaurant_index pointing to the boosted candidate.
+- Boost calibration: exact dish match only this candidate has = 20-35 points; exact cuisine match only this candidate has = 15-25 points; strong vibe/feature alignment = 8-14; slight fit improvement = 5-7.
+- Guard: boosted candidate base score must be ≥35. Max boost = 35.
 - If you boost, write the blurb for the BOOSTED candidate, not #0.
 - If no boost, set intent_boost=false and restaurant_index=0.
 
@@ -162,6 +162,31 @@ DIETARY: ${dietaryRestrictions.length > 0 ? dietaryRestrictions.join(', ') : 'No
 WEIGHT CONTEXT: ${weightContext}
 
 `;
+
+  // V6: Dish match analysis section — helps Claude identify the right candidate for dish queries
+  if (intent?.dish_level_intent) {
+    prompt += `=== DISH MATCH ANALYSIS ===\n`;
+    prompt += `User requested SPECIFIC DISH: "${intent.dish_level_intent}"\n`;
+    prompt += `Candidates with matching signature dishes:\n`;
+    let dishMatchFound = false;
+    scoredCandidates.forEach((sc, i) => {
+      const dp = sc.profile.deep_profile;
+      if (dp?.signature_dishes) {
+        const matches = dp.signature_dishes.filter((d: { dish: string; why: string }) =>
+          intent.dish_level_intent!.toLowerCase().includes(d.dish.toLowerCase()) ||
+          d.dish.toLowerCase().includes(intent.dish_level_intent!.toLowerCase())
+        );
+        if (matches.length > 0) {
+          prompt += `  #${i}. ${sc.profile.name}: ${matches.map((m: { dish: string }) => m.dish).join(', ')} ✓\n`;
+          dishMatchFound = true;
+        }
+      }
+    });
+    if (!dishMatchFound) {
+      prompt += `  (No exact dish matches found in signature_dishes)\n`;
+    }
+    prompt += `CRITICAL: If #0 does NOT serve "${intent.dish_level_intent}", you MUST boost a candidate that does.\n\n`;
+  }
 
   // Section 2: Full candidate pool (compact format for intent scanning)
   // Feature-flag markers [keyword✓] highlight user-requested attributes present in candidate tags

@@ -547,7 +547,8 @@ Deno.serve(async (req: Request) => {
       if (parsed.intent_boost && chosenIdx > 0) {
         const boostedCandidate = rerankedScored[chosenIdx];
         const engineTopScore = rerankedScored[0].dondeMatch;
-        const boostPoints = Math.min(25, Math.max(5, parsed.boost_points || 0));
+        // V6: Raised ceiling from 25 → 35 for dish-level queries
+        const boostPoints = Math.min(35, Math.max(5, parsed.boost_points || 0));
         const baseScore = boostedCandidate.dondeMatch;
         const boostedScore = Math.min(99, baseScore + boostPoints);
 

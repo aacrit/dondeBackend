@@ -88,6 +88,16 @@ export const V5_WEIGHT_SHIFT_RULES: V5WeightShiftRule[] = [
     label: "Low cuisine priority: vibe + service up, food down",
   },
 
+  // --- Category B2: V6 Dish-level intent shift (1 rule) ---
+  // When the user asks for a specific dish (e.g., "tandoori chicken"), push Food
+  // weight even higher on top of the cuisine_importance="high" shift (+0.15).
+  // This amplifies the 3.3-point dish match gap in the Food factor.
+  {
+    condition: { dishLevelIntent: true },
+    deltas: { food: +0.05, vibe: -0.03, convenience: -0.02 },
+    label: "Dish-level query: food further elevated",
+  },
+
   // --- Category C: Emotional intent shifts (6 rules) ---
   {
     condition: { emotionalIntent: "impress" },
@@ -242,6 +252,12 @@ function matchesCondition(
     const BAR_PATTERN = /cocktail|bar\b|speakeasy|brewery|pub|lounge|whiskey bar|wine bar/i;
     const isBar = intent?.target_cuisines?.some((tc: string) => BAR_PATTERN.test(tc)) ?? false;
     if (condition.targetCuisineIsBar !== isBar) return false;
+  }
+
+  // V6: Dish-level intent condition
+  if (condition.dishLevelIntent !== undefined) {
+    const hasDishIntent = intent?.dish_level_intent != null;
+    if (condition.dishLevelIntent !== hasDishIntent) return false;
   }
 
   return true;
