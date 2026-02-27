@@ -199,9 +199,54 @@ function buildScores(chosen: RestaurantProfile): Record<string, unknown> {
 // ==========================================
 
 /**
+ * V8: Build a recommendation blurb for ranked queue items (Try Again).
+ * Constructs a 2-4 sentence blurb from pre-computed match narrative +
+ * deep context data. No API call needed — entirely from pre-computed data.
+ *
+ * Fixes the critical bug where Try Again showed a DB one-liner instead of
+ * a proper recommendation blurb.
+ */
+function buildQueueBlurb(
+  profile: RestaurantProfile,
+  narrative: V7MatchNarrative | undefined,
+  intentAlignment?: { score: number; cuisine: number; dish: number; vibe: number; constraints: number },
+): string | null {
+  if (!narrative) return null;
+
+  const dp = profile.deep_profile;
+  const parts: string[] = [];
+
+  // Lead with strongest signal
+  if (narrative.strongest_factor_label) {
+    parts.push(narrative.strongest_factor_label + ".");
+  }
+
+  // Add key signal detail
+  if (narrative.key_signals?.length > 0) {
+    parts.push(narrative.key_signals[0] + ".");
+  }
+
+  // Add a deep-context detail for texture
+  if (dp?.unique_selling_point) {
+    parts.push(dp.unique_selling_point + ".");
+  } else if (dp?.signature_dishes?.[0]) {
+    parts.push(`Known for the ${dp.signature_dishes[0].dish}.`);
+  }
+
+  // Add a caveat or practical detail
+  if (narrative.weak_spots?.length > 0) {
+    parts.push(narrative.weak_spots[0] + ".");
+  } else if (dp?.check_average_per_person) {
+    parts.push(`Around $${dp.check_average_per_person} per person.`);
+  }
+
+  return parts.length >= 2 ? parts.join(" ") : null;
+}
+
+/**
  * Build a lightweight ranked queue item for "Try Again" pre-caching.
- * Includes full restaurant data + scoring but no Claude blurb.
- * The match_headline is auto-generated from the match narrative.
+ * Includes full restaurant data + scoring.
+ * V8: Now includes a proper recommendation blurb (not just best_for_oneliner).
  */
 export function buildRankedQueueItem(
   candidate: V7ScoredCandidate,
@@ -232,7 +277,7 @@ export function buildRankedQueueItem(
     scores: buildScores(profile),
     tags: profile.tags,
     deep_context: buildDeepContext(profile),
-    recommendation: profile.best_for_oneliner || null,
+    recommendation: buildQueueBlurb(profile, candidate.matchNarrative, candidate.intentAlignment) || profile.best_for_oneliner || null,
     insider_tip: profile.insider_tip || null,
   };
 }
