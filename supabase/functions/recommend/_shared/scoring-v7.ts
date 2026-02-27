@@ -754,16 +754,11 @@ export function reRankV7(
     return { profile, result };
   });
 
-  // V7: Sort by DondeMatch with intent alignment tiebreaker.
-  // When two restaurants are within 5 points, prefer better intent alignment.
-  scored.sort((a, b) => {
-    const scoreDiff = b.result.dondeMatch - a.result.dondeMatch;
-    if (Math.abs(scoreDiff) <= 5) {
-      const intentDiff = b.result.intentAlignment.score - a.result.intentAlignment.score;
-      if (Math.abs(intentDiff) > 0.15) return intentDiff > 0 ? 1 : -1;
-    }
-    return scoreDiff;
-  });
+  // Sort by DondeMatch descending (matching V5 behavior).
+  // V7.3c tried intent tiebreaker here but it worsened results because
+  // intent alignment scores are unreliable for pools lacking matching cuisines.
+  // Intent alignment is still computed and available for UI narrative + ranked queue.
+  scored.sort((a, b) => b.result.dondeMatch - a.result.dondeMatch);
 
   // Add comparison context to match narratives
   if (scored.length >= 2) {
