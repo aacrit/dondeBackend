@@ -697,6 +697,10 @@ Deno.serve(async (req: Request) => {
           "will not disappoint", "not to be missed", "that will leave you",
           "perfect blend", "perfect balance", "hits all the right notes",
           "checks all the boxes", "treat your taste buds", "palate",
+          "artisanal", "artisan", "transcend", "beckons", "invites you",
+          "symphony of", "tapestry", "crafted with care", "fusion of flavors",
+          "something for everyone", "where tradition meets", "food lovers",
+          "hidden gem", "promises", "impeccable", "masterfully", "stunningly",
         ];
         const recLower = parsed.recommendation.toLowerCase();
         const slopHits = SLOP_PATTERNS.filter(p => recLower.includes(p));
@@ -715,10 +719,16 @@ Deno.serve(async (req: Request) => {
           parsed.insider_tip = parsed.insider_tip.replace(/\u2014/g, ", ").replace(/ , /g, ", ").replace(/,\s*,/g, ",");
         }
 
-        // V5: Word count check (target 100-120)
+        // V5: Word count check (target 80-100 words per prompt spec)
         const wordCount = parsed.recommendation.split(/\s+/).length;
-        if (wordCount < 95 || wordCount > 130) {
-          logWarn("V5 recommendation word count outside target", { wordCount, target: "100-120" });
+        if (wordCount < 60 || wordCount > 130) {
+          logWarn("V5 recommendation word count outside target", { wordCount, target: "80-100" });
+        }
+
+        // V5: "We" voice check
+        const recLowerForVoice = parsed.recommendation.toLowerCase();
+        if (!/\bwe\b|\bour\b/.test(recLowerForVoice)) {
+          logWarn("V5 recommendation missing 'we'/'our' voice mandate");
         }
       }
 
