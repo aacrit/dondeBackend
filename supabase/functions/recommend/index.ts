@@ -480,16 +480,11 @@ Deno.serve(async (req: Request) => {
       };
     });
 
-    // Sort by re-ranked DondeScore with intent alignment tiebreaker
-    // When restaurants are within 5 DM points, prefer better intent alignment
-    rerankedScored.sort((a, b) => {
-      const scoreDiff = b.dondeMatch - a.dondeMatch;
-      if (Math.abs(scoreDiff) <= 5) {
-        const intentDiff = b.intentAlignment.score - a.intentAlignment.score;
-        if (Math.abs(intentDiff) > 0.15) return intentDiff > 0 ? 1 : -1;
-      }
-      return scoreDiff;
-    });
+    // Sort by re-ranked DondeScore (simple descending).
+    // V7.3c tried intent tiebreaker here but it WORSENED results (67→59 pass)
+    // because intent alignment scores are unreliable for pools lacking matching cuisines.
+    // The initial reRankV7 tiebreaker is sufficient — no need to double-apply here.
+    rerankedScored.sort((a, b) => b.dondeMatch - a.dondeMatch);
 
     // ================================================================
     // STEP 6.5: V7 — Build Ranked Queue for instant "Try Again"
