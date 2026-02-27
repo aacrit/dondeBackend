@@ -1,16 +1,16 @@
 /**
- * Donde Match V5 — Recommendation Engine
+ * Donde Match V7 — Recommendation Engine
  *
- * V5 pipeline: Intent → RPC → Hard Filter → Score → Google Enrich → Re-rank → Claude (blurb + boost) → Response
+ * V7 pipeline: Intent → RPC → Hard Filter → Score → Google Enrich → Re-rank → Ranked Queue → Claude (blurb + boost) → Response
  *
- * Key V5 changes:
- * - Deterministic intent classification (~80% zero-cost, Claude fallback ~15%)
- * - Hard filter pipeline: exclude → neighborhood → price → dietary → cuisine → open now
- * - Relaxation cascade at <12 candidates
- * - 5-factor scoring with stretched Google Rating (4.0→0, 4.9→10)
- * - 3-layer dynamic weights (base + context + data-quality + pool-size)
- * - Claude writes blurb for engine's #1 AND may boost a lower candidate (Intent Boost)
- * - All V1-V4 code paths removed
+ * Key V7 changes over V5:
+ * - Intent Alignment scoring: multiplier (0.85x-1.15x) based on user signal match
+ * - Calibrated GM multiplier: 11 + (dataCompleteness * 2) instead of fixed ×12
+ * - Factor-specific confidence priors (Food: 5.0, Reputation: 6.0, etc.)
+ * - Enhanced cuisine mismatch penalty (cap at 60 for high-importance mismatches)
+ * - Ranked Queue: Pre-compute top 5 for instant "Try Again" (no re-query)
+ * - Match Narrative: Structured "why this match" data for UI storytelling
+ * - 5-layer dynamic weights with stacking caps
  */
 
 import { corsPreflightResponse, jsonResponse } from "./_shared/cors.ts";
@@ -21,18 +21,19 @@ import {
   extractUnmatchedKeywords,
 } from "./_shared/scoring.ts";
 import type { UserFeedbackSignals } from "./_shared/scoring.ts";
-// V5 engine imports
+// V7 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
 import { runFilterPipeline } from "./_shared/filter-pipeline-v5.ts";
 import type { FilterContext } from "./_shared/filter-pipeline-v5.ts";
-import { computeV5DondeMatch, reRankV5 } from "./_shared/scoring-v5.ts";
+import { computeV7DondeMatch, reRankV7 } from "./_shared/scoring-v7.ts";
 import { buildV5SystemPrompt, buildV5UserPrompt } from "./_shared/prompts-v5.ts";
 import {
-  buildV5SuccessResponse,
-  buildV5FallbackResponse,
-  buildV5NoResultsResponse,
-  buildV5ErrorResponse,
-} from "./_shared/response-builder-v5.ts";
+  buildV7SuccessResponse,
+  buildV7FallbackResponse,
+  buildV7NoResultsResponse,
+  buildV7ErrorResponse,
+  buildRankedQueueItem,
+} from "./_shared/response-builder-v7.ts";
 import {
   fetchPlaceDetails,
   formatReviewsForPrompt,
@@ -43,11 +44,12 @@ import type {
   RestaurantProfile,
   DeepProfile,
 } from "./_shared/types.ts";
-import type { V5ClaudeRecommendation, V5ScoredCandidate } from "./_shared/types-v5.ts";
-import { getScoreTier } from "./_shared/types-v5.ts";
+import type { V5ClaudeRecommendation } from "./_shared/types-v5.ts";
+import type { V7ScoredCandidate } from "./_shared/types-v7.ts";
+import { getScoreTier } from "./_shared/types-v7.ts";
 
-// V5 API version
-const API_VERSION = "5.0.0";
+// V7 API version
+const API_VERSION = "7.0.0";
 
 // --- In-memory response cache ---
 interface CacheEntry {
@@ -139,7 +141,7 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({
       status: "ok",
       version: API_VERSION,
-      engine: "v5",
+      engine: "v7",
       timestamp: new Date().toISOString(),
     });
   }
@@ -289,7 +291,7 @@ Deno.serve(async (req: Request) => {
     const intent = intentResult.intent;
     const classificationPath = intentResult.classificationPath;
 
-    logInfo("V5 intent classification", {
+    logInfo("V7 intent classification", {
       path: classificationPath,
       cuisines: intent?.target_cuisines || [],
       importance: intent?.cuisine_importance || "none",
@@ -313,7 +315,7 @@ Deno.serve(async (req: Request) => {
 
     if (rpcError || !rpcData || rpcData.length === 0) {
       logError("RPC failed or returned no results", { error: rpcError ? String(rpcError) : "empty" });
-      return jsonResponse(buildV5NoResultsResponse(neighborhood, price_level));
+      return jsonResponse(buildV7NoResultsResponse(neighborhood, price_level));
     }
 
     // ================================================================
@@ -382,17 +384,17 @@ Deno.serve(async (req: Request) => {
     const relaxationApplied = filterResult.relaxationApplied;
 
     if (relaxationApplied.length > 0) {
-      logInfo("V5 filter relaxation applied", { relaxed: relaxationApplied });
+      logInfo("V7 filter relaxation applied", { relaxed: relaxationApplied });
     }
 
     if (filtered.length === 0) {
-      return jsonResponse(buildV5NoResultsResponse(neighborhood, price_level));
+      return jsonResponse(buildV7NoResultsResponse(neighborhood, price_level));
     }
 
     // ================================================================
-    // STEP 4: V5 Scoring — Score ALL filtered candidates
+    // STEP 4: V7 Scoring — Score ALL filtered candidates
     // ================================================================
-    const scored = reRankV5(
+    const scored = reRankV7(
       filtered,
       occasion,
       special_request,
@@ -414,7 +416,7 @@ Deno.serve(async (req: Request) => {
     }).filter(Boolean);
 
     if (diverseScored.length === 0) {
-      return jsonResponse(buildV5NoResultsResponse(neighborhood, price_level));
+      return jsonResponse(buildV7NoResultsResponse(neighborhood, price_level));
     }
 
     // ================================================================
@@ -441,15 +443,15 @@ Deno.serve(async (req: Request) => {
     }
 
     // ================================================================
-    // STEP 6: Post-Google re-rank with real Google data
+    // STEP 6: Post-Google re-rank with real Google data (V7)
     // ================================================================
-    const rerankedScored: V5ScoredCandidate[] = diverseScored.map(sc => {
+    const rerankedScored: V7ScoredCandidate[] = diverseScored.map(sc => {
       const googleData = sc.profile.google_place_id
         ? googleByPlaceId.get(sc.profile.google_place_id) || null
         : null;
 
       // Re-compute with Google data for reputation accuracy
-      const reResult = computeV5DondeMatch(sc.profile, {
+      const reResult = computeV7DondeMatch(sc.profile, {
         occasion,
         specialRequest: special_request,
         neighborhood: "Anywhere", // Already filtered
@@ -472,12 +474,22 @@ Deno.serve(async (req: Request) => {
         dataCompleteness: reResult.dataCompleteness,
         weightShiftReasons: reResult.weightShiftReasons,
         factorDetails: reResult.factorDetails,
+        intentAlignment: reResult.intentAlignment,
+        matchNarrative: reResult.matchNarrative,
         googleData,
       };
     });
 
     // Sort by re-ranked DondeScore
     rerankedScored.sort((a, b) => b.dondeMatch - a.dondeMatch);
+
+    // ================================================================
+    // STEP 6.5: V7 — Build Ranked Queue for instant "Try Again"
+    // ================================================================
+    const rankedQueue: Record<string, unknown>[] = [];
+    for (let i = 1; i < Math.min(5, rerankedScored.length); i++) {
+      rankedQueue.push(buildRankedQueueItem(rerankedScored[i], i + 1));
+    }
 
     // ================================================================
     // STEP 7: Build Claude prompt — full pool + top 3 deep profiles
@@ -568,7 +580,7 @@ Deno.serve(async (req: Request) => {
             ...boostedCandidate,
             dondeMatch: boostedScore,
           };
-          logInfo("V5 Intent Boost applied", {
+          logInfo("V7 Intent Boost applied", {
             from: rerankedScored[0].profile.name,
             to: boostedCandidate.profile.name,
             baseScore,
@@ -578,7 +590,7 @@ Deno.serve(async (req: Request) => {
           });
         } else {
           // Boost rejected — use engine's #1
-          logInfo("V5 Intent Boost rejected", {
+          logInfo("V7 Intent Boost rejected", {
             baseScore,
             boostPoints,
             boostedScore,
@@ -595,8 +607,8 @@ Deno.serve(async (req: Request) => {
       const chosen = rerankedScored[chosenIdx];
       let dondeMatch = chosen.dondeMatch;
 
-      // Cuisine mismatch detection: cap score at 65 when user explicitly requested a cuisine
-      // that the chosen restaurant doesn't match (implements the cuisine_mismatch field/T76-T80)
+      // V7: Cuisine mismatch detection — V7 scoring already caps at 60 inside scoring-v7.ts
+      // This extra guard catches any post-boost mismatch (Intent Boost may override)
       let cuisineMismatch: { requested: string; got: string } | null = null;
       if (intent?.cuisine_importance === "high" && intent.target_cuisines?.length > 0) {
         const chosenCuisine = (chosen.profile.cuisine_type || "").toLowerCase();
@@ -612,8 +624,8 @@ Deno.serve(async (req: Request) => {
             got: chosen.profile.cuisine_type || "Unknown",
           };
           const original = dondeMatch;
-          dondeMatch = Math.min(dondeMatch, 65);
-          logInfo("V5 cuisine_mismatch: score capped", {
+          dondeMatch = Math.min(dondeMatch, 60); // V7: stricter cap (was 65 in V5)
+          logInfo("V7 cuisine_mismatch: score capped", {
             requested: intent.target_cuisines,
             got: chosen.profile.cuisine_type,
             originalScore: original,
@@ -630,19 +642,18 @@ Deno.serve(async (req: Request) => {
 
       // Enhancement 20: Skip closed restaurants
       if (chosenGoogleData?.business_status === "CLOSED_PERMANENTLY") {
-        logWarn("V5: Chosen restaurant permanently closed, picking next", { name: chosen.profile.name });
+        logWarn("V7: Chosen restaurant permanently closed, picking next", { name: chosen.profile.name });
         const nextIdx = rerankedScored.findIndex((s, i) => i !== chosenIdx);
         if (nextIdx !== -1) {
           const nextChosen = rerankedScored[nextIdx];
           const nextGoogle = nextChosen.googleData || (nextChosen.profile.google_place_id
             ? await fetchPlaceDetails(nextChosen.profile.google_place_id) : null);
 
-          // Use insider_tip fallback
           if (!parsed.insider_tip && nextChosen.profile.insider_tip) {
             parsed.insider_tip = nextChosen.profile.insider_tip;
           }
 
-          const v5Result = {
+          const v7Result = {
             dondeMatch: nextChosen.dondeMatch,
             factors: nextChosen.factors,
             weights: nextChosen.weights,
@@ -650,17 +661,19 @@ Deno.serve(async (req: Request) => {
             dataCompleteness: nextChosen.dataCompleteness,
             weightShiftReasons: nextChosen.weightShiftReasons,
             factorDetails: nextChosen.factorDetails,
+            intentAlignment: nextChosen.intentAlignment,
+            matchNarrative: nextChosen.matchNarrative,
           };
 
-          responseBody = buildV5SuccessResponse(
+          responseBody = buildV7SuccessResponse(
             nextChosen.profile, parsed, nextGoogle, nextChosen.dondeMatch,
-            v5Result, null, relaxationApplied,
+            v7Result, null, relaxationApplied, rankedQueue,
           );
         } else {
-          responseBody = buildV5FallbackResponse(
+          responseBody = buildV7FallbackResponse(
             chosen.profile, chosenGoogleData, 55,
-            { dondeMatch: 55, factors: chosen.factors, weights: chosen.weights, confidence: chosen.confidence, dataCompleteness: chosen.dataCompleteness, weightShiftReasons: chosen.weightShiftReasons, factorDetails: chosen.factorDetails },
-            relaxationApplied,
+            { dondeMatch: 55, factors: chosen.factors, weights: chosen.weights, confidence: chosen.confidence, dataCompleteness: chosen.dataCompleteness, weightShiftReasons: chosen.weightShiftReasons, factorDetails: chosen.factorDetails, intentAlignment: chosen.intentAlignment, matchNarrative: chosen.matchNarrative },
+            relaxationApplied, rankedQueue,
           );
         }
       } else {
@@ -672,7 +685,7 @@ Deno.serve(async (req: Request) => {
           parsed.insider_tip = chosen.profile.deep_profile.best_seat_in_house;
         }
 
-        const v5Result = {
+        const v7Result = {
           dondeMatch,
           factors: chosen.factors,
           weights: chosen.weights,
@@ -680,11 +693,13 @@ Deno.serve(async (req: Request) => {
           dataCompleteness: chosen.dataCompleteness,
           weightShiftReasons: chosen.weightShiftReasons,
           factorDetails: chosen.factorDetails,
+          intentAlignment: chosen.intentAlignment,
+          matchNarrative: chosen.matchNarrative,
         };
 
-        responseBody = buildV5SuccessResponse(
+        responseBody = buildV7SuccessResponse(
           chosen.profile, parsed, chosenGoogleData, dondeMatch,
-          v5Result, intentBoost, relaxationApplied, cuisineMismatch,
+          v7Result, intentBoost, relaxationApplied, rankedQueue, cuisineMismatch,
         );
       }
 
@@ -737,7 +752,7 @@ Deno.serve(async (req: Request) => {
 
     } catch (claudeError) {
       wasFallback = true;
-      logError("V5 Claude API failed, using fallback", { error: String(claudeError) });
+      logError("V7 Claude API failed, using fallback", { error: String(claudeError) });
 
       const chosen = rerankedScored[0];
       let chosenGoogleData = chosen.googleData || null;
@@ -751,16 +766,16 @@ Deno.serve(async (req: Request) => {
         const nextGoogle = nextChosen.googleData || (nextChosen.profile.google_place_id
           ? await fetchPlaceDetails(nextChosen.profile.google_place_id) : null);
 
-        responseBody = buildV5FallbackResponse(
+        responseBody = buildV7FallbackResponse(
           nextChosen.profile, nextGoogle, nextChosen.dondeMatch,
-          { dondeMatch: nextChosen.dondeMatch, factors: nextChosen.factors, weights: nextChosen.weights, confidence: nextChosen.confidence, dataCompleteness: nextChosen.dataCompleteness, weightShiftReasons: nextChosen.weightShiftReasons, factorDetails: nextChosen.factorDetails },
-          relaxationApplied,
+          { dondeMatch: nextChosen.dondeMatch, factors: nextChosen.factors, weights: nextChosen.weights, confidence: nextChosen.confidence, dataCompleteness: nextChosen.dataCompleteness, weightShiftReasons: nextChosen.weightShiftReasons, factorDetails: nextChosen.factorDetails, intentAlignment: nextChosen.intentAlignment, matchNarrative: nextChosen.matchNarrative },
+          relaxationApplied, rankedQueue,
         );
       } else {
-        responseBody = buildV5FallbackResponse(
+        responseBody = buildV7FallbackResponse(
           chosen.profile, chosenGoogleData, chosen.dondeMatch,
-          { dondeMatch: chosen.dondeMatch, factors: chosen.factors, weights: chosen.weights, confidence: chosen.confidence, dataCompleteness: chosen.dataCompleteness, weightShiftReasons: chosen.weightShiftReasons, factorDetails: chosen.factorDetails },
-          relaxationApplied,
+          { dondeMatch: chosen.dondeMatch, factors: chosen.factors, weights: chosen.weights, confidence: chosen.confidence, dataCompleteness: chosen.dataCompleteness, weightShiftReasons: chosen.weightShiftReasons, factorDetails: chosen.factorDetails, intentAlignment: chosen.intentAlignment, matchNarrative: chosen.matchNarrative },
+          relaxationApplied, rankedQueue,
         );
       }
     }
@@ -824,7 +839,7 @@ Deno.serve(async (req: Request) => {
         .catch((err: unknown) => logError("Failed to auto-save search", { error: String(err) }));
     }
 
-    logInfo("V5 recommendation served", {
+    logInfo("V7 recommendation served", {
       responseTimeMs,
       occasion, neighborhood, price_level,
       wasFallback,
@@ -833,16 +848,17 @@ Deno.serve(async (req: Request) => {
       intentBoost: !!(responseBody as Record<string, unknown>).intent_boost,
       relaxation: relaxationApplied,
       candidatePool: rerankedScored.length,
-      engine: "v5",
+      rankedQueueSize: rankedQueue.length,
+      engine: "v7",
     });
 
     const response = jsonResponse(responseBody);
     response.headers.set("X-API-Version", API_VERSION);
-    response.headers.set("X-Engine", "v5");
+    response.headers.set("X-Engine", "v7");
     return response;
   } catch (error) {
-    logError("V5 engine error", { error: String(error) });
-    return jsonResponse(buildV5ErrorResponse(error), 500);
+    logError("V7 engine error", { error: String(error) });
+    return jsonResponse(buildV7ErrorResponse(error), 500);
   }
 });
 

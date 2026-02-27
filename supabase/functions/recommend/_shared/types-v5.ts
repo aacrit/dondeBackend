@@ -1,4 +1,6 @@
 /**
+ * @deprecated Use types-v7.ts instead. V5 types kept for backward-compatible imports.
+ *
  * Donde Match V5 — Type Definitions
  *
  * V5 engine types for 5-factor scoring, intent boost, and dynamic weights.

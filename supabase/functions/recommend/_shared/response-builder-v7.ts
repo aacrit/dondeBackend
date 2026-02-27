@@ -1,39 +1,32 @@
 /**
- * @deprecated Use response-builder-v7.ts instead. V5 response builder replaced by V7.
+ * Donde Match V7 — Response Builder
  *
- * Donde Match V5 — Response Builder
+ * Constructs API responses for the V7 engine. Extends V5 response shapes with:
+ *   - ranked_queue: Pre-computed top-N results for instant "Try Again"
+ *   - match_narrative: Structured "why this match" storytelling data
+ *   - scoring_v7: V7 scoring breakdown with intent alignment
+ *   - scoring_v5: Backward-compatible alias of scoring_v7
  *
- * Constructs API responses for the V5 engine. Replaces the legacy
- * response-builder.ts with V5-specific response shapes:
- *   - 5-factor scoring (food, vibe, service, reputation, convenience)
- *   - Intent boost metadata
- *   - Filter relaxation tracking
- *   - Typed V5ScoringBreakdown with confidence and factor details
- *
- * Exports: buildV5SuccessResponse, buildV5FallbackResponse,
- *          buildV5NoResultsResponse, buildV5ErrorResponse
+ * Exports: buildV7SuccessResponse, buildV7FallbackResponse,
+ *          buildV7NoResultsResponse, buildV7ErrorResponse,
+ *          buildRankedQueueItem
  */
 
 import type { RestaurantProfile } from "./types.ts";
 import type { GooglePlaceData } from "./google-places.ts";
 import type {
-  V5Factors,
-  V5Weights,
-  V5FactorConfidence,
-  V5SubComponent,
-  V5DondeMatchResult,
-  V5ClaudeRecommendation,
-  V5ScoringBreakdown,
-} from "./types-v5.ts";
+  V7DondeMatchResult,
+  V7MatchNarrative,
+  V7SubComponent,
+  V7RankedQueueItem,
+  V7ScoredCandidate,
+} from "./types-v7.ts";
+import type { V5ClaudeRecommendation } from "./types-v5.ts";
 
 // ==========================================
 // INTERNAL HELPERS
 // ==========================================
 
-/**
- * Build the restaurant object shared across all V5 response types.
- * Merges DB profile with live Google data and optional sentiment.
- */
 function buildRestaurantObject(
   chosen: RestaurantProfile,
   googleData: GooglePlaceData | null,
@@ -79,10 +72,6 @@ function buildRestaurantObject(
   };
 }
 
-/**
- * Extract top 2 high-rated review snippets for social proof.
- * Filters for 4+ star reviews with meaningful length, then truncates to 120 chars.
- */
 function buildReviewSnippets(
   googleData: GooglePlaceData | null
 ): Array<{ text: string; rating: number }> {
@@ -97,10 +86,6 @@ function buildReviewSnippets(
     }));
 }
 
-/**
- * Build deep context from the restaurant's deep profile.
- * Returns null if no deep profile exists, otherwise exposes all 31 enrichment fields.
- */
 function buildDeepContext(
   chosen: RestaurantProfile
 ): Record<string, unknown> | null {
@@ -138,25 +123,33 @@ function buildDeepContext(
     flavor_profiles: dp.flavor_profiles || null,
     spice_level: dp.spice_level || null,
     chef_notable: dp.chef_notable || null,
+    menu_highlights: dp.menu_highlights || null,
   };
 }
 
 /**
- * Build the V5 scoring breakdown from a V5DondeMatchResult.
- * Rounds factor scores to 1 decimal and weights to 2 decimals.
- * Optionally includes factor_details sub-component breakdown.
+ * Build the V7 scoring breakdown from a V7DondeMatchResult.
+ * Includes V7-specific intent alignment data.
+ * Also backward-compatible as scoring_v5 (same structure).
  */
-function buildScoringV5(v5Result: V5DondeMatchResult): V5ScoringBreakdown {
-  const {
-    factors,
-    weights,
-    confidence,
-    dataCompleteness,
-    weightShiftReasons,
-    factorDetails,
-  } = v5Result;
+function buildScoringV7(v7Result: V7DondeMatchResult): Record<string, unknown> {
+  const { factors, weights, confidence, dataCompleteness, weightShiftReasons, factorDetails, intentAlignment } = v7Result;
 
-  const result: V5ScoringBreakdown = {
+  const roundedDetails: Record<string, Record<string, { score: number; max: number; signal: string }>> = {};
+  if (factorDetails) {
+    for (const [factorKey, subComponents] of Object.entries(factorDetails)) {
+      roundedDetails[factorKey] = {};
+      for (const [subKey, sub] of Object.entries(subComponents)) {
+        roundedDetails[factorKey][subKey] = {
+          score: Math.round(sub.score * 10) / 10,
+          max: Math.round(sub.max * 10) / 10,
+          signal: sub.signal,
+        };
+      }
+    }
+  }
+
+  return {
     food: Math.round(factors.food * 10) / 10,
     vibe: Math.round(factors.vibe * 10) / 10,
     service: Math.round(factors.service * 10) / 10,
@@ -178,34 +171,17 @@ function buildScoringV5(v5Result: V5DondeMatchResult): V5ScoringBreakdown {
       convenience: confidence.convenience,
     },
     data_completeness: Math.round(dataCompleteness * 100) / 100,
+    factor_details: Object.keys(roundedDetails).length > 0 ? roundedDetails : undefined,
+    intent_alignment: intentAlignment ? {
+      score: Math.round(intentAlignment.score * 100) / 100,
+      cuisine: Math.round(intentAlignment.cuisine * 100) / 100,
+      dish: Math.round(intentAlignment.dish * 100) / 100,
+      vibe: Math.round(intentAlignment.vibe * 100) / 100,
+      constraints: Math.round(intentAlignment.constraints * 100) / 100,
+    } : undefined,
   };
-
-  // Include sub-component details when available (for inline explanation cards)
-  if (factorDetails) {
-    const roundedDetails: Record<
-      string,
-      Record<string, { score: number; max: number; signal: string }>
-    > = {};
-    for (const [factorKey, subComponents] of Object.entries(factorDetails)) {
-      roundedDetails[factorKey] = {};
-      for (const [subKey, sub] of Object.entries(subComponents)) {
-        roundedDetails[factorKey][subKey] = {
-          score: Math.round(sub.score * 10) / 10,
-          max: Math.round(sub.max * 10) / 10,
-          signal: sub.signal,
-        };
-      }
-    }
-    result.factor_details = roundedDetails;
-  }
-
-  return result;
 }
 
-/**
- * Build occasion scores object from the restaurant profile.
- * These are the 7 occasion-fit dimensions (0-10 scale).
- */
 function buildScores(chosen: RestaurantProfile): Record<string, unknown> {
   return {
     date_friendly_score: chosen.date_friendly_score,
@@ -219,19 +195,61 @@ function buildScores(chosen: RestaurantProfile): Record<string, unknown> {
 }
 
 // ==========================================
+// RANKED QUEUE ITEM BUILDER
+// ==========================================
+
+/**
+ * Build a lightweight ranked queue item for "Try Again" pre-caching.
+ * Includes full restaurant data + scoring but no Claude blurb.
+ * The match_headline is auto-generated from the match narrative.
+ */
+export function buildRankedQueueItem(
+  candidate: V7ScoredCandidate,
+  rank: number,
+): Record<string, unknown> {
+  const profile = candidate.profile;
+  const result = candidate;
+  const v7Result: V7DondeMatchResult = {
+    dondeMatch: candidate.dondeMatch,
+    factors: candidate.factors,
+    weights: candidate.weights,
+    confidence: candidate.confidence,
+    dataCompleteness: candidate.dataCompleteness,
+    weightShiftReasons: candidate.weightShiftReasons,
+    factorDetails: candidate.factorDetails,
+    intentAlignment: candidate.intentAlignment,
+    matchNarrative: candidate.matchNarrative,
+  };
+
+  return {
+    rank,
+    restaurant: buildRestaurantObject(profile, candidate.googleData || null),
+    donde_match: candidate.dondeMatch,
+    scoring_v7: buildScoringV7(v7Result),
+    scoring_v5: buildScoringV7(v7Result), // Backward compat alias
+    match_headline: candidate.matchNarrative?.summary || null,
+    match_narrative: candidate.matchNarrative || null,
+    scores: buildScores(profile),
+    tags: profile.tags,
+    deep_context: buildDeepContext(profile),
+    recommendation: profile.best_for_oneliner || null,
+    insider_tip: profile.insider_tip || null,
+  };
+}
+
+// ==========================================
 // EXPORTED RESPONSE BUILDERS
 // ==========================================
 
 /**
- * Build the main V5 success response.
- * Used when Claude successfully generates a recommendation with V5 scoring.
+ * Build the main V7 success response with ranked queue.
  */
-export function buildV5SuccessResponse(
+export function buildV7SuccessResponse(
   chosen: RestaurantProfile,
   claude: V5ClaudeRecommendation,
   googleData: GooglePlaceData | null,
   dondeMatch: number,
-  v5Result: V5DondeMatchResult,
+  v7Result: V7DondeMatchResult,
   intentBoost: {
     active: boolean;
     reason: string;
@@ -240,8 +258,10 @@ export function buildV5SuccessResponse(
     original_engine_rank: number;
   } | null,
   relaxationApplied: string[],
+  rankedQueue: Record<string, unknown>[],
   cuisineMismatch?: { requested: string; got: string } | null,
 ): Record<string, unknown> {
+  const scoringV7 = buildScoringV7(v7Result);
   return {
     success: true,
     restaurant: buildRestaurantObject(chosen, googleData, {
@@ -257,7 +277,9 @@ export function buildV5SuccessResponse(
     insider_tip: claude.insider_tip || null,
     donde_match: dondeMatch,
     cuisine_mismatch: cuisineMismatch ?? null,
-    scoring_v5: buildScoringV5(v5Result),
+    scoring_v7: scoringV7,
+    scoring_v5: scoringV7, // Backward compat alias
+    match_narrative: v7Result.matchNarrative || null,
     intent_boost: intentBoost
       ? {
           active: intentBoost.active,
@@ -268,6 +290,7 @@ export function buildV5SuccessResponse(
         }
       : null,
     relaxation_applied: relaxationApplied,
+    ranked_queue: rankedQueue,
     scores: buildScores(chosen),
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
@@ -276,27 +299,29 @@ export function buildV5SuccessResponse(
 }
 
 /**
- * Build a V5 fallback response when Claude fails to generate a recommendation.
- * Uses the restaurant's best_for_oneliner or a generic fallback message.
- * No intent boost is applied in fallback mode.
+ * Build a V7 fallback response when Claude fails.
  */
-export function buildV5FallbackResponse(
+export function buildV7FallbackResponse(
   chosen: RestaurantProfile,
   googleData: GooglePlaceData | null,
   dondeMatch: number,
-  v5Result: V5DondeMatchResult,
-  relaxationApplied: string[]
+  v7Result: V7DondeMatchResult,
+  relaxationApplied: string[],
+  rankedQueue: Record<string, unknown>[],
 ): Record<string, unknown> {
+  const scoringV7 = buildScoringV7(v7Result);
   return {
     success: true,
     restaurant: buildRestaurantObject(chosen, googleData),
-    recommendation:
-      chosen.best_for_oneliner || "A top pick based on our match engine.",
+    recommendation: chosen.best_for_oneliner || "A top pick based on our match engine.",
     insider_tip: chosen.insider_tip || null,
     donde_match: dondeMatch,
-    scoring_v5: buildScoringV5(v5Result),
+    scoring_v7: scoringV7,
+    scoring_v5: scoringV7,
+    match_narrative: v7Result.matchNarrative || null,
     intent_boost: null,
     relaxation_applied: relaxationApplied,
+    ranked_queue: rankedQueue,
     scores: buildScores(chosen),
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
@@ -305,51 +330,52 @@ export function buildV5FallbackResponse(
 }
 
 /**
- * Build a V5 no-results response with actionable suggestions.
- * Suggests broadening neighborhood or budget filters when applicable.
+ * Build a V7 no-results response.
  */
-export function buildV5NoResultsResponse(
+export function buildV7NoResultsResponse(
   neighborhood?: string,
   priceLevel?: string
 ): Record<string, unknown> {
   let message = "We couldn't find a match for that combination.";
   const suggestions: string[] = [];
-  if (neighborhood && neighborhood !== "Anywhere")
-    suggestions.push('try "Anywhere" for neighborhood');
-  if (priceLevel && priceLevel !== "Any")
-    suggestions.push('try "Any" for budget');
-  if (suggestions.length > 0)
-    message += ` You might ${suggestions.join(" or ")}.`;
+  if (neighborhood && neighborhood !== "Anywhere") suggestions.push('try "Anywhere" for neighborhood');
+  if (priceLevel && priceLevel !== "Any") suggestions.push('try "Any" for budget');
+  if (suggestions.length > 0) message += ` You might ${suggestions.join(" or ")}.`;
   return {
     success: false,
     recommendation: message,
     restaurant: {},
     scores: {},
     tags: [],
+    scoring_v7: null,
     scoring_v5: null,
+    match_narrative: null,
     intent_boost: null,
     relaxation_applied: [],
+    ranked_queue: [],
     timestamp: new Date().toISOString(),
   };
 }
 
 /**
- * Build a V5 error response for unexpected failures.
- * Logs the error server-side and returns a friendly message to the client.
+ * Build a V7 error response.
  */
-export function buildV5ErrorResponse(
+export function buildV7ErrorResponse(
   error: unknown
 ): Record<string, unknown> {
-  console.error("V5 engine error:", error);
+  console.error("V7 engine error:", error);
   return {
     success: false,
     recommendation: "The engine took a nap. Try again.",
     restaurant: {},
     scores: {},
     tags: [],
+    scoring_v7: null,
     scoring_v5: null,
+    match_narrative: null,
     intent_boost: null,
     relaxation_applied: [],
+    ranked_queue: [],
     timestamp: new Date().toISOString(),
   };
 }

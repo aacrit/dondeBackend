@@ -1,207 +1,72 @@
 /**
- * @deprecated Use weight-config-v7.ts instead. V5 weights replaced by V7 5-layer system.
+ * V7 Weight Configuration — 5-Layer Adaptive Dynamic Weight System
  *
- * V5 Weight Configuration — 3-Layer Adaptive Dynamic Weight System
+ * Key improvements over V5:
+ * - Layer 2.5: Intent Amplification — when cuisine_importance=high AND dish_level_intent,
+ *   further boost food weight to prevent non-food factors from drowning explicit food requests.
+ * - Layer 5: Stacking Cap Enforcement — per-category delta caps prevent unexpected stacking
+ *   when multiple rules from the same category fire simultaneously.
+ * - Rebalanced base weights: Food 0.22, Vibe 0.20, Service 0.18, Reputation 0.22, Convenience 0.18
+ *   (more balanced baseline that doesn't pre-favor food or reputation as heavily as V5).
+ * - New combined-signal rules (e.g., date night + specific cuisine boosts both vibe AND food).
+ * - Stronger convenience boost for "open now" / "near me" queries.
  *
- * Layer 1: Base weights (Food: 0.25, Vibe: 0.18, Service: 0.17, Reputation: 0.25, Convenience: 0.15)
- * Layer 2: 28 context-driven shift rules (occasion, cuisine, emotion, constraint, context)
- * Layer 3: Data-quality adaptation (upweight high-confidence, downweight low-confidence factors)
+ * Architecture:
+ * Layer 1: Base weights
+ * Layer 2: 34 context-driven shift rules (occasion, cuisine, emotion, constraint, context, combined)
+ * Layer 2.5: Intent amplification (cuisine_importance=high AND dish_level_intent → food +0.08)
+ * Layer 3: Data-quality adaptation (upweight high-confidence, downweight low-confidence)
  * Layer 4: Candidate pool adaptation (slim pickings vs abundance)
+ * Layer 5: Stacking cap enforcement (per-category delta caps)
  *
  * All layers applied sequentially. Clamped [0.05, 0.50], normalized to sum 1.0.
  */
 
 import type { IntentClassificationV2 } from "./intent-classifier.ts";
-import type { V5Weights, V5WeightShiftCondition, V5WeightShiftRule, V5FactorConfidence } from "./types-v5.ts";
 
 // ==========================================
-// LAYER 1: BASE WEIGHTS
+// V7 INLINE TYPES
 // ==========================================
 
-export const V5_BASE_WEIGHTS: V5Weights = {
-  food: 0.25,
-  vibe: 0.18,
-  service: 0.17,
-  reputation: 0.25,
-  convenience: 0.15,
-};
+export interface V7Weights {
+  food: number;
+  vibe: number;
+  service: number;
+  reputation: number;
+  convenience: number;
+}
 
-// ==========================================
-// LAYER 2: WEIGHT SHIFT RULES (28 rules)
-// ==========================================
+export interface V7FactorConfidence {
+  food: string; // "high" | "medium" | "low"
+  vibe: string;
+  service: string;
+  reputation: string;
+  convenience: string;
+}
 
-export const V5_WEIGHT_SHIFT_RULES: V5WeightShiftRule[] = [
-  // --- Category A: Occasion shifts (8 rules) ---
-  {
-    condition: { occasion: ["Date Night", "Special Occasion"] },
-    deltas: { vibe: +0.08, service: +0.04, convenience: -0.08, reputation: -0.04 },
-    label: "Date/special: vibe + service up, convenience down",
-  },
-  {
-    condition: { occasion: ["Business Lunch"] },
-    deltas: { service: +0.08, vibe: +0.04, food: -0.04, convenience: -0.04, reputation: -0.04 },
-    label: "Business: service + vibe up, food down",
-  },
-  {
-    condition: { occasion: ["Adventure"] },
-    deltas: { reputation: +0.05, food: -0.03, service: -0.02 },
-    label: "Adventure: reputation up (hidden gems)",
-  },
-  {
-    condition: { occasion: ["Family Dinner"] },
-    deltas: { service: +0.05, convenience: +0.08, vibe: -0.08, reputation: -0.05 },
-    label: "Family: convenience + service up, vibe down",
-  },
-  {
-    condition: { occasion: ["Solo Dining"] },
-    deltas: { convenience: +0.08, food: +0.05, service: -0.08, vibe: -0.05 },
-    label: "Solo: convenience + food up, service down",
-  },
-  {
-    condition: { occasion: ["Treat Myself"] },
-    deltas: { food: +0.05, vibe: +0.05, convenience: -0.10 },
-    label: "Treat myself: food + vibe up, convenience down",
-  },
-  {
-    condition: { occasion: ["Chill Hangout"] },
-    deltas: { vibe: +0.08, convenience: +0.05, food: -0.08, reputation: -0.05 },
-    label: "Chill: vibe + convenience up, food down",
-  },
-  {
-    condition: { occasion: ["Group Hangout"] },
-    deltas: { service: +0.05, vibe: +0.05, food: -0.05, reputation: -0.05 },
-    label: "Group: service + vibe up, food + reputation down",
-  },
+export interface V7WeightShiftCondition {
+  occasion?: string[];
+  cuisineImportance?: "high" | "medium" | "low";
+  emotionalIntent?: string;
+  priceSensitive?: boolean;
+  spontaneous?: boolean;
+  planned?: boolean;
+  dateType?: string;
+  groupSizeHint?: string;
+  timeOfDay?: string;
+  vibeKeywords?: string[];
+  targetTags?: string[];
+  targetCuisineIsBar?: boolean;
+  dishLevelIntent?: boolean;
+}
 
-  // --- Category B: Cuisine importance shifts (3 rules) ---
-  {
-    condition: { cuisineImportance: "high" },
-    deltas: { food: +0.15, vibe: -0.05, service: -0.05, reputation: -0.05 },
-    label: "High cuisine priority: food dominates",
-  },
-  {
-    condition: { cuisineImportance: "medium" },
-    deltas: { food: +0.05, vibe: -0.025, convenience: -0.025 },
-    label: "Medium cuisine priority: food slightly up",
-  },
-  {
-    condition: { cuisineImportance: "low" },
-    deltas: { vibe: +0.05, service: +0.03, food: -0.08 },
-    label: "Low cuisine priority: vibe + service up, food down",
-  },
-
-  // --- Category B2: V6 Dish-level intent shift (1 rule) ---
-  // When the user asks for a specific dish (e.g., "tandoori chicken"), push Food
-  // weight even higher on top of the cuisine_importance="high" shift (+0.15).
-  // This amplifies the 3.3-point dish match gap in the Food factor.
-  {
-    condition: { dishLevelIntent: true },
-    deltas: { food: +0.05, vibe: -0.03, convenience: -0.02 },
-    label: "Dish-level query: food further elevated",
-  },
-
-  // --- Category C: Emotional intent shifts (6 rules) ---
-  {
-    condition: { emotionalIntent: "impress" },
-    deltas: { reputation: +0.08, service: +0.04, convenience: -0.07, food: -0.05 },
-    label: "Impress: reputation + service up",
-  },
-  {
-    condition: { emotionalIntent: "comfort" },
-    deltas: { vibe: +0.08, food: +0.03, reputation: -0.06, service: -0.05 },
-    label: "Comfort: vibe + food up",
-  },
-  {
-    condition: { emotionalIntent: "explore" },
-    deltas: { reputation: +0.05, food: +0.03, vibe: -0.04, convenience: -0.04 },
-    label: "Explore: reputation + food up (discovery)",
-  },
-  {
-    condition: { emotionalIntent: "celebrate" },
-    deltas: { vibe: +0.07, service: +0.05, reputation: +0.03, food: -0.08, convenience: -0.07 },
-    label: "Celebrate: vibe + service + reputation up",
-  },
-  {
-    condition: { emotionalIntent: "casual" },
-    deltas: { convenience: +0.05, food: -0.03, service: -0.02 },
-    label: "Casual: convenience up, low effort",
-  },
-  {
-    condition: { emotionalIntent: "indulge" },
-    deltas: { food: +0.08, vibe: +0.04, convenience: -0.08, service: -0.04 },
-    label: "Indulge: food + vibe up, convenience down",
-  },
-
-  // --- Category D: Constraint shifts (3 rules) ---
-  {
-    condition: { priceSensitive: true },
-    deltas: { convenience: +0.10, food: -0.05, vibe: -0.05 },
-    label: "Price sensitive: convenience up",
-  },
-  {
-    condition: { spontaneous: true },
-    deltas: { convenience: +0.12, service: -0.05, vibe: -0.07 },
-    label: "Spontaneous: convenience up (walk-in, no wait)",
-  },
-  {
-    condition: { planned: true },
-    deltas: { service: +0.05, vibe: +0.05, convenience: -0.10 },
-    label: "Planned: service + vibe up, convenience down",
-  },
-
-  // --- Category E: Context signals (8 rules) ---
-  {
-    condition: { dateType: "first_date" },
-    deltas: { vibe: +0.10, reputation: +0.05, food: -0.07, convenience: -0.08 },
-    label: "First date: vibe + reputation up (safe pick)",
-  },
-  {
-    condition: { dateType: "anniversary" },
-    deltas: { vibe: +0.08, service: +0.05, reputation: +0.05, food: -0.08, convenience: -0.10 },
-    label: "Anniversary: must be special",
-  },
-  {
-    condition: { groupSizeHint: "large_group" },
-    deltas: { service: +0.08, convenience: +0.07, vibe: -0.05, food: -0.05, reputation: -0.05 },
-    label: "Large group: logistics dominate",
-  },
-  {
-    condition: { groupSizeHint: "solo" },
-    deltas: { food: +0.05, convenience: +0.05, service: -0.05, vibe: -0.05 },
-    label: "Solo: food + convenience up",
-  },
-  {
-    condition: { timeOfDay: "late_night" },
-    deltas: { convenience: +0.08, vibe: +0.05, service: -0.08, reputation: -0.05 },
-    label: "Late night: open late matters most",
-  },
-  {
-    condition: { timeOfDay: "breakfast" },
-    deltas: { food: +0.05, convenience: +0.05, vibe: -0.05, reputation: -0.05 },
-    label: "Breakfast: quality + quick",
-  },
-
-  // --- Category F: Vibe keyword signals (2 rules) ---
-  {
-    condition: { vibeKeywords: ["rooftop", "outdoor", "terrace", "patio", "view", "al fresco"] },
-    deltas: { vibe: +0.08, food: -0.04, convenience: -0.04 },
-    label: "Outdoor/rooftop query: vibe weight elevated",
-  },
-  {
-    condition: { targetCuisineIsBar: true },
-    deltas: { vibe: +0.08, food: -0.05, convenience: -0.03 },
-    label: "Cocktail/bar query: vibe co-elevated with food",
-  },
-
-  // V6.2: Bar/nightlife vibe queries — when the user explicitly asks for a bar type
-  // or nightlife experience, vibe dominates over food and reputation.
-  // Uses targetTags since INTENT_MAP maps these terms to tags (live music, craft cocktails, etc.)
-  {
-    condition: { targetTags: ["live music", "lively atmosphere", "late night"] },
-    deltas: { vibe: +0.10, food: -0.05, reputation: -0.05 },
-    label: "Bar/nightlife query: vibe dominates",
-  },
-];
+export interface V7WeightShiftRule {
+  condition: V7WeightShiftCondition;
+  deltas: Partial<V7Weights>;
+  label?: string;
+  /** V7: Rule category for stacking cap enforcement */
+  category: string;
+}
 
 // ==========================================
 // WEIGHT CLAMPING BOUNDS
@@ -210,12 +75,258 @@ export const V5_WEIGHT_SHIFT_RULES: V5WeightShiftRule[] = [
 const WEIGHT_MIN = 0.05;
 const WEIGHT_MAX = 0.50;
 
+/**
+ * V7 Stacking Caps: Maximum total delta per factor from any single rule category.
+ * Prevents unexpected amplification when multiple rules in the same category fire.
+ */
+const CATEGORY_STACKING_CAP = 0.15;
+
+// ==========================================
+// LAYER 1: BASE WEIGHTS
+// ==========================================
+
+export const V7_BASE_WEIGHTS: V7Weights = {
+  food: 0.22,
+  vibe: 0.20,
+  service: 0.18,
+  reputation: 0.22,
+  convenience: 0.18,
+};
+
+// ==========================================
+// LAYER 2: WEIGHT SHIFT RULES (34 rules)
+// ==========================================
+
+export const V7_WEIGHT_SHIFT_RULES: V7WeightShiftRule[] = [
+  // --- Category A: Occasion shifts (8 rules) ---
+  {
+    condition: { occasion: ["Date Night", "Special Occasion"] },
+    deltas: { vibe: +0.08, service: +0.04, convenience: -0.08, reputation: -0.04 },
+    label: "Date/special: vibe + service up, convenience down",
+    category: "occasion",
+  },
+  {
+    condition: { occasion: ["Business Lunch"] },
+    deltas: { service: +0.08, vibe: +0.04, food: -0.04, convenience: -0.04, reputation: -0.04 },
+    label: "Business: service + vibe up, food down",
+    category: "occasion",
+  },
+  {
+    condition: { occasion: ["Adventure"] },
+    deltas: { reputation: +0.05, food: -0.03, service: -0.02 },
+    label: "Adventure: reputation up (hidden gems)",
+    category: "occasion",
+  },
+  {
+    condition: { occasion: ["Family Dinner"] },
+    deltas: { service: +0.05, convenience: +0.08, vibe: -0.08, reputation: -0.05 },
+    label: "Family: convenience + service up, vibe down",
+    category: "occasion",
+  },
+  {
+    condition: { occasion: ["Solo Dining"] },
+    deltas: { convenience: +0.08, food: +0.05, service: -0.08, vibe: -0.05 },
+    label: "Solo: convenience + food up, service down",
+    category: "occasion",
+  },
+  {
+    condition: { occasion: ["Treat Myself"] },
+    deltas: { food: +0.05, vibe: +0.05, convenience: -0.10 },
+    label: "Treat myself: food + vibe up, convenience down",
+    category: "occasion",
+  },
+  {
+    condition: { occasion: ["Chill Hangout"] },
+    deltas: { vibe: +0.08, convenience: +0.05, food: -0.08, reputation: -0.05 },
+    label: "Chill: vibe + convenience up, food down",
+    category: "occasion",
+  },
+  {
+    condition: { occasion: ["Group Hangout"] },
+    deltas: { service: +0.05, vibe: +0.05, food: -0.05, reputation: -0.05 },
+    label: "Group: service + vibe up, food + reputation down",
+    category: "occasion",
+  },
+
+  // --- Category B: Cuisine importance shifts (3 rules) ---
+  {
+    condition: { cuisineImportance: "high" },
+    deltas: { food: +0.15, vibe: -0.05, service: -0.05, reputation: -0.05 },
+    label: "High cuisine priority: food dominates",
+    category: "cuisine",
+  },
+  {
+    condition: { cuisineImportance: "medium" },
+    deltas: { food: +0.05, vibe: -0.025, convenience: -0.025 },
+    label: "Medium cuisine priority: food slightly up",
+    category: "cuisine",
+  },
+  {
+    condition: { cuisineImportance: "low" },
+    deltas: { vibe: +0.05, service: +0.03, food: -0.08 },
+    label: "Low cuisine priority: vibe + service up, food down",
+    category: "cuisine",
+  },
+
+  // --- Category B2: Dish-level intent shift (1 rule) ---
+  {
+    condition: { dishLevelIntent: true },
+    deltas: { food: +0.05, vibe: -0.03, convenience: -0.02 },
+    label: "Dish-level query: food further elevated",
+    category: "cuisine",
+  },
+
+  // --- Category C: Emotional intent shifts (6 rules) ---
+  {
+    condition: { emotionalIntent: "impress" },
+    deltas: { reputation: +0.08, service: +0.04, convenience: -0.07, food: -0.05 },
+    label: "Impress: reputation + service up",
+    category: "emotion",
+  },
+  {
+    condition: { emotionalIntent: "comfort" },
+    deltas: { vibe: +0.08, food: +0.03, reputation: -0.06, service: -0.05 },
+    label: "Comfort: vibe + food up",
+    category: "emotion",
+  },
+  {
+    condition: { emotionalIntent: "explore" },
+    deltas: { reputation: +0.05, food: +0.03, vibe: -0.04, convenience: -0.04 },
+    label: "Explore: reputation + food up (discovery)",
+    category: "emotion",
+  },
+  {
+    condition: { emotionalIntent: "celebrate" },
+    deltas: { vibe: +0.07, service: +0.05, reputation: +0.03, food: -0.08, convenience: -0.07 },
+    label: "Celebrate: vibe + service + reputation up",
+    category: "emotion",
+  },
+  {
+    condition: { emotionalIntent: "casual" },
+    deltas: { convenience: +0.05, food: -0.03, service: -0.02 },
+    label: "Casual: convenience up, low effort",
+    category: "emotion",
+  },
+  {
+    condition: { emotionalIntent: "indulge" },
+    deltas: { food: +0.08, vibe: +0.04, convenience: -0.08, service: -0.04 },
+    label: "Indulge: food + vibe up, convenience down",
+    category: "emotion",
+  },
+
+  // --- Category D: Constraint shifts (3 rules) ---
+  {
+    condition: { priceSensitive: true },
+    deltas: { convenience: +0.10, food: -0.05, vibe: -0.05 },
+    label: "Price sensitive: convenience up",
+    category: "constraint",
+  },
+  {
+    condition: { spontaneous: true },
+    deltas: { convenience: +0.12, service: -0.05, vibe: -0.07 },
+    label: "Spontaneous: convenience up (walk-in, no wait)",
+    category: "constraint",
+  },
+  {
+    condition: { planned: true },
+    deltas: { service: +0.05, vibe: +0.05, convenience: -0.10 },
+    label: "Planned: service + vibe up, convenience down",
+    category: "constraint",
+  },
+
+  // --- Category E: Context signals (6 rules) ---
+  {
+    condition: { dateType: "first_date" },
+    deltas: { vibe: +0.10, reputation: +0.05, food: -0.07, convenience: -0.08 },
+    label: "First date: vibe + reputation up (safe pick)",
+    category: "context",
+  },
+  {
+    condition: { dateType: "anniversary" },
+    deltas: { vibe: +0.08, service: +0.05, reputation: +0.05, food: -0.08, convenience: -0.10 },
+    label: "Anniversary: must be special",
+    category: "context",
+  },
+  {
+    condition: { groupSizeHint: "large_group" },
+    deltas: { service: +0.08, convenience: +0.07, vibe: -0.05, food: -0.05, reputation: -0.05 },
+    label: "Large group: logistics dominate",
+    category: "context",
+  },
+  {
+    condition: { groupSizeHint: "solo" },
+    deltas: { food: +0.05, convenience: +0.05, service: -0.05, vibe: -0.05 },
+    label: "Solo: food + convenience up",
+    category: "context",
+  },
+  {
+    condition: { timeOfDay: "late_night" },
+    deltas: { convenience: +0.08, vibe: +0.05, service: -0.08, reputation: -0.05 },
+    label: "Late night: open late matters most",
+    category: "context",
+  },
+  {
+    condition: { timeOfDay: "breakfast" },
+    deltas: { food: +0.05, convenience: +0.05, vibe: -0.05, reputation: -0.05 },
+    label: "Breakfast: quality + quick",
+    category: "context",
+  },
+
+  // --- Category F: Vibe/bar keyword signals (3 rules) ---
+  {
+    condition: { vibeKeywords: ["rooftop", "outdoor", "terrace", "patio", "view", "al fresco"] },
+    deltas: { vibe: +0.08, food: -0.04, convenience: -0.04 },
+    label: "Outdoor/rooftop query: vibe weight elevated",
+    category: "vibe_signal",
+  },
+  {
+    condition: { targetCuisineIsBar: true },
+    deltas: { vibe: +0.08, food: -0.05, convenience: -0.03 },
+    label: "Cocktail/bar query: vibe co-elevated with food",
+    category: "vibe_signal",
+  },
+  {
+    condition: { targetTags: ["live music", "lively atmosphere", "late night"] },
+    deltas: { vibe: +0.10, food: -0.05, reputation: -0.05 },
+    label: "Bar/nightlife query: vibe dominates",
+    category: "vibe_signal",
+  },
+
+  // --- Category G: V7 Combined signal rules (4 rules) ---
+  // New in V7: When multiple signals combine, apply synergistic boosts
+  // that neither signal alone would trigger.
+  {
+    condition: { occasion: ["Date Night", "Special Occasion"], cuisineImportance: "high" },
+    deltas: { food: +0.06, vibe: +0.04, service: -0.05, convenience: -0.05 },
+    label: "Date + specific cuisine: food AND vibe elevated",
+    category: "combined",
+  },
+  {
+    condition: { occasion: ["Date Night"], emotionalIntent: "impress" },
+    deltas: { vibe: +0.06, reputation: +0.04, food: -0.04, convenience: -0.06 },
+    label: "Impress on date: vibe + reputation amplified",
+    category: "combined",
+  },
+  {
+    condition: { spontaneous: true, timeOfDay: "late_night" },
+    deltas: { convenience: +0.10, vibe: +0.03, food: -0.05, service: -0.04, reputation: -0.04 },
+    label: "Spontaneous late night: convenience dominates",
+    category: "combined",
+  },
+  {
+    condition: { emotionalIntent: "explore", cuisineImportance: "high" },
+    deltas: { food: +0.05, reputation: +0.03, vibe: -0.04, convenience: -0.04 },
+    label: "Explore + specific cuisine: food discovery prioritized",
+    category: "combined",
+  },
+];
+
 // ==========================================
 // LAYER 2: RULE MATCHING
 // ==========================================
 
 function matchesCondition(
-  condition: V5WeightShiftCondition,
+  condition: V7WeightShiftCondition,
   occasion: string,
   intent: IntentClassificationV2 | null,
   clientTimeOfDay?: string | null,
@@ -272,7 +383,6 @@ function matchesCondition(
     if (condition.targetCuisineIsBar !== isBar) return false;
   }
 
-  // V6: Dish-level intent condition
   if (condition.dishLevelIntent !== undefined) {
     const hasDishIntent = intent?.dish_level_intent != null;
     if (condition.dishLevelIntent !== hasDishIntent) return false;
@@ -282,18 +392,57 @@ function matchesCondition(
 }
 
 // ==========================================
+// LAYER 2.5: INTENT AMPLIFICATION
+// ==========================================
+
+/**
+ * Intent Amplification Layer — V7 addition.
+ *
+ * When the user's query has BOTH high cuisine importance AND a specific dish-level
+ * intent (e.g., "tandoori chicken", "mole negro"), the food factor needs an extra
+ * boost beyond what Layer 2 rules provide. Without this, non-food factors
+ * (vibe, reputation) can still drown out the explicit food request after
+ * normalization, especially when occasion or emotion rules also fire.
+ *
+ * This layer fires AFTER Layer 2 and BEFORE Layer 3.
+ */
+function applyIntentAmplification(
+  weights: V7Weights,
+  intent: IntentClassificationV2 | null,
+  appliedRules: string[],
+): V7Weights {
+  if (!intent) return weights;
+
+  const hasDishIntent = intent.dish_level_intent != null;
+  const highCuisine = intent.cuisine_importance === "high";
+
+  if (highCuisine && hasDishIntent) {
+    const amplified = { ...weights };
+    amplified.food += 0.08;
+    // Redistribute the boost away from lower-priority factors
+    amplified.vibe -= 0.03;
+    amplified.service -= 0.02;
+    amplified.convenience -= 0.03;
+    appliedRules.push("Intent amplification: high cuisine + dish intent → food +0.08");
+    return amplified;
+  }
+
+  return weights;
+}
+
+// ==========================================
 // LAYER 3: DATA-QUALITY ADAPTATION
 // ==========================================
 
 function adaptWeightsToDataQuality(
-  weights: V5Weights,
-  confidence: V5FactorConfidence,
-): V5Weights {
+  weights: V7Weights,
+  confidence: V7FactorConfidence,
+): V7Weights {
   const adapted = { ...weights };
 
   const BOOST_HIGH = 1.15;   // 15% boost for high-confidence data
-  const KEEP_MEDIUM = 1.0;    // no change for medium
-  const REDUCE_LOW = 0.80;    // 20% reduction for low-confidence data
+  const KEEP_MEDIUM = 1.0;   // no change for medium
+  const REDUCE_LOW = 0.80;   // 20% reduction for low-confidence data
 
   const getMultiplier = (c: string): number => {
     if (c === "high") return BOOST_HIGH;
@@ -315,9 +464,9 @@ function adaptWeightsToDataQuality(
 // ==========================================
 
 function adaptWeightsToPoolSize(
-  weights: V5Weights,
+  weights: V7Weights,
   candidatePoolSize: number,
-): V5Weights {
+): V7Weights {
   const adapted = { ...weights };
 
   if (candidatePoolSize <= 5) {
@@ -333,10 +482,85 @@ function adaptWeightsToPoolSize(
 }
 
 // ==========================================
+// LAYER 5: STACKING CAP ENFORCEMENT
+// ==========================================
+
+/**
+ * Per-category stacking caps — V7 addition.
+ *
+ * In V5, when multiple rules from the same category fire (e.g., two emotional
+ * intent rules, or multiple context signals), their deltas stack without limit.
+ * This can produce unexpected weight distributions.
+ *
+ * V7 enforces a per-category cap: the total delta contributed by all rules in a
+ * single category is clamped to ±CATEGORY_STACKING_CAP per factor.
+ *
+ * This function is applied during Layer 2 rule processing, not as a post-hoc step.
+ */
+function applyLayer2WithStackingCaps(
+  baseWeights: V7Weights,
+  rules: V7WeightShiftRule[],
+  occasion: string,
+  intent: IntentClassificationV2 | null,
+  clientTimeOfDay?: string | null,
+): { weights: V7Weights; appliedRules: string[] } {
+  const factors: (keyof V7Weights)[] = ["food", "vibe", "service", "reputation", "convenience"];
+  const appliedRules: string[] = [];
+
+  // Track cumulative deltas per category per factor
+  const categoryDeltas: Record<string, Record<keyof V7Weights, number>> = {};
+
+  // First pass: collect all matching rule deltas grouped by category
+  for (const rule of rules) {
+    if (!matchesCondition(rule.condition, occasion, intent, clientTimeOfDay)) continue;
+
+    if (rule.label) appliedRules.push(rule.label);
+
+    if (!categoryDeltas[rule.category]) {
+      categoryDeltas[rule.category] = { food: 0, vibe: 0, service: 0, reputation: 0, convenience: 0 };
+    }
+
+    for (const f of factors) {
+      if (rule.deltas[f]) {
+        categoryDeltas[rule.category][f] += rule.deltas[f]!;
+      }
+    }
+  }
+
+  // Second pass: apply capped category deltas to base weights
+  const w: V7Weights = { ...baseWeights };
+
+  for (const category of Object.keys(categoryDeltas)) {
+    const deltas = categoryDeltas[category];
+    let capped = false;
+
+    for (const f of factors) {
+      // Enforce per-category stacking cap
+      const rawDelta = deltas[f];
+      const cappedDelta = Math.max(
+        -CATEGORY_STACKING_CAP,
+        Math.min(CATEGORY_STACKING_CAP, rawDelta),
+      );
+      w[f] += cappedDelta;
+
+      if (Math.abs(rawDelta - cappedDelta) > 0.001) {
+        capped = true;
+      }
+    }
+
+    if (capped) {
+      appliedRules.push(`Stacking cap: category "${category}" clamped to ±${CATEGORY_STACKING_CAP}`);
+    }
+  }
+
+  return { weights: w, appliedRules };
+}
+
+// ==========================================
 // NORMALIZATION
 // ==========================================
 
-function clampAndNormalize(weights: V5Weights): V5Weights {
+function clampAndNormalize(weights: V7Weights): V7Weights {
   const w = { ...weights };
 
   // Clamp
@@ -360,43 +584,43 @@ function clampAndNormalize(weights: V5Weights): V5Weights {
 }
 
 // ==========================================
-// PUBLIC API: COMPUTE V5 WEIGHTS
+// PUBLIC API: COMPUTE V7 WEIGHTS
 // ==========================================
 
 /**
- * Compute dynamic weights for a given context.
+ * Compute dynamic weights for a given context using the V7 5-layer system.
  *
  * Process:
- * 1. Start from V5_BASE_WEIGHTS
- * 2. Apply all matching Layer 2 rule deltas additively
+ * 1. Start from V7_BASE_WEIGHTS
+ * 2. Apply all matching Layer 2 rules with per-category stacking caps (Layer 5)
+ * 2.5. Apply intent amplification (high cuisine + dish intent → food +0.08)
  * 3. Apply Layer 3 data-quality adaptation
  * 4. Apply Layer 4 pool-size adaptation
  * 5. Clamp each weight to [0.05, 0.50], normalize to sum 1.0
  *
  * Returns dynamic weights + list of applied rules for debugging.
  */
-export function computeV5Weights(
+export function computeV7Weights(
   occasion: string,
   intent: IntentClassificationV2 | null,
-  confidence: V5FactorConfidence,
+  confidence: V7FactorConfidence,
   candidatePoolSize: number = 15,
   clientTimeOfDay?: string | null,
-): { weights: V5Weights; appliedRules: string[] } {
+): { weights: V7Weights; appliedRules: string[] } {
   // Layer 1: Start from base
-  let w: V5Weights = { ...V5_BASE_WEIGHTS };
-  const appliedRules: string[] = [];
+  const base: V7Weights = { ...V7_BASE_WEIGHTS };
 
-  // Layer 2: Apply all matching rules
-  for (const rule of V5_WEIGHT_SHIFT_RULES) {
-    if (matchesCondition(rule.condition, occasion, intent, clientTimeOfDay)) {
-      if (rule.deltas.food) w.food += rule.deltas.food;
-      if (rule.deltas.vibe) w.vibe += rule.deltas.vibe;
-      if (rule.deltas.service) w.service += rule.deltas.service;
-      if (rule.deltas.reputation) w.reputation += rule.deltas.reputation;
-      if (rule.deltas.convenience) w.convenience += rule.deltas.convenience;
-      if (rule.label) appliedRules.push(rule.label);
-    }
-  }
+  // Layer 2 + Layer 5: Apply matching rules with stacking caps
+  let { weights: w, appliedRules } = applyLayer2WithStackingCaps(
+    base,
+    V7_WEIGHT_SHIFT_RULES,
+    occasion,
+    intent,
+    clientTimeOfDay,
+  );
+
+  // Layer 2.5: Intent amplification
+  w = applyIntentAmplification(w, intent, appliedRules);
 
   // Layer 3: Data-quality adaptation
   w = adaptWeightsToDataQuality(w, confidence);
