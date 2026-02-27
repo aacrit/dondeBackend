@@ -168,6 +168,18 @@ export const V5_WEIGHT_SHIFT_RULES: V5WeightShiftRule[] = [
     deltas: { food: +0.05, convenience: +0.05, vibe: -0.05, reputation: -0.05 },
     label: "Breakfast: quality + quick",
   },
+
+  // --- Category F: Vibe keyword signals (2 rules) ---
+  {
+    condition: { vibeKeywords: ["rooftop", "outdoor", "terrace", "patio", "view", "al fresco"] },
+    deltas: { vibe: +0.08, food: -0.04, convenience: -0.04 },
+    label: "Outdoor/rooftop query: vibe weight elevated",
+  },
+  {
+    condition: { targetCuisineIsBar: true },
+    deltas: { vibe: +0.08, food: -0.05, convenience: -0.03 },
+    label: "Cocktail/bar query: vibe co-elevated with food",
+  },
 ];
 
 // ==========================================
@@ -217,6 +229,19 @@ function matchesCondition(
   if (condition.timeOfDay) {
     const tod = clientTimeOfDay || null;
     if (tod !== condition.timeOfDay) return false;
+  }
+
+  if (condition.vibeKeywords) {
+    const hasKeyword = condition.vibeKeywords.some(kw =>
+      intent?.vibe_keywords?.some(vk => vk.toLowerCase().includes(kw.toLowerCase()))
+    );
+    if (!hasKeyword) return false;
+  }
+
+  if (condition.targetCuisineIsBar !== undefined) {
+    const BAR_PATTERN = /cocktail|bar\b|speakeasy|brewery|pub|lounge|whiskey bar|wine bar/i;
+    const isBar = intent?.target_cuisines?.some((tc: string) => BAR_PATTERN.test(tc)) ?? false;
+    if (condition.targetCuisineIsBar !== isBar) return false;
   }
 
   return true;

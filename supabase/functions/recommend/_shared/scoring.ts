@@ -1659,6 +1659,20 @@ function computeVibeAlignmentV2(
     score += Math.min(1.5, vibeHits * 0.5);
   }
 
+  // Also match vibe_keywords against restaurant tags (bridges intent→tag system)
+  // e.g. "rooftop" in vibe_keywords → restaurant with tags:["rooftop"] gets bonus
+  if (v2Intent?.vibe_keywords && v2Intent.vibe_keywords.length > 0 && profile.tags?.length > 0) {
+    let tagHits = 0;
+    const tagsLower = profile.tags.map((t: string) => t.toLowerCase());
+    for (const vibe of v2Intent.vibe_keywords) {
+      const vibeLower = vibe.toLowerCase();
+      if (tagsLower.some((tag: string) => tag.includes(vibeLower) || vibeLower.includes(tag))) {
+        tagHits++;
+      }
+    }
+    score += Math.min(1.5, tagHits * 0.75); // Up to 1.5 bonus per hit
+  }
+
   // Aesthetic / Instagram match from request
   if (specialRequest) {
     const lower = specialRequest.toLowerCase();

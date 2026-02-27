@@ -70,6 +70,10 @@ export interface V5WeightShiftCondition {
   dateType?: string;
   groupSizeHint?: string;
   timeOfDay?: string;
+  /** True if any of these keywords appear in intent.vibe_keywords */
+  vibeKeywords?: string[];
+  /** True if intent.target_cuisines contains a bar/cocktail venue type */
+  targetCuisineIsBar?: boolean;
 }
 
 export interface V5WeightShiftRule {

@@ -484,9 +484,9 @@ Deno.serve(async (req: Request) => {
     let wasFallback = false;
 
     try {
-      // Build review strings for top 3
-      const topCandidatesWithGoogle = rerankedScored.slice(0, 3).map(sc => {
-        const gd = sc.googleData;
+      // Build deep profiles for top 10 (Google data only available for top 5 already fetched)
+      const topCandidatesWithGoogle = rerankedScored.slice(0, 10).map(sc => {
+        const gd = sc.googleData || null;
         const reviews = gd && gd.reviews.length > 0 ? formatReviewsForPrompt(gd.reviews) : "";
         return { candidate: sc, googleData: gd, reviews };
       });
@@ -501,7 +501,7 @@ Deno.serve(async (req: Request) => {
       // V5 system prompt with Donde character voice + tone directive
       const systemPrompt = buildV5SystemPrompt(scoreTier);
 
-      // V5 user prompt with full candidate pool + top 3 deep profiles
+      // V5 user prompt with full candidate pool + top 10 deep profiles
       const userPrompt = buildV5UserPrompt(
         special_request,
         occasion,
@@ -511,6 +511,7 @@ Deno.serve(async (req: Request) => {
         rerankedScored,
         topCandidatesWithGoogle,
         weightContext,
+        intent,
       );
 
       // Single Claude API call — blurb + potential boost

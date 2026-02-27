@@ -10,6 +10,7 @@
 import type { RestaurantProfile } from "./types.ts";
 import type { GooglePlaceData } from "./google-places.ts";
 import type { V5ScoredCandidate, V5ScoreTier, getScoreTier, getScoreTierLabel } from "./types-v5.ts";
+import type { IntentClassificationV2 } from "./intent-classifier.ts";
 
 // ==========================================
 // SYSTEM PROMPT — Donde character + output format
@@ -61,6 +62,7 @@ INTENT BOOST INSTRUCTIONS:
 You will receive the engine's scored candidate pool. The engine's #1 pick is Candidate #0.
 - Write the blurb for Candidate #0 by DEFAULT.
 - Scan the FULL candidate pool. If a lower-ranked candidate uniquely matches the user's specific request in a way #0 cannot, you MAY boost that candidate.
+- IMPORTANT: If the user's request mentions a specific venue feature (rooftop, outdoor, view, patio, live music, cocktail bar, etc.), check the Tags column of EVERY candidate for that feature. A candidate marked with [feature✓] has that attribute — it is a strong boost candidate even if its DondeMatch is lower than #0.
 - To boost: set intent_boost=true, boost_reason (≤8 words explaining why), boost_points (5-25), and restaurant_index pointing to the boosted candidate.
 - Boost calibration: exact dish/cuisine match only this candidate has = 15-25 points; strong vibe/feature alignment = 8-14; slight fit improvement = 5-7.
 - Guard: boosted candidate base score must be ≥35. Max boost = 25.
@@ -144,6 +146,7 @@ export function buildV5UserPrompt(
     reviews: string;
   }>,
   weightContext: string,
+  intent?: IntentClassificationV2 | null,
 ): string {
   // Section 1: User request context
   let prompt = `USER REQUEST: "${specialRequest || 'No specific request'}"
@@ -157,15 +160,20 @@ WEIGHT CONTEXT: ${weightContext}
 `;
 
   // Section 2: Full candidate pool (compact format for intent scanning)
+  // Feature-flag markers [keyword✓] highlight user-requested attributes present in candidate tags
+  const featureKeywords = intent?.vibe_keywords?.map((v: string) => v.toLowerCase()) || [];
   prompt += `=== FULL CANDIDATE POOL (${scoredCandidates.length} restaurants) ===\n`;
   scoredCandidates.forEach((sc, i) => {
     const p = sc.profile;
-    const tags = p.tags.slice(0, 4).join(', ');
-    prompt += `#${i}. ${p.name} | ${p.cuisine_type || 'Unknown'} | ${p.price_level || '?'} | DM:${sc.dondeMatch} | Tags: ${tags}\n`;
+    const tags = p.tags.slice(0, 5).join(', ');
+    const featureFlags = featureKeywords
+      .filter((kw: string) => p.tags?.some((tag: string) => tag.toLowerCase().includes(kw) || kw.includes(tag.toLowerCase())))
+      .map((kw: string) => `[${kw}✓]`).join('');
+    prompt += `#${i}. ${p.name} | ${p.cuisine_type || 'Unknown'} | ${p.price_level || '?'} | DM:${sc.dondeMatch} | Tags: ${tags}${featureFlags ? ' ' + featureFlags : ''}\n`;
   });
 
-  // Section 3: Top 3 deep profiles (for blurb writing)
-  prompt += `\n=== TOP CANDIDATES (deep profiles for blurb) ===\n`;
+  // Section 3: Top 10 deep profiles (Google data available for top 5, DB data for all 10)
+  prompt += `\n=== TOP CANDIDATES (deep profiles, top 10) ===\n`;
   topCandidatesWithGoogle.forEach(({ candidate: sc, googleData, reviews }, i) => {
     const p = sc.profile;
     const dp = p.deep_profile;
