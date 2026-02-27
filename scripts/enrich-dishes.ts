@@ -24,7 +24,11 @@ interface RestaurantRow {
   id: string;
   name: string;
   cuisine_type: string | null;
-  tags: string[];
+}
+
+interface TagRow {
+  restaurant_id: string;
+  tag_text: string;
 }
 
 interface DeepProfileRow {
@@ -99,7 +103,7 @@ async function main() {
   // Fetch restaurants
   let query = supabase
     .from("restaurants")
-    .select("id, name, cuisine_type, tags");
+    .select("id, name, cuisine_type");
 
   if (cuisineFilter) {
     query = query.ilike("cuisine_type", `%${cuisineFilter}%`);
@@ -120,17 +124,41 @@ async function main() {
   if (cuisineFilter) console.log(`Cuisine filter: ${cuisineFilter}`);
   if (limitArg) console.log(`Limit: ${limitArg}`);
 
-  // Fetch existing deep profiles
+  // Fetch tags + profiles in 100-ID chunks (PostgREST URL length limit)
   const ids = restaurants.map((r: RestaurantRow) => r.id);
-  const { data: profiles, error: profError } = await supabase
-    .from("restaurant_deep_profiles")
-    .select("restaurant_id, signature_dishes, menu_highlights, flavor_profiles")
-    .in("restaurant_id", ids);
+  const CHUNK = 100;
 
-  if (profError) throw new Error(`Failed to fetch profiles: ${profError.message}`);
+  const allTagRows: TagRow[] = [];
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const chunk = ids.slice(i, i + CHUNK);
+    const { data, error } = await supabase
+      .from("tags")
+      .select("restaurant_id, tag_text")
+      .in("restaurant_id", chunk);
+    if (error) throw new Error(`Failed to fetch tags (chunk ${i}): ${error.message}`);
+    if (data) allTagRows.push(...(data as TagRow[]));
+  }
+
+  const tagMap = new Map<string, string[]>();
+  for (const t of allTagRows) {
+    const existing = tagMap.get(t.restaurant_id) || [];
+    existing.push(t.tag_text);
+    tagMap.set(t.restaurant_id, existing);
+  }
+
+  const allProfiles: DeepProfileRow[] = [];
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const chunk = ids.slice(i, i + CHUNK);
+    const { data, error } = await supabase
+      .from("restaurant_deep_profiles")
+      .select("restaurant_id, signature_dishes, menu_highlights, flavor_profiles")
+      .in("restaurant_id", chunk);
+    if (error) throw new Error(`Failed to fetch profiles (chunk ${i}): ${error.message}`);
+    if (data) allProfiles.push(...(data as DeepProfileRow[]));
+  }
 
   const profileMap = new Map<string, DeepProfileRow>();
-  for (const p of (profiles || []) as DeepProfileRow[]) {
+  for (const p of allProfiles) {
     profileMap.set(p.restaurant_id, p);
   }
 
@@ -155,7 +183,7 @@ async function main() {
             r.name,
             r.cuisine_type,
             profile?.signature_dishes || null,
-            r.tags || [],
+            tagMap.get(r.id) || [],
             profile?.flavor_profiles || null,
           );
 

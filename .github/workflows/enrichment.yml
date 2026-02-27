@@ -1,8 +1,7 @@
 name: Restaurant Enrichment
 
 on:
-  
-  # Enhancement 16: Auto-trigger when discovery completes
+  # Auto-trigger when discovery completes (chain flow)
   workflow_run:
     workflows: ["Restaurant Discovery"]
     types: [completed]
