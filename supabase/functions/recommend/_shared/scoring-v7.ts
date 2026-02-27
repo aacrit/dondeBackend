@@ -86,11 +86,11 @@ const CONFIDENCE_MULTIPLIER: Record<ConfidenceLevel, number> = {
  *   Convenience 5.0 — practical factors vary widely
  */
 const CONFIDENCE_PRIORS: Record<string, number> = {
-  food: 5.0,
+  food: 5.5,       // V7.1: reverted from 5.0 — lower prior was dropping food scores
   vibe: 5.5,
   service: 5.5,
-  reputation: 6.0,
-  convenience: 5.0,
+  reputation: 6.0,  // Google selection bias → listed places tend to be decent
+  convenience: 5.5, // V7.1: reverted from 5.0 — lower prior was dropping convenience scores
 };
 
 /** Minimum factor score to prevent geometric mean zero-collapse */
@@ -675,19 +675,22 @@ export function computeV7DondeMatch(
     Math.pow(factors.reputation, weights.reputation) *
     Math.pow(factors.convenience, weights.convenience);
 
-  // V7 calibrated multiplier: 11 + (dataCompleteness * 2)
-  // Range: 11x (sparse data) – 13x (complete data)
+  // V7 multiplier: Fixed ×12 baseline (matching V5) with minor data completeness bonus
+  // Range: 12x (baseline) – 12.5x (complete data). V7.0 used 11-13x but this
+  // caused universal score drop for sparse-data restaurants.
   const totalDataPoints = foodResult.dataPoints + settingResult.dataPoints
     + atmosphereResult.dataPoints + reputationResult.dataPoints + convenienceResult.dataPoints;
   const totalMaxPoints = foodResult.maxDataPoints + settingResult.maxDataPoints
     + atmosphereResult.maxDataPoints + reputationResult.maxDataPoints + convenienceResult.maxDataPoints;
   const dataCompleteness = totalMaxPoints > 0 ? totalDataPoints / totalMaxPoints : 0;
 
-  const multiplier = 11 + (dataCompleteness * 2);
+  const multiplier = 12 + (dataCompleteness * 0.5);
 
-  // V7 intent alignment multiplier: 0.85 + 0.30 * intentAlignment
-  // Range: 0.85x (zero alignment) – 1.15x (perfect alignment)
-  const intentMultiplier = 0.85 + 0.30 * intentAlignment.score;
+  // V7 intent alignment: downward-only penalty for mismatched restaurants.
+  // Range: 0.92x (zero alignment) – 1.0x (perfect alignment).
+  // This gently penalizes restaurants that don't match user intent
+  // without inflating scores for good matches (cuisine mismatch cap handles that).
+  const intentMultiplier = 0.92 + 0.08 * intentAlignment.score;
 
   let dondeMatch = Math.round(geometricMean * multiplier * intentMultiplier);
 
@@ -773,7 +776,16 @@ export function reRankV7(
     return { profile, result };
   });
 
-  scored.sort((a, b) => b.result.dondeMatch - a.result.dondeMatch);
+  // V7: Sort by DondeMatch with intent alignment tiebreaker.
+  // When two restaurants are within 5 points, prefer better intent alignment.
+  scored.sort((a, b) => {
+    const scoreDiff = b.result.dondeMatch - a.result.dondeMatch;
+    if (Math.abs(scoreDiff) <= 5) {
+      const intentDiff = b.result.intentAlignment.score - a.result.intentAlignment.score;
+      if (Math.abs(intentDiff) > 0.15) return intentDiff > 0 ? 1 : -1;
+    }
+    return scoreDiff;
+  });
 
   // Add comparison context to match narratives
   if (scored.length >= 2) {
