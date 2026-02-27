@@ -706,10 +706,34 @@ export function computeAtmosphere(
   let atmoMaxPossible = 0;     // denominator: only layers with scorable data
   let atmoMaxAbsolute = 0;     // tracking total for reference
 
+  // V6.1: Vibe-keyword-driven noise and lighting preferences
+  // Merges vibe preferences with occasion preferences so "Cozy brunch" favors quiet spots
+  const VIBE_NOISE: Record<string, string[]> = {
+    cozy: ["Quiet"], intimate: ["Quiet"], chill: ["Quiet", "Moderate"],
+    lively: ["Moderate", "Loud"], buzzing: ["Loud"], refined: ["Quiet", "Moderate"],
+    elegant: ["Quiet", "Moderate"], warm: ["Moderate"], casual: ["Moderate"],
+  };
+  const VIBE_LIGHTING: Record<string, string[]> = {
+    cozy: ["dim", "warm", "intimate"], intimate: ["dim", "intimate", "candlelit"],
+    elegant: ["warm", "candlelit", "romantic"], refined: ["warm", "dim"],
+    lively: ["bright", "warm"], casual: ["bright", "natural"],
+    chill: ["dim", "warm"], warm: ["warm", "intimate"],
+  };
+  const vibeKeywords = v2Intent?.vibe_keywords || [];
+  const vibeNoisePrefs: string[] = [];
+  const vibeLightingPrefs: string[] = [];
+  for (const vk of vibeKeywords) {
+    const vkLower = vk.toLowerCase();
+    if (VIBE_NOISE[vkLower]) vibeNoisePrefs.push(...VIBE_NOISE[vkLower]);
+    if (VIBE_LIGHTING[vkLower]) vibeLightingPrefs.push(...VIBE_LIGHTING[vkLower]);
+  }
+
   // Noise match (0-2.0) — increased from 0-1.5 for better range (S1)
   maxDataPoints++;
   atmoMaxAbsolute += 2.0;
-  const expectedNoise = OCCASION_NOISE[occasion] || OCCASION_NOISE.Any;
+  const occasionNoise = OCCASION_NOISE[occasion] || OCCASION_NOISE.Any;
+  // V6.1: Merge occasion + vibe noise preferences (union, deduplicated)
+  const expectedNoise = [...new Set([...occasionNoise, ...vibeNoisePrefs])];
   if (profile.noise_level) {
     dataPoints++;
     atmoMaxPossible += 2.0;    // V3.6: only count in denominator when data exists
@@ -723,7 +747,9 @@ export function computeAtmosphere(
   // Lighting match (0-2.0) — increased from 0-1.5 (S1)
   maxDataPoints++;
   atmoMaxAbsolute += 2.0;
-  const expectedLighting = OCCASION_LIGHTING[occasion] || [];
+  const occasionLighting = OCCASION_LIGHTING[occasion] || [];
+  // V6.1: Merge occasion + vibe lighting preferences (union, deduplicated)
+  const expectedLighting = [...new Set([...occasionLighting, ...vibeLightingPrefs])];
   if (profile.lighting_ambiance && expectedLighting.length > 0) {
     dataPoints++;
     atmoMaxPossible += 2.0;
@@ -804,6 +830,23 @@ export function computeAtmosphere(
       dataPoints++;
       atmoMaxPossible += 1.5;
       score += Math.min(1.5, vibeHits * 0.5);
+    }
+  }
+
+  // V6.1: Conversation friendliness bonus for date/romantic occasions (0-1.0)
+  // Restaurants where you can actually talk are critical for date queries
+  const dateOccasions = ["Date Night", "Anniversary", "Special Occasion"];
+  if (dateOccasions.includes(occasion) && dp?.conversation_friendliness != null) {
+    maxDataPoints++;
+    atmoMaxAbsolute += 1.0;
+    dataPoints++;
+    atmoMaxPossible += 1.0;
+    if (dp.conversation_friendliness >= 7) {
+      score += 1.0;
+    } else if (dp.conversation_friendliness >= 5) {
+      score += 0.5;
+    } else {
+      score += 0;
     }
   }
 
@@ -915,6 +958,10 @@ export function computeAtmosphere(
   details.dress = { score: profile.dress_code && (DRESS_LEVELS[profile.dress_code] || 1) >= (DRESS_LEVELS[expectedDressMin] || 1) ? 1 : profile.dress_code ? 0.3 : 0, max: 1, signal: profile.dress_code || "No data" };
   details.energy = { score: dp?.energy_level != null ? Math.min(2.0, Math.max(0, 2.0 - Math.abs(dp.energy_level - ((OCCASION_ENERGY[occasion] || [3, 7])[0] + (OCCASION_ENERGY[occasion] || [3, 7])[1]) / 2) * 0.4)) : 0, max: 2, signal: dp?.energy_level != null ? `Energy ${dp.energy_level}/10` : "No data" };
   details.music = { score: dp?.music_vibe && (MUSIC_FIT[occasion] || []).includes(dp.music_vibe) ? 1.5 : 0, max: 1.5, signal: dp?.music_vibe || "No data" };
+  // V6.1: Conversation friendliness for date occasions
+  if (dateOccasions.includes(occasion) && dp?.conversation_friendliness != null) {
+    details.social = { score: dp.conversation_friendliness >= 7 ? 1.0 : dp.conversation_friendliness >= 5 ? 0.5 : 0, max: 1, signal: `Conversation ${dp.conversation_friendliness}/10` };
+  }
 
   return {
     score: Math.max(0, normalizedAtmo),
