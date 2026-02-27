@@ -100,27 +100,39 @@ Respond ONLY in JSON:
 async function main() {
   const supabase = createAdminClient();
 
-  // Fetch restaurants
-  let query = supabase
-    .from("restaurants")
-    .select("id, name, cuisine_type");
+  // Fetch ALL restaurants (Supabase defaults to 1000 rows, so paginate)
+  const PAGE = 1000;
+  const allRestaurants: RestaurantRow[] = [];
+  let page = 0;
+  while (true) {
+    let query = supabase
+      .from("restaurants")
+      .select("id, name, cuisine_type")
+      .range(page * PAGE, (page + 1) * PAGE - 1);
 
-  if (cuisineFilter) {
-    query = query.ilike("cuisine_type", `%${cuisineFilter}%`);
+    if (cuisineFilter) {
+      query = query.ilike("cuisine_type", `%${cuisineFilter}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(`Failed to fetch restaurants: ${error.message}`);
+    if (!data?.length) break;
+    allRestaurants.push(...(data as RestaurantRow[]));
+    if (data.length < PAGE) break;   // last page
+    page++;
   }
 
+  let restaurants = allRestaurants;
   if (limitArg) {
-    query = query.limit(limitArg);
+    restaurants = restaurants.slice(0, limitArg);
   }
 
-  const { data: restaurants, error: restError } = await query;
-  if (restError) throw new Error(`Failed to fetch restaurants: ${restError.message}`);
-  if (!restaurants?.length) {
+  if (!restaurants.length) {
     console.log("No restaurants found matching criteria.");
     return;
   }
 
-  console.log(`Found ${restaurants.length} restaurants to enrich`);
+  console.log(`Found ${restaurants.length} restaurants in DB`);
   if (cuisineFilter) console.log(`Cuisine filter: ${cuisineFilter}`);
   if (limitArg) console.log(`Limit: ${limitArg}`);
 
@@ -162,8 +174,31 @@ async function main() {
     profileMap.set(p.restaurant_id, p);
   }
 
+  // Resume support: skip restaurants already enriched
+  const needsEnrichment = restaurants.filter((r) => {
+    const profile = profileMap.get(r.id);
+    if (!profile) return true; // no profile at all → needs enrichment
+    const hasDishes =
+      Array.isArray(profile.signature_dishes) &&
+      profile.signature_dishes.length >= 10;
+    const hasHighlights =
+      Array.isArray(profile.menu_highlights) &&
+      profile.menu_highlights.length > 0;
+    return !(hasDishes && hasHighlights);
+  });
+
+  const skipped = restaurants.length - needsEnrichment.length;
+  console.log(
+    `Skipping ${skipped} already-enriched restaurants, ${needsEnrichment.length} remaining`,
+  );
+
+  if (!needsEnrichment.length) {
+    console.log("All restaurants already enriched. Nothing to do.");
+    return;
+  }
+
   if (!isLive) {
-    console.log(`\nReady to enrich ${restaurants.length} restaurants.`);
+    console.log(`\nReady to enrich ${needsEnrichment.length} restaurants.`);
     console.log("Run with --live to execute. Exiting (dry-run).");
     return;
   }
@@ -173,7 +208,7 @@ async function main() {
   let failed = 0;
 
   await processBatches(
-    restaurants as RestaurantRow[],
+    needsEnrichment,
     10, // batch size
     async (batch) => {
       const promises = batch.map(async (r) => {
@@ -250,7 +285,7 @@ async function main() {
   );
 
   console.log(
-    `\nDone. Enriched: ${enriched}, Failed: ${failed}, Total: ${restaurants.length}`,
+    `\nDone. Enriched: ${enriched}, Failed: ${failed}, Skipped: ${skipped}, Total: ${restaurants.length}`,
   );
 }
 
