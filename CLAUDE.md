@@ -1,6 +1,6 @@
 # DondeAI Backend
 
-Last updated: 2026-02-26
+Last updated: 2026-02-27
 
 > **Read all `docs/*.md` files for context before making changes. Only open source files when modifying code.**
 
@@ -10,9 +10,9 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 
 | Doc | Contents |
 |-----|----------|
-| `docs/ARCHITECTURE.md` | Repo structure, tech stack, Edge Function modules, deployment, CI/CD |
+| `docs/ARCHITECTURE.md` | Repo structure, tech stack, V7 modules, deployment, CI/CD |
 | `docs/DATABASE.md` | Complete DB schema — all tables, columns, types, RPC, relationships |
-| `docs/API-WORKFLOWS.md` | V5 request flow, scoring model, pipeline inventory, Google integration |
+| `docs/API-WORKFLOWS.md` | V7 request flow, scoring model, pipeline inventory, Google integration |
 | `docs/FEATURES.md` | Backend feature checklist with implementation status |
 
 ## Tests
@@ -20,8 +20,35 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | File | Description |
 |------|-------------|
 | `tests/test_catalog.sh` | 65-scenario bash API test suite |
+| `tests/golden-dataset-test.sh` | 50-query golden dataset (88 checks) — primary scoring benchmark |
 | `tests/TEST-FULL.md` | 170-scenario agent-driven test spec |
-| `tests/TEST_RESULTS.md` | Latest results: 273 pass, 3 fail, 30 warn (2026-02-24) |
+| `tests/GOLDEN_DATASET_RESULTS.md` | Latest golden dataset results |
+| `tests/TEST_RESULTS.md` | Latest catalog results: 273 pass, 3 fail, 30 warn (2026-02-24) |
+
+**Golden dataset V7.3b baseline (2026-02-27):** 67 pass / 2 fail / 19 warn / 74 avg DondeMatch (76% pass rate). V5 baseline was 70/2/16/76.
+
+## Scoring Engine — V7.3b (active)
+
+**Active engine:** `scoring-v7.ts` + `weight-config-v5.ts` (V5 weights imported, V7 features layered on top)
+
+**Formula:** `DondeScore = (FQ^w * VB^w * SV^w * RP^w * CV^w) × 12`
+
+| Factor | Base Weight | Key Signals |
+|--------|------------|-------------|
+| Food | 0.25 | Cuisine match, flavor profile, dietary fit, menu interest |
+| Vibe | 0.18 | Noise, lighting, dress, energy, music, vibe keywords |
+| Service | 0.17 | Occasion base, service style, pacing, social dynamics |
+| Reputation | 0.25 | Stretched Google rating (3.5→0, 5.0→10), reviews, awards |
+| Convenience | 0.15 | Timing, reservation, wait time, parking |
+
+**V7 additions over V5:**
+- **Intent Alignment Score** (0.0–1.0): cuisine/dish/vibe/constraint matching → used as ranking tiebreaker + UI narrative
+- **Match Narrative**: structured "why this match" text for UI storytelling
+- **Ranked Queue**: pre-computed top 5 results → instant Try Again (<100ms)
+- **Post-Google re-scoring**: reputation re-computed with real Google ratings before final rank
+- **V5 weight engine**: 28-rule system (no stacking caps) — V7's original 34-rule system caused regression
+
+**Deprecated (do not use):** `scoring-v5.ts`, `scoring-v3.ts`, `weight-config-v7.ts`, `response-builder-v5.ts`, `types-v5.ts` — all marked `@deprecated`, replaced by V7 equivalents.
 
 ## API Contract (Immutable)
 
@@ -47,7 +74,7 @@ Timeout: 15s (AbortController on frontend)
 }
 ```
 
-**Response:**
+**Response (V7):**
 ```json
 {
   "success": true,
@@ -57,16 +84,25 @@ Timeout: 15s (AbortController on frontend)
     "noise_level", "cuisine_type", "lighting_ambiance", "dress_code",
     "outdoor_seating", "live_music", "pet_friendly", "parking_availability",
     "dietary_options", "sentiment_breakdown", "sentiment_score", "sentiment_summary",
-    "sentiment_positive", "sentiment_negative", "sentiment_neutral",
     "neighborhood_name", "photo_urls", "opening_hours", "review_snippets"
   },
   "recommendation": "string (100-120 words)",
   "insider_tip": "string|null",
-  "donde_match": "numeric 60-99",
+  "donde_match": "integer 0-99",
   "scores": { "date_friendly_score", "group_friendly_score", "family_friendly_score",
     "business_lunch_score", "solo_dining_score", "hole_in_wall_factor", "romantic_rating" },
-  "scoring_v5": { "food", "vibe", "service", "reputation", "convenience",
-    "weights_used", "weight_shift_reasons", "confidence", "data_completeness" },
+  "scoring_v7": {
+    "food", "vibe", "service", "reputation", "convenience",
+    "weights_used", "weight_shift_reasons", "confidence", "data_completeness",
+    "factor_details", "intent_alignment": {"score", "cuisine", "dish", "vibe", "constraints"}
+  },
+  "scoring_v5": "<alias of scoring_v7 for backward compatibility>",
+  "match_narrative": {
+    "strongest_factor", "key_signals", "summary", "weak_spots", "comparison_context"
+  },
+  "ranked_queue": [
+    { "rank", "restaurant", "donde_match", "scoring_v7", "match_headline" }
+  ],
   "deep_context": { "signature_dishes", "service_style", "reservation_difficulty", "..." },
   "tags": ["string"],
   "intent_boost": { "active", "reason", "boost_points", "base_score" },
@@ -99,6 +135,7 @@ supabase db push
 
 # Tests
 ./tests/test_catalog.sh
+./tests/golden-dataset-test.sh
 ```
 
 ## Environment Variables

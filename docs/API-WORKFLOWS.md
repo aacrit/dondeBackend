@@ -1,8 +1,8 @@
 # API & Workflows
 
-Last updated: 2026-02-26
+Last updated: 2026-02-27
 
-## Edge Function Request Flow (V5.0.0)
+## Edge Function Request Flow (V7.3b)
 
 ```
 index.ts orchestration — single POST /recommend endpoint
@@ -15,42 +15,64 @@ index.ts orchestration — single POST /recommend endpoint
 5. **Hard filter pipeline** (`runFilterPipeline`) — 6-stage cascade:
    - Exclude list → Neighborhood → Price → Dietary → Cuisine (from intent) → Open Now
    - Relaxation cascade if <12 candidates survive (drops stricter filters)
-6. **V5 scoring** (`reRankV5`) — 5-factor geometric mean WITHOUT Google data
+6. **V7 scoring** (`reRankV7`) — 5-factor geometric mean WITHOUT Google data. Intent alignment tiebreaker for ties ≤5 DM points.
 7. **Diversity filter** — `ensureDiversity()` max 2 same cuisine in top results
 8. **Google Places fetch** — Top 5 candidates, 1.5s timeout, parallel
-9. **Post-Google re-rank** — Re-compute scores WITH Google data, re-sort
-10. **Claude recommendation** — System prompt (voice + tone tier) + user prompt (candidates + reviews). Claude picks restaurant, writes 100-120 word blurb, optional intent boost.
-11. **Intent Boost processing** — If Claude elevates a lower candidate: base >= 35, boosted must beat #1. Guard rails enforced.
-12. **Response build** — `buildV5SuccessResponse()` with scoring_v5 breakdown. Cache result. Fire-and-forget query log + auto-save for auth users.
+9. **Post-Google re-score** — Re-compute all candidates with real Google data for reputation accuracy. Simple descending re-sort.
+10. **Build Ranked Queue** — Top 5 results packaged as `ranked_queue` items (lightweight, no Claude call)
+11. **Claude recommendation** — System prompt (voice + tone tier) + user prompt (candidates + reviews). Claude picks restaurant, writes 100-120 word blurb, optional intent boost.
+12. **Intent Boost guard rails** — If Claude elevates lower candidate: base >= 35, boosted must beat #1.
+13. **Cuisine mismatch cap** — If high-importance cuisine mismatch: cap DondeMatch at 65 post-Claude.
+14. **Response build** — `buildV7SuccessResponse()` with `scoring_v7`, `match_narrative`, `ranked_queue`. Cache result. Fire-and-forget query log.
 
 **Fallback tiers:** JSON parse → regex recovery → fallback response (top restaurant, no AI text) → no-results → error
 
-## V5 Scoring Model
+## V7 Scoring Model
 
-**Formula:** `DondeScore = (FQ^w_fq * VB^w_vb * SV^w_sv * RP^w_rp * CV^w_cv) * 10`
+**Formula:** `DondeScore = (FQ^w_f * VB^w_v * SV^w_s * RP^w_r * CV^w_c) × 12`
 
-Score range: 60-99 (clamped). Factors on 0-10 scale.
+Score range: 0-99 (clamped). Factors on 0-10 scale. Multiplier: fixed ×12.
 
 | Factor | Base Weight | Key Signals |
 |--------|------------|-------------|
-| Food Quality | 0.25 | Cuisine match, flavor profile, dietary fit, menu interest |
+| Food | 0.25 | Cuisine match, flavor profile, dietary fit, dish-level intent |
 | Vibe | 0.18 | Noise, lighting, dress code, energy, music, vibe keywords |
 | Service | 0.17 | Occasion base, service style, pacing, social dynamics |
-| Reputation | 0.25 | Stretched Google rating (4.0→0, 4.9→10), reviews, awards |
-| Convenience | 0.15 | Timing, reservation, wait time, parking, practical notes |
+| Reputation | 0.25 | Stretched Google rating (3.5→0, 5.0→10), review count confidence, awards, community signal |
+| Convenience | 0.15 | Timing, reservation accessibility, wait time, parking, BYOB |
 
-**4-Layer Dynamic Weight System** (`weight-config-v5.ts`):
+**Weight System** (`weight-config-v5.ts` — imported by scoring-v7.ts):
 
 1. **Base weights** — Food: 0.25, Vibe: 0.18, Service: 0.17, Reputation: 0.25, Convenience: 0.15
-2. **28 context shift rules** — Occasion (8), cuisine importance (3), emotional intent (3), constraints (6), context signals (8). Each rule adds/subtracts deltas.
-3. **Data-quality adaptation** — Low-confidence factors regressed toward 5.5
-4. **Pool-size adaptation** — Adjusts when candidate pool is slim vs abundant
+2. **28 context shift rules** — Occasion (8), cuisine importance (3), emotional intent (3), constraints (6), context signals (8)
+3. **Data-quality adaptation** — Low-confidence factors regressed toward 5.5 prior
+4. **Pool-size adaptation** — Adjusts when candidate pool is slim
 
 Clamped [0.05, 0.50], normalized to sum 1.0.
 
-**Score tiers** (`types-v5.ts`): 88+ Perfect Match | 75-87 Strong Pick | 60-74 Solid Option | 45-59 Worth a Try | <45 Best Available
+**Confidence system:** Factor-specific confidence levels (high/medium/low). Low-confidence factors regressed toward prior (5.5). Prior: all factors = 5.5.
 
-**Intent Boost:** Claude may elevate a lower-ranked candidate by 5-25 points. Guard rails: base score >= 35, boosted must exceed engine's #1.
+**V7 Intent Alignment** (for ranking + UI, NOT score multiplier):
+```
+intentAlignment.score = weighted avg of cuisine_match + dish_match + vibe_match + constraint_match
+```
+Used as tiebreaker in `reRankV7`: restaurants within 5 DM points and >0.15 alignment difference get reordered.
+
+**Score tiers:** 90+ Outstanding | 80-89 Strong Pick | 70-79 Solid Option | 60-69 Worth a Try | <60 Best Available
+
+**Intent Boost:** Claude may elevate a lower-ranked candidate by 5-25 points. Guard rails: base score >= 35, boosted must exceed engine's #1. Post-boost cuisine mismatch cap at 65.
+
+## Golden Dataset Benchmark
+
+**Test:** `tests/golden-dataset-test.sh` — 50 queries, 88 checks across Food/Vibe/Service/Reputation/Convenience.
+
+| Version | Pass | Fail | Warn | Avg DM | Notes |
+|---------|------|------|------|--------|-------|
+| V5 baseline | 70 | 2 | 16 | 76 | Reference |
+| V7.0 | 66 | 4 | 18 | 72 | Intent multiplier caused regression |
+| V7.3b (current) | 67 | 2 | 19 | 74 | V5 weights + no cuisine caps |
+
+±4 pass variance per run due to Claude non-determinism.
 
 ## Pipeline Inventory (18 scripts in `scripts/pipelines/`)
 
@@ -80,13 +102,6 @@ Clamped [0.05, 0.50], normalized to sum 1.0.
 | `re-enrichment.ts` | Re-enrichment of existing data |
 | `populate-all.ts` | Orchestrator: discovery → enrichment → scores → tags |
 
-### One-Time
-
-| Script | Purpose |
-|--------|---------|
-| `backfill-tips-stories.ts` | Insider tips + origin stories (Claude Sonnet 4) |
-| `backfill-new-fields.ts` | Backfill new schema columns |
-
 **Rate limits:** All Claude pipelines use 6s between batches (10 req/min). Batch size: 5-10 restaurants per call.
 
 ## Google Places Integration
@@ -96,12 +111,3 @@ Clamped [0.05, 0.50], normalized to sum 1.0.
 **Live fetch (per recommendation request):** `fetchPlaceDetails()` for top 5 candidates with 1.5s timeout. Returns: rating, review_count, phone, website, opening_hours, reviews (max 3).
 
 **Compliance:** Only `google_place_id` stored. All other Google data fetched live, never persisted. Per ToS §3.2.3.
-
-## API Request/Response Reference
-
-See CLAUDE.md for the full immutable API contract (request schema, response schema, error handling).
-
-Key fields:
-- **Request:** `special_request` (required), `occasion`, `neighborhood`, `price_level`, `exclude[]`, `dietary_restrictions[]`, `time_of_day`, `user_id`, `feedback`
-- **Response:** `restaurant` (25+ fields), `recommendation`, `insider_tip`, `donde_match`, `scores` (7 occasion dims), `scoring_v5` (5 factors + weights + confidence), `deep_context`, `tags[]`, `intent_boost`
-- **Data sources:** DB (pipeline-enriched) | Google Places (live) | Claude (live) | Computed (deterministic)

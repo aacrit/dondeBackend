@@ -1,13 +1,13 @@
 # Backend Architecture
 
-Last updated: 2026-02-26
+Last updated: 2026-02-27
 
 ## System Overview
 
 | Layer | Technology |
 |-------|-----------|
-| API | Supabase Edge Function (Deno/TS), V5.0.0 |
-| AI | Claude Haiku 4.5 (recommendations, enrichment, scoring, intent classification) |
+| API | Supabase Edge Function (Deno/TS), V7.3b |
+| AI | Claude Haiku 4.5 (recommendations, enrichment, intent classification) |
 | DB | Supabase PostgreSQL (10 tables, 27 migrations) |
 | Data | Google Places API (live fetch per request; only `google_place_id` stored per ToS §3.2.3) |
 | Pipelines | Node.js 20 + tsx scripts, GitHub Actions cron |
@@ -18,64 +18,64 @@ Last updated: 2026-02-26
 ```
 supabase/
   functions/recommend/
-    index.ts                      # V5.0.0 entry point (832 lines)
-    _shared/                      # 16 shared modules
+    index.ts                      # V7.3b entry point
+    _shared/                      # 18 shared modules
       types.ts                    # Core types (RestaurantProfile, DeepProfile, etc.)
-      types-v5.ts                 # V5 types (V5ScoredCandidate, V5Factors, etc.)
-      scoring-v5.ts               # V5 5-factor geometric mean engine
-      weight-config-v5.ts         # 4-layer adaptive weight system (28 shift rules)
+      types-v7.ts                 # V7 types (V7Factors, V7Weights, V7MatchNarrative, V7IntentAlignment, etc.)
+      scoring-v7.ts               # V7 consolidated scoring engine (imports V3 factors + V5 weights)
+      weight-config-v7.ts         # [DEPRECATED] V7 34-rule weight system — replaced by V5 weights in V7.3
+      response-builder-v7.ts      # V7 response builder (ranked_queue, match_narrative, intent_alignment)
       intent-classifier-v5.ts     # Deterministic (~80%) + Claude fallback (~15%)
       filter-pipeline-v5.ts       # Hard filter cascade (6 filters + relaxation)
       prompts-v5.ts               # Claude system/user prompt templates
-      response-builder-v5.ts      # API response construction + fallbacks
-      scoring.ts                  # Legacy keyword dicts, diversity, slop detection
-      scoring-v3.ts               # Factor computation functions (reused by V5)
-      intent-classifier.ts        # V4 intent (types reused by V5)
+      scoring.ts                  # Shared: keyword dicts, diversity, slop detection
+      scoring-v3.ts               # [DEPRECATED] Factor functions — reused by scoring-v7.ts
+      scoring-v5.ts               # [DEPRECATED] V5 engine — replaced by scoring-v7.ts
+      weight-config-v5.ts         # V5 weight engine (28 rules) — still imported by scoring-v7.ts
+      types-v5.ts                 # [DEPRECATED] V5 types
+      response-builder-v5.ts      # [DEPRECATED] V5 response builder
+      intent-classifier.ts        # V4 intent types (reused by V5 classifier)
       claude.ts                   # Anthropic API client (raw fetch, prompt caching)
       google-places.ts            # Google Places API wrapper (1.5s timeout)
       supabase.ts                 # Anon + service role clients
       cors.ts                     # CORS headers + JSON response helpers
       logger.ts                   # Structured JSON logging
-  migrations/                     # 27 SQL migration files (2026-02-18 to 2026-02-26)
+  migrations/                     # 27 SQL migration files
 
 scripts/
   lib/                            # 6 shared pipeline libraries
-    config.ts                     # Chicago neighborhoods, cuisines, coordinates
-    claude.ts                     # Node.js Anthropic SDK client
-    google-places.ts              # Google Places wrapper (Node version)
-    supabase.ts                   # Admin Supabase client (service role)
-    batch.ts                      # Batch processing utility
-    types.ts                      # Pipeline-specific types
+    config.ts, claude.ts, google-places.ts, supabase.ts, batch.ts, types.ts
   pipelines/                      # 18 pipeline scripts (see API-WORKFLOWS.md)
-  package.json                    # npm scripts for pipelines
+  package.json
 
 tests/
   test_catalog.sh                 # 65-scenario bash API test suite
+  golden-dataset-test.sh          # 50-query golden dataset benchmark (88 checks)
   TEST-FULL.md                    # 170-scenario agent-driven test spec
-  TEST_RESULTS.md                 # Latest test results
+  GOLDEN_DATASET_RESULTS.md       # Latest golden dataset results
+  TEST_RESULTS.md                 # Latest catalog results
 
-.github/workflows/                # 8 CI/CD workflows (see below)
+.github/workflows/                # 8 CI/CD workflows
 ```
 
-## Edge Function Modules (V5)
+## V7 Scoring Engine Modules
 
-| Module | Purpose | Size |
-|--------|---------|------|
-| `index.ts` | Orchestration: parse → rate limit → cache → intent → filter → score → Google → Claude → respond | 832 lines |
-| `scoring-v5.ts` | 5-factor geometric mean: `(FQ^w * VB^w * SV^w * RP^w * CV^w) * 10` | 20 KB |
-| `weight-config-v5.ts` | 4-layer weights: base → 28 context shifts → data-quality → pool-size | 13 KB |
-| `intent-classifier-v5.ts` | Deterministic keyword parsing (~80%), Claude Haiku fallback (~15%) | 24 KB |
-| `filter-pipeline-v5.ts` | Hard cascade: exclude → neighborhood → price → dietary → cuisine → open now | 13 KB |
-| `prompts-v5.ts` | System prompt (voice + tone tiers + banned words) + user prompt (candidates) | 13 KB |
-| `response-builder-v5.ts` | Success / fallback / no-results / error response builders | 12 KB |
-| `scoring.ts` | Legacy: keyword dicts (28 cuisines, 19 tags), `ensureDiversity()`, slop patterns | 125 KB |
-| `scoring-v3.ts` | Individual factor functions: `computeFoodQuality()`, `computeVibe()`, etc. | 67 KB |
+| Module | Purpose | Status |
+|--------|---------|--------|
+| `scoring-v7.ts` | Consolidated 5-factor engine: V3 factor fns + V5 weights + V7 intent alignment, match narrative, ranked queue | **Active** |
+| `weight-config-v5.ts` | 28-rule adaptive weight system (imported by scoring-v7.ts) | **Active** |
+| `response-builder-v7.ts` | Builds `scoring_v7`, `ranked_queue`, `match_narrative`, `intent_alignment` fields | **Active** |
+| `types-v7.ts` | V7Factors, V7Weights, V7MatchNarrative, V7IntentAlignment, V7ScoredCandidate | **Active** |
+| `scoring-v5.ts` | Old V5 engine | **@deprecated** |
+| `weight-config-v7.ts` | Old V7 34-rule engine with stacking caps (caused score regression) | **@deprecated** |
+| `scoring-v3.ts` | V3 factor functions (computeFoodMatch, computeAtmosphere, etc.) — still called by scoring-v7.ts | **@deprecated** |
+| `types-v5.ts`, `response-builder-v5.ts` | Old V5 types + builder | **@deprecated** |
 
 ## Deployment
 
 | Target | Trigger | Method |
 |--------|---------|--------|
-| Edge Function | Push to `main`/`claude/**` (when `supabase/functions/recommend/**` changes) | `deploy-edge-function.yml` |
+| Edge Function | Push to any branch (when `supabase/functions/recommend/**` changes) | `deploy-edge-function.yml` |
 | Migrations | Manual | `supabase db push` or Dashboard SQL Editor |
 | Pipelines | Cron (monthly) + manual dispatch | GitHub Actions |
 
@@ -90,7 +90,7 @@ tests/
 | `enrichment-v2.yml` | Monthly 1st, 6:00 UTC | Deep profile enrichment (35 fields) |
 | `scores-and-tags.yml` | Monthly 1st, 7:00 UTC | Occasion scores (7 dims) + tag generation |
 | `regenerate-scores-tags.yml` | Manual dispatch | Full scores + tags regeneration |
-| `deploy-edge-function.yml` | Push + manual dispatch | Edge Function deployment |
+| `deploy-edge-function.yml` | Push to any branch + manual dispatch | Edge Function deployment |
 
 ## Google API Compliance
 
