@@ -1,16 +1,16 @@
 /**
- * Donde Match V7 — Recommendation Engine
+ * Donde Match V8 — Recommendation Engine
  *
- * V7 pipeline: Intent → RPC → Hard Filter → Score → Google Enrich → Re-rank → Ranked Queue → Claude (blurb + boost) → Response
+ * V8 pipeline: Intent → RPC → Hard Filter → V8 Score → Google Enrich → Re-rank → Ranked Queue → Claude (blurb + boost) → Response
  *
- * Key V7 changes over V5:
- * - Intent Alignment scoring: multiplier (0.85x-1.15x) based on user signal match
- * - Calibrated GM multiplier: 11 + (dataCompleteness * 2) instead of fixed ×12
- * - Factor-specific confidence priors (Food: 5.0, Reputation: 6.0, etc.)
- * - Enhanced cuisine mismatch penalty (cap at 60 for high-importance mismatches)
- * - Ranked Queue: Pre-compute top 5 for instant "Try Again" (no re-query)
- * - Match Narrative: Structured "why this match" data for UI storytelling
- * - 5-layer dynamic weights with stacking caps
+ * V8 key changes:
+ * - Arithmetic weighted mean replaces geometric mean (no single-factor collapse)
+ * - Intent alignment baked into score as multiplier [0.70, 1.00] (not tiebreaker)
+ * - 12 consolidated weight-shift rules (down from 28)
+ * - Single confidence function (replaces dual system)
+ * - Ground-up factor computation rewrite (self-contained, no V3 imports)
+ * - Cuisine mismatch cap removed (intent multiplier handles penalty)
+ * - Try Again queue blurbs generated from match narrative (no more one-liners)
  */
 
 import { corsPreflightResponse, jsonResponse } from "./_shared/cors.ts";
@@ -21,11 +21,11 @@ import {
   extractUnmatchedKeywords,
 } from "./_shared/scoring.ts";
 import type { UserFeedbackSignals } from "./_shared/scoring.ts";
-// V7 engine imports
+// V8 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
 import { runFilterPipeline } from "./_shared/filter-pipeline-v5.ts";
 import type { FilterContext } from "./_shared/filter-pipeline-v5.ts";
-import { computeV7DondeMatch, reRankV7 } from "./_shared/scoring-v7.ts";
+import { computeV8DondeMatch, reRankV8 } from "./_shared/scoring-v8.ts";
 import { buildV5SystemPrompt, buildV5UserPrompt } from "./_shared/prompts-v5.ts";
 import {
   buildV7SuccessResponse,
@@ -47,6 +47,7 @@ import type {
 import type { V5ClaudeRecommendation } from "./_shared/types-v5.ts";
 import type { V7ScoredCandidate } from "./_shared/types-v7.ts";
 import { getScoreTier } from "./_shared/types-v7.ts";
+import type { V8ScoredCandidate } from "./_shared/types-v8.ts";
 
 // V7 API version
 const API_VERSION = "7.0.0";
@@ -392,9 +393,9 @@ Deno.serve(async (req: Request) => {
     }
 
     // ================================================================
-    // STEP 4: V7 Scoring — Score ALL filtered candidates
+    // STEP 4: V8 Scoring — Score ALL filtered candidates
     // ================================================================
-    const scored = reRankV7(
+    const scored = reRankV8(
       filtered,
       occasion,
       special_request,
@@ -443,7 +444,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // ================================================================
-    // STEP 6: Post-Google re-rank with real Google data (V7)
+    // STEP 6: Post-Google re-rank with real Google data (V8)
     // ================================================================
     const rerankedScored: V7ScoredCandidate[] = diverseScored.map(sc => {
       const googleData = sc.profile.google_place_id
@@ -451,7 +452,7 @@ Deno.serve(async (req: Request) => {
         : null;
 
       // Re-compute with Google data for reputation accuracy
-      const reResult = computeV7DondeMatch(sc.profile, {
+      const reResult = computeV8DondeMatch(sc.profile, {
         occasion,
         specialRequest: special_request,
         neighborhood: "Anywhere", // Already filtered
@@ -465,12 +466,13 @@ Deno.serve(async (req: Request) => {
         candidatePoolSize: diverseScored.length,
       });
 
+      // V8→V7 adapter: V7ScoredCandidate shape for response builder backward compat
       return {
         profile: sc.profile,
         dondeMatch: reResult.dondeMatch,
         factors: reResult.factors,
         weights: reResult.weights,
-        confidence: reResult.confidence,
+        confidence: { food: "high" as const, vibe: "high" as const, service: "high" as const, reputation: "high" as const, convenience: "high" as const },
         dataCompleteness: reResult.dataCompleteness,
         weightShiftReasons: reResult.weightShiftReasons,
         factorDetails: reResult.factorDetails,
@@ -481,9 +483,7 @@ Deno.serve(async (req: Request) => {
     });
 
     // Sort by re-ranked DondeScore (simple descending).
-    // V7.3c tried intent tiebreaker here but it WORSENED results (67→59 pass)
-    // because intent alignment scores are unreliable for pools lacking matching cuisines.
-    // The initial reRankV7 tiebreaker is sufficient — no need to double-apply here.
+    // V8: Intent alignment is already baked into the score, no tiebreaker needed.
     rerankedScored.sort((a, b) => b.dondeMatch - a.dondeMatch);
 
     // ================================================================
@@ -610,8 +610,8 @@ Deno.serve(async (req: Request) => {
       const chosen = rerankedScored[chosenIdx];
       let dondeMatch = chosen.dondeMatch;
 
-      // V7: Cuisine mismatch detection — V7 scoring already caps at 60 inside scoring-v7.ts
-      // This extra guard catches any post-boost mismatch (Intent Boost may override)
+      // V8: Cuisine mismatch detection (informational only, no cap).
+      // V8's intent multiplier already penalizes mismatched restaurants naturally.
       let cuisineMismatch: { requested: string; got: string } | null = null;
       if (intent?.cuisine_importance === "high" && intent.target_cuisines?.length > 0) {
         const chosenCuisine = (chosen.profile.cuisine_type || "").toLowerCase();
@@ -626,13 +626,10 @@ Deno.serve(async (req: Request) => {
             requested: intent.target_cuisines.join(", "),
             got: chosen.profile.cuisine_type || "Unknown",
           };
-          const original = dondeMatch;
-          dondeMatch = Math.min(dondeMatch, 65); // V7.3: restored V5 cap (V7.0 used 60, caused regression)
-          logInfo("V7 cuisine_mismatch: score capped", {
+          logInfo("V8 cuisine_mismatch: detected (no cap, intent multiplier handles penalty)", {
             requested: intent.target_cuisines,
             got: chosen.profile.cuisine_type,
-            originalScore: original,
-            cappedScore: dondeMatch,
+            score: dondeMatch,
           });
         }
       }
