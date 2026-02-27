@@ -55,10 +55,13 @@ interface CacheEntry {
   expiry: number;
 }
 const RESPONSE_CACHE = new Map<string, CacheEntry>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes (V6.2: extended from 5min — restaurant data changes rarely)
 
-function getCacheKey(occasion: string, neighborhood: string, price: string, request: string): string {
-  return `${occasion}|${neighborhood}|${price}|${request.toLowerCase().trim()}`;
+function getCacheKey(occasion: string, neighborhood: string, price: string, request: string, exclude?: string[]): string {
+  // V6.2: Normalize cache key — sort words so "cozy ramen" and "ramen cozy" hit the same entry
+  const normalizedRequest = request.toLowerCase().trim().split(/\s+/).sort().join(" ");
+  const excludeKey = exclude && exclude.length > 0 ? `|ex:${[...exclude].sort().join(",")}` : "";
+  return `${occasion}|${neighborhood}|${price}|${normalizedRequest}${excludeKey}`;
 }
 
 function getCachedResponse(key: string): Record<string, unknown> | null {
@@ -72,7 +75,8 @@ function getCachedResponse(key: string): Record<string, unknown> | null {
 }
 
 function setCacheResponse(key: string, response: Record<string, unknown>): void {
-  if (RESPONSE_CACHE.size > 100) {
+  // V6.2: Increased cache size from 100 → 500 entries (~1MB total, trivial for Edge Function)
+  if (RESPONSE_CACHE.size > 500) {
     const now = Date.now();
     for (const [k, v] of RESPONSE_CACHE) {
       if (now > v.expiry) RESPONSE_CACHE.delete(k);
@@ -218,13 +222,11 @@ Deno.serve(async (req: Request) => {
         .catch((err: unknown) => logError("Failed to store feedback", { error: String(err) }));
     }
 
-    // Check cache (skip for "Try Another" requests)
-    if (exclude.length === 0) {
-      const cacheKey = getCacheKey(occasion, neighborhood, price_level, special_request);
-      const cached = getCachedResponse(cacheKey);
-      if (cached) {
-        return jsonResponse(cached);
-      }
+    // Check cache — V6.2: include exclude list in cache key so "Try Another" can cache too
+    const cacheKey = getCacheKey(occasion, neighborhood, price_level, special_request, exclude);
+    const cached = getCachedResponse(cacheKey);
+    if (cached) {
+      return jsonResponse(cached);
     }
 
     const supabase = createSupabaseClient();
@@ -766,10 +768,9 @@ Deno.serve(async (req: Request) => {
     // ================================================================
     // STEP 9: Cache + Logging
     // ================================================================
-    if (exclude.length === 0) {
-      const cacheKey = getCacheKey(occasion, neighborhood, price_level, special_request);
-      setCacheResponse(cacheKey, responseBody);
-    }
+    // V6.2: Cache all responses (including "Try Another" with exclude list)
+    const storeCacheKey = getCacheKey(occasion, neighborhood, price_level, special_request, exclude);
+    setCacheResponse(storeCacheKey, responseBody);
 
     const chosenId = (responseBody.restaurant as Record<string, unknown>)?.id as string;
     const responseTimeMs = Date.now() - startTime;

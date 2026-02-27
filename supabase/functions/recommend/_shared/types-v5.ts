@@ -72,6 +72,8 @@ export interface V5WeightShiftCondition {
   timeOfDay?: string;
   /** True if any of these keywords appear in intent.vibe_keywords */
   vibeKeywords?: string[];
+  /** True if any of these keywords appear in intent.target_tags */
+  targetTags?: string[];
   /** True if intent.target_cuisines contains a bar/cocktail venue type */
   targetCuisineIsBar?: boolean;
   /** V6: True when intent has a dish-level query (e.g., "tandoori chicken") */

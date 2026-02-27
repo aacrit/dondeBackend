@@ -833,6 +833,49 @@ export function computeAtmosphere(
     }
   }
 
+  // V6.2: Extended vibe keyword matching via restaurant tags (0-1.5)
+  // Maps common bar/nightlife/vibe search terms to relevant restaurant tags.
+  // This handles queries like "speakeasy", "jazz bar", "tiki bar", "sports bar"
+  // by checking restaurant tags, not just deep profile data.
+  const VIBE_TAG_MAP: Record<string, string[]> = {
+    speakeasy: ["cocktails", "hidden gem", "craft cocktails", "speakeasy"],
+    jazz: ["live music", "jazz"],
+    blues: ["live music", "blues"],
+    "sports bar": ["lively", "sports"],
+    karaoke: ["lively", "karaoke"],
+    arcade: ["lively", "arcade"],
+    tiki: ["cocktails", "tiki", "craft cocktails"],
+    "dive bar": ["dive", "hidden gem", "great value"],
+    "piano bar": ["live music", "piano", "romantic"],
+    nightlife: ["lively", "cocktails", "late night", "craft cocktails"],
+    "wine cellar": ["romantic", "wine", "quiet"],
+    hipster: ["hidden gem", "trendy"],
+    "rooftop bar": ["rooftop", "scenic", "cocktails"],
+    "hotel bar": ["cocktails", "quiet"],
+    "library bar": ["quiet", "cocktails"],
+  };
+
+  if (requestLower && profile.tags.length > 0) {
+    const tagStrings = profile.tags.map((t: Tag) => (typeof t === "string" ? t : t.name || "").toLowerCase());
+    let vibeTagHits = 0;
+    for (const [vibeKey, matchPatterns] of Object.entries(VIBE_TAG_MAP)) {
+      if (requestLower.includes(vibeKey)) {
+        for (const pattern of matchPatterns) {
+          if (tagStrings.some((ts: string) => ts.includes(pattern))) {
+            vibeTagHits++;
+            break;
+          }
+        }
+      }
+    }
+    if (vibeTagHits > 0) {
+      maxDataPoints++;
+      atmoMaxPossible += 1.5;
+      score += Math.min(1.5, vibeTagHits * 0.75);
+      dataPoints++;
+    }
+  }
+
   // V6.1: Conversation friendliness bonus for date/romantic occasions (0-1.0)
   // Restaurants where you can actually talk are critical for date queries
   const dateOccasions = ["Date Night", "Anniversary", "Special Occasion"];
