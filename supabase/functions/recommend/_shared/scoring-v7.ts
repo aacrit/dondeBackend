@@ -693,32 +693,11 @@ export function computeV7DondeMatch(
 
   let dondeMatch = Math.round(geometricMean * multiplier);
 
-  // ==========================================
-  // Step 9: Cuisine mismatch cap
-  // ==========================================
-
-  if (inputs.intent?.cuisine_importance === "high" && inputs.intent.target_cuisines.length > 0) {
-    const targetCuisines = inputs.intent.target_cuisines;
-    if (profile.cuisine_type) {
-      const cuisineLower = profile.cuisine_type.toLowerCase();
-      const isExactMatch = targetCuisines.some(c => c.toLowerCase() === cuisineLower);
-      const isContainsMatch = !isExactMatch && targetCuisines.some(c =>
-        cuisineLower.includes(c.toLowerCase()) || c.toLowerCase().includes(cuisineLower)
-      );
-      const isSubMatch = !isExactMatch && !isContainsMatch && profile.deep_profile?.cuisine_subcategory &&
-        targetCuisines.some(c =>
-          profile.deep_profile!.cuisine_subcategory!.toLowerCase().includes(c.toLowerCase())
-        );
-
-      if (!isExactMatch && !isContainsMatch && !isSubMatch) {
-        // Hard cuisine mismatch with high importance → cap at 65 (matching V5)
-        dondeMatch = Math.min(dondeMatch, 65);
-      }
-    } else {
-      // No cuisine type but user wants specific cuisine → cap at 68
-      dondeMatch = Math.min(dondeMatch, 68);
-    }
-  }
+  // V7.3: Removed in-scoring cuisine mismatch cap to match V5 behavior.
+  // V5 scoring had NO cuisine mismatch cap — the post-Claude cap in index.ts
+  // is the only guard. Adding caps here caused a 3-point avg DM regression
+  // because the Chicago pool often lacks niche cuisines, penalizing all candidates.
+  // Intent alignment tiebreaker handles cuisine preference at ranking level instead.
 
   dondeMatch = Math.min(99, Math.max(0, dondeMatch));
 

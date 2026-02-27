@@ -624,7 +624,7 @@ Deno.serve(async (req: Request) => {
             got: chosen.profile.cuisine_type || "Unknown",
           };
           const original = dondeMatch;
-          dondeMatch = Math.min(dondeMatch, 60); // V7: stricter cap (was 65 in V5)
+          dondeMatch = Math.min(dondeMatch, 65); // V7.3: restored V5 cap (V7.0 used 60, caused regression)
           logInfo("V7 cuisine_mismatch: score capped", {
             requested: intent.target_cuisines,
             got: chosen.profile.cuisine_type,
