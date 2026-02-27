@@ -70,7 +70,7 @@ function buildRestaurantObject(
     sentiment_negative: sentimentData?.negative ?? null,
     sentiment_neutral: sentimentData?.neutral ?? null,
     best_for_oneliner: chosen.best_for_oneliner,
-    neighborhood_name: chosen.neighborhood_name,
+    neighborhood_name: chosen.neighborhood_name || "Chicago",
     photo_urls: googleData?.photo_urls || [],
     opening_hours: googleData?.opening_hours || null,
     review_snippets: buildReviewSnippets(googleData),
