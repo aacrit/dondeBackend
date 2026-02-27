@@ -5,17 +5,15 @@
  * computations with V5's geometric mean architecture and adds V7 innovations:
  *
  * 1. Intent Alignment Score (0.0–1.0): Measures how well a restaurant matches
- *    the user's explicit signals. Used as a scoring multiplier (0.85x–1.15x)
- *    that amplifies differentiation between candidates.
+ *    the user's explicit signals. Used as ranking tiebreaker (NOT score modifier)
+ *    and for UI narrative generation.
  *
- * 2. Calibrated Multiplier: Replaces fixed ×12 with a data-completeness-aware
- *    multiplier (11x–13x). Data-rich restaurants get a slight advantage.
+ * 2. Fixed ×12 Multiplier: Matches V5 baseline for score consistency.
  *
- * 3. Factor-Specific Confidence Priors: Replaces the universal 5.5 prior with
- *    per-factor priors (Food: 5.0, Reputation: 6.0, etc.).
+ * 3. V5 Weight Engine: Uses proven V5 28-rule weight system (no stacking caps).
+ *    V7's 34-rule system with stacking caps caused regression in V7.0-V7.2.
  *
- * 4. Enhanced Cuisine Mismatch Penalty: Graduated penalty for high-importance
- *    cuisine mismatches (cap at 60, not 65).
+ * 4. Cuisine Mismatch Penalty: Cap at 65 for hard mismatches (matching V5).
  *
  * 5. Match Narrative: Generates structured "why this match" storytelling data
  *    for the UI's factor deep dive.
@@ -59,8 +57,11 @@ import {
 } from "./scoring-v3.ts";
 import type { V3SubComponent } from "./scoring-v3.ts";
 
-// V7 weight engine
-import { computeV7Weights } from "./weight-config-v7.ts";
+// V7.3: Use V5 weight engine (28 rules, no stacking caps) — produces V5-identical
+// scores while preserving V7 features (ranked queue, narrative, intent tiebreaker).
+// V7 weight engine (34 rules + stacking caps) caused score regression across V7.0-V7.2.
+import { computeV5Weights } from "./weight-config-v5.ts";
+import type { V5FactorConfidence } from "./types-v5.ts";
 
 // Shared dictionaries
 import { CUISINE_KEYWORDS, DIETARY_KEYWORDS, DIETARY_HIERARCHY } from "./scoring.ts";
@@ -653,13 +654,15 @@ export function computeV7DondeMatch(
   );
 
   // ==========================================
-  // Step 7: Compute dynamic weights (V7 5-layer)
+  // Step 7: Compute dynamic weights (V5 3-layer — proven stable)
+  // V7.3: Use V5 weight engine to match V5 baseline scores.
+  // V7's 34-rule + stacking-cap system caused regression in V7.0-V7.2.
   // ==========================================
 
-  const { weights, appliedRules } = computeV7Weights(
+  const { weights, appliedRules } = computeV5Weights(
     inputs.occasion,
     inputs.intent,
-    confidence,
+    confidence as unknown as V5FactorConfidence,
     inputs.candidatePoolSize ?? 15,
     inputs.clientTimeOfDay,
   );
@@ -708,12 +711,12 @@ export function computeV7DondeMatch(
         );
 
       if (!isExactMatch && !isContainsMatch && !isSubMatch) {
-        // Hard cuisine mismatch with high importance → cap at 60
-        dondeMatch = Math.min(dondeMatch, 60);
+        // Hard cuisine mismatch with high importance → cap at 65 (matching V5)
+        dondeMatch = Math.min(dondeMatch, 65);
       }
     } else {
-      // No cuisine type but user wants specific cuisine → cap at 65
-      dondeMatch = Math.min(dondeMatch, 65);
+      // No cuisine type but user wants specific cuisine → cap at 68
+      dondeMatch = Math.min(dondeMatch, 68);
     }
   }
 
