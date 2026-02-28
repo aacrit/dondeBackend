@@ -13,7 +13,7 @@
  *     medium confidence: [0.84, 1.05] ← V8.5: softened from 0.82
  *     low confidence:   [0.90, 1.05]  ← V8.5: softened from 0.88
  *     no signals: 1.0
- *   IntentAlignment composite floor: 0.20  ← V8.5: prevents extreme IM penalty
+ *   IntentAlignment composite floor: 0.25  ← V8.5 O19: raised from 0.20
  *   IntentAlignment vibe floor: 0.20       ← V8.4: Laplace smoothing
  *   IntentAlignment constraint floor: 0.25 ← V8.4: Laplace smoothing
  *   Food weight shift: guarded by actual cuisine/dish signals ← V8.5
@@ -25,6 +25,9 @@
  * - Reduced food weight delta +0.12→+0.08 — less aggressive food dominance
  * - IA composite floor of 0.20 — prevents extreme IM penalties for ambiguous queries
  * - Softened IM floors (+0.02 each level) — gentler penalty across all confidence levels
+ * - Adaptive weight deflation (O18) — when food < 2.5 with inflated weight,
+ *   deflate 50% excess and redistribute to strongest factor
+ * - IA composite floor raised to 0.25 (O19) — from 0.20, further reduces IM penalty
  *
  * V8.4 optimizations:
  * - Laplace-smoothed intent alignment — vibe/constraint floors prevent zero-IA collapse
@@ -1297,14 +1300,16 @@ function computeV8IntentAlignment(
 
   let score = totalWeight > 0 ? weightedSum / totalWeight : 0.5;
 
-  // V8.5 O16: IA composite floor of 0.20 — prevents extreme IM penalties.
+  // V8.5 O16+O19: IA composite floor of 0.25 — prevents extreme IM penalties.
   // When the intent classifier produces active signals but none align with the
   // restaurant's profile, the raw composite can drop to 0.06-0.15, causing
-  // IM to hit near floor (0.78-0.88). A floor of 0.20 acknowledges that
+  // IM to hit near floor (0.80-0.90). A floor of 0.25 acknowledges that
   // any curated restaurant has baseline relevance to any reasonable query.
+  // V8.5 O19: Raised from 0.20 to 0.25 after 200-case testing showed queries
+  // like "michelin dining room" and "soul food" still hitting IM too hard.
   // Inspiration: Jelinek-Mercer smoothing — interpolate with a uniform prior.
-  if (hasActiveSignals && score < 0.20) {
-    score = 0.20;
+  if (hasActiveSignals && score < 0.25) {
+    score = 0.25;
   }
 
   return { score, cuisine: cuisineAlignment, dish: dishAlignment, vibe: vibeAlignment, constraints: constraintAlignment, hasActiveSignals };
@@ -1475,6 +1480,28 @@ export function computeV8DondeMatch(
 
   // Step 6: Compute dynamic weights
   const { weights, appliedRules } = computeV8Weights(inputs.occasion, inputs.intent);
+
+  // V8.5 O18: Adaptive weight deflation for severely mismatched factors.
+  // When food < 2.5 and food weight was shifted above base (0.28), the inflated
+  // weight actively punishes the score. Deflate food weight by 50% of the excess
+  // and redistribute proportionally to the strongest-scoring factor.
+  // Inspiration: Adaptive Resource Allocation — redirect weight budget from
+  // low-signal dimensions to high-signal dimensions (similar to attention
+  // mechanisms in transformers: attend more to informative features).
+  if (factors.food < 2.5 && weights.food > V8_BASE_WEIGHTS.food + 0.01) {
+    const excess = weights.food - V8_BASE_WEIGHTS.food;
+    const deflation = excess * 0.50;
+    weights.food -= deflation;
+    // Find strongest factor and give it the redistributed weight
+    const otherFactors = [
+      { key: "vibe" as const, val: factors.vibe },
+      { key: "service" as const, val: factors.service },
+      { key: "reputation" as const, val: factors.reputation },
+      { key: "convenience" as const, val: factors.convenience },
+    ];
+    const strongest = otherFactors.reduce((a, b) => b.val > a.val ? b : a);
+    weights[strongest.key] += deflation;
+  }
 
   // Step 7: Arithmetic weighted mean → BaseQuality (0-100)
   let baseQuality = (

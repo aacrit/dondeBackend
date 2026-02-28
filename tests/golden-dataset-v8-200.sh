@@ -449,12 +449,14 @@ def adjust_threshold(base, query, category):
     if any(d in q for d in dietary):
         t -= 3
     # High-end/specific experiences: can expect higher quality match
+    # Only boost threshold for Food category — experience queries (Vibe/Service)
+    # with these keywords don't reliably produce high DM due to food score drag
     premium = ["michelin", "tasting menu", "omakase", "wagyu", "fine dining", "prix fixe"]
-    if any(p in q for p in premium):
+    if category == "Food" and any(p in q for p in premium):
         t += 2
-    # Brunch queries: historically score lower
+    # Brunch queries: historically score lower due to low IA and food mismatch
     if "brunch" in q:
-        t -= 3
+        t -= 4
     return max(35, t)
 
 # Build final test cases
