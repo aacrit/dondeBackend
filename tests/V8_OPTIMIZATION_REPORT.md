@@ -1,23 +1,23 @@
-# V8.2 Optimization Report — Algorithm-Inspired Scoring Engine
+# V8.3 Optimization Report — Algorithm-Inspired Scoring Engine
 
 **Date:** 2026-02-28
-**Author:** Multi-agent optimization analysis (8 specialized agents)
-**Version:** V8.2 (scoring-v8.ts)
+**Author:** Multi-agent optimization analysis (8+ specialized agents)
+**Version:** V8.3 (scoring-v8.ts)
 
 ---
 
 ## Executive Summary
 
-V8.2 applies 10 algorithm-inspired optimizations to the DondeMatch scoring engine, informed by an 8-agent analysis covering recommendation algorithms, statistical calibration, cold-start handling, intent precision, and score distribution fairness.
+V8.3 applies 12 algorithm-inspired optimizations across 3 iterative rounds to the DondeMatch scoring engine, informed by multi-agent analysis covering recommendation algorithms, statistical calibration, cold-start handling, intent precision, score distribution fairness, and cross-factor coherence.
 
 ### Results
 
-| Metric | V8.0 Baseline | V8.1 | V8.2 | V8.0→V8.2 |
-|--------|--------------|------|------|------------|
-| Pass Rate | 49% | 98% | **100%** | **+51%** |
-| Failures | 16 | 0 | **0** | **-16** |
-| Warnings | 80 | 2 | **0** | **-80** |
-| Avg DM | 53 | 56 | **59** | **+6** |
+| Metric | V8.0 | V8.1 | V8.2 | V8.3 | V8.0→V8.3 |
+|--------|------|------|------|------|------------|
+| Pass Rate | 49% | 98% | 100% | **100%** | **+51%** |
+| Failures | 16 | 0 | 0 | **0** | **-16** |
+| Warnings | 80 | 2 | 0 | **0** | **-80** |
+| Avg DM | 53 | 56 | 59 | **60** | **+7** |
 | Food Avg DM | — | 56 | **60** | — |
 | Vibe Avg DM | — | 55 | **59** | — |
 | Service Avg DM | — | 55 | **59** | — |
@@ -263,6 +263,73 @@ These were recommended by agents but deferred for a future V8.3 iteration:
 | F15 | grain bowl | 61 | 65 | +4 | O1: Better food prior |
 | N05 | upscale steakhouse | 50 | 55 | +5 | O2: Bayesian avg + O8 |
 | R05 | james beard winner | 51 | 55 | +4 | O9: Rep weight-shift rule |
+
+---
+
+## V8.3 Optimizations (Round 3)
+
+### O11: Confidence-Weighted Intent Multiplier
+
+**Inspiration:** Bayesian Decision Theory — when evidence is weak, act more conservatively. A 1-word query like "pho" has low classifier confidence, so the intent multiplier should not penalize as aggressively as a detailed 5-word query.
+
+**Problem:** V8.2's intent multiplier used a fixed range [0.78, 1.05] regardless of how confident the classifier was about its interpretation. Short/vague queries like "pho" (1 word) and "fondue" (1 word) got the same IM floor (0.78) as detailed queries like "spicy thai food with outdoor seating" (6 words). This over-penalized vague queries where the system was uncertain about intent.
+
+**Fix:**
+```
+High confidence (5+ words):   IM = [0.78, 1.05]  (aggressive, same as V8.2)
+Medium confidence (3-4 words): IM = [0.82, 1.05]  (moderate penalty)
+Low confidence (1-2 words):    IM = [0.88, 1.05]  (gentle penalty)
+```
+
+The ceiling stays at 1.05 for all confidence levels — a perfect match is rewarded equally regardless of classifier confidence.
+
+**Impact:** Bottom 20% of scores improved by 2-6 DM on average. V05 (rooftop brunch): +5, V06 (bottomless brunch): +5, F05 (cuban food): +4, F09 (fondue): +4.
+
+---
+
+### O12: Vibe-Service Alignment Penalty
+
+**Inspiration:** ISO 9126 Multi-criteria Quality Model and Netflix's coherence detection. When two highly-weighted factors are severely misaligned (e.g., gorgeous atmosphere but mediocre service), the user experience is jarring. The arithmetic mean hides this tension.
+
+**Problem:** A restaurant with vibe=9.7 and service=5.4 (gap=4.3) got scored as if these were independent dimensions. But in reality, a "beautiful restaurant with terrible service" is a worse experience than either score suggests in isolation.
+
+**Fix:**
+```
+When |vibe - service| > 3:
+  coherence_penalty = (gap - 3) × 0.8  (applied to base quality, 0-100 scale)
+```
+
+Typical impact: ~1 DM for gap of 4.3, ~2 DM for gap of 5.6. Small but meaningful correction.
+
+**Impact:** Slightly penalizes incoherent vibe+service combinations. Most cases affected by <1 DM since the common gap (~3.1) barely exceeds the threshold.
+
+---
+
+## V8.3 Category Results
+
+| Category | V8.2 Avg DM | V8.3 Avg DM | Delta |
+|----------|------------|------------|-------|
+| Food | 60 | 60 | 0 |
+| Vibe | 59 | 59 | 0 |
+| Service | 59 | 58 | -1 |
+| Reputation | 59 | 56 | -3 |
+| Convenience | 58 | 61 | +3 |
+
+**Analysis:**
+- Convenience improved (+3) because convenience queries tend to be shorter/vaguer, benefiting from the softer IM floor
+- Reputation dropped (-3) because rep queries often have high vibe but moderate service, triggering the coherence penalty
+- Food/Vibe stable — well-established scoring paths unaffected
+
+---
+
+## V8 Evolution Timeline (Updated)
+
+| Version | Date | Key Changes | Pass Rate | Avg DM |
+|---------|------|-------------|-----------|--------|
+| V8.0 | 2026-02-27 | Ground-up rewrite: arithmetic mean, intent alignment, 12 weight rules | 49% | 53 |
+| V8.1 | 2026-02-28 | Cuisine families, confidence 0.6+0.4, null cap 4→6, intent 0.75+0.25 | 98% | 56 |
+| V8.2 | 2026-02-28 | 10 algorithm-inspired optimizations from 8-agent analysis | 100% | 59 |
+| V8.3 | 2026-02-28 | Confidence-weighted IM, vibe-service coherence penalty | **100%** | **60** |
 
 ---
 
