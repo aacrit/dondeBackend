@@ -7,7 +7,7 @@
  * V8 Architecture:
  *   DondeScore = BaseQuality × IntentMultiplier
  *   BaseQuality = WeightedArithmeticMean(factors) × 10  → 0-100
- *   IntentMultiplier = 0.70 + 0.30 × intentAlignment    → [0.70, 1.00]
+ *   IntentMultiplier = 0.75 + 0.25 × intentAlignment    → [0.75, 1.00]
  *                      or 1.0 when no intent signals active
  *
  * Key changes from V7:
@@ -46,10 +46,14 @@ const FACTOR_FLOOR = 1.0;
 // Cuisine family relationships for partial matches
 const CUISINE_FAMILIES: Record<string, string[]> = {
   Mediterranean: ["Greek", "Italian", "Middle Eastern"],
-  "East Asian": ["Japanese", "Chinese", "Korean"],
+  "East Asian": ["Japanese", "Chinese", "Korean", "Taiwanese"],
   "Southeast Asian": ["Thai", "Vietnamese"],
   "Latin American": ["Mexican", "Peruvian", "Brazilian", "Puerto Rican"],
+  Caribbean: ["Cuban", "Jamaican", "Trinidadian"],
   "South Asian": ["Indian"],
+  African: ["Ethiopian", "Nigerian", "Moroccan"],
+  European: ["Polish", "German", "French", "British"],
+  American: ["BBQ", "Southern", "Cajun"],
 };
 const CUISINE_TO_FAMILY: Record<string, string> = {};
 for (const [family, cuisines] of Object.entries(CUISINE_FAMILIES)) {
@@ -271,7 +275,7 @@ const V8_RULES: V8WeightShiftRule[] = [
  */
 function applyConfidence(raw: number, dataPoints: number, maxDataPoints: number): number {
   const ratio = maxDataPoints > 0 ? dataPoints / maxDataPoints : 0;
-  const confidence = 0.5 + 0.5 * ratio;
+  const confidence = 0.6 + 0.4 * ratio;
   return raw * confidence + 5.5 * (1 - confidence);
 }
 
@@ -521,12 +525,12 @@ function computeFood(
   const rawTotal = cuisineScore + dishScore + dietScore + flavorScore;
   let normalized = Math.min(10, (rawTotal / effectiveDenom) * 10);
 
-  // No cuisine_type → cap at 4 when cuisine was requested
-  if (!profile.cuisine_type && targetCuisines.length > 0) normalized = Math.min(4, normalized);
+  // No cuisine_type → cap at 6 when cuisine was requested (null = missing data, not wrong cuisine)
+  if (!profile.cuisine_type && targetCuisines.length > 0) normalized = Math.min(6, normalized);
   // No food intent → floor at 5
   if (targetCuisines.length === 0 && (!specialRequest || specialRequest.trim().length < 3)
     && (!dietaryRestrictions || dietaryRestrictions.length === 0)) {
-    normalized = Math.max(normalized, 5);
+    normalized = Math.max(normalized, 5.5);
   }
 
   return { score: normalized, dataPoints, maxDataPoints, details };
@@ -1329,9 +1333,9 @@ export function computeV8DondeMatch(
 
   // Step 8: Intent multiplier
   // When no intent signals are active, multiplier = 1.0 (no penalty for open queries)
-  // When signals are active, range [0.70, 1.00]
+  // When signals are active, range [0.75, 1.00]
   const intentMultiplier = intentAlignment.hasActiveSignals
-    ? 0.70 + 0.30 * intentAlignment.score
+    ? 0.75 + 0.25 * intentAlignment.score
     : 1.0;
 
   // Step 9: Final score
