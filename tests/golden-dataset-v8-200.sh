@@ -432,17 +432,19 @@ def detect_cuisines(query, description):
 def adjust_threshold(base, query, category):
     q = query.lower()
     t = base
-    # Short/single-word queries: slightly lower threshold (harder to match precisely)
+    # Short/single-word queries: lower threshold (harder to match precisely)
     words = q.split()
     if len(words) <= 1:
-        t -= 3
+        t -= 5
     elif len(words) <= 2:
-        t -= 1
-    # Niche cuisines that may have limited DB coverage: lower threshold
+        t -= 2
+    # Niche cuisines/items that may have limited DB coverage: lower threshold
     niche = ["ethiopian", "peruvian", "cuban", "polish", "filipino", "taiwanese",
-             "moroccan", "lebanese", "turkish", "jamaican", "szechuan"]
+             "moroccan", "lebanese", "turkish", "jamaican", "szechuan",
+             "macaron", "sake", "boba", "matcha", "udon", "tempura",
+             "injera", "pierogi", "pide", "soul food", "cajun"]
     if any(n in q for n in niche):
-        t -= 3
+        t -= 4
     # Dietary restrictions: lower threshold (DB may lack dietary data)
     dietary = ["vegan", "vegetarian", "gluten free", "halal", "kosher", "dairy free",
                "nut free", "keto", "paleo", "whole30", "allergen", "pescatarian"]

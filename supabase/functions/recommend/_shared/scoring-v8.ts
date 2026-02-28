@@ -13,11 +13,11 @@
  *     medium confidence: [0.84, 1.05] ← V8.5: softened from 0.82
  *     low confidence:   [0.90, 1.05]  ← V8.5: softened from 0.88
  *     no signals: 1.0
- *   IntentAlignment composite floor: 0.25  ← V8.5 O19: raised from 0.20
+ *   IntentAlignment composite floor: 0.30  ← V8.5 O18: raised 0.20→0.30
  *   IntentAlignment vibe floor: 0.20       ← V8.4: Laplace smoothing
  *   IntentAlignment constraint floor: 0.25 ← V8.4: Laplace smoothing
  *   Food weight shift: guarded by actual cuisine/dish signals ← V8.5
- *   Food weight delta: +0.08 (reduced from +0.12)             ← V8.5
+ *   Food weight delta: +0.05 (reduced from +0.12)             ← V8.5
  *
  * V8.5 optimizations:
  * - Guarded food weight inflation — "High cuisine priority" only fires with actual
@@ -293,13 +293,15 @@ const V8_RULES: V8WeightShiftRule[] = [
     label: "Adventure/treat: food + reputation up",
   },
   // 7. Cuisine importance: high (+ dish-level)
-  // V8.5: Delta reduced from +0.12 to +0.08 — less aggressive food dominance.
+  // V8.5: Delta reduced from +0.12 to +0.05 — less aggressive food dominance.
   // The matchesV8Condition guard (O15) ensures this only fires when actual
   // cuisine/dish signals are present, not just because the classifier defaults
   // to "high" importance for ambiguous queries.
+  // V8.5 iterations: +0.12 → +0.08 → +0.05 (progressive reduction after
+  // 200-case testing showed food weight inflation still causing DM drag)
   {
     condition: { cuisineImportance: "high" },
-    deltas: { food: +0.08, reputation: -0.02, vibe: -0.03, service: -0.03 },
+    deltas: { food: +0.05, reputation: -0.01, vibe: -0.02, service: -0.02 },
     label: "High cuisine priority: food dominates",
   },
   // 8. Cuisine importance: low
@@ -1298,16 +1300,19 @@ function computeV8IntentAlignment(
 
   let score = totalWeight > 0 ? weightedSum / totalWeight : 0.5;
 
-  // V8.5 O16+O19: IA composite floor of 0.25 — prevents extreme IM penalties.
+  // V8.5 O16+O18: IA composite floor of 0.30 — prevents extreme IM penalties.
   // When the intent classifier produces active signals but none align with the
   // restaurant's profile, the raw composite can drop to 0.06-0.15, causing
-  // IM to hit near floor (0.80-0.90). A floor of 0.25 acknowledges that
+  // IM to hit near floor (0.80-0.90). A floor of 0.30 acknowledges that
   // any curated restaurant has baseline relevance to any reasonable query.
-  // V8.5 O19: Raised from 0.20 to 0.25 after 200-case testing showed queries
-  // like "michelin dining room" and "soul food" still hitting IM too hard.
+  // V8.5: Raised from 0.20→0.25→0.30 across iterations for sufficient margin.
+  // Combined with softened IM floors, the minimum possible IM is now:
+  //   high conf: 0.80 + 0.25*0.30 = 0.875 (was 0.78)
+  //   medium:    0.84 + 0.21*0.30 = 0.903 (was 0.82)
+  //   low:       0.90 + 0.15*0.30 = 0.945 (was 0.88)
   // Inspiration: Jelinek-Mercer smoothing — interpolate with a uniform prior.
-  if (hasActiveSignals && score < 0.25) {
-    score = 0.25;
+  if (hasActiveSignals && score < 0.30) {
+    score = 0.30;
   }
 
   return { score, cuisine: cuisineAlignment, dish: dishAlignment, vibe: vibeAlignment, constraints: constraintAlignment, hasActiveSignals };
