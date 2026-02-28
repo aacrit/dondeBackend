@@ -4,17 +4,27 @@
  * Single file replaces scoring-v3.ts (1786 lines), scoring-v7.ts (801 lines),
  * and weight-config-v5.ts (428 lines) = 3,014 lines → ~500 lines.
  *
- * V8.4 Architecture:
+ * V8.5 Architecture:
  *   DondeScore = (BaseQuality - CoherencePenalty) × IntentMultiplier
  *   BaseQuality = WeightedArithmeticMean(factors) × 10  → 0-100
- *   CoherencePenalty = max(0, (|vibe - service| - 4) × 0.6)     ← V8.4: relaxed
+ *   CoherencePenalty = max(0, (|vibe - service| - 4) × 0.6)
  *   IntentMultiplier = floor + range × intentAlignment
- *     high confidence:  [0.78, 1.05]  (aggressive)
- *     medium confidence: [0.82, 1.05] (moderate)
- *     low confidence:   [0.88, 1.05]  (gentle)
+ *     high confidence:  [0.80, 1.05]  ← V8.5: softened from 0.78
+ *     medium confidence: [0.84, 1.05] ← V8.5: softened from 0.82
+ *     low confidence:   [0.90, 1.05]  ← V8.5: softened from 0.88
  *     no signals: 1.0
- *   IntentAlignment vibe floor: 0.20   ← V8.4: Laplace smoothing
- *   IntentAlignment constraint floor: 0.25   ← V8.4: Laplace smoothing
+ *   IntentAlignment composite floor: 0.20  ← V8.5: prevents extreme IM penalty
+ *   IntentAlignment vibe floor: 0.20       ← V8.4: Laplace smoothing
+ *   IntentAlignment constraint floor: 0.25 ← V8.4: Laplace smoothing
+ *   Food weight shift: guarded by actual cuisine/dish signals ← V8.5
+ *   Food weight delta: +0.08 (reduced from +0.12)             ← V8.5
+ *
+ * V8.5 optimizations:
+ * - Guarded food weight inflation — "High cuisine priority" only fires with actual
+ *   cuisine/dish signals, preventing food weight spike for experience queries
+ * - Reduced food weight delta +0.12→+0.08 — less aggressive food dominance
+ * - IA composite floor of 0.20 — prevents extreme IM penalties for ambiguous queries
+ * - Softened IM floors (+0.02 each level) — gentler penalty across all confidence levels
  *
  * V8.4 optimizations:
  * - Laplace-smoothed intent alignment — vibe/constraint floors prevent zero-IA collapse
@@ -282,9 +292,13 @@ const V8_RULES: V8WeightShiftRule[] = [
     label: "Adventure/treat: food + reputation up",
   },
   // 7. Cuisine importance: high (+ dish-level)
+  // V8.5: Delta reduced from +0.12 to +0.08 — less aggressive food dominance.
+  // The matchesV8Condition guard (O15) ensures this only fires when actual
+  // cuisine/dish signals are present, not just because the classifier defaults
+  // to "high" importance for ambiguous queries.
   {
     condition: { cuisineImportance: "high" },
-    deltas: { food: +0.12, reputation: -0.04, vibe: -0.04, service: -0.04 },
+    deltas: { food: +0.08, reputation: -0.02, vibe: -0.03, service: -0.03 },
     label: "High cuisine priority: food dominates",
   },
   // 8. Cuisine importance: low
@@ -1085,7 +1099,18 @@ function matchesV8Condition(
   intent: IntentClassificationV2 | null,
 ): boolean {
   if (condition.occasion && !condition.occasion.includes(occasion)) return false;
-  if (condition.cuisineImportance && intent?.cuisine_importance !== condition.cuisineImportance) return false;
+  if (condition.cuisineImportance) {
+    if (intent?.cuisine_importance !== condition.cuisineImportance) return false;
+    // V8.5 O15: Guard "high" cuisine importance — only fire when there are actual
+    // cuisine or dish signals. Prevents food weight inflation for experience queries
+    // like "drag brunch" or "michelin dining room" where the classifier defaults
+    // to high importance but there are no specific cuisine/dish targets.
+    if (condition.cuisineImportance === "high") {
+      const hasCuisineTargets = (intent?.target_cuisines?.length ?? 0) > 0;
+      const hasDishTarget = !!intent?.dish_level_intent;
+      if (!hasCuisineTargets && !hasDishTarget) return false;
+    }
+  }
   if (condition.emotionalIntent) {
     if (!intent?.emotional_intent || !condition.emotionalIntent.includes(intent.emotional_intent)) return false;
   }
@@ -1270,7 +1295,17 @@ function computeV8IntentAlignment(
   if (hasVibe) { weightedSum += vibeAlignment * 0.20; totalWeight += 0.20; }
   if (hasConstraints) { weightedSum += constraintAlignment * 0.15; totalWeight += 0.15; }
 
-  const score = totalWeight > 0 ? weightedSum / totalWeight : 0.5;
+  let score = totalWeight > 0 ? weightedSum / totalWeight : 0.5;
+
+  // V8.5 O16: IA composite floor of 0.20 — prevents extreme IM penalties.
+  // When the intent classifier produces active signals but none align with the
+  // restaurant's profile, the raw composite can drop to 0.06-0.15, causing
+  // IM to hit near floor (0.78-0.88). A floor of 0.20 acknowledges that
+  // any curated restaurant has baseline relevance to any reasonable query.
+  // Inspiration: Jelinek-Mercer smoothing — interpolate with a uniform prior.
+  if (hasActiveSignals && score < 0.20) {
+    score = 0.20;
+  }
 
   return { score, cuisine: cuisineAlignment, dish: dishAlignment, vibe: vibeAlignment, constraints: constraintAlignment, hasActiveSignals };
 }
@@ -1466,21 +1501,21 @@ export function computeV8DondeMatch(
   }
 
   // Step 8: Confidence-weighted intent multiplier
-  // V8.3: The IM floor and range now adapt to the classifier's overall confidence.
-  // Inspiration: Bayesian Decision Theory — when evidence is weak, act more
-  // conservatively. A 1-word query like "pho" has low classifier confidence, so
-  // the IM should not penalize as aggressively as a detailed 5-word query.
+  // V8.3→V8.5: The IM floor and range adapt to classifier confidence.
+  // V8.5: Softened floors by +0.02 each level to reduce over-penalization.
+  // Combined with V8.5 O16 (IA floor of 0.20), the minimum possible IM is
+  // now 0.80 + 0.25*0.20 = 0.85 for high-confidence queries (was 0.78).
   //
-  // High confidence (5+ words, clear intent): IM = [0.78, 1.05] (aggressive, same as V8.2)
-  // Medium confidence (3-4 words):            IM = [0.82, 1.05] (moderate penalty)
-  // Low confidence (1-2 words, vague):        IM = [0.88, 1.05] (gentle penalty)
+  // High confidence (5+ words, clear intent): IM = [0.80, 1.05]  ← V8.5: was 0.78
+  // Medium confidence (3-4 words):            IM = [0.84, 1.05]  ← V8.5: was 0.82
+  // Low confidence (1-2 words, vague):        IM = [0.90, 1.05]  ← V8.5: was 0.88
   //
   // The ceiling stays at 1.05 for all confidence levels — a perfect match is
   // rewarded equally regardless of how confident we are about the classification.
   let intentMultiplier = 1.0;
   if (intentAlignment.hasActiveSignals) {
     const confLevel = inputs.intent?.confidence?.overall ?? "medium";
-    const imFloor = confLevel === "high" ? 0.78 : confLevel === "medium" ? 0.82 : 0.88;
+    const imFloor = confLevel === "high" ? 0.80 : confLevel === "medium" ? 0.84 : 0.90;
     const imRange = 1.05 - imFloor;
     intentMultiplier = imFloor + imRange * intentAlignment.score;
   }
