@@ -4,11 +4,19 @@
  * Single file replaces scoring-v3.ts (1786 lines), scoring-v7.ts (801 lines),
  * and weight-config-v5.ts (428 lines) = 3,014 lines → ~500 lines.
  *
- * V8.2 Architecture:
- *   DondeScore = BaseQuality × IntentMultiplier
+ * V8.3 Architecture:
+ *   DondeScore = (BaseQuality - CoherencePenalty) × IntentMultiplier
  *   BaseQuality = WeightedArithmeticMean(factors) × 10  → 0-100
- *   IntentMultiplier = 0.78 + 0.27 × intentAlignment    → [0.78, 1.05]
- *                      or 1.0 when no intent signals active
+ *   CoherencePenalty = max(0, (|vibe - service| - 3) × 0.8)
+ *   IntentMultiplier = floor + range × intentAlignment
+ *     high confidence:  [0.78, 1.05]  (aggressive)
+ *     medium confidence: [0.82, 1.05] (moderate)
+ *     low confidence:   [0.88, 1.05]  (gentle)
+ *     no signals: 1.0
+ *
+ * V8.3 optimizations:
+ * - Confidence-weighted intent multiplier — reduces penalty for vague/short queries
+ * - Vibe-service alignment penalty — cross-factor coherence check
  *
  * V8.2 optimizations (algorithm-inspired):
  * - Per-factor Bayesian priors (replaces universal 5.5) — Bayesian Statistics
@@ -1366,12 +1374,13 @@ function foodAbsorbedAdjustment(
  * Pipeline:
  * 1. Compute raw factor scores (all 5 factors)
  * 2. Apply food absorbed adjustments (user feedback)
- * 3. Apply single confidence function per factor
- * 4. Compute intent alignment
- * 5. Compute dynamic weights (12 rules)
+ * 3. Apply single confidence function per factor (Bayesian priors)
+ * 4. Compute intent alignment (6-level cuisine taxonomy)
+ * 5. Compute dynamic weights (13 rules)
  * 6. Arithmetic weighted mean → BaseQuality (0-100)
- * 7. IntentMultiplier = 0.78 + 0.27 × alignment (or 1.0 if no signals)
- * 8. DondeScore = BaseQuality × IntentMultiplier
+ * 6b. Vibe-service coherence penalty (V8.3)
+ * 7. Confidence-weighted intent multiplier (V8.3)
+ * 8. DondeScore = AdjustedBaseQuality × IntentMultiplier
  * 9. Generate match narrative
  */
 export function computeV8DondeMatch(
@@ -1415,7 +1424,7 @@ export function computeV8DondeMatch(
   const { weights, appliedRules } = computeV8Weights(inputs.occasion, inputs.intent);
 
   // Step 7: Arithmetic weighted mean → BaseQuality (0-100)
-  const baseQuality = (
+  let baseQuality = (
     factors.food * weights.food +
     factors.vibe * weights.vibe +
     factors.service * weights.service +
@@ -1423,14 +1432,36 @@ export function computeV8DondeMatch(
     factors.convenience * weights.convenience
   ) * 10;
 
-  // Step 8: Intent multiplier — asymmetric range [0.78, 1.05]
-  // Inspiration: BM25 query-relative scoring — perfect intent matches now get a
-  // small REWARD (+5%) instead of just "not penalized". This addresses the asymmetry
-  // where the multiplier could only decrease scores, never reward strong alignment.
-  // Range: 0.78 (zero alignment) → 1.05 (perfect alignment) = 0.27 spread
-  const intentMultiplier = intentAlignment.hasActiveSignals
-    ? 0.78 + 0.27 * intentAlignment.score
-    : 1.0;
+  // V8.3: Vibe-service alignment penalty — cross-factor coherence.
+  // Inspiration: Multi-criteria decision analysis / ISO 9126 quality model.
+  // A restaurant with vibe=9.7 and service=5.4 (gap=4.3) creates a jarring UX:
+  // gorgeous atmosphere but mediocre service. The arithmetic mean hides this tension.
+  // Apply a small penalty when the gap exceeds 3 points to surface coherent matches.
+  const vibeServiceGap = Math.abs(factors.vibe - factors.service);
+  if (vibeServiceGap > 3) {
+    const coherencePenalty = (vibeServiceGap - 3) * 0.8; // Max ~5.6 points for gap of 10
+    baseQuality -= coherencePenalty;
+  }
+
+  // Step 8: Confidence-weighted intent multiplier
+  // V8.3: The IM floor and range now adapt to the classifier's overall confidence.
+  // Inspiration: Bayesian Decision Theory — when evidence is weak, act more
+  // conservatively. A 1-word query like "pho" has low classifier confidence, so
+  // the IM should not penalize as aggressively as a detailed 5-word query.
+  //
+  // High confidence (5+ words, clear intent): IM = [0.78, 1.05] (aggressive, same as V8.2)
+  // Medium confidence (3-4 words):            IM = [0.82, 1.05] (moderate penalty)
+  // Low confidence (1-2 words, vague):        IM = [0.88, 1.05] (gentle penalty)
+  //
+  // The ceiling stays at 1.05 for all confidence levels — a perfect match is
+  // rewarded equally regardless of how confident we are about the classification.
+  let intentMultiplier = 1.0;
+  if (intentAlignment.hasActiveSignals) {
+    const confLevel = inputs.intent?.confidence?.overall ?? "medium";
+    const imFloor = confLevel === "high" ? 0.78 : confLevel === "medium" ? 0.82 : 0.88;
+    const imRange = 1.05 - imFloor;
+    intentMultiplier = imFloor + imRange * intentAlignment.score;
+  }
 
   // Step 9: Final score
   let dondeMatch = Math.round(baseQuality * intentMultiplier);
