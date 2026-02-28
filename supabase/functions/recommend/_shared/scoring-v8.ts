@@ -25,9 +25,7 @@
  * - Reduced food weight delta +0.12→+0.08 — less aggressive food dominance
  * - IA composite floor of 0.20 — prevents extreme IM penalties for ambiguous queries
  * - Softened IM floors (+0.02 each level) — gentler penalty across all confidence levels
- * - Adaptive weight deflation (O18) — when food < 2.5 with inflated weight,
- *   deflate 50% excess and redistribute to strongest factor
- * - IA composite floor raised to 0.25 (O19) — from 0.20, further reduces IM penalty
+ * - IA composite floor raised to 0.25 (O18) — from 0.20, further reduces IM penalty
  *
  * V8.4 optimizations:
  * - Laplace-smoothed intent alignment — vibe/constraint floors prevent zero-IA collapse
@@ -1480,28 +1478,6 @@ export function computeV8DondeMatch(
 
   // Step 6: Compute dynamic weights
   const { weights, appliedRules } = computeV8Weights(inputs.occasion, inputs.intent);
-
-  // V8.5 O18: Adaptive weight deflation for severely mismatched factors.
-  // When food < 2.5 and food weight was shifted above base (0.28), the inflated
-  // weight actively punishes the score. Deflate food weight by 50% of the excess
-  // and redistribute proportionally to the strongest-scoring factor.
-  // Inspiration: Adaptive Resource Allocation — redirect weight budget from
-  // low-signal dimensions to high-signal dimensions (similar to attention
-  // mechanisms in transformers: attend more to informative features).
-  if (factors.food < 2.5 && weights.food > V8_BASE_WEIGHTS.food + 0.01) {
-    const excess = weights.food - V8_BASE_WEIGHTS.food;
-    const deflation = excess * 0.50;
-    weights.food -= deflation;
-    // Find strongest factor and give it the redistributed weight
-    const otherFactors = [
-      { key: "vibe" as const, val: factors.vibe },
-      { key: "service" as const, val: factors.service },
-      { key: "reputation" as const, val: factors.reputation },
-      { key: "convenience" as const, val: factors.convenience },
-    ];
-    const strongest = otherFactors.reduce((a, b) => b.val > a.val ? b : a);
-    weights[strongest.key] += deflation;
-  }
 
   // Step 7: Arithmetic weighted mean → BaseQuality (0-100)
   let baseQuality = (
