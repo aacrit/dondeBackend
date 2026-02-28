@@ -69,6 +69,12 @@ function buildRestaurantObject(
     photo_urls: googleData?.photo_urls || [],
     opening_hours: googleData?.opening_hours || null,
     review_snippets: buildReviewSnippets(googleData),
+    check_average_per_person: chosen.deep_profile?.check_average_per_person || null,
+    typical_wait_minutes: chosen.deep_profile?.typical_wait_minutes || null,
+    instagram_worthiness: chosen.deep_profile?.instagram_worthiness || null,
+    cultural_authenticity: chosen.deep_profile?.cultural_authenticity || null,
+    crowd_profile: chosen.deep_profile?.crowd_profile || null,
+    group_size_sweet_spot: chosen.deep_profile?.group_size_sweet_spot || null,
   };
 }
 
@@ -277,6 +283,10 @@ export function buildRankedQueueItem(
     scores: buildScores(profile),
     tags: profile.tags,
     deep_context: buildDeepContext(profile),
+    popularity: {
+      trending: (profile as any).trending_score > 5 || false,
+      recommendation_count_7d: (profile as any).recommendation_count_7d || 0,
+    },
     recommendation: buildQueueBlurb(profile, candidate.matchNarrative, candidate.intentAlignment) || profile.best_for_oneliner || null,
     insider_tip: profile.insider_tip || null,
   };
@@ -339,6 +349,10 @@ export function buildV7SuccessResponse(
     scores: buildScores(chosen),
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
+    popularity: {
+      trending: (chosen as any).trending_score > 5 || false,
+      recommendation_count_7d: (chosen as any).recommendation_count_7d || 0,
+    },
     timestamp: new Date().toISOString(),
   };
 }
@@ -370,6 +384,10 @@ export function buildV7FallbackResponse(
     scores: buildScores(chosen),
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
+    popularity: {
+      trending: (chosen as any).trending_score > 5 || false,
+      recommendation_count_7d: (chosen as any).recommendation_count_7d || 0,
+    },
     timestamp: new Date().toISOString(),
   };
 }
