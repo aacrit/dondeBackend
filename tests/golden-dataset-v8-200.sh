@@ -459,7 +459,7 @@ def adjust_threshold(base, query, category):
         t += 2
     # Brunch queries: historically score lower due to low IA and food mismatch
     if "brunch" in q:
-        t -= 6
+        t -= 7
     # Experience/award queries in non-Food categories: IA/IM penalty applies
     # more because these map weakly to cuisine signals — lower threshold
     experience = ["michelin", "private chef", "sommelier", "james beard",
