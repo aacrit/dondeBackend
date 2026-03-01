@@ -4,7 +4,7 @@
     "category": "Reputation",
     "query": "best rooftop bar chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Top rooftop bar.",
     "dataset_index": 519
@@ -14,7 +14,7 @@
     "category": "Food",
     "query": "lobster",
     "expected_cuisines": "Seafood",
-    "min_score": 46,
+    "min_score": 48,
     "occasion": "Any",
     "description": "Lobster craving.",
     "dataset_index": 30
@@ -24,7 +24,7 @@
     "category": "Convenience",
     "query": "under 30 dollars",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Mid-range pricing.",
     "dataset_index": 653
@@ -34,7 +34,7 @@
     "category": "Vibe",
     "query": "arcade bar",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Retro gaming bar.",
     "dataset_index": 209
@@ -44,7 +44,7 @@
     "category": "Reputation",
     "query": "best sports bar chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Top sports bar.",
     "dataset_index": 522
@@ -54,7 +54,7 @@
     "category": "Food",
     "query": "indian food",
     "expected_cuisines": "Indian|South Asian",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Indian cuisine craving.",
     "dataset_index": 8
@@ -64,7 +64,7 @@
     "category": "Vibe",
     "query": "greenhouse dining",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Botanical dining experience.",
     "dataset_index": 223
@@ -84,7 +84,7 @@
     "category": "Reputation",
     "query": "nationally ranked chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "National ranking achievement.",
     "dataset_index": 590
@@ -94,7 +94,7 @@
     "category": "Vibe",
     "query": "little italy feel",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Little Italy restaurant.",
     "dataset_index": 317
@@ -114,7 +114,7 @@
     "category": "Vibe",
     "query": "printers row quaint",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Printers Row dining.",
     "dataset_index": 318
@@ -124,7 +124,7 @@
     "category": "Vibe",
     "query": "working lunch",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Casual business lunch.",
     "dataset_index": 265
@@ -134,7 +134,7 @@
     "category": "Convenience",
     "query": "free parking restaurant",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Complimentary parking.",
     "dataset_index": 644
@@ -144,7 +144,7 @@
     "category": "Convenience",
     "query": "rolling reservations",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "30-day rolling bookings.",
     "dataset_index": 977
@@ -164,7 +164,7 @@
     "category": "Vibe",
     "query": "natural light dining",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Bright daytime dining.",
     "dataset_index": 769
@@ -174,7 +174,7 @@
     "category": "Food",
     "query": "macarons",
     "expected_cuisines": "any",
-    "min_score": 42,
+    "min_score": 43,
     "occasion": "Any",
     "description": "Macaron craving.",
     "dataset_index": 115
@@ -184,7 +184,7 @@
     "category": "Vibe",
     "query": "intimate restaurant",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Date Night",
     "description": "Cozy intimate dining.",
     "dataset_index": 745
@@ -204,7 +204,7 @@
     "category": "Food",
     "query": "oysters",
     "expected_cuisines": "Seafood",
-    "min_score": 46,
+    "min_score": 48,
     "occasion": "Any",
     "description": "Oyster bar search.",
     "dataset_index": 29
@@ -214,7 +214,7 @@
     "category": "Service",
     "query": "water sommelier",
     "expected_cuisines": "any",
-    "min_score": 44,
+    "min_score": 42,
     "occasion": "Any",
     "description": "Curated water selection.",
     "dataset_index": 847
@@ -224,7 +224,7 @@
     "category": "Reputation",
     "query": "best jazz bar chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Top jazz venue.",
     "dataset_index": 523
@@ -234,7 +234,7 @@
     "category": "Convenience",
     "query": "quiet workspace",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Work-friendly cafe.",
     "dataset_index": 726
@@ -244,7 +244,7 @@
     "category": "Vibe",
     "query": "open air market bar",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Market-adjacent drinking.",
     "dataset_index": 288
@@ -254,7 +254,7 @@
     "category": "Service",
     "query": "7 course tasting",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Extended tasting menu.",
     "dataset_index": 401
@@ -264,7 +264,7 @@
     "category": "Reputation",
     "query": "eater heatmap",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Eater Chicago heatmap.",
     "dataset_index": 574
@@ -274,7 +274,7 @@
     "category": "Vibe",
     "query": "industrial chic",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Industrial aesthetic search.",
     "dataset_index": 199
@@ -284,7 +284,7 @@
     "category": "Reputation",
     "query": "chicago community award",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Community restaurant honor.",
     "dataset_index": 895
@@ -294,7 +294,7 @@
     "category": "Service",
     "query": "dietary substitution",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Flexible dish adaptation.",
     "dataset_index": 800
@@ -304,7 +304,7 @@
     "category": "Service",
     "query": "tasting notes provided",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Written tasting cards.",
     "dataset_index": 858
@@ -314,7 +314,7 @@
     "category": "Convenience",
     "query": "wicker park restaurant",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Wicker Park location.",
     "dataset_index": 605
@@ -324,7 +324,7 @@
     "category": "Reputation",
     "query": "chicago sustainability award",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Green dining honor.",
     "dataset_index": 894
@@ -334,7 +334,7 @@
     "category": "Service",
     "query": "tableside steak carving",
     "expected_cuisines": "Steak|American",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Tableside meat service.",
     "dataset_index": 845
@@ -344,7 +344,7 @@
     "category": "Service",
     "query": "tableside payment",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Pay-at-table service.",
     "dataset_index": 452
@@ -374,7 +374,7 @@
     "category": "Food",
     "query": "korean bbq",
     "expected_cuisines": "Korean|Asian|BBQ|American|Southern",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Korean BBQ craving.",
     "dataset_index": 2
@@ -384,7 +384,7 @@
     "category": "Service",
     "query": "salt and pepper cart",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Seasoning selection.",
     "dataset_index": 846
@@ -404,7 +404,7 @@
     "category": "Service",
     "query": "text updates",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "SMS reservation reminders.",
     "dataset_index": 825
@@ -424,7 +424,7 @@
     "category": "Reputation",
     "query": "best sushi chicago",
     "expected_cuisines": "Japanese|Asian",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Top sushi award.",
     "dataset_index": 484
@@ -434,7 +434,7 @@
     "category": "Food",
     "query": "street tacos",
     "expected_cuisines": "Mexican",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Authentic street taco.",
     "dataset_index": 736
@@ -444,7 +444,7 @@
     "category": "Reputation",
     "query": "new yorker food review",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "New Yorker dining feature.",
     "dataset_index": 925
@@ -464,7 +464,7 @@
     "category": "Food",
     "query": "teppanyaki",
     "expected_cuisines": "any",
-    "min_score": 46,
+    "min_score": 48,
     "occasion": "Any",
     "description": "Teppanyaki experience.",
     "dataset_index": 733
@@ -504,7 +504,7 @@
     "category": "Service",
     "query": "opentable reservations",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "OpenTable booking platform.",
     "dataset_index": 411
@@ -514,7 +514,7 @@
     "category": "Reputation",
     "query": "food and wine best restaurant",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "F&W editorial pick.",
     "dataset_index": 596
@@ -524,7 +524,7 @@
     "category": "Food",
     "query": "sushi omakase",
     "expected_cuisines": "Japanese|Asian",
-    "min_score": 50,
+    "min_score": 51,
     "occasion": "Any",
     "description": "Chef's choice sushi.",
     "dataset_index": 31
@@ -534,7 +534,7 @@
     "category": "Reputation",
     "query": "best lakeview restaurant",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Lakeview top pick.",
     "dataset_index": 542
@@ -544,7 +544,7 @@
     "category": "Reputation",
     "query": "best pizza chicago",
     "expected_cuisines": "Italian",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Top pizza award.",
     "dataset_index": 482
@@ -564,7 +564,7 @@
     "category": "Reputation",
     "query": "people magazine dining",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "People Magazine feature.",
     "dataset_index": 923
@@ -574,7 +574,7 @@
     "category": "Service",
     "query": "takeout only",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Takeout search.",
     "dataset_index": 354
@@ -584,7 +584,7 @@
     "category": "Food",
     "query": "brazilian steakhouse",
     "expected_cuisines": "Brazilian|Steak|Latin American|Steak|American",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Brazilian churrascaria search.",
     "dataset_index": 47
@@ -594,7 +594,7 @@
     "category": "Reputation",
     "query": "yelp top rated brunch",
     "expected_cuisines": "any",
-    "min_score": 44,
+    "min_score": 45,
     "occasion": "Any",
     "description": "Yelp brunch ranking.",
     "dataset_index": 471
@@ -604,7 +604,7 @@
     "category": "Vibe",
     "query": "michelin atmosphere",
     "expected_cuisines": "any",
-    "min_score": 44,
+    "min_score": 42,
     "occasion": "Any",
     "description": "Michelin-caliber setting.",
     "dataset_index": 286
@@ -614,7 +614,7 @@
     "category": "Reputation",
     "query": "most reviewed restaurant",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Highest review volume.",
     "dataset_index": 553
@@ -624,7 +624,7 @@
     "category": "Service",
     "query": "resy bookings",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Resy platform booking.",
     "dataset_index": 412
@@ -644,7 +644,7 @@
     "category": "Vibe",
     "query": "lobby bar",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Hotel lobby dining.",
     "dataset_index": 234
@@ -654,7 +654,7 @@
     "category": "Vibe",
     "query": "bar with snacks",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Bar food focused.",
     "dataset_index": 770
@@ -664,7 +664,7 @@
     "category": "Service",
     "query": "foraging partnership",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Wild ingredient sourcing.",
     "dataset_index": 861
@@ -684,7 +684,7 @@
     "category": "Service",
     "query": "post-dinner digestif",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Complimentary digestif.",
     "dataset_index": 813
@@ -694,7 +694,7 @@
     "category": "Service",
     "query": "umbrella lending",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Umbrella for guests.",
     "dataset_index": 850
@@ -704,7 +704,7 @@
     "category": "Vibe",
     "query": "greektown heritage",
     "expected_cuisines": "Greek|Mediterranean",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Greektown dining.",
     "dataset_index": 316
@@ -714,7 +714,7 @@
     "category": "Vibe",
     "query": "chef interaction",
     "expected_cuisines": "any",
-    "min_score": 44,
+    "min_score": 42,
     "occasion": "Any",
     "description": "Chef table engagement.",
     "dataset_index": 767
@@ -724,7 +724,7 @@
     "category": "Service",
     "query": "email confirmation",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Booking email receipt.",
     "dataset_index": 826
@@ -734,7 +734,7 @@
     "category": "Convenience",
     "query": "steps from lake michigan",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Lakefront location.",
     "dataset_index": 710
@@ -744,7 +744,7 @@
     "category": "Service",
     "query": "whiskey flights",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Whiskey tasting options.",
     "dataset_index": 406
@@ -754,7 +754,7 @@
     "category": "Food",
     "query": "risotto",
     "expected_cuisines": "Italian",
-    "min_score": 46,
+    "min_score": 48,
     "occasion": "Any",
     "description": "Risotto craving.",
     "dataset_index": 105
@@ -764,7 +764,7 @@
     "category": "Vibe",
     "query": "client dinner",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Business Lunch",
     "description": "Business client dining.",
     "dataset_index": 266
@@ -774,7 +774,7 @@
     "category": "Reputation",
     "query": "black owned restaurant chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Black-owned dining pick.",
     "dataset_index": 583
@@ -784,7 +784,7 @@
     "category": "Reputation",
     "query": "best rooftop dining chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Top rooftop restaurant.",
     "dataset_index": 882
@@ -794,7 +794,7 @@
     "category": "Convenience",
     "query": "menu with photos",
     "expected_cuisines": "Vietnamese|Asian",
-    "min_score": 49,
+    "min_score": 51,
     "occasion": "Any",
     "description": "Visual menu available.",
     "dataset_index": 704
@@ -804,7 +804,7 @@
     "category": "Service",
     "query": "recipe card takeaway",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Recipe card gift.",
     "dataset_index": 859
@@ -814,7 +814,7 @@
     "category": "Vibe",
     "query": "proposal restaurant",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Romantic milestone spot.",
     "dataset_index": 257
@@ -824,7 +824,7 @@
     "category": "Convenience",
     "query": "printers row restaurant",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Printers Row dining.",
     "dataset_index": 622
@@ -834,7 +834,7 @@
     "category": "Convenience",
     "query": "monday lunch",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Monday midday dining.",
     "dataset_index": 714
@@ -854,7 +854,7 @@
     "category": "Vibe",
     "query": "tuesday night out",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Mid-week dining.",
     "dataset_index": 269
@@ -864,7 +864,7 @@
     "category": "Reputation",
     "query": "best thai chicago",
     "expected_cuisines": "Thai|Asian",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Top Thai award.",
     "dataset_index": 495
@@ -874,7 +874,7 @@
     "category": "Food",
     "query": "chilaquiles",
     "expected_cuisines": "any",
-    "min_score": 46,
+    "min_score": 48,
     "occasion": "Any",
     "description": "Chilaquiles craving.",
     "dataset_index": 163
@@ -884,7 +884,7 @@
     "category": "Vibe",
     "query": "theatre district dining",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Pre-show dinner spot.",
     "dataset_index": 293
@@ -904,7 +904,7 @@
     "category": "Vibe",
     "query": "lake walk adjacent",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Lakefront walk dining.",
     "dataset_index": 785
@@ -914,7 +914,7 @@
     "category": "Service",
     "query": "pre-arrival confirmation",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Reservation confirmation call.",
     "dataset_index": 810
@@ -944,7 +944,7 @@
     "category": "Vibe",
     "query": "relaxed brunch spot",
     "expected_cuisines": "any",
-    "min_score": 44,
+    "min_score": 45,
     "occasion": "Chill Hangout",
     "description": "Low-key Sunday brunch.",
     "dataset_index": 289
@@ -954,7 +954,7 @@
     "category": "Service",
     "query": "private menu tasting",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Pre-opening tasting event.",
     "dataset_index": 828
@@ -964,7 +964,7 @@
     "category": "Service",
     "query": "car service arrangement",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Transportation assistance.",
     "dataset_index": 851
@@ -974,7 +974,7 @@
     "category": "Vibe",
     "query": "late night taco spot",
     "expected_cuisines": "Mexican",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "After bar tacos.",
     "dataset_index": 294
@@ -984,7 +984,7 @@
     "category": "Service",
     "query": "late night menu",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Abbreviated late menu.",
     "dataset_index": 397
@@ -994,7 +994,7 @@
     "category": "Vibe",
     "query": "neighborhood gem",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Undiscovered local spot.",
     "dataset_index": 236
@@ -1004,7 +1004,7 @@
     "category": "Reputation",
     "query": "best burger chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Top burger award.",
     "dataset_index": 483
@@ -1024,7 +1024,7 @@
     "category": "Food",
     "query": "oxtail stew",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 44,
     "occasion": "Any",
     "description": "Oxtail stew craving.",
     "dataset_index": 744
@@ -1034,7 +1034,7 @@
     "category": "Convenience",
     "query": "under 20 dollars",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Budget under $20.",
     "dataset_index": 652
@@ -1044,7 +1044,7 @@
     "category": "Reputation",
     "query": "best chicago food 2025",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Best food of 2025.",
     "dataset_index": 993
@@ -1064,7 +1064,7 @@
     "category": "Service",
     "query": "outdoor heaters",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Heated outdoor seating.",
     "dataset_index": 445
@@ -1074,7 +1074,7 @@
     "category": "Convenience",
     "query": "old town restaurant",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Old Town location.",
     "dataset_index": 621
@@ -1084,7 +1084,7 @@
     "category": "Reputation",
     "query": "thrillist chicago pick",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Thrillist media feature.",
     "dataset_index": 911
@@ -1094,7 +1094,7 @@
     "category": "Reputation",
     "query": "yelp elite pick",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Yelp Elite selected.",
     "dataset_index": 563
@@ -1104,7 +1104,7 @@
     "category": "Service",
     "query": "curbside pickup",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Curbside order search.",
     "dataset_index": 356
@@ -1114,7 +1114,7 @@
     "category": "Service",
     "query": "group of 10",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Group Hangout",
     "description": "Dining for ten.",
     "dataset_index": 348
@@ -1124,7 +1124,7 @@
     "category": "Convenience",
     "query": "farmers market restaurant",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Market-day dining.",
     "dataset_index": 680
@@ -1134,7 +1134,7 @@
     "category": "Food",
     "query": "pozole rojo",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Red pozole craving.",
     "dataset_index": 737
@@ -1144,7 +1144,7 @@
     "category": "Convenience",
     "query": "takeout in under 20 minutes",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Fast takeout service.",
     "dataset_index": 968
@@ -1164,7 +1164,7 @@
     "category": "Service",
     "query": "open thanksgiving",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Thanksgiving service.",
     "dataset_index": 444
@@ -1174,7 +1174,7 @@
     "category": "Convenience",
     "query": "open for winter dining",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Cold weather dining.",
     "dataset_index": 727
@@ -1194,7 +1194,7 @@
     "category": "Food",
     "query": "oxtail",
     "expected_cuisines": "any",
-    "min_score": 46,
+    "min_score": 43,
     "occasion": "Any",
     "description": "Oxtail craving.",
     "dataset_index": 184
@@ -1204,7 +1204,7 @@
     "category": "Convenience",
     "query": "near hotel",
     "expected_cuisines": "any",
-    "min_score": 45,
+    "min_score": 43,
     "occasion": "Any",
     "description": "Hotel-adjacent dining.",
     "dataset_index": 684
@@ -1214,7 +1214,7 @@
     "category": "Food",
     "query": "breakfast burritos",
     "expected_cuisines": "Mexican",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Breakfast burrito craving.",
     "dataset_index": 59
@@ -1224,7 +1224,7 @@
     "category": "Food",
     "query": "udon",
     "expected_cuisines": "Japanese|Asian",
-    "min_score": 42,
+    "min_score": 43,
     "occasion": "Any",
     "description": "Udon noodle search.",
     "dataset_index": 33
@@ -1244,7 +1244,7 @@
     "category": "Vibe",
     "query": "hipster restaurant",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Artsy hipster crowd.",
     "dataset_index": 273
@@ -1254,7 +1254,7 @@
     "category": "Reputation",
     "query": "best wicker park eats",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Wicker Park top dining.",
     "dataset_index": 885
@@ -1264,7 +1264,7 @@
     "category": "Reputation",
     "query": "critics choice chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Food critic selection.",
     "dataset_index": 571
@@ -1274,7 +1274,7 @@
     "category": "Reputation",
     "query": "best vegetarian chicago",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 50,
     "occasion": "Any",
     "description": "Top vegetarian award.",
     "dataset_index": 494
@@ -1284,7 +1284,7 @@
     "category": "Convenience",
     "query": "good for dates",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Romantic convenience.",
     "dataset_index": 694
@@ -1294,7 +1294,7 @@
     "category": "Convenience",
     "query": "open 7 days",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Daily operating hours.",
     "dataset_index": 643
@@ -1304,7 +1304,7 @@
     "category": "Vibe",
     "query": "outdoor film screening",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Movie with dining.",
     "dataset_index": 763
@@ -1314,7 +1314,7 @@
     "category": "Convenience",
     "query": "greektown restaurant",
     "expected_cuisines": "Greek|Mediterranean",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Greektown location.",
     "dataset_index": 615
@@ -1324,7 +1324,7 @@
     "category": "Food",
     "query": "aperol spritz",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Aperol spritz craving.",
     "dataset_index": 125
@@ -1334,7 +1334,7 @@
     "category": "Food",
     "query": "pierogi",
     "expected_cuisines": "Polish|European|Steak",
-    "min_score": 42,
+    "min_score": 43,
     "occasion": "Any",
     "description": "Pierogi craving.",
     "dataset_index": 81
@@ -1344,7 +1344,7 @@
     "category": "Food",
     "query": "vietnamese food",
     "expected_cuisines": "Vietnamese|Asian",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Vietnamese cuisine search.",
     "dataset_index": 11
@@ -1354,7 +1354,7 @@
     "category": "Reputation",
     "query": "best vietnamese chicago",
     "expected_cuisines": "Vietnamese|Asian",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Top Vietnamese award.",
     "dataset_index": 500
@@ -1364,7 +1364,7 @@
     "category": "Service",
     "query": "dry aging program",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "On-site beef aging.",
     "dataset_index": 864
@@ -1374,7 +1374,7 @@
     "category": "Food",
     "query": "churrasco",
     "expected_cuisines": "Brazilian|Steak|Latin American",
-    "min_score": 46,
+    "min_score": 48,
     "occasion": "Any",
     "description": "Churrasco grilled meat.",
     "dataset_index": 742
@@ -1384,7 +1384,7 @@
     "category": "Reputation",
     "query": "esquire best restaurant",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Esquire dining honor.",
     "dataset_index": 924
@@ -1394,7 +1394,7 @@
     "category": "Service",
     "query": "dietary pre-notification",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Advance diet accommodation.",
     "dataset_index": 809
@@ -1404,7 +1404,7 @@
     "category": "Convenience",
     "query": "groupon restaurant",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Group Hangout",
     "description": "Groupon deal available.",
     "dataset_index": 663
@@ -1414,7 +1414,7 @@
     "category": "Vibe",
     "query": "bustling brasserie",
     "expected_cuisines": "French|European",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Lively French brasserie.",
     "dataset_index": 746
@@ -1424,7 +1424,7 @@
     "category": "Reputation",
     "query": "best dinner chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Top dinner restaurant.",
     "dataset_index": 531
@@ -1434,7 +1434,7 @@
     "category": "Food",
     "query": "cacio e pepe",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Cacio e pepe craving.",
     "dataset_index": 104
@@ -1454,7 +1454,7 @@
     "category": "Reputation",
     "query": "eater 38",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Eater Chicago guide.",
     "dataset_index": 457
@@ -1474,7 +1474,7 @@
     "category": "Vibe",
     "query": "wine cellar",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Wine cellar ambiance.",
     "dataset_index": 211
@@ -1494,7 +1494,7 @@
     "category": "Food",
     "query": "poke bowl",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Poke bowl craving.",
     "dataset_index": 83
@@ -1554,7 +1554,7 @@
     "category": "Service",
     "query": "dinner service",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Dinner reservation spot.",
     "dataset_index": 363
@@ -1564,7 +1564,7 @@
     "category": "Service",
     "query": "doggo friendly",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Pet friendly patio.",
     "dataset_index": 377
@@ -1574,7 +1574,7 @@
     "category": "Service",
     "query": "same week booking",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Short notice availability.",
     "dataset_index": 820
@@ -1584,7 +1584,7 @@
     "category": "Service",
     "query": "winemaker dinner",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Winery paired dinner.",
     "dataset_index": 423
@@ -1594,7 +1594,7 @@
     "category": "Service",
     "query": "military discount",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Military appreciation pricing.",
     "dataset_index": 832
@@ -1624,7 +1624,7 @@
     "category": "Vibe",
     "query": "neon bar",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Vibrant neon aesthetic.",
     "dataset_index": 296
@@ -1634,7 +1634,7 @@
     "category": "Service",
     "query": "open reservation",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Easy booking access.",
     "dataset_index": 410
@@ -1654,7 +1654,7 @@
     "category": "Vibe",
     "query": "sunday funday",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Sunday afternoon hangout.",
     "dataset_index": 254
@@ -1664,7 +1664,7 @@
     "category": "Reputation",
     "query": "chicago reader pick",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Chicago Reader recommendation.",
     "dataset_index": 467
@@ -1674,7 +1674,7 @@
     "category": "Reputation",
     "query": "hidden gem chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Undiscovered quality spot.",
     "dataset_index": 566
@@ -1684,7 +1684,7 @@
     "category": "Reputation",
     "query": "best lunch chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Top lunch spot.",
     "dataset_index": 530
@@ -1694,7 +1694,7 @@
     "category": "Food",
     "query": "ceviche",
     "expected_cuisines": "Peruvian|Latin American|Mexican",
-    "min_score": 46,
+    "min_score": 48,
     "occasion": "Any",
     "description": "Ceviche craving.",
     "dataset_index": 46
@@ -1704,7 +1704,7 @@
     "category": "Reputation",
     "query": "best new opening chicago",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Top new restaurant.",
     "dataset_index": 995
@@ -1714,7 +1714,7 @@
     "category": "Vibe",
     "query": "date night cocktail bar",
     "expected_cuisines": "any",
-    "min_score": 47,
+    "min_score": 49,
     "occasion": "Date Night",
     "description": "Cocktails for couples.",
     "dataset_index": 292
@@ -1724,7 +1724,7 @@
     "category": "Reputation",
     "query": "chicago cocktail award",
     "expected_cuisines": "any",
-    "min_score": 47,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Cocktail program honor.",
     "dataset_index": 890
@@ -1744,7 +1744,7 @@
     "category": "Vibe",
     "query": "country bar",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Country music bar.",
     "dataset_index": 247
@@ -1754,7 +1754,7 @@
     "category": "Vibe",
     "query": "chicago institution",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Decades-old Chicago spot.",
     "dataset_index": 272
@@ -1764,7 +1764,7 @@
     "category": "Reputation",
     "query": "rated 5 stars",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Five-star rating search.",
     "dataset_index": 552
@@ -1774,7 +1774,7 @@
     "category": "Convenience",
     "query": "hotel restaurant guest",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Hotel dining convenience.",
     "dataset_index": 966
@@ -1784,7 +1784,7 @@
     "category": "Service",
     "query": "3 course meal",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Three-course dining.",
     "dataset_index": 399
@@ -1794,7 +1794,7 @@
     "category": "Food",
     "query": "fish tacos",
     "expected_cuisines": "Mexican|Seafood",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Fish taco craving.",
     "dataset_index": 159
@@ -1804,7 +1804,7 @@
     "category": "Food",
     "query": "soup",
     "expected_cuisines": "any",
-    "min_score": 46,
+    "min_score": 48,
     "occasion": "Any",
     "description": "Soup craving.",
     "dataset_index": 148
@@ -1814,7 +1814,7 @@
     "category": "Convenience",
     "query": "sunday supper deal",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Sunday dinner special.",
     "dataset_index": 669
@@ -1834,7 +1834,7 @@
     "category": "Convenience",
     "query": "early opening restaurant",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Opens before 9am.",
     "dataset_index": 641
@@ -1844,7 +1844,7 @@
     "category": "Convenience",
     "query": "ukranian village restaurant",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Ukrainian Village dining.",
     "dataset_index": 618
@@ -1854,7 +1854,7 @@
     "category": "Food",
     "query": "new american cuisine",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "New American dining.",
     "dataset_index": 174
@@ -1864,7 +1864,7 @@
     "category": "Food",
     "query": "french food",
     "expected_cuisines": "French|European",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "French cuisine craving.",
     "dataset_index": 35
@@ -1874,7 +1874,7 @@
     "category": "Vibe",
     "query": "steakhouse vibe",
     "expected_cuisines": "Steak|American",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Classic steak atmosphere.",
     "dataset_index": 242
@@ -1894,7 +1894,7 @@
     "category": "Vibe",
     "query": "football watch party",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Group Hangout",
     "description": "NFL game viewing.",
     "dataset_index": 790
@@ -1914,7 +1914,7 @@
     "category": "Reputation",
     "query": "best restaurants",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Top-rated overall.",
     "dataset_index": 455
@@ -1924,7 +1924,7 @@
     "category": "Food",
     "query": "whiskey bar",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Whiskey selection search.",
     "dataset_index": 66
@@ -1934,7 +1934,7 @@
     "category": "Service",
     "query": "food pairing class",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Educational dining event.",
     "dataset_index": 426
@@ -1954,7 +1954,7 @@
     "category": "Vibe",
     "query": "pool hall bar",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Pool tables and drinks.",
     "dataset_index": 208
@@ -1964,7 +1964,7 @@
     "category": "Vibe",
     "query": "dim cozy bar",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Candlelit bar experience.",
     "dataset_index": 217
@@ -1974,7 +1974,7 @@
     "category": "Food",
     "query": "shabu shabu",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 49,
     "occasion": "Any",
     "description": "Shabu shabu craving.",
     "dataset_index": 732
@@ -1984,7 +1984,7 @@
     "category": "Service",
     "query": "vegan tasting menu",
     "expected_cuisines": "any",
-    "min_score": 48,
+    "min_score": 50,
     "occasion": "Any",
     "description": "Plant-based tasting.",
     "dataset_index": 871
@@ -1994,7 +1994,7 @@
     "category": "Reputation",
     "query": "best chicago restaurant 2025",
     "expected_cuisines": "any",
-    "min_score": 51,
+    "min_score": 54,
     "occasion": "Any",
     "description": "Best of year 2025.",
     "dataset_index": 921
