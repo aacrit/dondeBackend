@@ -468,7 +468,7 @@ def adjust_threshold(base, query, category):
                   "chef's table", "wine dinner", "rehearsal dinner",
                   "awarded", "outstanding", "acclaimed", "sunday morning"]
     if category != "Food" and any(e in q for e in experience):
-        t -= 6
+        t -= 7
     # Location-based queries: weak cuisine signals, relies on convenience factor
     if any(loc in q for loc in ["near ", "walking distance", "close to"]):
         t -= 5
@@ -480,7 +480,7 @@ def adjust_threshold(base, query, category):
     # Occasion/holiday queries in non-Food: weak food signal
     if category != "Food" and any(o in q for o in ["valentine", "anniversary",
                             "birthday", "holiday", "christmas", "new year"]):
-        t -= 5
+        t -= 6
     # Ethnic cuisine in Reputation category: "best X" queries penalized by IM
     if category == "Reputation" and any(c in q for c in ["vietnamese", "indian",
                             "korean", "thai", "chinese", "mexican", "japanese"]):
