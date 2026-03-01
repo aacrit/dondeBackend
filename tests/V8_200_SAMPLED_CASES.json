@@ -1,0 +1,2002 @@
+[
+  {
+    "test_id": "GD-R001",
+    "category": "Reputation",
+    "query": "best rooftop bar chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Top rooftop bar.",
+    "dataset_index": 519
+  },
+  {
+    "test_id": "GD-F002",
+    "category": "Food",
+    "query": "lobster",
+    "expected_cuisines": "Seafood",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Lobster craving.",
+    "dataset_index": 30
+  },
+  {
+    "test_id": "GD-C003",
+    "category": "Convenience",
+    "query": "under 30 dollars",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Mid-range pricing.",
+    "dataset_index": 653
+  },
+  {
+    "test_id": "GD-V004",
+    "category": "Vibe",
+    "query": "arcade bar",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Retro gaming bar.",
+    "dataset_index": 209
+  },
+  {
+    "test_id": "GD-R005",
+    "category": "Reputation",
+    "query": "best sports bar chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Top sports bar.",
+    "dataset_index": 522
+  },
+  {
+    "test_id": "GD-F006",
+    "category": "Food",
+    "query": "indian food",
+    "expected_cuisines": "Indian|South Asian",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Indian cuisine craving.",
+    "dataset_index": 8
+  },
+  {
+    "test_id": "GD-V007",
+    "category": "Vibe",
+    "query": "greenhouse dining",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Botanical dining experience.",
+    "dataset_index": 223
+  },
+  {
+    "test_id": "GD-F008",
+    "category": "Food",
+    "query": "sake bar",
+    "expected_cuisines": "any",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "Sake selection search.",
+    "dataset_index": 126
+  },
+  {
+    "test_id": "GD-R009",
+    "category": "Reputation",
+    "query": "nationally ranked chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "National ranking achievement.",
+    "dataset_index": 590
+  },
+  {
+    "test_id": "GD-V010",
+    "category": "Vibe",
+    "query": "little italy feel",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Little Italy restaurant.",
+    "dataset_index": 317
+  },
+  {
+    "test_id": "GD-C011",
+    "category": "Convenience",
+    "query": "outdoor wifi",
+    "expected_cuisines": "any",
+    "min_score": 46,
+    "occasion": "Any",
+    "description": "Outdoor connectivity.",
+    "dataset_index": 723
+  },
+  {
+    "test_id": "GD-V012",
+    "category": "Vibe",
+    "query": "printers row quaint",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Printers Row dining.",
+    "dataset_index": 318
+  },
+  {
+    "test_id": "GD-V013",
+    "category": "Vibe",
+    "query": "working lunch",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Casual business lunch.",
+    "dataset_index": 265
+  },
+  {
+    "test_id": "GD-C014",
+    "category": "Convenience",
+    "query": "free parking restaurant",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Complimentary parking.",
+    "dataset_index": 644
+  },
+  {
+    "test_id": "GD-C015",
+    "category": "Convenience",
+    "query": "rolling reservations",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "30-day rolling bookings.",
+    "dataset_index": 977
+  },
+  {
+    "test_id": "GD-C016",
+    "category": "Convenience",
+    "query": "near auditorium theatre",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Auditorium Theatre dining.",
+    "dataset_index": 935
+  },
+  {
+    "test_id": "GD-V017",
+    "category": "Vibe",
+    "query": "natural light dining",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Bright daytime dining.",
+    "dataset_index": 769
+  },
+  {
+    "test_id": "GD-F018",
+    "category": "Food",
+    "query": "macarons",
+    "expected_cuisines": "any",
+    "min_score": 43,
+    "occasion": "Any",
+    "description": "Macaron craving.",
+    "dataset_index": 115
+  },
+  {
+    "test_id": "GD-V019",
+    "category": "Vibe",
+    "query": "intimate restaurant",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Date Night",
+    "description": "Cozy intimate dining.",
+    "dataset_index": 745
+  },
+  {
+    "test_id": "GD-C020",
+    "category": "Convenience",
+    "query": "near chicago family attractions",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Family Dinner",
+    "description": "Family attraction proximity.",
+    "dataset_index": 986
+  },
+  {
+    "test_id": "GD-F021",
+    "category": "Food",
+    "query": "oysters",
+    "expected_cuisines": "Seafood",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Oyster bar search.",
+    "dataset_index": 29
+  },
+  {
+    "test_id": "GD-S022",
+    "category": "Service",
+    "query": "water sommelier",
+    "expected_cuisines": "any",
+    "min_score": 42,
+    "occasion": "Any",
+    "description": "Curated water selection.",
+    "dataset_index": 847
+  },
+  {
+    "test_id": "GD-R023",
+    "category": "Reputation",
+    "query": "best jazz bar chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Top jazz venue.",
+    "dataset_index": 523
+  },
+  {
+    "test_id": "GD-C024",
+    "category": "Convenience",
+    "query": "quiet workspace",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Work-friendly cafe.",
+    "dataset_index": 726
+  },
+  {
+    "test_id": "GD-V025",
+    "category": "Vibe",
+    "query": "open air market bar",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Market-adjacent drinking.",
+    "dataset_index": 288
+  },
+  {
+    "test_id": "GD-S026",
+    "category": "Service",
+    "query": "7 course tasting",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Extended tasting menu.",
+    "dataset_index": 401
+  },
+  {
+    "test_id": "GD-R027",
+    "category": "Reputation",
+    "query": "eater heatmap",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Eater Chicago heatmap.",
+    "dataset_index": 574
+  },
+  {
+    "test_id": "GD-V028",
+    "category": "Vibe",
+    "query": "industrial chic",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Industrial aesthetic search.",
+    "dataset_index": 199
+  },
+  {
+    "test_id": "GD-R029",
+    "category": "Reputation",
+    "query": "chicago community award",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Community restaurant honor.",
+    "dataset_index": 895
+  },
+  {
+    "test_id": "GD-S030",
+    "category": "Service",
+    "query": "dietary substitution",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Flexible dish adaptation.",
+    "dataset_index": 800
+  },
+  {
+    "test_id": "GD-S031",
+    "category": "Service",
+    "query": "tasting notes provided",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Written tasting cards.",
+    "dataset_index": 858
+  },
+  {
+    "test_id": "GD-C032",
+    "category": "Convenience",
+    "query": "wicker park restaurant",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Wicker Park location.",
+    "dataset_index": 605
+  },
+  {
+    "test_id": "GD-R033",
+    "category": "Reputation",
+    "query": "chicago sustainability award",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Green dining honor.",
+    "dataset_index": 894
+  },
+  {
+    "test_id": "GD-S034",
+    "category": "Service",
+    "query": "tableside steak carving",
+    "expected_cuisines": "Steak|American",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Tableside meat service.",
+    "dataset_index": 845
+  },
+  {
+    "test_id": "GD-S035",
+    "category": "Service",
+    "query": "tableside payment",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Pay-at-table service.",
+    "dataset_index": 452
+  },
+  {
+    "test_id": "GD-V036",
+    "category": "Vibe",
+    "query": "drag brunch",
+    "expected_cuisines": "any",
+    "min_score": 41,
+    "occasion": "Any",
+    "description": "Drag show brunch.",
+    "dataset_index": 252
+  },
+  {
+    "test_id": "GD-C037",
+    "category": "Convenience",
+    "query": "near chicago riverwalk outdoor",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Riverwalk outdoor dining.",
+    "dataset_index": 937
+  },
+  {
+    "test_id": "GD-F038",
+    "category": "Food",
+    "query": "korean bbq",
+    "expected_cuisines": "Korean|Asian|BBQ|American|Southern",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Korean BBQ craving.",
+    "dataset_index": 2
+  },
+  {
+    "test_id": "GD-S039",
+    "category": "Service",
+    "query": "salt and pepper cart",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Seasoning selection.",
+    "dataset_index": 846
+  },
+  {
+    "test_id": "GD-C040",
+    "category": "Convenience",
+    "query": "near lakefront trail",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Lakefront trail access.",
+    "dataset_index": 942
+  },
+  {
+    "test_id": "GD-S041",
+    "category": "Service",
+    "query": "text updates",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "SMS reservation reminders.",
+    "dataset_index": 825
+  },
+  {
+    "test_id": "GD-V042",
+    "category": "Vibe",
+    "query": "michelin dining room",
+    "expected_cuisines": "any",
+    "min_score": 47,
+    "occasion": "Any",
+    "description": "Michelin setting.",
+    "dataset_index": 766
+  },
+  {
+    "test_id": "GD-R043",
+    "category": "Reputation",
+    "query": "best sushi chicago",
+    "expected_cuisines": "Japanese|Asian",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Top sushi award.",
+    "dataset_index": 484
+  },
+  {
+    "test_id": "GD-F044",
+    "category": "Food",
+    "query": "street tacos",
+    "expected_cuisines": "Mexican",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Authentic street taco.",
+    "dataset_index": 736
+  },
+  {
+    "test_id": "GD-R045",
+    "category": "Reputation",
+    "query": "new yorker food review",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "New Yorker dining feature.",
+    "dataset_index": 925
+  },
+  {
+    "test_id": "GD-C046",
+    "category": "Convenience",
+    "query": "senior accessible",
+    "expected_cuisines": "any",
+    "min_score": 46,
+    "occasion": "Any",
+    "description": "Senior-friendly features.",
+    "dataset_index": 987
+  },
+  {
+    "test_id": "GD-F047",
+    "category": "Food",
+    "query": "teppanyaki",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Teppanyaki experience.",
+    "dataset_index": 733
+  },
+  {
+    "test_id": "GD-R048",
+    "category": "Reputation",
+    "query": "most awarded chicago chef",
+    "expected_cuisines": "any",
+    "min_score": 47,
+    "occasion": "Any",
+    "description": "Highly decorated chef.",
+    "dataset_index": 584
+  },
+  {
+    "test_id": "GD-F049",
+    "category": "Food",
+    "query": "matcha desserts",
+    "expected_cuisines": "any",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "Matcha dessert craving.",
+    "dataset_index": 182
+  },
+  {
+    "test_id": "GD-V050",
+    "category": "Vibe",
+    "query": "festive holiday restaurant",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Holiday decorated dining.",
+    "dataset_index": 756
+  },
+  {
+    "test_id": "GD-S051",
+    "category": "Service",
+    "query": "opentable reservations",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "OpenTable booking platform.",
+    "dataset_index": 411
+  },
+  {
+    "test_id": "GD-R052",
+    "category": "Reputation",
+    "query": "food and wine best restaurant",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "F&W editorial pick.",
+    "dataset_index": 596
+  },
+  {
+    "test_id": "GD-F053",
+    "category": "Food",
+    "query": "sushi omakase",
+    "expected_cuisines": "Japanese|Asian",
+    "min_score": 51,
+    "occasion": "Any",
+    "description": "Chef's choice sushi.",
+    "dataset_index": 31
+  },
+  {
+    "test_id": "GD-R054",
+    "category": "Reputation",
+    "query": "best lakeview restaurant",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Lakeview top pick.",
+    "dataset_index": 542
+  },
+  {
+    "test_id": "GD-R055",
+    "category": "Reputation",
+    "query": "best pizza chicago",
+    "expected_cuisines": "Italian",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Top pizza award.",
+    "dataset_index": 482
+  },
+  {
+    "test_id": "GD-F056",
+    "category": "Food",
+    "query": "vegetarian restaurant",
+    "expected_cuisines": "any",
+    "min_score": 45,
+    "occasion": "Any",
+    "description": "Vegetarian dining search.",
+    "dataset_index": 71
+  },
+  {
+    "test_id": "GD-R057",
+    "category": "Reputation",
+    "query": "people magazine dining",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "People Magazine feature.",
+    "dataset_index": 923
+  },
+  {
+    "test_id": "GD-S058",
+    "category": "Service",
+    "query": "takeout only",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Takeout search.",
+    "dataset_index": 354
+  },
+  {
+    "test_id": "GD-F059",
+    "category": "Food",
+    "query": "brazilian steakhouse",
+    "expected_cuisines": "Brazilian|Steak|Latin American|Steak|American",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Brazilian churrascaria search.",
+    "dataset_index": 47
+  },
+  {
+    "test_id": "GD-R060",
+    "category": "Reputation",
+    "query": "yelp top rated brunch",
+    "expected_cuisines": "any",
+    "min_score": 45,
+    "occasion": "Any",
+    "description": "Yelp brunch ranking.",
+    "dataset_index": 471
+  },
+  {
+    "test_id": "GD-V061",
+    "category": "Vibe",
+    "query": "michelin atmosphere",
+    "expected_cuisines": "any",
+    "min_score": 42,
+    "occasion": "Any",
+    "description": "Michelin-caliber setting.",
+    "dataset_index": 286
+  },
+  {
+    "test_id": "GD-R062",
+    "category": "Reputation",
+    "query": "most reviewed restaurant",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Highest review volume.",
+    "dataset_index": 553
+  },
+  {
+    "test_id": "GD-S063",
+    "category": "Service",
+    "query": "resy bookings",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Resy platform booking.",
+    "dataset_index": 412
+  },
+  {
+    "test_id": "GD-V064",
+    "category": "Vibe",
+    "query": "sunday morning cafe",
+    "expected_cuisines": "any",
+    "min_score": 47,
+    "occasion": "Any",
+    "description": "Sunday cafe ritual.",
+    "dataset_index": 750
+  },
+  {
+    "test_id": "GD-V065",
+    "category": "Vibe",
+    "query": "lobby bar",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Hotel lobby dining.",
+    "dataset_index": 234
+  },
+  {
+    "test_id": "GD-V066",
+    "category": "Vibe",
+    "query": "bar with snacks",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Bar food focused.",
+    "dataset_index": 770
+  },
+  {
+    "test_id": "GD-S067",
+    "category": "Service",
+    "query": "foraging partnership",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Wild ingredient sourcing.",
+    "dataset_index": 861
+  },
+  {
+    "test_id": "GD-F068",
+    "category": "Food",
+    "query": "cajun food",
+    "expected_cuisines": "Cajun|Southern|American",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "Cajun cuisine craving.",
+    "dataset_index": 170
+  },
+  {
+    "test_id": "GD-S069",
+    "category": "Service",
+    "query": "post-dinner digestif",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Complimentary digestif.",
+    "dataset_index": 813
+  },
+  {
+    "test_id": "GD-S070",
+    "category": "Service",
+    "query": "umbrella lending",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Umbrella for guests.",
+    "dataset_index": 850
+  },
+  {
+    "test_id": "GD-V071",
+    "category": "Vibe",
+    "query": "greektown heritage",
+    "expected_cuisines": "Greek|Mediterranean",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Greektown dining.",
+    "dataset_index": 316
+  },
+  {
+    "test_id": "GD-V072",
+    "category": "Vibe",
+    "query": "chef interaction",
+    "expected_cuisines": "any",
+    "min_score": 42,
+    "occasion": "Any",
+    "description": "Chef table engagement.",
+    "dataset_index": 767
+  },
+  {
+    "test_id": "GD-S073",
+    "category": "Service",
+    "query": "email confirmation",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Booking email receipt.",
+    "dataset_index": 826
+  },
+  {
+    "test_id": "GD-C074",
+    "category": "Convenience",
+    "query": "steps from lake michigan",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Lakefront location.",
+    "dataset_index": 710
+  },
+  {
+    "test_id": "GD-S075",
+    "category": "Service",
+    "query": "whiskey flights",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Whiskey tasting options.",
+    "dataset_index": 406
+  },
+  {
+    "test_id": "GD-F076",
+    "category": "Food",
+    "query": "risotto",
+    "expected_cuisines": "Italian",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Risotto craving.",
+    "dataset_index": 105
+  },
+  {
+    "test_id": "GD-V077",
+    "category": "Vibe",
+    "query": "client dinner",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Business Lunch",
+    "description": "Business client dining.",
+    "dataset_index": 266
+  },
+  {
+    "test_id": "GD-R078",
+    "category": "Reputation",
+    "query": "black owned restaurant chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Black-owned dining pick.",
+    "dataset_index": 583
+  },
+  {
+    "test_id": "GD-R079",
+    "category": "Reputation",
+    "query": "best rooftop dining chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Top rooftop restaurant.",
+    "dataset_index": 882
+  },
+  {
+    "test_id": "GD-C080",
+    "category": "Convenience",
+    "query": "menu with photos",
+    "expected_cuisines": "Vietnamese|Asian",
+    "min_score": 51,
+    "occasion": "Any",
+    "description": "Visual menu available.",
+    "dataset_index": 704
+  },
+  {
+    "test_id": "GD-S081",
+    "category": "Service",
+    "query": "recipe card takeaway",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Recipe card gift.",
+    "dataset_index": 859
+  },
+  {
+    "test_id": "GD-V082",
+    "category": "Vibe",
+    "query": "proposal restaurant",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Romantic milestone spot.",
+    "dataset_index": 257
+  },
+  {
+    "test_id": "GD-C083",
+    "category": "Convenience",
+    "query": "printers row restaurant",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Printers Row dining.",
+    "dataset_index": 622
+  },
+  {
+    "test_id": "GD-C084",
+    "category": "Convenience",
+    "query": "monday lunch",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Monday midday dining.",
+    "dataset_index": 714
+  },
+  {
+    "test_id": "GD-F085",
+    "category": "Food",
+    "query": "soul food",
+    "expected_cuisines": "any",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "Soul food craving.",
+    "dataset_index": 171
+  },
+  {
+    "test_id": "GD-V086",
+    "category": "Vibe",
+    "query": "tuesday night out",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Mid-week dining.",
+    "dataset_index": 269
+  },
+  {
+    "test_id": "GD-R087",
+    "category": "Reputation",
+    "query": "best thai chicago",
+    "expected_cuisines": "Thai|Asian",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Top Thai award.",
+    "dataset_index": 495
+  },
+  {
+    "test_id": "GD-F088",
+    "category": "Food",
+    "query": "chilaquiles",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Chilaquiles craving.",
+    "dataset_index": 163
+  },
+  {
+    "test_id": "GD-V089",
+    "category": "Vibe",
+    "query": "theatre district dining",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Pre-show dinner spot.",
+    "dataset_index": 293
+  },
+  {
+    "test_id": "GD-V090",
+    "category": "Vibe",
+    "query": "cozy brunch",
+    "expected_cuisines": "any",
+    "min_score": 41,
+    "occasion": "Any",
+    "description": "Warm Sunday morning.",
+    "dataset_index": 297
+  },
+  {
+    "test_id": "GD-V091",
+    "category": "Vibe",
+    "query": "lake walk adjacent",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Lakefront walk dining.",
+    "dataset_index": 785
+  },
+  {
+    "test_id": "GD-S092",
+    "category": "Service",
+    "query": "pre-arrival confirmation",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Reservation confirmation call.",
+    "dataset_index": 810
+  },
+  {
+    "test_id": "GD-F093",
+    "category": "Food",
+    "query": "turkish food",
+    "expected_cuisines": "Turkish|Middle Eastern|Mediterranean",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "Turkish cuisine search.",
+    "dataset_index": 42
+  },
+  {
+    "test_id": "GD-S094",
+    "category": "Service",
+    "query": "house butchery",
+    "expected_cuisines": "Steak|American",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "In-house meat program.",
+    "dataset_index": 865
+  },
+  {
+    "test_id": "GD-V095",
+    "category": "Vibe",
+    "query": "relaxed brunch spot",
+    "expected_cuisines": "any",
+    "min_score": 45,
+    "occasion": "Chill Hangout",
+    "description": "Low-key Sunday brunch.",
+    "dataset_index": 289
+  },
+  {
+    "test_id": "GD-S096",
+    "category": "Service",
+    "query": "private menu tasting",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Pre-opening tasting event.",
+    "dataset_index": 828
+  },
+  {
+    "test_id": "GD-S097",
+    "category": "Service",
+    "query": "car service arrangement",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Transportation assistance.",
+    "dataset_index": 851
+  },
+  {
+    "test_id": "GD-V098",
+    "category": "Vibe",
+    "query": "late night taco spot",
+    "expected_cuisines": "Mexican",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "After bar tacos.",
+    "dataset_index": 294
+  },
+  {
+    "test_id": "GD-S099",
+    "category": "Service",
+    "query": "late night menu",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Abbreviated late menu.",
+    "dataset_index": 397
+  },
+  {
+    "test_id": "GD-V100",
+    "category": "Vibe",
+    "query": "neighborhood gem",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Undiscovered local spot.",
+    "dataset_index": 236
+  },
+  {
+    "test_id": "GD-R101",
+    "category": "Reputation",
+    "query": "best burger chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Top burger award.",
+    "dataset_index": 483
+  },
+  {
+    "test_id": "GD-R102",
+    "category": "Reputation",
+    "query": "james beard outstanding wine",
+    "expected_cuisines": "any",
+    "min_score": 47,
+    "occasion": "Any",
+    "description": "JBF wine recognition.",
+    "dataset_index": 904
+  },
+  {
+    "test_id": "GD-F103",
+    "category": "Food",
+    "query": "oxtail stew",
+    "expected_cuisines": "any",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "Oxtail stew craving.",
+    "dataset_index": 744
+  },
+  {
+    "test_id": "GD-C104",
+    "category": "Convenience",
+    "query": "under 20 dollars",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Budget under $20.",
+    "dataset_index": 652
+  },
+  {
+    "test_id": "GD-R105",
+    "category": "Reputation",
+    "query": "best chicago food 2025",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Best food of 2025.",
+    "dataset_index": 993
+  },
+  {
+    "test_id": "GD-C106",
+    "category": "Convenience",
+    "query": "near thalia hall",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Thalia Hall proximity.",
+    "dataset_index": 932
+  },
+  {
+    "test_id": "GD-S107",
+    "category": "Service",
+    "query": "outdoor heaters",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Heated outdoor seating.",
+    "dataset_index": 445
+  },
+  {
+    "test_id": "GD-C108",
+    "category": "Convenience",
+    "query": "old town restaurant",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Old Town location.",
+    "dataset_index": 621
+  },
+  {
+    "test_id": "GD-R109",
+    "category": "Reputation",
+    "query": "thrillist chicago pick",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Thrillist media feature.",
+    "dataset_index": 911
+  },
+  {
+    "test_id": "GD-R110",
+    "category": "Reputation",
+    "query": "yelp elite pick",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Yelp Elite selected.",
+    "dataset_index": 563
+  },
+  {
+    "test_id": "GD-S111",
+    "category": "Service",
+    "query": "curbside pickup",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Curbside order search.",
+    "dataset_index": 356
+  },
+  {
+    "test_id": "GD-S112",
+    "category": "Service",
+    "query": "group of 10",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Group Hangout",
+    "description": "Dining for ten.",
+    "dataset_index": 348
+  },
+  {
+    "test_id": "GD-C113",
+    "category": "Convenience",
+    "query": "farmers market restaurant",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Market-day dining.",
+    "dataset_index": 680
+  },
+  {
+    "test_id": "GD-F114",
+    "category": "Food",
+    "query": "pozole rojo",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Red pozole craving.",
+    "dataset_index": 737
+  },
+  {
+    "test_id": "GD-C115",
+    "category": "Convenience",
+    "query": "takeout in under 20 minutes",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Fast takeout service.",
+    "dataset_index": 968
+  },
+  {
+    "test_id": "GD-S116",
+    "category": "Service",
+    "query": "private chef consultation",
+    "expected_cuisines": "any",
+    "min_score": 47,
+    "occasion": "Any",
+    "description": "Meet the chef dining.",
+    "dataset_index": 857
+  },
+  {
+    "test_id": "GD-S117",
+    "category": "Service",
+    "query": "open thanksgiving",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Thanksgiving service.",
+    "dataset_index": 444
+  },
+  {
+    "test_id": "GD-C118",
+    "category": "Convenience",
+    "query": "open for winter dining",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Cold weather dining.",
+    "dataset_index": 727
+  },
+  {
+    "test_id": "GD-C119",
+    "category": "Convenience",
+    "query": "near fulton market",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Fulton Market location.",
+    "dataset_index": 951
+  },
+  {
+    "test_id": "GD-F120",
+    "category": "Food",
+    "query": "oxtail",
+    "expected_cuisines": "any",
+    "min_score": 43,
+    "occasion": "Any",
+    "description": "Oxtail craving.",
+    "dataset_index": 184
+  },
+  {
+    "test_id": "GD-C121",
+    "category": "Convenience",
+    "query": "near hotel",
+    "expected_cuisines": "any",
+    "min_score": 43,
+    "occasion": "Any",
+    "description": "Hotel-adjacent dining.",
+    "dataset_index": 684
+  },
+  {
+    "test_id": "GD-F122",
+    "category": "Food",
+    "query": "breakfast burritos",
+    "expected_cuisines": "Mexican",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Breakfast burrito craving.",
+    "dataset_index": 59
+  },
+  {
+    "test_id": "GD-F123",
+    "category": "Food",
+    "query": "udon",
+    "expected_cuisines": "Japanese|Asian",
+    "min_score": 43,
+    "occasion": "Any",
+    "description": "Udon noodle search.",
+    "dataset_index": 33
+  },
+  {
+    "test_id": "GD-C124",
+    "category": "Convenience",
+    "query": "near chicago hospital",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Hospital proximity dining.",
+    "dataset_index": 997
+  },
+  {
+    "test_id": "GD-V125",
+    "category": "Vibe",
+    "query": "hipster restaurant",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Artsy hipster crowd.",
+    "dataset_index": 273
+  },
+  {
+    "test_id": "GD-R126",
+    "category": "Reputation",
+    "query": "best wicker park eats",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Wicker Park top dining.",
+    "dataset_index": 885
+  },
+  {
+    "test_id": "GD-R127",
+    "category": "Reputation",
+    "query": "critics choice chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Food critic selection.",
+    "dataset_index": 571
+  },
+  {
+    "test_id": "GD-R128",
+    "category": "Reputation",
+    "query": "best vegetarian chicago",
+    "expected_cuisines": "any",
+    "min_score": 50,
+    "occasion": "Any",
+    "description": "Top vegetarian award.",
+    "dataset_index": 494
+  },
+  {
+    "test_id": "GD-C129",
+    "category": "Convenience",
+    "query": "good for dates",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Romantic convenience.",
+    "dataset_index": 694
+  },
+  {
+    "test_id": "GD-C130",
+    "category": "Convenience",
+    "query": "open 7 days",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Daily operating hours.",
+    "dataset_index": 643
+  },
+  {
+    "test_id": "GD-V131",
+    "category": "Vibe",
+    "query": "outdoor film screening",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Movie with dining.",
+    "dataset_index": 763
+  },
+  {
+    "test_id": "GD-C132",
+    "category": "Convenience",
+    "query": "greektown restaurant",
+    "expected_cuisines": "Greek|Mediterranean",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Greektown location.",
+    "dataset_index": 615
+  },
+  {
+    "test_id": "GD-F133",
+    "category": "Food",
+    "query": "aperol spritz",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Aperol spritz craving.",
+    "dataset_index": 125
+  },
+  {
+    "test_id": "GD-F134",
+    "category": "Food",
+    "query": "pierogi",
+    "expected_cuisines": "Polish|European|Steak",
+    "min_score": 43,
+    "occasion": "Any",
+    "description": "Pierogi craving.",
+    "dataset_index": 81
+  },
+  {
+    "test_id": "GD-F135",
+    "category": "Food",
+    "query": "vietnamese food",
+    "expected_cuisines": "Vietnamese|Asian",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Vietnamese cuisine search.",
+    "dataset_index": 11
+  },
+  {
+    "test_id": "GD-R136",
+    "category": "Reputation",
+    "query": "best vietnamese chicago",
+    "expected_cuisines": "Vietnamese|Asian",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Top Vietnamese award.",
+    "dataset_index": 500
+  },
+  {
+    "test_id": "GD-S137",
+    "category": "Service",
+    "query": "dry aging program",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "On-site beef aging.",
+    "dataset_index": 864
+  },
+  {
+    "test_id": "GD-F138",
+    "category": "Food",
+    "query": "churrasco",
+    "expected_cuisines": "Brazilian|Steak|Latin American",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Churrasco grilled meat.",
+    "dataset_index": 742
+  },
+  {
+    "test_id": "GD-R139",
+    "category": "Reputation",
+    "query": "esquire best restaurant",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Esquire dining honor.",
+    "dataset_index": 924
+  },
+  {
+    "test_id": "GD-S140",
+    "category": "Service",
+    "query": "dietary pre-notification",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Advance diet accommodation.",
+    "dataset_index": 809
+  },
+  {
+    "test_id": "GD-C141",
+    "category": "Convenience",
+    "query": "groupon restaurant",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Group Hangout",
+    "description": "Groupon deal available.",
+    "dataset_index": 663
+  },
+  {
+    "test_id": "GD-V142",
+    "category": "Vibe",
+    "query": "bustling brasserie",
+    "expected_cuisines": "French|European",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Lively French brasserie.",
+    "dataset_index": 746
+  },
+  {
+    "test_id": "GD-R143",
+    "category": "Reputation",
+    "query": "best dinner chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Top dinner restaurant.",
+    "dataset_index": 531
+  },
+  {
+    "test_id": "GD-F144",
+    "category": "Food",
+    "query": "cacio e pepe",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Cacio e pepe craving.",
+    "dataset_index": 104
+  },
+  {
+    "test_id": "GD-S145",
+    "category": "Service",
+    "query": "valentine's day dinner",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Valentine's Day dining.",
+    "dataset_index": 435
+  },
+  {
+    "test_id": "GD-R146",
+    "category": "Reputation",
+    "query": "eater 38",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Eater Chicago guide.",
+    "dataset_index": 457
+  },
+  {
+    "test_id": "GD-C147",
+    "category": "Convenience",
+    "query": "wheelchair accessible",
+    "expected_cuisines": "any",
+    "min_score": 46,
+    "occasion": "Any",
+    "description": "ADA compliant dining.",
+    "dataset_index": 697
+  },
+  {
+    "test_id": "GD-V148",
+    "category": "Vibe",
+    "query": "wine cellar",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Wine cellar ambiance.",
+    "dataset_index": 211
+  },
+  {
+    "test_id": "GD-C149",
+    "category": "Convenience",
+    "query": "open on holiday",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Holiday hours service.",
+    "dataset_index": 681
+  },
+  {
+    "test_id": "GD-F150",
+    "category": "Food",
+    "query": "poke bowl",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Poke bowl craving.",
+    "dataset_index": 83
+  },
+  {
+    "test_id": "GD-C151",
+    "category": "Convenience",
+    "query": "affordable lunch",
+    "expected_cuisines": "any",
+    "min_score": 46,
+    "occasion": "Any",
+    "description": "Budget lunch option.",
+    "dataset_index": 656
+  },
+  {
+    "test_id": "GD-S152",
+    "category": "Service",
+    "query": "sommelier on staff",
+    "expected_cuisines": "any",
+    "min_score": 47,
+    "occasion": "Any",
+    "description": "Wine expertise available.",
+    "dataset_index": 378
+  },
+  {
+    "test_id": "GD-C153",
+    "category": "Convenience",
+    "query": "near metro chicago",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Metro Chicago proximity.",
+    "dataset_index": 933
+  },
+  {
+    "test_id": "GD-F154",
+    "category": "Food",
+    "query": "hot pot",
+    "expected_cuisines": "any",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "Hot pot craving.",
+    "dataset_index": 133
+  },
+  {
+    "test_id": "GD-F155",
+    "category": "Food",
+    "query": "ethiopian restaurant",
+    "expected_cuisines": "Ethiopian|African",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "Ethiopian cuisine search.",
+    "dataset_index": 9
+  },
+  {
+    "test_id": "GD-S156",
+    "category": "Service",
+    "query": "dinner service",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Dinner reservation spot.",
+    "dataset_index": 363
+  },
+  {
+    "test_id": "GD-S157",
+    "category": "Service",
+    "query": "doggo friendly",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Pet friendly patio.",
+    "dataset_index": 377
+  },
+  {
+    "test_id": "GD-S158",
+    "category": "Service",
+    "query": "same week booking",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Short notice availability.",
+    "dataset_index": 820
+  },
+  {
+    "test_id": "GD-S159",
+    "category": "Service",
+    "query": "winemaker dinner",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Winery paired dinner.",
+    "dataset_index": 423
+  },
+  {
+    "test_id": "GD-S160",
+    "category": "Service",
+    "query": "military discount",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Military appreciation pricing.",
+    "dataset_index": 832
+  },
+  {
+    "test_id": "GD-C161",
+    "category": "Convenience",
+    "query": "near goodman theatre",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Goodman Theatre proximity.",
+    "dataset_index": 634
+  },
+  {
+    "test_id": "GD-F162",
+    "category": "Food",
+    "query": "cocktail bar",
+    "expected_cuisines": "any",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "Craft cocktail search.",
+    "dataset_index": 65
+  },
+  {
+    "test_id": "GD-V163",
+    "category": "Vibe",
+    "query": "neon bar",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Vibrant neon aesthetic.",
+    "dataset_index": 296
+  },
+  {
+    "test_id": "GD-S164",
+    "category": "Service",
+    "query": "open reservation",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Easy booking access.",
+    "dataset_index": 410
+  },
+  {
+    "test_id": "GD-C165",
+    "category": "Convenience",
+    "query": "cheap eats",
+    "expected_cuisines": "any",
+    "min_score": 46,
+    "occasion": "Any",
+    "description": "Budget-friendly food.",
+    "dataset_index": 597
+  },
+  {
+    "test_id": "GD-V166",
+    "category": "Vibe",
+    "query": "sunday funday",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Sunday afternoon hangout.",
+    "dataset_index": 254
+  },
+  {
+    "test_id": "GD-R167",
+    "category": "Reputation",
+    "query": "chicago reader pick",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Chicago Reader recommendation.",
+    "dataset_index": 467
+  },
+  {
+    "test_id": "GD-R168",
+    "category": "Reputation",
+    "query": "hidden gem chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Undiscovered quality spot.",
+    "dataset_index": 566
+  },
+  {
+    "test_id": "GD-R169",
+    "category": "Reputation",
+    "query": "best lunch chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Top lunch spot.",
+    "dataset_index": 530
+  },
+  {
+    "test_id": "GD-F170",
+    "category": "Food",
+    "query": "ceviche",
+    "expected_cuisines": "Peruvian|Latin American|Mexican",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Ceviche craving.",
+    "dataset_index": 46
+  },
+  {
+    "test_id": "GD-R171",
+    "category": "Reputation",
+    "query": "best new opening chicago",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Top new restaurant.",
+    "dataset_index": 995
+  },
+  {
+    "test_id": "GD-V172",
+    "category": "Vibe",
+    "query": "date night cocktail bar",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Date Night",
+    "description": "Cocktails for couples.",
+    "dataset_index": 292
+  },
+  {
+    "test_id": "GD-R173",
+    "category": "Reputation",
+    "query": "chicago cocktail award",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Cocktail program honor.",
+    "dataset_index": 890
+  },
+  {
+    "test_id": "GD-C174",
+    "category": "Convenience",
+    "query": "near midway airport",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Midway proximity dining.",
+    "dataset_index": 630
+  },
+  {
+    "test_id": "GD-V175",
+    "category": "Vibe",
+    "query": "country bar",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Country music bar.",
+    "dataset_index": 247
+  },
+  {
+    "test_id": "GD-V176",
+    "category": "Vibe",
+    "query": "chicago institution",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Decades-old Chicago spot.",
+    "dataset_index": 272
+  },
+  {
+    "test_id": "GD-R177",
+    "category": "Reputation",
+    "query": "rated 5 stars",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Five-star rating search.",
+    "dataset_index": 552
+  },
+  {
+    "test_id": "GD-C178",
+    "category": "Convenience",
+    "query": "hotel restaurant guest",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Hotel dining convenience.",
+    "dataset_index": 966
+  },
+  {
+    "test_id": "GD-S179",
+    "category": "Service",
+    "query": "3 course meal",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Three-course dining.",
+    "dataset_index": 399
+  },
+  {
+    "test_id": "GD-F180",
+    "category": "Food",
+    "query": "fish tacos",
+    "expected_cuisines": "Mexican|Seafood",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Fish taco craving.",
+    "dataset_index": 159
+  },
+  {
+    "test_id": "GD-F181",
+    "category": "Food",
+    "query": "soup",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Soup craving.",
+    "dataset_index": 148
+  },
+  {
+    "test_id": "GD-C182",
+    "category": "Convenience",
+    "query": "sunday supper deal",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Sunday dinner special.",
+    "dataset_index": 669
+  },
+  {
+    "test_id": "GD-F183",
+    "category": "Food",
+    "query": "boba tea",
+    "expected_cuisines": "any",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "Bubble tea craving.",
+    "dataset_index": 64
+  },
+  {
+    "test_id": "GD-C184",
+    "category": "Convenience",
+    "query": "early opening restaurant",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Opens before 9am.",
+    "dataset_index": 641
+  },
+  {
+    "test_id": "GD-C185",
+    "category": "Convenience",
+    "query": "ukranian village restaurant",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Ukrainian Village dining.",
+    "dataset_index": 618
+  },
+  {
+    "test_id": "GD-F186",
+    "category": "Food",
+    "query": "new american cuisine",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "New American dining.",
+    "dataset_index": 174
+  },
+  {
+    "test_id": "GD-F187",
+    "category": "Food",
+    "query": "french food",
+    "expected_cuisines": "French|European",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "French cuisine craving.",
+    "dataset_index": 35
+  },
+  {
+    "test_id": "GD-V188",
+    "category": "Vibe",
+    "query": "steakhouse vibe",
+    "expected_cuisines": "Steak|American",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Classic steak atmosphere.",
+    "dataset_index": 242
+  },
+  {
+    "test_id": "GD-C189",
+    "category": "Convenience",
+    "query": "close to the loop financial",
+    "expected_cuisines": "any",
+    "min_score": 48,
+    "occasion": "Any",
+    "description": "Financial district lunch.",
+    "dataset_index": 953
+  },
+  {
+    "test_id": "GD-V190",
+    "category": "Vibe",
+    "query": "football watch party",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Group Hangout",
+    "description": "NFL game viewing.",
+    "dataset_index": 790
+  },
+  {
+    "test_id": "GD-R191",
+    "category": "Reputation",
+    "query": "james beard outstanding chef",
+    "expected_cuisines": "any",
+    "min_score": 47,
+    "occasion": "Any",
+    "description": "Outstanding Chef award.",
+    "dataset_index": 592
+  },
+  {
+    "test_id": "GD-R192",
+    "category": "Reputation",
+    "query": "best restaurants",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Top-rated overall.",
+    "dataset_index": 455
+  },
+  {
+    "test_id": "GD-F193",
+    "category": "Food",
+    "query": "whiskey bar",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Whiskey selection search.",
+    "dataset_index": 66
+  },
+  {
+    "test_id": "GD-S194",
+    "category": "Service",
+    "query": "food pairing class",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Educational dining event.",
+    "dataset_index": 426
+  },
+  {
+    "test_id": "GD-F195",
+    "category": "Food",
+    "query": "craft beer",
+    "expected_cuisines": "any",
+    "min_score": 44,
+    "occasion": "Any",
+    "description": "Craft beer search.",
+    "dataset_index": 68
+  },
+  {
+    "test_id": "GD-V196",
+    "category": "Vibe",
+    "query": "pool hall bar",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Pool tables and drinks.",
+    "dataset_index": 208
+  },
+  {
+    "test_id": "GD-V197",
+    "category": "Vibe",
+    "query": "dim cozy bar",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Candlelit bar experience.",
+    "dataset_index": 217
+  },
+  {
+    "test_id": "GD-F198",
+    "category": "Food",
+    "query": "shabu shabu",
+    "expected_cuisines": "any",
+    "min_score": 49,
+    "occasion": "Any",
+    "description": "Shabu shabu craving.",
+    "dataset_index": 732
+  },
+  {
+    "test_id": "GD-S199",
+    "category": "Service",
+    "query": "vegan tasting menu",
+    "expected_cuisines": "any",
+    "min_score": 50,
+    "occasion": "Any",
+    "description": "Plant-based tasting.",
+    "dataset_index": 871
+  },
+  {
+    "test_id": "GD-R200",
+    "category": "Reputation",
+    "query": "best chicago restaurant 2025",
+    "expected_cuisines": "any",
+    "min_score": 54,
+    "occasion": "Any",
+    "description": "Best of year 2025.",
+    "dataset_index": 921
+  }
+]
