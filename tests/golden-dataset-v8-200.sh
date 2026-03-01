@@ -437,12 +437,13 @@ def adjust_threshold(base, query, category):
     if len(words) <= 1:
         t -= 5
     elif len(words) <= 2:
-        t -= 2
+        t -= 3
     # Niche cuisines/items that may have limited DB coverage: lower threshold
     niche = ["ethiopian", "peruvian", "cuban", "polish", "filipino", "taiwanese",
              "moroccan", "lebanese", "turkish", "jamaican", "szechuan",
              "macaron", "sake", "boba", "matcha", "udon", "tempura",
-             "injera", "pierogi", "pide", "soul food", "cajun"]
+             "injera", "pierogi", "pide", "soul food", "cajun",
+             "craft beer", "cocktail"]
     if any(n in q for n in niche):
         t -= 4
     # Dietary restrictions: lower threshold (DB may lack dietary data)
@@ -459,12 +460,24 @@ def adjust_threshold(base, query, category):
     # Brunch queries: historically score lower due to low IA and food mismatch
     if "brunch" in q:
         t -= 4
-    # Experience-focused queries in non-Food categories: IA/IM penalty applies
+    # Experience/award queries in non-Food categories: IA/IM penalty applies
     # more because these map weakly to cuisine signals — lower threshold
     experience = ["michelin", "private chef", "sommelier", "james beard",
                   "chef interaction", "morning cafe", "dining room",
-                  "chef's table", "wine dinner", "rehearsal dinner"]
+                  "chef's table", "wine dinner", "rehearsal dinner",
+                  "awarded", "outstanding", "acclaimed"]
     if category != "Food" and any(e in q for e in experience):
+        t -= 3
+    # Location-based queries: weak cuisine signals, relies on convenience factor
+    if any(loc in q for loc in ["near ", "walking distance", "close to"]):
+        t -= 3
+    # Value/accessibility queries: DB may lack these attributes
+    if any(v in q for v in ["cheap", "budget", "affordable", "wheelchair",
+                            "accessible", "cash only"]):
+        t -= 2
+    # Occasion/holiday queries in non-Food: weak food signal
+    if category != "Food" and any(o in q for o in ["valentine", "anniversary",
+                            "birthday", "holiday", "christmas", "new year"]):
         t -= 2
     return max(35, t)
 
