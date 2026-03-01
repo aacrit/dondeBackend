@@ -443,7 +443,7 @@ def adjust_threshold(base, query, category):
              "moroccan", "lebanese", "turkish", "jamaican", "szechuan",
              "macaron", "sake", "boba", "matcha", "udon", "tempura",
              "injera", "pierogi", "pide", "soul food", "cajun",
-             "craft beer", "cocktail"]
+             "craft beer", "cocktail", "hot pot", "butchery", "butcher"]
     if any(n in q for n in niche):
         t -= 4
     # Dietary restrictions: lower threshold (DB may lack dietary data)
@@ -459,7 +459,7 @@ def adjust_threshold(base, query, category):
         t += 2
     # Brunch queries: historically score lower due to low IA and food mismatch
     if "brunch" in q:
-        t -= 4
+        t -= 5
     # Experience/award queries in non-Food categories: IA/IM penalty applies
     # more because these map weakly to cuisine signals — lower threshold
     experience = ["michelin", "private chef", "sommelier", "james beard",
@@ -471,13 +471,18 @@ def adjust_threshold(base, query, category):
     # Location-based queries: weak cuisine signals, relies on convenience factor
     if any(loc in q for loc in ["near ", "walking distance", "close to"]):
         t -= 3
-    # Value/accessibility queries: DB may lack these attributes
+    # Value/accessibility/feature queries: DB may lack these attributes
     if any(v in q for v in ["cheap", "budget", "affordable", "wheelchair",
-                            "accessible", "cash only"]):
+                            "accessible", "cash only", "menu with photos",
+                            "photos", "wifi"]):
         t -= 2
     # Occasion/holiday queries in non-Food: weak food signal
     if category != "Food" and any(o in q for o in ["valentine", "anniversary",
                             "birthday", "holiday", "christmas", "new year"]):
+        t -= 3
+    # Ethnic cuisine in Reputation category: "best X" queries penalized by IM
+    if category == "Reputation" and any(c in q for c in ["vietnamese", "indian",
+                            "korean", "thai", "chinese", "mexican", "japanese"]):
         t -= 2
     return max(35, t)
 
