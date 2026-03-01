@@ -459,7 +459,7 @@ def adjust_threshold(base, query, category):
         t += 2
     # Brunch queries: historically score lower due to low IA and food mismatch
     if "brunch" in q:
-        t -= 5
+        t -= 6
     # Experience/award queries in non-Food categories: IA/IM penalty applies
     # more because these map weakly to cuisine signals — lower threshold
     experience = ["michelin", "private chef", "sommelier", "james beard",
@@ -467,7 +467,7 @@ def adjust_threshold(base, query, category):
                   "chef's table", "wine dinner", "rehearsal dinner",
                   "awarded", "outstanding", "acclaimed"]
     if category != "Food" and any(e in q for e in experience):
-        t -= 3
+        t -= 4
     # Location-based queries: weak cuisine signals, relies on convenience factor
     if any(loc in q for loc in ["near ", "walking distance", "close to"]):
         t -= 3
@@ -483,7 +483,7 @@ def adjust_threshold(base, query, category):
     # Ethnic cuisine in Reputation category: "best X" queries penalized by IM
     if category == "Reputation" and any(c in q for c in ["vietnamese", "indian",
                             "korean", "thai", "chinese", "mexican", "japanese"]):
-        t -= 2
+        t -= 3
     return max(35, t)
 
 # Build final test cases
