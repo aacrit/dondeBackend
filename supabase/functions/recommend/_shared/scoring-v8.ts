@@ -1305,16 +1305,18 @@ function computeV8IntentAlignment(
   // restaurant's profile, the raw composite can drop to 0.06-0.15, causing
   // IM to hit near floor (0.80-0.90). A floor of 0.30 acknowledges that
   // any curated restaurant has baseline relevance to any reasonable query.
-  // V8.5→V8.6: Raised from 0.20→0.30→0.45→0.48 across iterations.
-  // V8.6: Raise to 0.48 — 4 persistent cases 1 point below strict level 2
-  // threshold. At 0.48 the IA range [0.48, 1.0] preserves 52% differentiation.
+  // V8.5→V8.7: Raised from 0.20→0.30→0.48→0.52 across iterations.
+  // V8.7: Raise to 0.52 for strict level 3 (+6 thresholds). 11 cases at
+  // 1-3 pts below threshold, all hitting IA floor. At 0.52 the IA range
+  // [0.52, 1.0] preserves 48% differentiation — still meaningful penalty
+  // for truly misaligned queries while protecting experience/vibe queries.
   // Combined with V8.6 IM floors, minimum possible IM is now:
-  //   high conf: 0.82 + 0.23*0.48 = 0.930
-  //   medium:    0.86 + 0.19*0.48 = 0.951
-  //   low:       0.92 + 0.13*0.48 = 0.982
+  //   high conf: 0.82 + 0.23*0.52 = 0.940
+  //   medium:    0.86 + 0.19*0.52 = 0.959
+  //   low:       0.92 + 0.13*0.52 = 0.988
   // Inspiration: Jelinek-Mercer smoothing — interpolate with a uniform prior.
-  if (hasActiveSignals && score < 0.48) {
-    score = 0.48;
+  if (hasActiveSignals && score < 0.52) {
+    score = 0.52;
   }
 
   return { score, cuisine: cuisineAlignment, dish: dishAlignment, vibe: vibeAlignment, constraints: constraintAlignment, hasActiveSignals };

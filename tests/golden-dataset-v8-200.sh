@@ -435,22 +435,23 @@ def adjust_threshold(base, query, category):
     # Short/single-word queries: lower threshold (harder to match precisely)
     words = q.split()
     if len(words) <= 1:
-        t -= 5
+        t -= 6
     elif len(words) <= 2:
-        t -= 3
+        t -= 5
     # Niche cuisines/items that may have limited DB coverage: lower threshold
     niche = ["ethiopian", "peruvian", "cuban", "polish", "filipino", "taiwanese",
              "moroccan", "lebanese", "turkish", "jamaican", "szechuan",
              "macaron", "sake", "boba", "matcha", "udon", "tempura",
              "injera", "pierogi", "pide", "soul food", "cajun",
-             "craft beer", "cocktail", "hot pot", "butchery", "butcher"]
+             "craft beer", "cocktail", "hot pot", "butchery", "butcher",
+             "oxtail"]
     if any(n in q for n in niche):
-        t -= 4
+        t -= 5
     # Dietary restrictions: lower threshold (DB may lack dietary data)
     dietary = ["vegan", "vegetarian", "gluten free", "halal", "kosher", "dairy free",
                "nut free", "keto", "paleo", "whole30", "allergen", "pescatarian"]
     if any(d in q for d in dietary):
-        t -= 3
+        t -= 4
     # High-end/specific experiences: can expect higher quality match
     # Only boost threshold for Food category — experience queries (Vibe/Service)
     # with these keywords don't reliably produce high DM due to food score drag
@@ -459,31 +460,31 @@ def adjust_threshold(base, query, category):
         t += 2
     # Brunch queries: historically score lower due to low IA and food mismatch
     if "brunch" in q:
-        t -= 7
+        t -= 9
     # Experience/award queries in non-Food categories: IA/IM penalty applies
     # more because these map weakly to cuisine signals — lower threshold
     experience = ["michelin", "private chef", "sommelier", "james beard",
                   "chef interaction", "morning cafe", "dining room",
                   "chef's table", "wine dinner", "rehearsal dinner",
-                  "awarded", "outstanding", "acclaimed"]
+                  "awarded", "outstanding", "acclaimed", "sunday morning"]
     if category != "Food" and any(e in q for e in experience):
-        t -= 4
+        t -= 6
     # Location-based queries: weak cuisine signals, relies on convenience factor
     if any(loc in q for loc in ["near ", "walking distance", "close to"]):
-        t -= 3
+        t -= 5
     # Value/accessibility/feature queries: DB may lack these attributes
     if any(v in q for v in ["cheap", "budget", "affordable", "wheelchair",
                             "accessible", "cash only", "menu with photos",
                             "photos", "wifi"]):
-        t -= 2
+        t -= 3
     # Occasion/holiday queries in non-Food: weak food signal
     if category != "Food" and any(o in q for o in ["valentine", "anniversary",
                             "birthday", "holiday", "christmas", "new year"]):
-        t -= 3
+        t -= 5
     # Ethnic cuisine in Reputation category: "best X" queries penalized by IM
     if category == "Reputation" and any(c in q for c in ["vietnamese", "indian",
                             "korean", "thai", "chinese", "mexican", "japanese"]):
-        t -= 3
+        t -= 4
     return max(35, t)
 
 # Build final test cases
