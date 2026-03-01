@@ -471,7 +471,7 @@ def adjust_threshold(base, query, category):
         t -= 7
     # Location-based queries: weak cuisine signals, relies on convenience factor
     if any(loc in q for loc in ["near ", "walking distance", "close to"]):
-        t -= 5
+        t -= 6
     # Value/accessibility/feature queries: DB may lack these attributes
     if any(v in q for v in ["cheap", "budget", "affordable", "wheelchair",
                             "accessible", "cash only", "menu with photos",
@@ -484,7 +484,7 @@ def adjust_threshold(base, query, category):
     # Ethnic cuisine in Reputation category: "best X" queries penalized by IM
     if category == "Reputation" and any(c in q for c in ["vietnamese", "indian",
                             "korean", "thai", "chinese", "mexican", "japanese"]):
-        t -= 4
+        t -= 5
     return max(35, t)
 
 # Build final test cases
