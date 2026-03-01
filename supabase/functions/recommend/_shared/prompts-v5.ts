@@ -45,7 +45,7 @@ BANNED PATTERNS: "nestled", "mouthwatering", "culinary journey", "hidden treasur
 
 ${getToneDirective(scoreTier)}
 
-BLURB STRUCTURE (80-100 words, SINGLE PARAGRAPH — no line breaks):
+BLURB STRUCTURE (100-120 words, SINGLE PARAGRAPH — no line breaks):
 - HOOK (1 sentence): What makes this restaurant worth the trip. Lead with strongest signal. Never open with the restaurant name. Never open with "Ah," "Oh," or similar interjections.
 - BODY (2 sentences): One sensory food detail (flavor, texture, aroma). One vibe/atmosphere detail in human terms (not "moderate noise" but "you can actually hear each other").
 - CLOSE (1 sentence): The decisive reason. Short and punchy, ≤6 words.
@@ -85,7 +85,7 @@ OUTPUT FORMAT (JSON only, no markdown):
 {
   "restaurant_index": 0,
   "match_headline": "10-15 word one-liner: WHY this restaurant for THIS request. Lead with strongest signal. No restaurant name.",
-  "recommendation": "80-100 word single-paragraph blurb — MUST contain 'we' or 'our'. MUST NOT contain '—'. MUST name the restaurant somewhere. No line breaks.",
+  "recommendation": "100-120 word single-paragraph blurb — MUST contain 'we' or 'our'. MUST NOT contain '—'. MUST name the restaurant somewhere. No line breaks.",
   "insider_tip": "One sentence tip",
   "intent_boost": false,
   "boost_reason": null,
@@ -289,6 +289,172 @@ WEIGHT CONTEXT: ${weightContext}
   });
 
   prompt += `\nWrite the blurb for Candidate #0 (engine's top pick). Scan the full pool for intent matches. Respond in JSON only.`;
+
+  return prompt;
+}
+
+// ==========================================
+// BLURB-ONLY PROMPT — Try Again lazy generation
+// ==========================================
+
+/**
+ * Build a compact prompt for generating a single restaurant blurb on Try Again.
+ * Sends ONE restaurant's data + user context. ~300-400 input tokens vs ~2,500 for full recommendation.
+ * Reuses buildV5SystemPrompt() for Donde voice consistency.
+ */
+export function buildBlurbOnlyPrompt(
+  restaurantData: {
+    name: string;
+    cuisine_type?: string;
+    price_level?: string;
+    neighborhood_name?: string;
+    noise_level?: string;
+    lighting_ambiance?: string;
+    outdoor_seating?: boolean;
+    tags?: string[];
+    deep_context?: Record<string, unknown>;
+  },
+  context: {
+    special_request?: string;
+    occasion?: string;
+    neighborhood?: string;
+    score_tier?: string;
+    match_narrative?: { summary?: string; strongest_factor_label?: string; key_signals?: string[]; weak_spots?: string[] };
+    scoring?: Record<string, unknown>;
+  },
+): string {
+  const r = restaurantData;
+  const dc = r.deep_context || {};
+
+  let prompt = `USER REQUEST: "${context.special_request || 'No specific request'}"
+OCCASION: ${context.occasion || 'Any'}
+NEIGHBORHOOD: ${context.neighborhood || 'Anywhere'}
+
+--- RESTAURANT ---
+Name: ${r.name}
+Cuisine: ${r.cuisine_type || 'Unknown'}
+Price: ${r.price_level || 'Unknown'}
+Neighborhood: ${r.neighborhood_name || 'Unknown'}
+`;
+
+  if (r.tags?.length) prompt += `Tags: ${r.tags.slice(0, 8).join(', ')}\n`;
+  if (r.noise_level) prompt += `Noise: ${r.noise_level}\n`;
+  if (r.lighting_ambiance) prompt += `Lighting: ${r.lighting_ambiance}\n`;
+  if (r.outdoor_seating) prompt += `Outdoor: Yes\n`;
+
+  // Deep context fields (compact)
+  if (dc.signature_dishes && Array.isArray(dc.signature_dishes)) {
+    const dishes = dc.signature_dishes.slice(0, 3).map((d: Record<string, string>) => d.dish || d).join(', ');
+    if (dishes) prompt += `Signature dishes: ${dishes}\n`;
+  }
+  if (dc.unique_selling_point) prompt += `USP: ${dc.unique_selling_point}\n`;
+  if (dc.service_style) prompt += `Service: ${dc.service_style}\n`;
+  if (dc.music_vibe) prompt += `Music: ${dc.music_vibe}\n`;
+  if (dc.best_seat_in_house) prompt += `Best seat: ${dc.best_seat_in_house}\n`;
+  if (dc.menu_highlights && Array.isArray(dc.menu_highlights)) {
+    prompt += `Menu: ${(dc.menu_highlights as string[]).slice(0, 6).join(', ')}\n`;
+  }
+  if (dc.wow_factors && Array.isArray(dc.wow_factors)) {
+    prompt += `Wow: ${(dc.wow_factors as string[]).join(', ')}\n`;
+  }
+  if (dc.awards_recognition && Array.isArray(dc.awards_recognition)) {
+    prompt += `Awards: ${(dc.awards_recognition as string[]).join(', ')}\n`;
+  }
+
+  // Match narrative context (helps Claude understand why this restaurant was chosen)
+  if (context.match_narrative) {
+    const mn = context.match_narrative;
+    if (mn.strongest_factor_label) prompt += `Strongest match: ${mn.strongest_factor_label}\n`;
+    if (mn.key_signals?.length) prompt += `Key signals: ${mn.key_signals.slice(0, 3).join('; ')}\n`;
+    if (mn.weak_spots?.length) prompt += `Caveat: ${mn.weak_spots[0]}\n`;
+  }
+
+  prompt += `\nWrite the blurb for this restaurant. No intent boost scan needed. Respond in JSON only.`;
+
+  return prompt;
+}
+
+// ==========================================
+// BLURB-ONLY PROMPT — for Try Again lazy blurb generation
+// ==========================================
+
+/**
+ * V8.8: Build a minimal prompt for generating a fresh Claude blurb for a single restaurant.
+ * Used by the /recommend/blurb endpoint when Try Again fires.
+ * ~300-400 input tokens (vs ~2,500 for full recommendation).
+ */
+export function buildBlurbOnlyPrompt(
+  restaurantData: {
+    name: string;
+    cuisine_type?: string;
+    price_level?: string;
+    neighborhood_name?: string;
+    noise_level?: string;
+    lighting_ambiance?: string;
+    outdoor_seating?: boolean;
+    tags?: string[];
+    deep_context?: Record<string, unknown>;
+  },
+  context: {
+    special_request?: string;
+    occasion?: string;
+    neighborhood?: string;
+    score_tier?: string;
+    match_narrative?: { summary?: string; key_signals?: string[]; strongest_factor_label?: string; weak_spots?: string[] };
+    scoring?: Record<string, unknown>;
+  },
+): string {
+  const r = restaurantData;
+  const dc = r.deep_context || {};
+
+  let prompt = `USER REQUEST: "${context.special_request || 'No specific request'}"
+OCCASION: ${context.occasion || 'Any'}
+NEIGHBORHOOD: ${context.neighborhood || 'Anywhere'}
+
+--- RESTAURANT ---
+Name: ${r.name}
+Cuisine: ${r.cuisine_type || 'Unknown'}
+Price: ${r.price_level || 'Unknown'}
+Neighborhood: ${r.neighborhood_name || 'Unknown'}
+`;
+
+  // Core vibe fields
+  if (r.noise_level) prompt += `Noise: ${r.noise_level}\n`;
+  if (r.lighting_ambiance) prompt += `Lighting: ${r.lighting_ambiance}\n`;
+  if (r.outdoor_seating) prompt += `Outdoor: Yes\n`;
+  if (r.tags?.length) prompt += `Tags: ${r.tags.slice(0, 8).join(', ')}\n`;
+
+  // Deep context highlights (only non-null fields)
+  if (dc.signature_dishes && Array.isArray(dc.signature_dishes)) {
+    prompt += `Signature: ${dc.signature_dishes.slice(0, 3).map((d: { dish?: string; why?: string }) => d.dish ? `${d.dish}${d.why ? ` (${d.why})` : ''}` : '').filter(Boolean).join('; ')}\n`;
+  }
+  if (dc.menu_highlights && Array.isArray(dc.menu_highlights)) {
+    prompt += `Menu: ${(dc.menu_highlights as string[]).slice(0, 8).join(', ')}\n`;
+  }
+  if (dc.flavor_profiles && Array.isArray(dc.flavor_profiles)) {
+    prompt += `Flavors: ${(dc.flavor_profiles as string[]).join(', ')}\n`;
+  }
+  if (dc.service_style) prompt += `Service: ${dc.service_style}\n`;
+  if (dc.music_vibe) prompt += `Music: ${dc.music_vibe}\n`;
+  if (dc.unique_selling_point) prompt += `USP: ${dc.unique_selling_point}\n`;
+  if (dc.best_seat_in_house) prompt += `Best seat: ${dc.best_seat_in_house}\n`;
+  if (dc.wow_factors && Array.isArray(dc.wow_factors)) prompt += `Wow: ${(dc.wow_factors as string[]).join(', ')}\n`;
+  if (dc.awards_recognition && Array.isArray(dc.awards_recognition)) prompt += `Awards: ${(dc.awards_recognition as string[]).join(', ')}\n`;
+
+  // Match narrative for grounding
+  const mn = context.match_narrative;
+  if (mn) {
+    if (mn.strongest_factor_label) prompt += `Strongest match: ${mn.strongest_factor_label}\n`;
+    if (mn.key_signals?.length) prompt += `Key signals: ${mn.key_signals.join('; ')}\n`;
+    if (mn.weak_spots?.length) prompt += `Caveat: ${mn.weak_spots[0]}\n`;
+  }
+
+  prompt += `\nWrite the blurb for this restaurant. Respond in JSON only:
+{
+  "match_headline": "10-15 word one-liner: WHY this restaurant for THIS request. No restaurant name.",
+  "recommendation": "100-120 word single-paragraph blurb — MUST contain 'we' or 'our'. MUST NOT contain '—'. MUST name the restaurant somewhere. No line breaks.",
+  "insider_tip": "One sentence tip"
+}`;
 
   return prompt;
 }

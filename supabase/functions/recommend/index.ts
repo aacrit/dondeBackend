@@ -26,7 +26,7 @@ import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
 import { runFilterPipeline } from "./_shared/filter-pipeline-v5.ts";
 import type { FilterContext } from "./_shared/filter-pipeline-v5.ts";
 import { computeV8DondeMatch, reRankV8 } from "./_shared/scoring-v8.ts";
-import { buildV5SystemPrompt, buildV5UserPrompt } from "./_shared/prompts-v5.ts";
+import { buildV5SystemPrompt, buildV5UserPrompt, buildBlurbOnlyPrompt } from "./_shared/prompts-v5.ts";
 import {
   buildV7SuccessResponse,
   buildV7FallbackResponse,
@@ -165,6 +165,55 @@ Deno.serve(async (req: Request) => {
       { success: false, recommendation: "Too many requests. Please wait a moment." },
       429
     );
+  }
+
+  // V8.8: Route detection — /recommend/blurb for lazy Try Again blurb generation
+  const url = new URL(req.url);
+  const isBlurbRequest = url.pathname.endsWith("/blurb");
+
+  if (isBlurbRequest) {
+    try {
+      const blurbBody = await req.json();
+      const restaurantData = blurbBody.restaurant_data;
+      const context = blurbBody.context;
+
+      if (!restaurantData?.name) {
+        return jsonResponse({ success: false, error: "Missing restaurant_data.name" }, 400);
+      }
+
+      // Sanitize user-provided strings
+      if (context?.special_request) {
+        context.special_request = sanitizeInput(context.special_request.slice(0, 500));
+      }
+
+      // Determine score tier for tone modulation
+      const scoreTier = context?.score_tier || "good";
+
+      // Build minimal prompt for single restaurant blurb
+      const systemPrompt = buildV5SystemPrompt(scoreTier as "exceptional" | "great" | "good" | "decent" | "weak");
+      const userPrompt = buildBlurbOnlyPrompt(restaurantData, context || {});
+
+      const rawText = await callClaude(userPrompt, systemPrompt, { maxTokens: 384, temperature: 0.7 });
+      const parsed = parseClaudeJson<{ recommendation?: string; match_headline?: string; insider_tip?: string }>(rawText);
+
+      // Clean em-dashes from output
+      if (parsed.recommendation) {
+        parsed.recommendation = parsed.recommendation.replace(/\u2014/g, ", ").replace(/ , /g, ", ").replace(/,\s*,/g, ",");
+      }
+      if (parsed.insider_tip) {
+        parsed.insider_tip = parsed.insider_tip.replace(/\u2014/g, ", ").replace(/ , /g, ", ").replace(/,\s*,/g, ",");
+      }
+
+      return jsonResponse({
+        success: true,
+        recommendation: parsed.recommendation || null,
+        match_headline: parsed.match_headline || null,
+        insider_tip: parsed.insider_tip || null,
+      });
+    } catch (err) {
+      logError("Blurb endpoint error", { error: err instanceof Error ? err.message : String(err) });
+      return jsonResponse({ success: false, error: "Failed to generate blurb" }, 500);
+    }
   }
 
   const startTime = Date.now();
@@ -737,10 +786,10 @@ Deno.serve(async (req: Request) => {
           parsed.insider_tip = parsed.insider_tip.replace(/\u2014/g, ", ").replace(/ , /g, ", ").replace(/,\s*,/g, ",");
         }
 
-        // V5: Word count check (target 80-100 words per prompt spec)
+        // V5: Word count check (target 100-120 words per prompt spec)
         const wordCount = parsed.recommendation.split(/\s+/).length;
-        if (wordCount < 60 || wordCount > 130) {
-          logWarn("V5 recommendation word count outside target", { wordCount, target: "80-100" });
+        if (wordCount < 80 || wordCount > 150) {
+          logWarn("V5 recommendation word count outside target", { wordCount, target: "100-120" });
         }
 
         // V5: "We" voice check

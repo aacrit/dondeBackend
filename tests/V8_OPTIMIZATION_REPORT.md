@@ -584,3 +584,117 @@ Final engine parameters:
 - IM ceiling: 1.05
 - Food weight delta: +0.05 (guarded)
 - Coherence penalty: gap > 4, coefficient 0.6
+
+---
+
+## V8.8: Architecture Improvements + Future Recommendations
+
+**Date:** 2026-03-01
+**Focus:** Blurb quality, Try Again flow, and 5 strategic engine recommendations
+
+### V8.8 Implemented Changes
+
+1. **Blurb word limit: 80-100 to 100-120 words** — System prompt and JSON format spec updated in prompts-v5.ts. Validation range adjusted in index.ts (80-150 from 60-130).
+
+2. **Try Again lazy blurb endpoint** — New `/recommend/blurb` route that generates a fresh Claude blurb for a single restaurant on demand (~500ms, ~$0.001/call). Frontend renders queue item instantly with template blurb, then swaps in Claude-quality blurb via background fetch with subtle fade.
+
+3. **Frontend blurb visibility** — Removed `max-height: 14em` constraint from `.donde-blurb__text` so 120-word blurbs display fully without scrolling.
+
+---
+
+### API Token Usage Cost Analysis
+
+#### Key Finding: Cost is CONSTANT across V8.0-V8.7
+
+All V8.0 to V8.7 changes were to `scoring-v8.ts` (local math). No prompt or API call changes were made. The cost per recommendation has been identical across all versions.
+
+#### Cost Breakdown Per Request (~$0.008-0.010)
+
+| Component | Tokens | Cost | Notes |
+|-----------|--------|------|-------|
+| System prompt (cached) | ~1,300 input | $0.0000-0.0005 | 5-min server-side TTL via prompt caching |
+| User prompt | ~2,400 input | $0.0019 | Context + 30 candidates + 10 deep profiles |
+| Claude output | ~250 output | $0.001 | JSON: blurb + headline + tip + boost decision |
+| Intent classification (15%) | ~700 total | $0.0002 | Tier 2 Claude fallback (85% handled locally) |
+| Google Places (5 calls) | — | $0.003-0.005 | Dominates total cost |
+| **Total per request** | **~3,000-4,000** | **~$0.008-0.010** | |
+
+**Google Places dominates cost** — Claude LLM costs are only ~20% of total. Google Places at $0.003-0.005/request (5 Detail API calls at $0.005-0.01 each, with caching) is the primary cost driver.
+
+#### Token Optimization Recommendations
+
+| Optimization | Token Savings | Cost Savings | Dependency |
+|-------------|--------------|-------------|------------|
+| Reduce candidate pool from 30 to 5 (after removing intent boost) | ~400 input | ~$0.0003 | Requires R4 |
+| Reduce deep profiles from 10 to 5 (only top 5 have Google data) | ~750 input | ~$0.0006 | Independent |
+| Strip null deep profile fields from prompt | ~200 input | ~$0.0002 | Independent |
+| **Combined** | **~1,350 input** | **~$0.001/req** | |
+
+These bring total per-request cost from ~$0.008-0.010 to ~$0.007-0.009.
+
+---
+
+### 5 Strategic Engine Recommendations (R1-R5)
+
+These are documented for future implementation, pending user approval.
+
+#### R1: Collapse 4-Layer Intent Redundancy
+
+**Problem:** Intent signal is amplified through 4 separate mechanisms:
+1. Weight rules 7-8 (food weight shift by `cuisineImportance`)
+2. IA composite (intent alignment score)
+3. Intent Multiplier (IM, final score multiplier)
+4. Intent Boost (Claude can override engine's #1 pick)
+
+Cuisine alignment is triple-counted: weight rules shift food weight up for cuisine queries, then IA penalizes low cuisine alignment, then IM applies that penalty to the final score.
+
+**Action:** Remove weight rules 7-8 (food weight shift by `cuisineImportance`). The IA/IM path already handles intent penalty/reward at the final score level.
+
+**File:** `scoring-v8.ts` lines 296-312
+**Impact:** Simpler engine, fewer parameters, less chance of over-penalizing
+
+#### R2: Leverage Unused Deep Profile Fields
+
+**Problem:** 7 fields are fetched from DB but never scored: `spice_level`, `crowd_profile`, `seasonal_relevance`, `seating_options`, `transit_accessibility`, `menu_depth`, `decor_style`.
+
+**Action:** Add 3 new sub-signals:
+- `spice_match` in food: When user mentions spicy/mild, score against restaurant's spice_level
+- `crowd_fit` in service: Match crowd_profile (e.g., "young professionals") to occasion (e.g., "Business Lunch")
+- `seasonal_fit` in convenience: Score seasonal_relevance against current month
+
+**File:** `scoring-v8.ts` — `computeFood()`, `computeService()`, `computeConvenience()`
+**Impact:** Better discrimination for niche queries, leverages existing data
+
+#### R3: Replace Coherence Penalty with Data-Completeness Guard
+
+**Problem:** 42% of restaurants naturally have vibe-service gap > 4. Current penalty (gap > 4, coeff 0.6) fires on ~20% of candidates, mostly due to sparse data artifacts (Bayesian priors inflate vibe to 9.0+ while service stays at 5.4 default).
+
+**Action:** Only apply penalty when both factors have >= 3 data points (not dominated by priors). Raise threshold to 5, halve coefficient to 0.3.
+
+**File:** `scoring-v8.ts` lines 1509-1513
+**Impact:** Eliminates false-positive coherence penalties from sparse data
+
+#### R4: Remove Intent Boost, Simplify Claude to Pure Blurb Generator
+
+**Problem:** Intent boost fires ~5% of requests, adds 50+ LOC complexity, and sends all 30 candidates to Claude for scanning. The engine's IA/IM system already handles intent-based ranking effectively.
+
+**Action:**
+- Remove intent boost from prompt (prompts-v5.ts lines 71-82)
+- Remove intent boost processing (index.ts lines 554-608)
+- Reduce candidate pool in prompt from 30 to top 5
+- Simplify output format (remove boost fields)
+
+**Files:** `prompts-v5.ts`, `index.ts`, `types-v5.ts`
+**Impact:** Saves ~500 input tokens/request (~$0.0005), reduces prompt complexity, faster Claude response
+
+#### R5: Populate Sentiment Data from Google Reviews
+
+**Problem:** Reputation factor has a dormant sentiment sub-signal worth 0-2 points (scoring-v8.ts lines 976-989). `sentimentScore` is always passed as `null`. Google reviews are already fetched for top 5 restaurants.
+
+**Action:** Compute sentiment from in-memory review data:
+- Average star rating of fetched reviews -> sentiment score (0-10 scale)
+- Negative review percentage -> penalty modifier
+- Zero additional API calls needed
+
+**File:** `index.ts` lines 449-467 (pass computed sentiment to `computeV8DondeMatch`)
+**Impact:** Activates dormant scoring path, better discrimination for reputation queries
