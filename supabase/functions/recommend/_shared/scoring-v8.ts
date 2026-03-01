@@ -1509,21 +1509,23 @@ export function computeV8DondeMatch(
   }
 
   // Step 8: Confidence-weighted intent multiplier
-  // V8.3→V8.5: The IM floor and range adapt to classifier confidence.
-  // V8.5: Softened floors by +0.02 each level to reduce over-penalization.
-  // Combined with V8.5 O16 (IA floor of 0.20), the minimum possible IM is
-  // now 0.80 + 0.25*0.20 = 0.85 for high-confidence queries (was 0.78).
+  // V8.3→V8.6: The IM floor and range adapt to classifier confidence.
+  // V8.5: Initial softening (+0.02 from V8.3). V8.6: Further softening (+0.02)
+  // after 200-case testing at strict level 2 showed 4 experience queries
+  // scoring 1-2 points below threshold.
   //
-  // High confidence (5+ words, clear intent): IM = [0.80, 1.05]  ← V8.5: was 0.78
-  // Medium confidence (3-4 words):            IM = [0.84, 1.05]  ← V8.5: was 0.82
-  // Low confidence (1-2 words, vague):        IM = [0.90, 1.05]  ← V8.5: was 0.88
+  // High confidence (5+ words, clear intent): IM = [0.82, 1.05]  ← V8.6: was 0.80
+  // Medium confidence (3-4 words):            IM = [0.86, 1.05]  ← V8.6: was 0.84
+  // Low confidence (1-2 words, vague):        IM = [0.92, 1.05]  ← V8.6: was 0.90
   //
-  // The ceiling stays at 1.05 for all confidence levels — a perfect match is
-  // rewarded equally regardless of how confident we are about the classification.
+  // Combined with IA floor of 0.30, minimum possible IM:
+  //   high: 0.82 + 0.23*0.30 = 0.889
+  //   medium: 0.86 + 0.19*0.30 = 0.917
+  //   low: 0.92 + 0.13*0.30 = 0.959
   let intentMultiplier = 1.0;
   if (intentAlignment.hasActiveSignals) {
     const confLevel = inputs.intent?.confidence?.overall ?? "medium";
-    const imFloor = confLevel === "high" ? 0.80 : confLevel === "medium" ? 0.84 : 0.90;
+    const imFloor = confLevel === "high" ? 0.82 : confLevel === "medium" ? 0.86 : 0.92;
     const imRange = 1.05 - imFloor;
     intentMultiplier = imFloor + imRange * intentAlignment.score;
   }
