@@ -833,8 +833,10 @@ section("CATEGORY 5: VIBE / OCCASION (new scenarios)");
 
     // Convenience weight should be elevated for solo
     const top = results[0];
-    assert(top.result.weights.convenience >= 0.22, "vibe_solo_conv",
-      `Convenience weight=${top.result.weights.convenience.toFixed(3)}, want ≥0.22 for solo`);
+    // V8.8: Base convenience lowered 0.20→0.18; solo rule still adds +0.10
+    // Post-normalization convenience ≈ 0.20 (was 0.22)
+    assert(top.result.weights.convenience >= 0.19, "vibe_solo_conv",
+      `Convenience weight=${top.result.weights.convenience.toFixed(3)}, want ≥0.19 for solo`);
   }
 
   // Test 4: Lively group outing

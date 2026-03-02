@@ -131,6 +131,50 @@ function sanitizeInput(input: string): string {
     .trim();
 }
 
+// V8.8: Extract RPC row → RestaurantProfile mapping for reuse
+function mapRpcToProfile(row: Record<string, unknown>): RestaurantProfile {
+  const hasDeepProfile = row.dp_service_style != null || row.dp_flavor_profiles != null;
+  const deep_profile: DeepProfile | null = hasDeepProfile ? {
+    flavor_profiles: (row.dp_flavor_profiles as string[] | null) || null,
+    signature_dishes: (row.dp_signature_dishes as Array<{ dish: string; why: string }> | null) || null,
+    cuisine_subcategory: (row.dp_cuisine_subcategory as string | null) || null,
+    menu_depth: (row.dp_menu_depth as string | null) || null,
+    spice_level: (row.dp_spice_level as string | null) || null,
+    dietary_depth: (row.dp_dietary_depth as string | null) || null,
+    service_style: (row.dp_service_style as string | null) || null,
+    meal_pacing: (row.dp_meal_pacing as string | null) || null,
+    reservation_difficulty: (row.dp_reservation_difficulty as string | null) || null,
+    typical_wait_minutes: (row.dp_typical_wait_minutes as number | null) || null,
+    group_size_sweet_spot: (row.dp_group_size_sweet_spot as string | null) || null,
+    check_average_per_person: (row.dp_check_average_per_person as number | null) || null,
+    tipping_culture: (row.dp_tipping_culture as string | null) || null,
+    kid_friendliness: (row.dp_kid_friendliness as number | null) || null,
+    music_vibe: (row.dp_music_vibe as string | null) || null,
+    decor_style: (row.dp_decor_style as string | null) || null,
+    conversation_friendliness: (row.dp_conversation_friendliness as number | null) || null,
+    energy_level: (row.dp_energy_level as number | null) || null,
+    seating_options: (row.dp_seating_options as string[] | null) || null,
+    instagram_worthiness: (row.dp_instagram_worthiness as number | null) || null,
+    seasonal_relevance: (row.dp_seasonal_relevance as Record<string, number> | null) || null,
+    cultural_authenticity: (row.dp_cultural_authenticity as number | null) || null,
+    origin_story: (row.dp_origin_story as string | null) || null,
+    crowd_profile: (row.dp_crowd_profile as string[] | null) || null,
+    neighborhood_integration: (row.dp_neighborhood_integration as string | null) || null,
+    chef_notable: (row.dp_chef_notable as boolean | null) || null,
+    awards_recognition: (row.dp_awards_recognition as string[] | null) || null,
+    wow_factors: (row.dp_wow_factors as string[] | null) || null,
+    date_progression: (row.dp_date_progression as string | null) || null,
+    best_seat_in_house: (row.dp_best_seat_in_house as string | null) || null,
+    ideal_weather: (row.dp_ideal_weather as string[] | null) || null,
+    unique_selling_point: (row.dp_unique_selling_point as string | null) || null,
+    transit_accessibility: (row.dp_transit_accessibility as string | null) || null,
+    byob_policy: (row.dp_byob_policy as string | null) || null,
+    payment_notes: (row.dp_payment_notes as string | null) || null,
+    enrichment_confidence: (row.dp_enrichment_confidence as number | null) || null,
+  } : null;
+  return { ...row, deep_profile } as unknown as RestaurantProfile;
+}
+
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -371,49 +415,9 @@ Deno.serve(async (req: Request) => {
     // ================================================================
     // STEP 2: Map RPC results to RestaurantProfile with deep_profile
     // ================================================================
-    const allCandidates: RestaurantProfile[] = (rpcData as Record<string, unknown>[]).map((row) => {
-      const hasDeepProfile = row.dp_service_style != null || row.dp_flavor_profiles != null;
-      const deep_profile: DeepProfile | null = hasDeepProfile ? {
-        flavor_profiles: (row.dp_flavor_profiles as string[] | null) || null,
-        signature_dishes: (row.dp_signature_dishes as Array<{ dish: string; why: string }> | null) || null,
-        cuisine_subcategory: (row.dp_cuisine_subcategory as string | null) || null,
-        menu_depth: (row.dp_menu_depth as string | null) || null,
-        spice_level: (row.dp_spice_level as string | null) || null,
-        dietary_depth: (row.dp_dietary_depth as string | null) || null,
-        service_style: (row.dp_service_style as string | null) || null,
-        meal_pacing: (row.dp_meal_pacing as string | null) || null,
-        reservation_difficulty: (row.dp_reservation_difficulty as string | null) || null,
-        typical_wait_minutes: (row.dp_typical_wait_minutes as number | null) || null,
-        group_size_sweet_spot: (row.dp_group_size_sweet_spot as string | null) || null,
-        check_average_per_person: (row.dp_check_average_per_person as number | null) || null,
-        tipping_culture: (row.dp_tipping_culture as string | null) || null,
-        kid_friendliness: (row.dp_kid_friendliness as number | null) || null,
-        music_vibe: (row.dp_music_vibe as string | null) || null,
-        decor_style: (row.dp_decor_style as string | null) || null,
-        conversation_friendliness: (row.dp_conversation_friendliness as number | null) || null,
-        energy_level: (row.dp_energy_level as number | null) || null,
-        seating_options: (row.dp_seating_options as string[] | null) || null,
-        instagram_worthiness: (row.dp_instagram_worthiness as number | null) || null,
-        seasonal_relevance: (row.dp_seasonal_relevance as Record<string, number> | null) || null,
-        cultural_authenticity: (row.dp_cultural_authenticity as number | null) || null,
-        origin_story: (row.dp_origin_story as string | null) || null,
-        crowd_profile: (row.dp_crowd_profile as string[] | null) || null,
-        neighborhood_integration: (row.dp_neighborhood_integration as string | null) || null,
-        chef_notable: (row.dp_chef_notable as boolean | null) || null,
-        awards_recognition: (row.dp_awards_recognition as string[] | null) || null,
-        wow_factors: (row.dp_wow_factors as string[] | null) || null,
-        date_progression: (row.dp_date_progression as string | null) || null,
-        best_seat_in_house: (row.dp_best_seat_in_house as string | null) || null,
-        ideal_weather: (row.dp_ideal_weather as string[] | null) || null,
-        unique_selling_point: (row.dp_unique_selling_point as string | null) || null,
-        transit_accessibility: (row.dp_transit_accessibility as string | null) || null,
-        byob_policy: (row.dp_byob_policy as string | null) || null,
-        payment_notes: (row.dp_payment_notes as string | null) || null,
-        enrichment_confidence: (row.dp_enrichment_confidence as number | null) || null,
-      } : null;
-
-      return { ...row, deep_profile } as unknown as RestaurantProfile;
-    });
+    const allCandidates: RestaurantProfile[] = (rpcData as Record<string, unknown>[]).map(
+      (row) => mapRpcToProfile(row as Record<string, unknown>)
+    );
 
     // ================================================================
     // STEP 3: V5 Hard Filter Pipeline
@@ -467,6 +471,60 @@ Deno.serve(async (req: Request) => {
 
     if (diverseScored.length === 0) {
       return jsonResponse(buildV7NoResultsResponse(neighborhood, price_level));
+    }
+
+    // ================================================================
+    // STEP 4.5: V8.8 Neighborhood Quality Gate
+    // ================================================================
+    // If the top scored result in the requested neighborhood is below
+    // the quality threshold (P15=50), broaden to "Anywhere" and merge
+    // with original results. This prevents serving mediocre results
+    // just because they're nearby.
+    const NEIGHBORHOOD_QUALITY_THRESHOLD = 50;
+    let neighborhoodExpanded = false;
+    const topNeighborhoodScore = diverseScored[0]?.result.dondeMatch ?? 0;
+
+    if (topNeighborhoodScore < NEIGHBORHOOD_QUALITY_THRESHOLD && neighborhood !== "Anywhere") {
+      logInfo("V8.8: Neighborhood quality gate triggered", {
+        neighborhood,
+        topScore: topNeighborhoodScore,
+        threshold: NEIGHBORHOOD_QUALITY_THRESHOLD,
+      });
+
+      const { data: broadData } = await supabase.rpc("get_ranked_restaurants", {
+        p_neighborhood: "Anywhere",
+        p_price_level: "Any",
+        p_occasion: occasion,
+        p_limit: rpcLimit,
+        p_target_cuisine: null,
+      });
+
+      if (broadData?.length) {
+        const existingIds = new Set(diverseScored.map(s => s.profile.id));
+        const newProfiles: RestaurantProfile[] = (broadData as Record<string, unknown>[])
+          .filter((row: Record<string, unknown>) => !existingIds.has(row.id as string) && !exclude.includes(row.id as string))
+          .map((row: Record<string, unknown>) => mapRpcToProfile(row));
+
+        if (newProfiles.length > 0) {
+          const broadScored = reRankV8(
+            newProfiles, occasion, special_request, intent,
+            dietary_restrictions, newProfiles.length, time_of_day,
+          );
+          // Merge and re-sort: include all original + broader candidates
+          const merged = [...diverseScored, ...broadScored];
+          merged.sort((a, b) => b.result.dondeMatch - a.result.dondeMatch);
+          // Replace diverseScored with merged results (take top entries)
+          diverseScored.length = 0;
+          for (const item of merged.slice(0, 15)) {
+            diverseScored.push(item);
+          }
+          neighborhoodExpanded = true;
+          logInfo("V8.8: Neighborhood expanded", {
+            addedCandidates: broadScored.length,
+            newTopScore: diverseScored[0]?.result.dondeMatch ?? 0,
+          });
+        }
+      }
     }
 
     // ================================================================
@@ -536,6 +594,22 @@ Deno.serve(async (req: Request) => {
     rerankedScored.sort((a, b) => b.dondeMatch - a.dondeMatch);
 
     // ================================================================
+    // STEP 6.1: V8.8 Quality Callout Check
+    // ================================================================
+    // If the top result scores below P5 (40) of observed distribution,
+    // it's essentially a forced match from filters. Flag for callout.
+    const QUALITY_CALLOUT_THRESHOLD = 40;
+    const topFinalScore = rerankedScored[0]?.dondeMatch ?? 0;
+    const needsQualityCallout = topFinalScore < QUALITY_CALLOUT_THRESHOLD;
+    if (needsQualityCallout) {
+      logInfo("V8.8: Quality callout triggered", {
+        topScore: topFinalScore,
+        threshold: QUALITY_CALLOUT_THRESHOLD,
+        restaurant: rerankedScored[0]?.profile.name,
+      });
+    }
+
+    // ================================================================
     // STEP 6.5: V7 — Build Ranked Queue for instant "Try Again"
     // ================================================================
     const rankedQueue: Record<string, unknown>[] = [];
@@ -578,6 +652,8 @@ Deno.serve(async (req: Request) => {
         topCandidatesWithGoogle,
         weightContext,
         intent,
+        needsQualityCallout,
+        neighborhoodExpanded,
       );
 
       // Single Claude API call — blurb + potential boost
@@ -716,7 +792,8 @@ Deno.serve(async (req: Request) => {
 
           responseBody = buildV7SuccessResponse(
             nextChosen.profile, parsed, nextGoogle, nextChosen.dondeMatch,
-            v7Result, null, relaxationApplied, rankedQueue,
+            v7Result, null, relaxationApplied, rankedQueue, null,
+            needsQualityCallout, neighborhoodExpanded,
           );
         } else {
           responseBody = buildV7FallbackResponse(
@@ -749,6 +826,7 @@ Deno.serve(async (req: Request) => {
         responseBody = buildV7SuccessResponse(
           chosen.profile, parsed, chosenGoogleData, dondeMatch,
           v7Result, intentBoost, relaxationApplied, rankedQueue, cuisineMismatch,
+          needsQualityCallout, neighborhoodExpanded,
         );
       }
 
