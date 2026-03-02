@@ -305,8 +305,19 @@ export function buildV7SuccessResponse(
   relaxationApplied: string[],
   rankedQueue: Record<string, unknown>[],
   cuisineMismatch?: { requested: string; got: string } | null,
+  qualityCallout?: boolean,
+  neighborhoodExpanded?: boolean,
 ): Record<string, unknown> {
   const scoringV7 = buildScoringV7(v7Result);
+
+  // V8.8: Quality callout message when top score is below P5 threshold
+  let qualityCalloutMessage: string | null = null;
+  if (qualityCallout) {
+    qualityCalloutMessage = "This is the best match for your preferences, but it may not be a perfect fit. Consider relaxing your filters for more options.";
+  } else if (neighborhoodExpanded) {
+    qualityCalloutMessage = "We expanded beyond your requested neighborhood to find a better match.";
+  }
+
   return {
     success: true,
     restaurant: buildRestaurantObject(chosen, googleData, {
@@ -322,6 +333,7 @@ export function buildV7SuccessResponse(
     insider_tip: claude.insider_tip || null,
     donde_match: dondeMatch,
     cuisine_mismatch: cuisineMismatch ?? null,
+    quality_callout: qualityCalloutMessage,
     scoring_v7: scoringV7,
     scoring_v5: scoringV7, // Backward compat alias
     match_narrative: v7Result.matchNarrative || null,

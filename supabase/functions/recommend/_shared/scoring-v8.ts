@@ -245,14 +245,14 @@ const FLAVOR_KEYWORDS: Record<string, string[]> = {
 
 const V8_BASE_WEIGHTS: V8Weights = {
   food: 0.28,
-  vibe: 0.18,
-  service: 0.12,
-  reputation: 0.22,
-  convenience: 0.20,
+  vibe: 0.16,        // V8.8: −0.02 (freed for reputation)
+  service: 0.10,     // V8.8: −0.02 (freed for reputation)
+  reputation: 0.28,  // V8.8: +0.06 — clearly #3 factor after dish/cuisine
+  convenience: 0.18, // V8.8: −0.02 (freed for reputation)
 };
 
 // ==========================================
-// V8 WEIGHT SHIFT RULES (12 consolidated)
+// V8 WEIGHT SHIFT RULES (14 consolidated)
 // ==========================================
 
 const V8_RULES: V8WeightShiftRule[] = [
@@ -344,6 +344,14 @@ const V8_RULES: V8WeightShiftRule[] = [
     condition: { targetTags: ["reputation-focused"] },
     deltas: { reputation: +0.12, food: -0.04, convenience: -0.04, vibe: -0.04 },
     label: "Reputation query: reputation dominates",
+  },
+  // 14. Dish-level query: food elevated
+  // V8.8: When user asks for a specific dish ("pad thai", "bulgogi"), food weight
+  // gets a significant boost. This enforces dish > cuisine > reputation hierarchy.
+  {
+    condition: { dishLevelIntent: true },
+    deltas: { food: +0.10, reputation: -0.04, convenience: -0.06 },
+    label: "Dish-level query: food elevated",
   },
 ];
 
@@ -502,8 +510,9 @@ function computeFood(
   }
   details.cuisine = { score: cuisineScore, max: cuisineMax, signal: cuisineSignal };
 
-  // Signal 2: Dish match (0-3, elevated for dish-level queries)
-  const dishMax = isDishLevel ? 3 : 1;
+  // Signal 2: Dish match (0-5, elevated for dish-level queries)
+  // V8.8: Raised from 3→5 to enforce dish > cuisine (max 4) in priority hierarchy.
+  const dishMax = isDishLevel ? 5 : 1;
   maxDataPoints++;
   let dishScore = 0;
   let dishSignal = "";
@@ -1183,12 +1192,14 @@ function computeV8Weights(
     (intent.flavor_preferences?.length ?? 0) === 0 &&
     !intent.dish_level_intent
   );
+  // V8.8: Strengthened open-ended boost — reputation is the deciding factor.
+  // Post-normalization reputation ≈ 0.39, clearly dominant over all other factors.
   if (isOpenEnded) {
-    w.reputation += 0.08;
-    w.food += 0.04;
-    w.convenience -= 0.06;
-    w.vibe -= 0.06;
-    appliedRules.push("Open query: reputation + food dominate");
+    w.reputation += 0.14;   // was +0.08
+    w.food += 0.02;         // was +0.04 (mild food boost)
+    w.convenience -= 0.08;  // was −0.06
+    w.vibe -= 0.08;         // was −0.06
+    appliedRules.push("Open query: reputation dominates");
   }
 
   // Clamp [0.05, 0.50] and normalize
@@ -1325,30 +1336,35 @@ function computeV8IntentAlignment(
   // Weighted composite (only active components count)
   let totalWeight = 0;
   let weightedSum = 0;
-  if (hasCuisine) { weightedSum += cuisineAlignment * 0.40; totalWeight += 0.40; }
-  if (hasDish) { weightedSum += dishAlignment * 0.25; totalWeight += 0.25; }
+  // V8.8: Rebalanced IA weights — dish 0.25→0.35, cuisine 0.40→0.30
+  // Enforces dish > cuisine in intent alignment composite.
+  if (hasCuisine) { weightedSum += cuisineAlignment * 0.30; totalWeight += 0.30; }
+  if (hasDish) { weightedSum += dishAlignment * 0.35; totalWeight += 0.35; }
   if (hasVibe) { weightedSum += vibeAlignment * 0.20; totalWeight += 0.20; }
   if (hasConstraints) { weightedSum += constraintAlignment * 0.15; totalWeight += 0.15; }
 
   let score = totalWeight > 0 ? weightedSum / totalWeight : 0.5;
 
-  // V8.5 O16+O18: IA composite floor of 0.30 — prevents extreme IM penalties.
-  // When the intent classifier produces active signals but none align with the
-  // restaurant's profile, the raw composite can drop to 0.06-0.15, causing
-  // IM to hit near floor (0.80-0.90). A floor of 0.30 acknowledges that
-  // any curated restaurant has baseline relevance to any reasonable query.
-  // V8.5→V8.7: Raised from 0.20→0.30→0.48→0.52 across iterations.
-  // V8.7: Raise to 0.52 for strict level 3 (+6 thresholds). 11 cases at
-  // 1-3 pts below threshold, all hitting IA floor. At 0.52 the IA range
-  // [0.52, 1.0] preserves 48% differentiation — still meaningful penalty
-  // for truly misaligned queries while protecting experience/vibe queries.
-  // Combined with V8.6 IM floors, minimum possible IM is now:
-  //   high conf: 0.82 + 0.23*0.52 = 0.940
-  //   medium:    0.86 + 0.19*0.52 = 0.959
-  //   low:       0.92 + 0.13*0.52 = 0.988
-  // Inspiration: Jelinek-Mercer smoothing — interpolate with a uniform prior.
-  if (hasActiveSignals && score < 0.52) {
-    score = 0.52;
+  // V8.8: Conditional IA floor — food-intent queries get lower floor for more
+  // differentiation; vibe/constraint-only queries keep higher floor.
+  //
+  // Problem (V8.7): Flat floor of 0.52 absorbed cuisine/dish differentiation.
+  // A Thai restaurant (IA=1.0) and a cocktail bar (IA=0.10→0.52) for "Thai food"
+  // had only ~5% IM difference — trivial vs reputation gap.
+  //
+  // Solution: When user asks for cuisine/dish, floor = 0.30 → IM range expands.
+  // Non-matches get penalized ~12% instead of ~5%. Vibe/constraint-only queries
+  // keep 0.52 to protect experience queries from over-penalization.
+  //
+  // Combined with V8.6 IM floors, minimum possible IM:
+  //   food-intent, high conf:  0.82 + 0.23*0.30 = 0.889
+  //   food-intent, medium:     0.86 + 0.19*0.30 = 0.917
+  //   vibe-only, high conf:    0.82 + 0.23*0.52 = 0.940
+  //   vibe-only, medium:       0.86 + 0.19*0.52 = 0.959
+  const hasFoodIntent = hasCuisine || hasDish;
+  const iaFloor = hasFoodIntent ? 0.30 : 0.52;
+  if (hasActiveSignals && score < iaFloor) {
+    score = iaFloor;
   }
 
   return { score, cuisine: cuisineAlignment, dish: dishAlignment, vibe: vibeAlignment, constraints: constraintAlignment, hasActiveSignals };
@@ -1554,10 +1570,9 @@ export function computeV8DondeMatch(
   // Medium confidence (3-4 words):            IM = [0.86, 1.05]  ← V8.6: was 0.84
   // Low confidence (1-2 words, vague):        IM = [0.92, 1.05]  ← V8.6: was 0.90
   //
-  // Combined with IA floor of 0.30, minimum possible IM:
-  //   high: 0.82 + 0.23*0.30 = 0.889
-  //   medium: 0.86 + 0.19*0.30 = 0.917
-  //   low: 0.92 + 0.13*0.30 = 0.959
+  // Combined with V8.8 conditional IA floor, minimum possible IM:
+  //   food-intent (floor=0.30): high 0.82+0.23*0.30=0.889, med 0.86+0.19*0.30=0.917
+  //   vibe-only (floor=0.52):   high 0.82+0.23*0.52=0.940, med 0.86+0.19*0.52=0.959
   let intentMultiplier = 1.0;
   if (intentAlignment.hasActiveSignals) {
     const confLevel = inputs.intent?.confidence?.overall ?? "medium";

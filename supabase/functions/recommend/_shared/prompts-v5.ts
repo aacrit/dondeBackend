@@ -158,6 +158,8 @@ export function buildV5UserPrompt(
   }>,
   weightContext: string,
   intent?: IntentClassificationV2 | null,
+  qualityCallout?: boolean,
+  neighborhoodExpanded?: boolean,
 ): string {
   // Section 1: User request context
   let prompt = `USER REQUEST: "${specialRequest || 'No specific request'}"
@@ -287,6 +289,18 @@ WEIGHT CONTEXT: ${weightContext}
     if (p.insider_tip) prompt += `DB insider tip: ${p.insider_tip}\n`;
     if (p.best_for_oneliner) prompt += `Known for: ${p.best_for_oneliner}\n`;
   });
+
+  // V8.8: Quality callout — when the match is below confidence threshold, guide Claude's tone
+  if (qualityCallout) {
+    prompt += `\n=== QUALITY NOTE ===\n`;
+    prompt += `This recommendation scored below our confidence threshold. `;
+    prompt += `Gently mention in the blurb that this is the best available match for their specific combination of preferences, and suggest they might try broadening their search.\n`;
+  }
+  if (neighborhoodExpanded) {
+    prompt += `\n=== NEIGHBORHOOD NOTE ===\n`;
+    prompt += `We expanded beyond the user's requested neighborhood to find a better match. `;
+    prompt += `Briefly acknowledge in the blurb that this spot is worth the trip even though it's outside their original neighborhood.\n`;
+  }
 
   prompt += `\nWrite the blurb for Candidate #0 (engine's top pick). Scan the full pool for intent matches. Respond in JSON only.`;
 
