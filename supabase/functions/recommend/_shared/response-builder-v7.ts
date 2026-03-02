@@ -355,10 +355,11 @@ export function buildV7FallbackResponse(
   rankedQueue: Record<string, unknown>[],
 ): Record<string, unknown> {
   const scoringV7 = buildScoringV7(v7Result);
+  const blurb = buildQueueBlurb(chosen, v7Result.matchNarrative, v7Result.intentAlignment);
   return {
     success: true,
     restaurant: buildRestaurantObject(chosen, googleData),
-    recommendation: chosen.best_for_oneliner || "A top pick based on our match engine.",
+    recommendation: blurb || chosen.best_for_oneliner || "A top pick based on our match engine.",
     insider_tip: chosen.insider_tip || null,
     donde_match: dondeMatch,
     scoring_v7: scoringV7,

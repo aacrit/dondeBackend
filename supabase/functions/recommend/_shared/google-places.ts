@@ -25,6 +25,7 @@ export interface GoogleReviewData {
 }
 
 // Enhancement 20: Added business_status to detect closed restaurants
+// Cost note: Basic (name,address,business_status) = $0, Contact (phone,website) = $0.003, Atmosphere (rest) = $0.005
 const PLACE_DETAILS_FIELDS =
   "name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,reviews,business_status,photos,opening_hours,current_opening_hours";
 
@@ -77,7 +78,7 @@ export async function fetchPlaceDetails(
         `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${ref}&key=${apiKey}`
       );
 
-    // Extract opening hours (prefer current_opening_hours for live accuracy)
+    // Prefer current_opening_hours for live open_now accuracy
     const hours = result.current_opening_hours || result.opening_hours;
     const openingHours = hours
       ? {
