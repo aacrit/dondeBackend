@@ -13,7 +13,7 @@ import type { IntentClassificationV2 } from "../../supabase/functions/recommend/
 // TEST CASE TYPES
 // ==========================================
 
-export type Category = "CHI" | "CUI" | "DSH" | "BAR" | "OCC" | "VIB" | "NBH" | "DIT" | "FTR" | "NLP" | "MLT";
+export type Category = "CHI" | "CUI" | "DSH" | "BAR" | "OCC" | "VIB" | "NBH" | "DIT" | "FTR" | "NLP" | "MLT" | "REP" | "OPN" | "FLT";
 
 export interface TestExpectations {
   /** Expected CUISINE_KEYWORDS matches (inclusion check) */
@@ -1697,6 +1697,53 @@ const MLT_TESTS: TestCase[] = [
 ];
 
 // ==========================================
+// REP — REPUTATION-SPECIFIC (V8.6)
+// ==========================================
+
+const REP_TESTS: TestCase[] = [
+  tc("REP", "best rated restaurant", { tags: ["reputation-focused"], intentTags: ["reputation-focused", "fine dining"] }),
+  tc("REP", "michelin star restaurant", { tags: ["reputation-focused"], intentTags: ["reputation-focused", "romantic", "trendy", "fine dining"] }),
+  tc("REP", "james beard winner", { tags: ["reputation-focused"], intentTags: ["reputation-focused", "trendy"] }),
+  tc("REP", "highest rated place", { tags: ["reputation-focused"] }),
+  tc("REP", "award-winning restaurant", { tags: ["reputation-focused"], intentTags: ["reputation-focused", "fine dining"] }),
+  tc("REP", "top rated Chicago restaurant", { tags: ["reputation-focused"] }),
+  tc("REP", "critically acclaimed dining", { tags: ["reputation-focused"], intentTags: ["reputation-focused", "fine dining"] }),
+  tc("REP", "best reviewed brunch", { tags: ["reputation-focused", "brunch spot"] }),
+  tc("REP", "most popular restaurant", { tags: ["reputation-focused"] }),
+  tc("REP", "five star dining", { tags: ["reputation-focused", "fine dining"] }),
+];
+
+// ==========================================
+// OPN — OPEN-ENDED QUERIES (V8.6)
+// ==========================================
+
+const OPN_TESTS: TestCase[] = [
+  tc("OPN", "surprise me", {}),
+  tc("OPN", "something good", {}),
+  tc("OPN", "feed me", {}),
+  tc("OPN", "dealer's choice", {}),
+  tc("OPN", "I'm hungry", {}),
+  tc("OPN", "anything works", {}),
+  tc("OPN", "you pick", {}),
+  tc("OPN", "chef's choice", { tags: ["fine dining"] }),
+];
+
+// ==========================================
+// FLT — FILTER-SPECIFIC (V8.6)
+// ==========================================
+
+const FLT_TESTS: TestCase[] = [
+  tc("FLT", "cheap Italian downtown", { cuisines: ["Italian"], tags: ["great value"] }),
+  tc("FLT", "expensive sushi", { cuisines: ["Japanese"], intentCuisines: ["Japanese"] }),
+  tc("FLT", "vegan near Logan Square", { dietary: ["vegan"] }),
+  tc("FLT", "gluten free pizza", { cuisines: ["Italian"], dietary: ["gluten-free"], intentCuisines: ["Italian"] }),
+  tc("FLT", "outdoor seating dog friendly", { tags: ["outdoor seating", "pet friendly"] }),
+  tc("FLT", "BYOB Mexican Pilsen", { cuisines: ["Mexican"], tags: ["byob"] }),
+  tc("FLT", "late night Korean fried chicken", { cuisines: ["Korean"], tags: ["late night"], intentCuisines: ["Korean", "American"] }),
+  tc("FLT", "family friendly brunch with parking", { tags: ["brunch spot", "kid friendly"] }),
+];
+
+// ==========================================
 // EXPORT COMBINED CATALOG
 // ==========================================
 
@@ -1712,6 +1759,9 @@ export const TEST_CATALOG: TestCase[] = [
   ...FTR_TESTS,
   ...NLP_TESTS,
   ...MLT_TESTS,
+  ...REP_TESTS,
+  ...OPN_TESTS,
+  ...FLT_TESTS,
 ];
 
 // Category summary for reporting
@@ -1727,4 +1777,7 @@ export const CATEGORY_NAMES: Record<Category, string> = {
   FTR: "Feature-Based",
   NLP: "Natural Language",
   MLT: "Multi-Signal",
+  REP: "Reputation-Specific",
+  OPN: "Open-Ended",
+  FLT: "Filter-Specific",
 };

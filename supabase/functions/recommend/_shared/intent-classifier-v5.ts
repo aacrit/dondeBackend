@@ -476,6 +476,13 @@ export async function classifyIntentV5(
     }
   }
 
+  // V8.6: Open-ended pattern detection — "surprise me", "dealer's choice", etc.
+  // Routes to emotional_intent="explore" which triggers Rule 6 (Adventure/Treat).
+  const OPEN_ENDED_PATTERN = /surprise|dealer.?s?\s*choice|anything|whatever|feed me|chef.?s?\s*choice|you\s*pick|random/;
+  if (emotionalIntent === "casual" && OPEN_ENDED_PATTERN.test(input)) {
+    emotionalIntent = "explore";
+  }
+
   // If still casual, check the occasion for additional context
   if (emotionalIntent === "casual" && occasion) {
     const occasionLower = occasion.toLowerCase();

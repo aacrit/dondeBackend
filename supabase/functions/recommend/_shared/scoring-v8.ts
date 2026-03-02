@@ -329,16 +329,19 @@ const V8_RULES: V8WeightShiftRule[] = [
     label: "Spontaneous: convenience dominates",
   },
   // 12. Vibe-specific query (rooftop/outdoor/bar)
+  // V8.6 fix: switched from vibeKeywords to targetTags — "rooftop", "outdoor" etc.
+  // are classified into target_tags (via TAG_KEYWORDS), not vibe_keywords (VIBE_WORDS).
   {
-    condition: { vibeKeywords: ["rooftop", "outdoor", "terrace", "patio", "view", "al fresco"] },
+    condition: { targetTags: ["rooftop", "outdoor patio", "outdoor seating", "scenic view", "waterfront"] },
     deltas: { vibe: +0.12, food: -0.06, convenience: -0.06 },
     label: "Outdoor/vibe query: vibe elevated",
   },
   // 13. Reputation-priority query (awards, ratings, best-of)
-  // Addresses systematic disadvantage for reputation-heavy queries (avg DM 51 vs 56 overall).
-  // Inspiration: TrustRank — queries about quality/prestige should weight reputation signal.
+  // V8.6 fix: switched from vibeKeywords to targetTags — reputation words are routed
+  // to target_tags via TAG_KEYWORDS/INTENT_MAP, not to vibe_keywords (VIBE_WORDS only
+  // contains atmosphere descriptors like "cozy", "lively", "elegant").
   {
-    condition: { vibeKeywords: ["michelin", "james beard", "award", "best rated", "top rated", "highly rated", "best reviewed", "award-winning", "critically acclaimed"] },
+    condition: { targetTags: ["reputation-focused"] },
     deltas: { reputation: +0.12, food: -0.04, convenience: -0.04, vibe: -0.04 },
     label: "Reputation query: reputation dominates",
   },
@@ -968,8 +971,18 @@ function computeReputation(
     googleScore = Math.min(7, raw * 0.85);
     details.google = { score: googleScore, max: 7, signal: `${rating}\u2605 (${reviewCount} reviews, adj ${bayesianRating.toFixed(2)})` };
   } else {
-    googleScore = 3.5;
-    details.google = { score: 3.5, max: 7, signal: "No Google data" };
+    // V8.6: Use internal signals as proxy when Google data absent.
+    // Previously all restaurants without Google data scored flat 3.5 — zero differentiation.
+    // Now award-winning restaurants with notable chefs score higher than unknown spots.
+    let internalRep = 3.0;
+    if (dp?.awards_recognition?.length) internalRep += 1.5;
+    if (dp?.chef_notable) internalRep += 1.0;
+    if (dp?.cultural_authenticity != null && dp.cultural_authenticity >= 8) internalRep += 0.5;
+    if (dp?.neighborhood_integration === "institution") internalRep += 0.5;
+    else if (dp?.neighborhood_integration === "destination") internalRep += 0.3;
+    if (profile.trending_score != null && profile.trending_score >= 7) internalRep += 0.5;
+    googleScore = Math.min(7, internalRep);
+    details.google = { score: googleScore, max: 7, signal: `Internal proxy: ${internalRep.toFixed(1)}` };
   }
 
   // Signal 2: Sentiment (0-2)
@@ -1157,6 +1170,25 @@ function computeV8Weights(
       }
       appliedRules.push(rule.label);
     }
+  }
+
+  // V8.6: Open-ended query boost — when no intent signals at all, favor quality/reputation.
+  // "Surprise me", "something good", "I'm hungry" etc. should surface the best restaurants,
+  // not just the most convenient. Reputation + food get boosted; vibe + convenience reduced.
+  const isOpenEnded = !intent || (
+    (intent.target_cuisines?.length ?? 0) === 0 &&
+    (intent.target_tags?.length ?? 0) === 0 &&
+    (intent.vibe_keywords?.length ?? 0) === 0 &&
+    (intent.practical_constraints?.length ?? 0) === 0 &&
+    (intent.flavor_preferences?.length ?? 0) === 0 &&
+    !intent.dish_level_intent
+  );
+  if (isOpenEnded) {
+    w.reputation += 0.08;
+    w.food += 0.04;
+    w.convenience -= 0.06;
+    w.vibe -= 0.06;
+    appliedRules.push("Open query: reputation + food dominate");
   }
 
   // Clamp [0.05, 0.50] and normalize

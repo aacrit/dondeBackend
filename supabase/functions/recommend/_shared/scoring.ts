@@ -128,6 +128,9 @@ export const TAG_KEYWORDS: Record<string, string[]> = {
   "private dining": ["private dining", "private room", "private event", "semi private"],
   "prix fixe": ["prix fixe", "multi-course", "tasting menu"],
   "outdoor seating": ["outdoor seating", "patio dining", "sidewalk cafe", "garden seating"],
+  // V8.6: Reputation-focused tag — triggers Rule 13 weight shift for reputation-priority queries.
+  // These keywords signal the user cares about quality/prestige, not a specific cuisine or vibe.
+  "reputation-focused": ["best rated", "top rated", "highly rated", "award", "michelin", "james beard", "critically acclaimed", "best reviewed", "highest rated", "award-winning", "five star", "most popular"],
 };
 
 // --- Enhancement 4: Semantic intent expansion ---
@@ -545,7 +548,7 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "river view": { tags: ["waterfront", "scenic view"] },
   "late night": { tags: ["late night"] },
   "instagram": { tags: ["trendy", "rooftop", "scenic view"] },
-  "michelin": { tags: ["romantic", "trendy"] },
+  "michelin": { tags: ["reputation-focused", "romantic", "trendy", "fine dining"] },
   "chef": { tags: ["trendy"] },
   "casual": { tags: ["great value"] },
   "kid friendly": { tags: ["kid friendly"] },
@@ -794,13 +797,26 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "private dining room": { tags: ["romantic", "quiet"] },
 
   // --- Reputation-based intents ---
-  "michelin star": { tags: ["romantic", "trendy", "fine dining"] },
-  "michelin star restaurant": { tags: ["romantic", "trendy", "fine dining"] },
-  "michelin two star": { tags: ["romantic", "trendy", "fine dining"] },
-  "james beard": { tags: ["trendy"] },
-  "james beard winner": { tags: ["trendy"] },
+  // V8.6: Added "reputation-focused" tag to trigger Rule 13 weight shift.
+  "michelin star": { tags: ["reputation-focused", "romantic", "trendy", "fine dining"] },
+  "michelin star restaurant": { tags: ["reputation-focused", "romantic", "trendy", "fine dining"] },
+  "michelin two star": { tags: ["reputation-focused", "romantic", "trendy", "fine dining"] },
+  "james beard": { tags: ["reputation-focused", "trendy"] },
+  "james beard winner": { tags: ["reputation-focused", "trendy"] },
   "eater heatmap": { tags: ["trendy", "hidden gem"] },
-  "best of chicago": { tags: ["trendy"] },
+  "best of chicago": { tags: ["reputation-focused", "trendy"] },
+  // V8.6: New reputation-specific entries
+  "best rated": { tags: ["reputation-focused", "fine dining"] },
+  "top rated": { tags: ["reputation-focused"] },
+  "highly rated": { tags: ["reputation-focused"] },
+  "best reviewed": { tags: ["reputation-focused"] },
+  "award winning": { tags: ["reputation-focused", "fine dining"] },
+  "award-winning": { tags: ["reputation-focused", "fine dining"] },
+  "critically acclaimed": { tags: ["reputation-focused", "fine dining"] },
+  "highest rated": { tags: ["reputation-focused"] },
+  "best restaurant": { tags: ["reputation-focused"] },
+  "five star": { tags: ["reputation-focused", "fine dining"] },
+  "most popular": { tags: ["reputation-focused"] },
 
   // --- Convenience/location intents ---
   "near me": { tags: [] },
