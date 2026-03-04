@@ -1,0 +1,115 @@
+name: Run Review Intelligence
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: 'Restaurants per Edge Function call'
+        required: false
+        default: '50'
+      concurrency:
+        description: 'Parallel restaurants per batch (1-10)'
+        required: false
+        default: '5'
+      force:
+        description: 'Re-analyze even if recent data exists'
+        required: false
+        default: 'false'
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Run review-intelligence pipeline
+        env:
+          SUPABASE_URL: ${{ secrets.SUPAB_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPAB_ANON_KEY }}
+        run: |
+          BATCH_SIZE=${{ github.event.inputs.batch_size || '50' }}
+          CONCURRENCY=${{ github.event.inputs.concurrency || '5' }}
+          FORCE=${{ github.event.inputs.force || 'false' }}
+          OFFSET=0
+          TOTAL_ANALYZED=0
+          TOTAL_FAILED=0
+          TOTAL_SKIPPED=0
+          TOTAL_NO_REVIEWS=0
+          CALL_NUM=0
+
+          FUNC_URL="${SUPABASE_URL}/functions/v1/review-intelligence"
+
+          echo "=== Review Intelligence Pipeline ==="
+          echo "Batch size: ${BATCH_SIZE}, Concurrency: ${CONCURRENCY}, Force: ${FORCE}"
+          echo ""
+
+          while true; do
+            CALL_NUM=$((CALL_NUM + 1))
+            echo "--- Call #${CALL_NUM} (offset=${OFFSET}) ---"
+
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -X POST "${FUNC_URL}" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+              --data "{\"limit\":${BATCH_SIZE},\"offset\":${OFFSET},\"force\":${FORCE},\"concurrency\":${CONCURRENCY}}" \
+              --max-time 300)
+
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+
+            if [ "$HTTP_CODE" != "200" ]; then
+              echo "ERROR: HTTP ${HTTP_CODE}"
+              echo "$BODY"
+              # Retry once after 10s on server error
+              if [ "$HTTP_CODE" -ge 500 ] 2>/dev/null; then
+                echo "Retrying in 10s..."
+                sleep 10
+                RESPONSE=$(curl -s -w "\n%{http_code}" \
+                  -X POST "${FUNC_URL}" \
+                  -H "Content-Type: application/json" \
+                  -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+                  --data "{\"limit\":${BATCH_SIZE},\"offset\":${OFFSET},\"force\":${FORCE},\"concurrency\":${CONCURRENCY}}" \
+                  --max-time 300)
+                HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+                BODY=$(echo "$RESPONSE" | sed '$d')
+                if [ "$HTTP_CODE" != "200" ]; then
+                  echo "FATAL: Retry failed with HTTP ${HTTP_CODE}"
+                  echo "$BODY"
+                  exit 1
+                fi
+              else
+                exit 1
+              fi
+            fi
+
+            # Parse response
+            ANALYZED=$(echo "$BODY" | jq -r '.analyzed // 0')
+            FAILED=$(echo "$BODY" | jq -r '.failed // 0')
+            SKIPPED=$(echo "$BODY" | jq -r '.skipped // 0')
+            NO_REVIEWS=$(echo "$BODY" | jq -r '.noReviews // 0')
+            NEXT_OFFSET=$(echo "$BODY" | jq -r '.nextOffset // "null"')
+            REMAINING=$(echo "$BODY" | jq -r '.totalRemaining // 0')
+
+            TOTAL_ANALYZED=$((TOTAL_ANALYZED + ANALYZED))
+            TOTAL_FAILED=$((TOTAL_FAILED + FAILED))
+            TOTAL_SKIPPED=$((TOTAL_SKIPPED + SKIPPED))
+            TOTAL_NO_REVIEWS=$((TOTAL_NO_REVIEWS + NO_REVIEWS))
+
+            echo "  Analyzed: ${ANALYZED} | Skipped: ${SKIPPED} | No reviews: ${NO_REVIEWS} | Failed: ${FAILED} | Remaining: ${REMAINING}"
+
+            if [ "$NEXT_OFFSET" = "null" ] || [ "$REMAINING" = "0" ]; then
+              echo ""
+              echo "=== Pipeline Complete ==="
+              echo "Total analyzed: ${TOTAL_ANALYZED}"
+              echo "Total skipped:  ${TOTAL_SKIPPED}"
+              echo "Total no reviews: ${TOTAL_NO_REVIEWS}"
+              echo "Total failed:   ${TOTAL_FAILED}"
+              echo "Total calls:    ${CALL_NUM}"
+              break
+            fi
+
+            OFFSET=${NEXT_OFFSET}
+
+            # Brief pause between calls
+            sleep 2
+          done
