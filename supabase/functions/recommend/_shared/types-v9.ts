@@ -191,6 +191,33 @@ export interface V9QualityWeights {
 }
 
 // ==========================================
+// V9 SUB-COMPONENT DETAILS (for frontend drill-down)
+// ==========================================
+
+/** V9 sub-component detail within a factor */
+export interface V9SubComponent {
+  /** Points earned */
+  score: number;
+  /** Maximum possible points */
+  max: number;
+  /** Human-readable explanation */
+  signal: string;
+}
+
+/** V9 per-factor details map (factorKey -> subKey -> V9SubComponent) */
+export type V9FactorDetails = Record<string, Record<string, V9SubComponent>>;
+
+/** Per-factor confidence (derived from data availability) */
+export type V9FactorConfidence = Record<string, "high" | "medium" | "low">;
+
+/** Return type for instrumented compute*Quality functions */
+export interface V9QualityResult {
+  score: number;
+  details: Record<string, V9SubComponent>;
+  confidence: "high" | "medium" | "low";
+}
+
+// ==========================================
 // V9 SCORING ENGINE TYPES
 // ==========================================
 
@@ -237,6 +264,10 @@ export interface V9ScoreResult {
   matchNarrative: MatchNarrative;
   /** Data completeness 0-1.0 */
   dataCompleteness: number;
+  /** Sub-component breakdown per factor (for frontend drill-down) */
+  factorDetails: V9FactorDetails;
+  /** Per-factor confidence (drives "limited data" UI notes) */
+  factorConfidence: V9FactorConfidence;
 }
 
 // ==========================================
@@ -253,6 +284,8 @@ export interface V9ScoredCandidate {
   occasionBonus: number;
   matchNarrative: MatchNarrative;
   dataCompleteness: number;
+  factorDetails: V9FactorDetails;
+  factorConfidence: V9FactorConfidence;
   googleData?: GooglePlaceData | null;
   reviewIntelligence?: ReviewIntelligence | null;
 }
@@ -277,6 +310,10 @@ export interface V9ScoringBreakdown {
   convenience: number;
   /** Alias for quality_weights (frontend expects weights_used) */
   weights_used: V9QualityWeights;
+  /** Sub-component breakdown per factor (for frontend drill-down) */
+  factor_details?: V9FactorDetails;
+  /** Per-factor confidence (drives "limited data" UI notes) */
+  confidence?: V9FactorConfidence;
 }
 
 // ==========================================

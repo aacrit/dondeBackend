@@ -28,12 +28,16 @@ import type {
   MatchNarrative,
   V9Candidate,
   V9Factors,
+  V9FactorDetails,
+  V9FactorConfidence,
   V9Relevance,
   V9RelevanceType,
   V9QualityWeights,
+  V9QualityResult,
   V9ScoringContext,
   V9ScoreResult,
   V9ScoredCandidate,
+  V9SubComponent,
   ReviewIntelligence,
 } from "./types-v9.ts";
 import {
@@ -398,33 +402,47 @@ export function computeQuality(
   candidate: V9Candidate,
   relevanceType: V9RelevanceType,
   context: V9ScoringContext,
-): { quality: number; weights: V9QualityWeights; factors: V9Factors } {
+): { quality: number; weights: V9QualityWeights; factors: V9Factors; factorDetails: V9FactorDetails; factorConfidence: V9FactorConfidence } {
   const weights = QUALITY_WEIGHTS[relevanceType];
 
-  // Compute raw quality dimensions (0-10 each)
-  const foodQuality = computeFoodQuality(candidate, context.googleData);
-  const reputationScore = computeReputationQuality(candidate, context.googleData);
-  const vibeScore = computeVibeQuality(candidate, context.occasion, context.intent);
-  const serviceScore = computeServiceQuality(candidate, context.occasion, context.intent);
-  const convenienceScore = computeConvenienceQuality(candidate, context.intent, context.clientTimeOfDay, context.specialRequest);
+  // Compute raw quality dimensions (0-10 each) — now returns details + confidence
+  const foodResult = computeFoodQuality(candidate, context.googleData, context.intent, relevanceType);
+  const reputationResult = computeReputationQuality(candidate, context.googleData);
+  const vibeResult = computeVibeQuality(candidate, context.occasion, context.intent);
+  const serviceResult = computeServiceQuality(candidate, context.occasion, context.intent);
+  const convenienceResult = computeConvenienceQuality(candidate, context.intent, context.clientTimeOfDay, context.specialRequest, context.priceLevel);
 
   const quality = (
-    foodQuality * weights.food +
-    reputationScore * weights.reputation +
-    vibeScore * weights.vibe +
-    serviceScore * weights.service +
-    convenienceScore * weights.convenience
+    foodResult.score * weights.food +
+    reputationResult.score * weights.reputation +
+    vibeResult.score * weights.vibe +
+    serviceResult.score * weights.service +
+    convenienceResult.score * weights.convenience
   ) * 10; // Scale to 0-100
 
   return {
     quality: Math.min(100, Math.max(0, quality)),
     weights,
     factors: {
-      food: foodQuality,
-      vibe: vibeScore,
-      service: serviceScore,
-      reputation: reputationScore,
-      convenience: convenienceScore,
+      food: foodResult.score,
+      vibe: vibeResult.score,
+      service: serviceResult.score,
+      reputation: reputationResult.score,
+      convenience: convenienceResult.score,
+    },
+    factorDetails: {
+      food: foodResult.details,
+      vibe: vibeResult.details,
+      service: serviceResult.details,
+      reputation: reputationResult.details,
+      convenience: convenienceResult.details,
+    },
+    factorConfidence: {
+      food: foodResult.confidence,
+      vibe: vibeResult.confidence,
+      service: serviceResult.confidence,
+      reputation: reputationResult.confidence,
+      convenience: convenienceResult.confidence,
     },
   };
 }
@@ -434,17 +452,23 @@ export function computeQuality(
 function computeFoodQuality(
   candidate: V9Candidate,
   googleData: GooglePlaceData | null,
-): number {
+  intent: IntentClassificationV2 | null,
+  relevanceType: V9RelevanceType,
+): V9QualityResult {
   const ri = candidate.review_intelligence;
   const dp = candidate.deep_profile;
+  const details: Record<string, V9SubComponent> = {};
 
   let score = 5.0; // Neutral starting point
   let signals = 0;
+  let confidence: "high" | "medium" | "low" = "low";
 
   // Review intelligence food quality (strongest signal — from actual reviews)
   if (ri?.review_food_quality != null) {
     score = ri.review_food_quality; // 0-10 from review analysis
     signals += 3; // Weighted heavily (worth 3 other signals)
+    details.review_quality = { score: ri.review_food_quality, max: 10, signal: "Review food quality score" };
+    confidence = "high";
   }
 
   // Google rating as food proxy — Bayesian average
@@ -456,17 +480,55 @@ function computeFoodQuality(
     const googleFood = Math.max(0, Math.min(10, (bayesianRating - 3.5) / 1.5 * 10));
     score = signals > 0 ? (score * signals + googleFood) / (signals + 1) : googleFood;
     signals += 1;
+    details.google = { score: Math.round(googleFood * 10) / 10, max: 10, signal: `Google ${googleData.google_rating} ★ (Bayesian)` };
+    if (confidence === "low") confidence = "medium";
   }
 
   // Deep profile enrichment signals (minor adjustments)
   if (dp?.cultural_authenticity != null && dp.cultural_authenticity >= 8) {
     score += 0.5;
+    details.authenticity = { score: 0.5, max: 0.5, signal: "Culturally authentic" };
   }
   if (dp?.awards_recognition?.length) {
     score += 0.3;
+    details.awards = { score: 0.3, max: 0.3, signal: dp.awards_recognition[0] };
   }
 
-  return Math.min(10, Math.max(0, score));
+  // B1: Review value score — blend for open-ended or budget-sensitive queries
+  if (ri?.review_value_score != null && relevanceType === "open_ended") {
+    score = (score * signals + ri.review_value_score * 0.5) / (signals + 0.5);
+    signals += 0.5;
+    details.value = { score: ri.review_value_score, max: 10, signal: "Review value score" };
+  }
+
+  // B2: Spice level matching — when user wants spicy food
+  if (dp?.spice_level && intent) {
+    const wantsSpicy = (intent.flavor_preferences || []).some((f: string) =>
+      ["spicy", "spice", "hot", "fiery"].includes(f.toLowerCase())
+    ) || (intent.vibe_keywords || []).some((v: string) => v.toLowerCase().includes("spic"));
+    if (wantsSpicy) {
+      const spiceMap: Record<string, number> = { mild: 3, medium: 7, hot: 9, extra_hot: 10, none: 0 };
+      const spiceScore = spiceMap[dp.spice_level] ?? 5;
+      score += (spiceScore / 10) * 0.5;
+      details.spice = { score: spiceScore, max: 10, signal: `Spice level: ${dp.spice_level}` };
+    }
+  }
+
+  // B3: Flavor profile matching — match intent.flavor_preferences against dp.flavor_profiles
+  if (dp?.flavor_profiles?.length && intent?.flavor_preferences?.length) {
+    const intentFlavors = intent.flavor_preferences.map((f: string) => f.toLowerCase());
+    const profileFlavors = dp.flavor_profiles.map((f: string) => f.toLowerCase());
+    const matches = intentFlavors.filter((f: string) =>
+      profileFlavors.some((p: string) => p.includes(f) || f.includes(p))
+    );
+    if (matches.length > 0) {
+      const flavorBonus = Math.min(0.8, matches.length * 0.4);
+      score += flavorBonus;
+      details.flavor = { score: matches.length, max: intentFlavors.length, signal: `Flavor match: ${matches.join(", ")}` };
+    }
+  }
+
+  return { score: Math.min(10, Math.max(0, score)), details, confidence };
 }
 
 // ---- Reputation Quality (0-10) — Bayesian (retained from V8) ----
@@ -474,10 +536,12 @@ function computeFoodQuality(
 function computeReputationQuality(
   candidate: V9Candidate,
   googleData: GooglePlaceData | null,
-): number {
+): V9QualityResult {
   const dp = candidate.deep_profile;
   const ri = candidate.review_intelligence;
+  const details: Record<string, V9SubComponent> = {};
   let score = 0;
+  let confidence: "high" | "medium" | "low" = "low";
 
   // Google rating — Bayesian average (main reputation signal)
   if (googleData?.google_rating != null) {
@@ -485,7 +549,10 @@ function computeReputationQuality(
     const BAYESIAN_M = 4.15;
     const reviewCount = googleData.google_review_count || 0;
     const bayesianRating = (BAYESIAN_C * BAYESIAN_M + reviewCount * googleData.google_rating) / (BAYESIAN_C + reviewCount);
-    score = Math.max(0, Math.min(7, (bayesianRating - 3.5) / 1.5 * 10 * 0.85));
+    const googleBase = Math.max(0, Math.min(7, (bayesianRating - 3.5) / 1.5 * 10 * 0.85));
+    score = googleBase;
+    details.google = { score: Math.round(googleBase * 10) / 10, max: 7, signal: `Google ${googleData.google_rating} ★ (Bayesian)` };
+    confidence = "medium";
   } else {
     // Internal reputation signals when Google data is absent
     let internalRep = 3.0;
@@ -500,22 +567,32 @@ function computeReputationQuality(
 
   // Review intelligence service quality (NEW in V9 — supplements single Google rating)
   if (ri?.review_service_quality != null) {
-    // Blend review service quality into reputation
     score = (score * 2 + ri.review_service_quality) / 3;
+    details.review_service = { score: Math.round(ri.review_service_quality * 10) / 10, max: 10, signal: "Review service quality" };
+    confidence = "high";
   }
 
   // Awards and community bonus (0-1.5)
   let bonus = 0;
-  if (dp?.awards_recognition?.length) bonus += 0.4;
-  if (dp?.chef_notable) bonus += 0.3;
+  if (dp?.awards_recognition?.length) {
+    bonus += 0.4;
+    details.awards = { score: 0.4, max: 0.4, signal: dp.awards_recognition[0] };
+  }
+  if (dp?.chef_notable) {
+    bonus += 0.3;
+    details.chef = { score: 0.3, max: 0.3, signal: "Notable chef" };
+  }
   if (dp?.cultural_authenticity != null && dp.cultural_authenticity >= 8) bonus += 0.3;
   if (dp?.neighborhood_integration === "institution") bonus += 0.2;
   else if (dp?.neighborhood_integration === "destination") bonus += 0.1;
-  if (candidate.trending_score != null && Number(candidate.trending_score) >= 7) bonus += 0.2;
+  if (candidate.trending_score != null && Number(candidate.trending_score) >= 7) {
+    bonus += 0.2;
+    details.trending = { score: 0.2, max: 0.2, signal: "Currently trending" };
+  }
 
   score += Math.min(1.5, bonus);
 
-  return Math.min(10, Math.max(0, score));
+  return { score: Math.min(10, Math.max(0, score)), details, confidence };
 }
 
 // ---- Vibe Quality (0-10) — Occasion + Atmosphere Matching ----
@@ -524,56 +601,80 @@ function computeVibeQuality(
   candidate: V9Candidate,
   occasion: string,
   intent: IntentClassificationV2 | null,
-): number {
+): V9QualityResult {
   const dp = candidate.deep_profile;
   const ri = candidate.review_intelligence;
+  const details: Record<string, V9SubComponent> = {};
   let score = 0;
   let scorePossible = 0;
+  let hasData = false;
 
   // Noise fit (0-3)
   const expectedNoise = OCCASION_NOISE[occasion] || ["Moderate"];
   scorePossible += 3;
+  let noisePoints = 1.5;
   if (candidate.noise_level) {
-    if (expectedNoise.includes(candidate.noise_level)) score += 3;
-    else score += 0.5;
-  } else {
-    score += 1.5; // neutral
+    noisePoints = expectedNoise.includes(candidate.noise_level) ? 3 : 0.5;
+    hasData = true;
   }
+  score += noisePoints;
+  details.noise = { score: Math.round(noisePoints * 10) / 10, max: 3, signal: candidate.noise_level ? `Noise: ${candidate.noise_level} (expected: ${expectedNoise.join("/")})` : "No noise data" };
 
   // Energy fit (0-2)
   scorePossible += 2;
+  let energyPoints = 1;
   if (dp?.energy_level != null) {
     const [eMin, eMax] = OCCASION_ENERGY[occasion] || [3, 7];
-    if (dp.energy_level >= eMin && dp.energy_level <= eMax) score += 2;
+    if (dp.energy_level >= eMin && dp.energy_level <= eMax) energyPoints = 2;
     else {
       const mid = (eMin + eMax) / 2;
-      score += Math.max(0, 2 - Math.abs(dp.energy_level - mid) * 0.4);
+      energyPoints = Math.max(0, 2 - Math.abs(dp.energy_level - mid) * 0.4);
     }
-  } else {
-    score += 1;
+    hasData = true;
   }
+  score += energyPoints;
+  details.energy = { score: Math.round(energyPoints * 10) / 10, max: 2, signal: dp?.energy_level != null ? `Energy level ${dp.energy_level}/10` : "No energy data" };
 
   // Music fit (0-1.5)
   scorePossible += 1.5;
+  let musicPoints = 0.75;
   if (dp?.music_vibe) {
     const fits = MUSIC_FIT[occasion] || [];
-    if (fits.includes(dp.music_vibe)) score += 1.5;
-    else score += 0.5;
-  } else {
-    score += 0.75;
+    musicPoints = fits.includes(dp.music_vibe) ? 1.5 : 0.5;
+    hasData = true;
   }
+  score += musicPoints;
+  details.music = { score: Math.round(musicPoints * 10) / 10, max: 1.5, signal: dp?.music_vibe || "No music data" };
 
   // Review intelligence ambiance quality (NEW in V9)
   scorePossible += 3;
+  let ambiancePoints = 1.5;
   if (ri?.review_ambiance_quality != null) {
-    score += (ri.review_ambiance_quality / 10) * 3; // Scale 0-10 → 0-3
-  } else {
-    score += 1.5; // neutral
+    ambiancePoints = (ri.review_ambiance_quality / 10) * 3;
+    hasData = true;
+  }
+  score += ambiancePoints;
+  details.ambiance = { score: Math.round(ambiancePoints * 10) / 10, max: 3, signal: ri?.review_ambiance_quality != null ? `Ambiance quality ${ri.review_ambiance_quality}/10` : "No ambiance data" };
+
+  // B4: Instagram worthiness — bonus when user seeks photogenic/instagrammable
+  if (dp?.instagram_worthiness != null && intent) {
+    const wantsGram = (intent.target_tags || []).some((t: string) =>
+      t.toLowerCase().includes("instagram") || t.toLowerCase().includes("photogenic")
+    ) || (intent.vibe_keywords || []).some((v: string) =>
+      v.toLowerCase().includes("instagram") || v.toLowerCase().includes("photo")
+    );
+    if (wantsGram) {
+      const gramBonus = (dp.instagram_worthiness / 10) * 1.5;
+      score += gramBonus;
+      scorePossible += 1.5;
+      details.instagram = { score: Math.round(gramBonus * 10) / 10, max: 1.5, signal: `Instagram worthiness: ${dp.instagram_worthiness}/10` };
+    }
   }
 
   // Normalize to 0-10
   const normalized = scorePossible > 0 ? (score / scorePossible) * 10 : 5;
-  return Math.min(10, Math.max(0, normalized));
+  const confidence: "high" | "medium" | "low" = (ri?.review_ambiance_quality != null && dp?.energy_level != null) ? "high" : hasData ? "medium" : "low";
+  return { score: Math.min(10, Math.max(0, normalized)), details, confidence };
 }
 
 // ---- Service Quality (0-10) — Occasion Fit + Service Style ----
@@ -582,43 +683,69 @@ function computeServiceQuality(
   candidate: V9Candidate,
   occasion: string,
   intent: IntentClassificationV2 | null,
-): number {
+): V9QualityResult {
   const dp = candidate.deep_profile;
+  const details: Record<string, V9SubComponent> = {};
   let score = 0;
 
   // Occasion base score (0-6)
   const occasionBase = computeWeightedOccasionScore(candidate, occasion);
-  score += Math.pow(Math.max(0, occasionBase) / 10, 0.85) * 6;
+  const occasionPoints = Math.pow(Math.max(0, occasionBase) / 10, 0.85) * 6;
+  score += occasionPoints;
+  details.occasion = { score: Math.round(occasionPoints * 10) / 10, max: 6, signal: `Occasion score for ${occasion}` };
 
   // Service style fit (0-2)
+  let serviceStylePoints = 1;
   if (dp?.service_style) {
     const fits = SERVICE_FIT[occasion] || [];
-    if (fits.includes(dp.service_style)) score += 2;
-    else score += 1;
+    if (fits.includes(dp.service_style)) serviceStylePoints = 2;
+    else serviceStylePoints = 1;
     const clashes = SERVICE_CLASH[occasion] || [];
-    if (clashes.includes(dp.service_style)) score -= 2;
-  } else {
-    score += 1;
+    if (clashes.includes(dp.service_style)) serviceStylePoints -= 2;
   }
+  score += serviceStylePoints;
+  details.service = { score: Math.max(0, Math.round(serviceStylePoints * 10) / 10), max: 2, signal: dp?.service_style || "No service style data" };
 
   // Social dynamics (0-2)
   let socialScore = 0;
+  let socialSignal = "Social fit";
   if (dp?.kid_friendliness != null && occasion === "Family Dinner") {
-    if (dp.kid_friendliness >= 7) socialScore += 0.75;
-    else if (dp.kid_friendliness >= 5) socialScore += 0.25;
+    if (dp.kid_friendliness >= 7) { socialScore += 0.75; socialSignal = "Kid-friendly"; }
+    else if (dp.kid_friendliness >= 5) { socialScore += 0.25; socialSignal = "Somewhat kid-friendly"; }
   }
   if (dp?.conversation_friendliness != null &&
     ["Date Night", "Business Lunch", "Special Occasion"].includes(occasion)) {
-    if (dp.conversation_friendliness >= 7) socialScore += 0.5;
+    if (dp.conversation_friendliness >= 7) { socialScore += 0.5; socialSignal = "Great for conversation"; }
   }
-  score += Math.min(2, Math.max(0, socialScore));
+  const clampedSocial = Math.min(2, Math.max(0, socialScore));
+  score += clampedSocial;
+  details.social = { score: Math.round(clampedSocial * 10) / 10, max: 2, signal: socialSignal };
+
+  // B6: Crowd profile matching — bonus when crowd matches occasion
+  const CROWD_OCCASION_FIT: Record<string, string[]> = {
+    "Group Hangout": ["young_professionals", "college_crowd", "diverse"],
+    "Date Night": ["couples", "young_professionals"],
+    "Family Dinner": ["families", "mixed_ages"],
+    "Business Lunch": ["business_professional", "young_professionals"],
+  };
+  if (dp?.crowd_profile?.length) {
+    const expectedCrowds = CROWD_OCCASION_FIT[occasion] || [];
+    if (expectedCrowds.length > 0) {
+      const crowdMatch = dp.crowd_profile.some((c: string) => expectedCrowds.includes(c));
+      if (crowdMatch) {
+        score += 0.5;
+        details.crowd = { score: 0.5, max: 0.5, signal: `Crowd: ${dp.crowd_profile.join(", ")}` };
+      }
+    }
+  }
 
   // Occasion "Any" with no data → neutral
   if (occasion === "Any" && occasionBase === 0) {
-    return 5;
+    return { score: 5, details, confidence: "low" };
   }
 
-  return Math.min(10, Math.max(0, score));
+  const confidence: "high" | "medium" | "low" = (dp?.service_style && dp?.kid_friendliness != null) ? "high" : dp?.service_style ? "medium" : "low";
+  return { score: Math.min(10, Math.max(0, score)), details, confidence };
 }
 
 function computeWeightedOccasionScore(profile: RestaurantProfile, occasion: string): number {
@@ -646,37 +773,79 @@ function computeConvenienceQuality(
   intent: IntentClassificationV2 | null,
   clientTimeOfDay?: string | null,
   specialRequest?: string,
-): number {
+  priceLevel?: string,
+): V9QualityResult {
   const dp = candidate.deep_profile;
   const requestLower = (specialRequest || "").toLowerCase();
+  const details: Record<string, V9SubComponent> = {};
   let score = 5; // neutral start
+  let hasData = false;
 
   // Timing fit
+  let timingAdj = 0;
   if (clientTimeOfDay && candidate.best_times?.length) {
-    if (candidate.best_times.includes(clientTimeOfDay)) score += 2;
-    else if (candidate.best_times.length <= 2) score -= 1.5;
-    else score -= 0.5;
+    if (candidate.best_times.includes(clientTimeOfDay)) { timingAdj = 2; }
+    else if (candidate.best_times.length <= 2) { timingAdj = -1.5; }
+    else { timingAdj = -0.5; }
+    hasData = true;
   }
+  score += timingAdj;
+  details.timing = { score: Math.max(0, 2 + timingAdj), max: 4, signal: clientTimeOfDay ? `Best at ${clientTimeOfDay}` : "No timing data" };
 
   // Reservation accessibility
+  let reservationAdj = 0;
   if (dp?.reservation_difficulty) {
     const isSpontaneous = intent?.spontaneity === "spontaneous"
       || /tonight|right now|last minute|walk.?in|spontaneous/.test(requestLower);
-    if (dp.reservation_difficulty === "hard_to_get" && isSpontaneous) score -= 2;
-    else if (dp.reservation_difficulty === "walk_in_friendly") score += isSpontaneous ? 1.5 : 0.5;
+    if (dp.reservation_difficulty === "hard_to_get" && isSpontaneous) reservationAdj = -2;
+    else if (dp.reservation_difficulty === "walk_in_friendly") reservationAdj = isSpontaneous ? 1.5 : 0.5;
+    hasData = true;
   }
+  score += reservationAdj;
+  details.reservation = { score: Math.max(0, 1.5 + reservationAdj), max: 3.5, signal: dp?.reservation_difficulty || "No reservation data" };
 
   // Wait time
+  let waitAdj = 0;
   if (dp?.typical_wait_minutes != null) {
-    if (dp.typical_wait_minutes > 60) score -= 1.0;
-    else if (dp.typical_wait_minutes > 30) score -= 0.5;
-    else score += 0.5;
+    if (dp.typical_wait_minutes > 60) waitAdj = -1.0;
+    else if (dp.typical_wait_minutes > 30) waitAdj = -0.5;
+    else waitAdj = 0.5;
+    hasData = true;
+    details.wait = { score: Math.max(0, 0.5 + waitAdj), max: 1.5, signal: `~${dp.typical_wait_minutes} min wait` };
   }
+  score += waitAdj;
 
   // Parking
-  if (candidate.parking_availability && !/none|no /i.test(candidate.parking_availability)) score += 0.5;
+  let parkingAdj = 0;
+  if (candidate.parking_availability && !/none|no /i.test(candidate.parking_availability)) {
+    parkingAdj = 0.5;
+    hasData = true;
+    details.parking = { score: 0.5, max: 0.5, signal: candidate.parking_availability };
+  }
+  score += parkingAdj;
 
-  return Math.min(10, Math.max(0, score));
+  // B7: Budget precision — check_average_per_person against price level
+  if (dp?.check_average_per_person != null && priceLevel && priceLevel !== "Any") {
+    const PRICE_LEVEL_RANGES: Record<string, [number, number]> = {
+      "$": [0, 20], "$$": [20, 45], "$$$": [45, 80], "$$$$": [80, 999],
+    };
+    const range = PRICE_LEVEL_RANGES[priceLevel];
+    if (range) {
+      const [lo, hi] = range;
+      const avg = dp.check_average_per_person;
+      if (avg >= lo && avg <= hi) {
+        score += 0.5;
+        details.budget = { score: 1, max: 1, signal: `~$${avg}/person (within budget)` };
+      } else if (avg > hi * 1.3) {
+        score -= 1.0;
+        details.budget = { score: 0, max: 1, signal: `~$${avg}/person (above budget)` };
+      }
+      hasData = true;
+    }
+  }
+
+  const confidence: "high" | "medium" | "low" = (clientTimeOfDay && dp?.reservation_difficulty) ? "high" : hasData ? "medium" : "low";
+  return { score: Math.min(10, Math.max(0, score)), details, confidence };
 }
 
 // ==========================================
@@ -819,7 +988,7 @@ export function computeV9Score(
   const relevance = computeRelevance(candidate, context.intent, context.specialRequest);
 
   // Step 2: Compute Quality (the RANK)
-  const { quality, weights, factors } = computeQuality(candidate, relevance.type, context);
+  const { quality, weights, factors, factorDetails, factorConfidence } = computeQuality(candidate, relevance.type, context);
 
   // Step 3: V9 Score = Relevance × Quality
   const v9Score = Math.round(relevance.score * quality);
@@ -848,6 +1017,8 @@ export function computeV9Score(
     occasionBonus,
     matchNarrative,
     dataCompleteness,
+    factorDetails,
+    factorConfidence,
   };
 }
 
@@ -875,6 +1046,8 @@ export function reRankV9(
       occasionBonus: result.occasionBonus,
       matchNarrative: result.matchNarrative,
       dataCompleteness: result.dataCompleteness,
+      factorDetails: result.factorDetails,
+      factorConfidence: result.factorConfidence,
       reviewIntelligence: candidate.review_intelligence,
     };
   });

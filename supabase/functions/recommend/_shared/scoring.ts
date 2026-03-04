@@ -231,6 +231,32 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "eritrean": { cuisines: ["East African", "Ethiopian"] },
   "uzbek": { cuisines: ["Central Asian"] },
 
+  // --- Filipino dishes ---
+  "adobo": { cuisines: ["Filipino"] },
+  "sinigang": { cuisines: ["Filipino"] },
+  "lumpia": { cuisines: ["Filipino"] },
+  "lechon": { cuisines: ["Filipino"] },
+  "sisig": { cuisines: ["Filipino"] },
+  "kare-kare": { cuisines: ["Filipino"] },
+  "pancit": { cuisines: ["Filipino"] },
+  "halo-halo": { cuisines: ["Filipino"] },
+  "kamayan": { cuisines: ["Filipino"] },
+  "filipino": { cuisines: ["Filipino"] },
+
+  // --- Colombian dishes ---
+  "arepa": { cuisines: ["Colombian"] },
+  "bandeja paisa": { cuisines: ["Colombian"] },
+  "sancocho": { cuisines: ["Colombian"] },
+
+  // --- Taiwanese dishes ---
+  "boba": { cuisines: ["Taiwanese", "Chinese"] },
+  "beef noodle soup": { cuisines: ["Taiwanese"] },
+
+  // --- Persian dishes ---
+  "tahdig": { cuisines: ["Persian", "Middle Eastern"] },
+  "ghormeh sabzi": { cuisines: ["Persian", "Middle Eastern"] },
+  "koobideh": { cuisines: ["Persian", "Middle Eastern"] },
+
   // --- Flavor & preparation styles ---
   "smoky": { cuisines: ["Korean", "American", "Steak"] },
   "savory": { cuisines: ["American", "Italian"] },
@@ -302,10 +328,10 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "business": { tags: ["quiet"] },
   "meeting": { tags: ["quiet"] },
   "solo": { tags: ["quiet", "hidden gem"] },
-  "kids": { tags: [] },
-  "family": { tags: [] },
-  "group": { tags: [] },
-  "large party": { tags: [] },
+  "kids": { tags: ["kid friendly"] },
+  "family": { tags: ["kid friendly", "family style dining"] },
+  "group": { tags: ["great for groups"] },
+  "large party": { tags: ["private dining", "great for groups"] },
 
   // --- Drinks ---
   "drinks": { tags: ["craft cocktails", "byob"] },
@@ -353,8 +379,8 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "vegan": { tags: ["vegan friendly"] },
   "gluten": { tags: ["gluten free"] },
   "celiac": { tags: ["gluten free"] },
-  "halal": { tags: [] },
-  "kosher": { tags: [] },
+  "halal": { tags: ["halal"] },
+  "kosher": { tags: ["kosher"] },
   "allergy": { tags: [] },
 
   // --- Location & seating ---
