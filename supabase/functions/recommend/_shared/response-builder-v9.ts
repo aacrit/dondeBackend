@@ -22,6 +22,8 @@ import type {
   V9ScoredCandidate,
   V9ScoringBreakdown,
   V9Factors,
+  V9FactorDetails,
+  V9FactorConfidence,
   V9QualityWeights,
 } from "./types-v9.ts";
 
@@ -126,6 +128,7 @@ function buildDeepContext(
     spice_level: dp.spice_level || null,
     chef_notable: dp.chef_notable || null,
     menu_highlights: dp.menu_highlights || null,
+    review_value_score: (chosen as any).review_intelligence?.review_value_score ?? null,
   };
 }
 
@@ -140,6 +143,8 @@ function buildScoringV9(
   relevance: { score: number; type: string; details: string },
   occasionBonus: number,
   dataCompleteness: number,
+  factorDetails?: V9FactorDetails,
+  factorConfidence?: V9FactorConfidence,
 ): Record<string, unknown> {
   return {
     // V9-specific fields
@@ -163,6 +168,10 @@ function buildScoringV9(
       reputation: Math.round(weights.reputation * 100) / 100,
       convenience: Math.round(weights.convenience * 100) / 100,
     },
+    // Sub-component breakdown per factor (for frontend drill-down)
+    factor_details: factorDetails || undefined,
+    // Per-factor confidence (drives "limited data" UI notes)
+    confidence: factorConfidence || undefined,
   };
 }
 
@@ -231,6 +240,8 @@ export function buildV9RankedQueueItem(
     candidate.relevance,
     candidate.occasionBonus,
     candidate.dataCompleteness,
+    candidate.factorDetails,
+    candidate.factorConfidence,
   );
 
   return {
@@ -273,6 +284,8 @@ export function buildV9SuccessResponse(
     v9Result.relevance,
     v9Result.occasionBonus,
     v9Result.dataCompleteness,
+    v9Result.factorDetails,
+    v9Result.factorConfidence,
   );
 
   let qualityCalloutMessage: string | null = null;
@@ -325,6 +338,8 @@ export function buildV9FallbackResponse(
     v9Result.relevance,
     v9Result.occasionBonus,
     v9Result.dataCompleteness,
+    v9Result.factorDetails,
+    v9Result.factorConfidence,
   );
   const blurb = buildQueueBlurb(chosen, v9Result.matchNarrative);
   return {
