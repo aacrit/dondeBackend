@@ -91,6 +91,8 @@ export const CUISINE_KEYWORDS: Record<string, string[]> = {
   "Middle Eastern": ["middle eastern", "shawarma", "kebab", "falafel", "hummus", "baba ganoush", "pita", "lebanese", "turkish", "manakeesh", "shakshuka", "fattoush", "labneh", "kibbeh"],
   Greek: ["greek", "gyro", "souvlaki", "moussaka", "spanakopita", "tzatziki", "saganaki", "baklava"],
   Fusion: ["fusion", "eclectic", "cross-cultural"],
+  "Nepalese/Tibetan": ["nepalese", "nepali", "tibetan", "momo", "momos", "dal bhat", "thukpa", "sel roti", "chatamari", "newari", "gundruk", "achar", "sekuwa", "choila", "yomari"],
+  Filipino: ["filipino", "adobo", "sinigang", "lumpia", "lechon", "sisig", "kare-kare", "pancit", "halo-halo", "tocino", "longganisa", "tapa", "bibingka", "balut", "kamayan"],
   BBQ: ["bbq", "barbecue", "brisket", "ribs", "pulled pork", "smoked meat", "pitmaster", "burnt ends", "smoked", "tri-tip", "beef rib", "sausage", "hot links", "smoked chicken", "cornbread", "coleslaw"],
 };
 

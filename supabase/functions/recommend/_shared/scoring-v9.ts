@@ -52,7 +52,7 @@ const CUISINE_FAMILIES: Record<string, string[]> = {
   "Southeast Asian": ["Thai", "Vietnamese"],
   "Latin American": ["Mexican", "Peruvian", "Brazilian", "Puerto Rican"],
   Caribbean: ["Cuban", "Jamaican", "Trinidadian"],
-  "South Asian": ["Indian"],
+  "South Asian": ["Indian", "Nepalese/Tibetan"],
   African: ["Ethiopian", "Nigerian", "Moroccan"],
   European: ["Polish", "German", "French", "British"],
   American: ["BBQ", "Southern", "Southern/Soul Food", "Cajun", "Creole"],
@@ -357,10 +357,11 @@ function computeVibeRelevance(
   intent: IntentClassificationV2,
 ): number {
   const signals = [...(intent.vibe_keywords || []), ...(intent.target_tags || [])];
-  if (signals.length === 0) return 0.70;
+  if (signals.length === 0) return 0.80;
 
   const tags = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
   const dp = candidate.deep_profile;
+  const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
 
   let hits = 0;
   for (const signal of signals) {
@@ -369,10 +370,14 @@ function computeVibeRelevance(
     if (dp?.decor_style?.toLowerCase().includes(sl)) { hits++; continue; }
     if (dp?.music_vibe?.toLowerCase().includes(sl)) { hits++; continue; }
     if (dp?.wow_factors?.some(w => w.toLowerCase().includes(sl))) { hits++; continue; }
+    if (dp?.energy_level?.toLowerCase().includes(sl)) { hits++; continue; }
+    if (oneliner.includes(sl)) { hits++; continue; }
   }
 
-  // Laplace smoothing: floor at 0.25 (sparse tags ≠ negative signal)
-  return Math.max(0.25, hits / signals.length);
+  const hitRate = hits / signals.length;
+  // Vibe queries are fuzzy — sparse tag data ≠ bad match.
+  // Floor at 0.65 (vs 0.25 before). Full hit = 1.0.
+  return 0.65 + 0.35 * hitRate;
 }
 
 // ==========================================
