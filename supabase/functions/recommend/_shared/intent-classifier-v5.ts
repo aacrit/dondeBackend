@@ -297,8 +297,14 @@ export async function classifyIntentV5(
   const cuisineNamesLower = new Set(
     Object.keys(CUISINE_KEYWORDS).map((c) => c.toLowerCase()),
   );
+  // V9: Exclude meal-period words that are NOT dishes — prevents
+  // "romantic Italian dinner" from triggering dish-level intent
+  const MEAL_PERIOD_WORDS = new Set([
+    "dinner", "lunch", "breakfast", "brunch", "supper", "meal",
+    "late night", "happy hour", "dessert",
+  ]);
   const matchedFoodItems = matchedKeywordStrings.filter(
-    (kw) => !cuisineNamesLower.has(kw),
+    (kw) => !cuisineNamesLower.has(kw) && !MEAL_PERIOD_WORDS.has(kw),
   );
   const dishLevelIntent: string | null =
     matchedFoodItems.length > 0 ? input : null;
