@@ -11,7 +11,8 @@
  * Returns progress + nextOffset for pagination:
  *   { "success": true, "analyzed": 18, "nextOffset": 20, "totalRemaining": 980 }
  *
- * Schedule: Call repeatedly with increasing offset until totalRemaining = 0.
+ * Run manually via GitHub Action or call repeatedly with increasing offset
+ * until totalRemaining = 0. Use { "force": true } to re-analyze all.
  */
 
 import { corsPreflightResponse, jsonResponse } from "../recommend/_shared/cors.ts";
@@ -31,7 +32,6 @@ interface RestaurantRow {
 
 interface ReviewIntelligenceRow {
   restaurant_id: string;
-  last_analyzed_at: string;
   analysis_version: number;
 }
 
@@ -49,9 +49,11 @@ interface RequestBody {
   limit?: number;
   offset?: number;
   force?: boolean;
+  concurrency?: number;
 }
 
 const ANALYSIS_VERSION = 1;
+const DEFAULT_CONCURRENCY = 5;
 
 // ---------------------------------------------------------------------------
 // Google Reviews fetch (transient — never stored per ToS)
@@ -150,6 +152,7 @@ Deno.serve(async (req: Request) => {
     const limit = Math.min(body.limit ?? 20, 50); // Cap at 50 per call
     const offset = body.offset ?? 0;
     const force = body.force ?? false;
+    const concurrency = Math.min(Math.max(body.concurrency ?? DEFAULT_CONCURRENCY, 1), 10);
 
     const supabase = createServiceClient();
 
@@ -185,22 +188,20 @@ Deno.serve(async (req: Request) => {
     const ids = (restaurants as RestaurantRow[]).map(r => r.id);
     const { data: existingData } = await supabase
       .from("restaurant_review_intelligence")
-      .select("restaurant_id, last_analyzed_at, analysis_version")
+      .select("restaurant_id, analysis_version")
       .in("restaurant_id", ids);
 
     const existingMap = new Map(
       (existingData as ReviewIntelligenceRow[] || []).map(r => [r.restaurant_id, r])
     );
 
-    // Filter to restaurants that need analysis
+    // Filter to restaurants that need analysis (skip already-analyzed unless forced)
     const needsAnalysis = (restaurants as RestaurantRow[]).filter(r => {
       if (force) return true;
       const existing = existingMap.get(r.id);
       if (!existing) return true;
       if (existing.analysis_version < ANALYSIS_VERSION) return true;
-      const lastAnalyzed = new Date(existing.last_analyzed_at);
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      return lastAnalyzed < sevenDaysAgo;
+      return false;
     });
 
     const skipped = restaurants.length - needsAnalysis.length;
@@ -209,20 +210,17 @@ Deno.serve(async (req: Request) => {
     let noReviews = 0;
     const details: string[] = [];
 
-    // Process sequentially (respects Google API rate limits)
-    for (let i = 0; i < needsAnalysis.length; i++) {
-      const r = needsAnalysis[i];
+    // Process a single restaurant (used by concurrent executor)
+    async function processOne(r: RestaurantRow): Promise<void> {
       try {
-        // Step 1: Fetch fresh Google Reviews (transient, never stored)
         const reviews = await fetchGoogleReviews(r.google_place_id!);
 
         if (reviews.length === 0) {
           noReviews++;
           details.push(`${r.name}: no reviews`);
-          continue;
+          return;
         }
 
-        // Step 2: Extract intelligence via Haiku
         const prompt = buildExtractionPrompt(r.name, r.cuisine_type, reviews);
         const response = await callClaude(prompt, undefined, {
           maxTokens: 2048,
@@ -235,14 +233,12 @@ Deno.serve(async (req: Request) => {
           throw new Error("Invalid response structure");
         }
 
-        // Deduplicate arrays
         const dishCatalog = [...new Set(result.dish_catalog.map(d => d.trim()).filter(Boolean))];
         const popularDishes = [...new Set(result.popular_dishes.map(d => d.trim()).filter(Boolean))];
         const cuisineSignals = [...new Set(result.cuisine_signals.map(s => s.trim()).filter(Boolean))];
 
         const clamp = (v: number) => Math.min(10, Math.max(0, Number(v) || 5.0));
 
-        // Step 3: Build search vector text
         const searchText = buildSearchVector({
           ...result,
           dish_catalog: dishCatalog,
@@ -250,7 +246,6 @@ Deno.serve(async (req: Request) => {
           cuisine_signals: cuisineSignals,
         });
 
-        // Step 4: Upsert into restaurant_review_intelligence
         const { error: upsertError } = await supabase.rpc(
           "upsert_review_intelligence",
           {
@@ -279,11 +274,12 @@ Deno.serve(async (req: Request) => {
         failed++;
         details.push(`${r.name}: ERROR — ${(err as Error).message}`);
       }
+    }
 
-      // Small delay between restaurants to respect Google API rate limits
-      if (i < needsAnalysis.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
+    // Process in concurrent chunks of `concurrency`
+    for (let i = 0; i < needsAnalysis.length; i += concurrency) {
+      const chunk = needsAnalysis.slice(i, i + concurrency);
+      await Promise.all(chunk.map(processOne));
     }
 
     const nextOffset = offset + limit;
