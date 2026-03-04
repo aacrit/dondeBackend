@@ -11,7 +11,8 @@
  * Returns progress + nextOffset for pagination:
  *   { "success": true, "analyzed": 18, "nextOffset": 20, "totalRemaining": 980 }
  *
- * Schedule: Call repeatedly with increasing offset until totalRemaining = 0.
+ * Run manually via GitHub Action or call repeatedly with increasing offset
+ * until totalRemaining = 0. Use { "force": true } to re-analyze all.
  */
 
 import { corsPreflightResponse, jsonResponse } from "../recommend/_shared/cors.ts";
@@ -31,7 +32,6 @@ interface RestaurantRow {
 
 interface ReviewIntelligenceRow {
   restaurant_id: string;
-  last_analyzed_at: string;
   analysis_version: number;
 }
 
@@ -188,22 +188,20 @@ Deno.serve(async (req: Request) => {
     const ids = (restaurants as RestaurantRow[]).map(r => r.id);
     const { data: existingData } = await supabase
       .from("restaurant_review_intelligence")
-      .select("restaurant_id, last_analyzed_at, analysis_version")
+      .select("restaurant_id, analysis_version")
       .in("restaurant_id", ids);
 
     const existingMap = new Map(
       (existingData as ReviewIntelligenceRow[] || []).map(r => [r.restaurant_id, r])
     );
 
-    // Filter to restaurants that need analysis
+    // Filter to restaurants that need analysis (skip already-analyzed unless forced)
     const needsAnalysis = (restaurants as RestaurantRow[]).filter(r => {
       if (force) return true;
       const existing = existingMap.get(r.id);
       if (!existing) return true;
       if (existing.analysis_version < ANALYSIS_VERSION) return true;
-      const lastAnalyzed = new Date(existing.last_analyzed_at);
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      return lastAnalyzed < sevenDaysAgo;
+      return false;
     });
 
     const skipped = restaurants.length - needsAnalysis.length;
