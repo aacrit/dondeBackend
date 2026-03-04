@@ -370,7 +370,7 @@ function computeVibeRelevance(
     if (dp?.decor_style?.toLowerCase().includes(sl)) { hits++; continue; }
     if (dp?.music_vibe?.toLowerCase().includes(sl)) { hits++; continue; }
     if (dp?.wow_factors?.some(w => w.toLowerCase().includes(sl))) { hits++; continue; }
-    if (dp?.energy_level?.toLowerCase().includes(sl)) { hits++; continue; }
+    if (dp?.service_style?.toLowerCase().includes(sl)) { hits++; continue; }
     if (oneliner.includes(sl)) { hits++; continue; }
   }
 
