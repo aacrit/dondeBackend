@@ -24,9 +24,10 @@
 import type { RestaurantProfile } from "./types.ts";
 import type { GooglePlaceData } from "./google-places.ts";
 import type { IntentClassificationV2 } from "./intent-classifier.ts";
-import type { V7MatchNarrative } from "./types-v7.ts";
 import type {
+  MatchNarrative,
   V9Candidate,
+  V9Factors,
   V9Relevance,
   V9RelevanceType,
   V9QualityWeights,
@@ -386,7 +387,7 @@ export function computeQuality(
   candidate: V9Candidate,
   relevanceType: V9RelevanceType,
   context: V9ScoringContext,
-): { quality: number; weights: V9QualityWeights } {
+): { quality: number; weights: V9QualityWeights; factors: V9Factors } {
   const weights = QUALITY_WEIGHTS[relevanceType];
 
   // Compute raw quality dimensions (0-10 each)
@@ -407,6 +408,13 @@ export function computeQuality(
   return {
     quality: Math.min(100, Math.max(0, quality)),
     weights,
+    factors: {
+      food: foodQuality,
+      vibe: vibeScore,
+      service: serviceScore,
+      reputation: reputationScore,
+      convenience: convenienceScore,
+    },
   };
 }
 
@@ -699,7 +707,7 @@ function generateV9MatchNarrative(
   weights: V9QualityWeights,
   intent: IntentClassificationV2 | null,
   candidate: V9Candidate,
-): V7MatchNarrative {
+): MatchNarrative {
   // Determine strongest quality factor
   const factorContributions = [
     { factor: "food", weight: weights.food },
@@ -800,7 +808,7 @@ export function computeV9Score(
   const relevance = computeRelevance(candidate, context.intent, context.specialRequest);
 
   // Step 2: Compute Quality (the RANK)
-  const { quality, weights } = computeQuality(candidate, relevance.type, context);
+  const { quality, weights, factors } = computeQuality(candidate, relevance.type, context);
 
   // Step 3: V9 Score = Relevance × Quality
   const v9Score = Math.round(relevance.score * quality);
@@ -824,6 +832,7 @@ export function computeV9Score(
     dondeMatch: finalScore,
     relevance,
     quality,
+    factors,
     qualityWeights: weights,
     occasionBonus,
     matchNarrative,
@@ -850,6 +859,7 @@ export function reRankV9(
       dondeMatch: result.dondeMatch,
       relevance: result.relevance,
       quality: result.quality,
+      factors: result.factors,
       qualityWeights: result.qualityWeights,
       occasionBonus: result.occasionBonus,
       matchNarrative: result.matchNarrative,

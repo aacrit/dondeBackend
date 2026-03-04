@@ -1,24 +1,135 @@
 /**
  * Donde Match V9 — Type Definitions
  *
- * V9 replaces V8's weighted-mean + intent-multiplier architecture with:
- * - Score = Relevance(0-1) × Quality(0-100)
+ * V9 is the active scoring engine. All prior versions (V3-V8) are archived.
+ *
+ * Architecture:
+ * - Score = Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)
  * - Relevance is a GATE (dish > cuisine > vibe > open_ended)
  * - Quality is the RANK (food, reputation, vibe, service, convenience)
  * - Review Intelligence provides evidence-based dish/cuisine data
  * - No weight-shift rules — query type selects quality weight profile
- *
- * Backward compatible: V9ScoredCandidate can be converted to V7/V8 response shapes.
  */
 
-import type { RestaurantProfile, DeepProfile } from "./types.ts";
+import type { RestaurantProfile, ConfidenceLevel } from "./types.ts";
 import type { GooglePlaceData } from "./google-places.ts";
 import type { IntentClassificationV2 } from "./intent-classifier.ts";
-import type {
-  V7MatchNarrative,
-  V7RejectionSignals,
-  V7UserFeedbackSignals,
-} from "./types-v7.ts";
+
+// ==========================================
+// SHARED TYPES (formerly in types-v7.ts)
+// ==========================================
+
+/**
+ * Match narrative — tells the story of WHY this match works.
+ * Used by the frontend to render the match deep-dive / "why this pick" card.
+ */
+export interface MatchNarrative {
+  /** The single strongest factor driving this match (e.g., "food", "vibe") */
+  strongest_factor: string;
+  /** Human-readable label for the strongest factor (e.g., "Exceptional Food Quality") */
+  strongest_factor_label: string;
+  /** Top 2-3 key signals that make this a good match — short, punchy strings */
+  key_signals: string[];
+  /** How this restaurant compares to others in the ranked queue */
+  comparison_context: string | null;
+  /** One-sentence narrative summary combining strongest factor + key signals */
+  summary: string;
+  /** Optional: which factor(s) are holding this match back */
+  weak_spots: string[];
+  /** Optional: confidence caveat when data is sparse */
+  confidence_caveat: string | null;
+}
+
+/** Rejection signals from previous "Try Another" cycles */
+export interface RejectionSignals {
+  avoidCuisines: string[];
+  avoidPriceLevels: string[];
+  avoidRestaurantIds: string[];
+}
+
+/** User feedback signals from like/dislike history */
+export interface UserFeedbackSignals {
+  likedCuisines: string[];
+  dislikedCuisines: string[];
+  likedRestaurantIds: string[];
+  dislikedRestaurantIds: string[];
+}
+
+/** Intent Boost — Claude's discretionary override */
+export interface IntentBoost {
+  active: boolean;
+  reason: string;
+  boost_points: number;
+  base_score: number;
+  original_engine_rank: number;
+}
+
+/** Claude recommendation output (parsed from JSON response) */
+export interface ClaudeRecommendation {
+  restaurant_index: number;
+  match_headline: string | null;
+  recommendation: string;
+  insider_tip: string | null;
+  intent_boost: boolean;
+  boost_reason: string | null;
+  boost_points: number;
+  sentiment_score: number | null;
+  sentiment_summary: string | null;
+}
+
+/** A single item in the pre-computed ranked queue */
+export interface RankedQueueItem {
+  rank: number;
+  restaurant: Record<string, unknown>;
+  recommendation: string;
+  match_headline: string | null;
+  insider_tip: string | null;
+  donde_match: number;
+  scoring_v9: V9ScoringBreakdown;
+  match_narrative: MatchNarrative | null;
+  scores: Record<string, number>;
+  deep_context: Record<string, unknown> | null;
+  tags: string[];
+  intent_boost: IntentBoost | null;
+}
+
+/**
+ * Score tiers — 6 tiers for UI tone modulation.
+ *
+ * 90+    Outstanding Match
+ * 80-89  Excellent Match
+ * 70-79  Strong Pick
+ * 60-69  Solid Option
+ * 50-59  Worth a Try
+ * <50    Best Available
+ */
+export type ScoreTier =
+  | "outstanding_match"
+  | "excellent_match"
+  | "strong_pick"
+  | "solid_option"
+  | "worth_a_try"
+  | "best_available";
+
+export function getScoreTier(score: number): ScoreTier {
+  if (score >= 90) return "outstanding_match";
+  if (score >= 80) return "excellent_match";
+  if (score >= 70) return "strong_pick";
+  if (score >= 60) return "solid_option";
+  if (score >= 50) return "worth_a_try";
+  return "best_available";
+}
+
+export function getScoreTierLabel(tier: ScoreTier): string {
+  switch (tier) {
+    case "outstanding_match": return "Outstanding Match";
+    case "excellent_match": return "Excellent Match";
+    case "strong_pick": return "Strong Pick";
+    case "solid_option": return "Solid Option";
+    case "worth_a_try": return "Worth a Try";
+    case "best_available": return "Best Available";
+  }
+}
 
 // ==========================================
 // REVIEW INTELLIGENCE TYPES
@@ -93,10 +204,19 @@ export interface V9ScoringContext {
   sentimentScore?: number | null;
   sentimentNegative?: number | null;
   intent: IntentClassificationV2 | null;
-  rejectionSignals?: V7RejectionSignals;
-  userFeedback?: V7UserFeedbackSignals | null;
+  rejectionSignals?: RejectionSignals;
+  userFeedback?: UserFeedbackSignals | null;
   clientTimeOfDay?: string | null;
   dietaryRestrictions?: string[];
+}
+
+/** Individual factor scores (0-10 each) — for UI "Why This Match" bars */
+export interface V9Factors {
+  food: number;
+  vibe: number;
+  service: number;
+  reputation: number;
+  convenience: number;
 }
 
 /** V9 score result */
@@ -107,12 +227,14 @@ export interface V9ScoreResult {
   relevance: V9Relevance;
   /** Quality score (0-100, the RANK) */
   quality: number;
+  /** Individual factor scores (0-10 each) */
+  factors: V9Factors;
   /** Quality weights used for this query type */
   qualityWeights: V9QualityWeights;
   /** Occasion bonus (±5 tiebreaker) */
   occasionBonus: number;
   /** Match narrative for UI */
-  matchNarrative: V7MatchNarrative;
+  matchNarrative: MatchNarrative;
   /** Data completeness 0-1.0 */
   dataCompleteness: number;
 }
@@ -126,9 +248,10 @@ export interface V9ScoredCandidate {
   dondeMatch: number;
   relevance: V9Relevance;
   quality: number;
+  factors: V9Factors;
   qualityWeights: V9QualityWeights;
   occasionBonus: number;
-  matchNarrative: V7MatchNarrative;
+  matchNarrative: MatchNarrative;
   dataCompleteness: number;
   googleData?: GooglePlaceData | null;
   reviewIntelligence?: ReviewIntelligence | null;
@@ -146,6 +269,14 @@ export interface V9ScoringBreakdown {
   occasion_bonus: number;
   quality_weights: V9QualityWeights;
   data_completeness: number;
+  /** Individual factor scores (0-10) — for frontend "Why This Match" bars */
+  food: number;
+  vibe: number;
+  service: number;
+  reputation: number;
+  convenience: number;
+  /** Alias for quality_weights (frontend expects weights_used) */
+  weights_used: V9QualityWeights;
 }
 
 // ==========================================
