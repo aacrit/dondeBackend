@@ -234,14 +234,16 @@ export function computeRelevance(
     if (dishRelevance > 0) {
       return { score: dishRelevance, type: "dish", details: `Dish match: ${dishRelevance.toFixed(2)}` };
     }
-    // Dish requested but not found → fall through to cuisine (heavily penalized)
+    // Dish requested but not found → fall through to cuisine (penalized but not crushed)
     if (hasCuisine) {
       const cuisineRelevance = computeCuisineRelevance(candidate, intent);
-      // Cap at 0.40 — right cuisine but wrong dish
+      // Cap at 0.60 — right cuisine but wrong dish. The cuisine match still
+      // carries significant weight (user wanted Italian → got Italian).
+      // 0.40 was too aggressive and tanked quality-80+ restaurants to DM=37.
       return {
-        score: Math.min(0.40, cuisineRelevance * 0.40),
+        score: Math.min(0.60, cuisineRelevance * 0.60),
         type: "cuisine",
-        details: `Cuisine match but no dish (capped 0.40)`,
+        details: `Cuisine match but no dish (capped 0.60)`,
       };
     }
     // Dish requested, no cuisine match either → very low relevance
