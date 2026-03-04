@@ -159,11 +159,12 @@ Deno.serve(async (req: Request) => {
       .select("id", { count: "exact", head: true })
       .not("google_place_id", "is", null);
 
-    // Fetch this batch of restaurants
+    // Fetch this batch of restaurants (deterministic order for pagination)
     const { data: restaurants, error: fetchError } = await supabase
       .from("restaurants")
       .select("id, name, cuisine_type, google_place_id")
       .not("google_place_id", "is", null)
+      .order("id")
       .range(offset, offset + limit - 1);
 
     if (fetchError) {
@@ -209,7 +210,8 @@ Deno.serve(async (req: Request) => {
     const details: string[] = [];
 
     // Process sequentially (respects Google API rate limits)
-    for (const r of needsAnalysis) {
+    for (let i = 0; i < needsAnalysis.length; i++) {
+      const r = needsAnalysis[i];
       try {
         // Step 1: Fetch fresh Google Reviews (transient, never stored)
         const reviews = await fetchGoogleReviews(r.google_place_id!);
@@ -279,7 +281,7 @@ Deno.serve(async (req: Request) => {
       }
 
       // Small delay between restaurants to respect Google API rate limits
-      if (needsAnalysis.indexOf(r) < needsAnalysis.length - 1) {
+      if (i < needsAnalysis.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
