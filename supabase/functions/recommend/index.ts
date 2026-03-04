@@ -687,9 +687,13 @@ Deno.serve(async (req: Request) => {
       if (parsed.intent_boost && chosenIdx > 0) {
         const boostedCandidate = rerankedScored[chosenIdx];
         const engineTopScore = rerankedScored[0].dondeMatch;
-        // V6: Raised ceiling from 25 → 35 for dish-level queries
-        const boostPoints = Math.min(35, Math.max(5, parsed.boost_points || 0));
+        // V9: Smart boost — just enough to leapfrog engine #1 by 3 points.
+        // Previously up to +35 which inflated scores to 99 artificially.
+        // The boost should reflect a *correction*, not a score fabrication.
+        const rawBoost = Math.min(20, Math.max(3, parsed.boost_points || 0));
         const baseScore = boostedCandidate.dondeMatch;
+        const leapfrogBoost = Math.max(3, engineTopScore - baseScore + 3);
+        const boostPoints = Math.min(rawBoost, leapfrogBoost);
         const boostedScore = Math.min(99, baseScore + boostPoints);
 
         // Guard rails: base score must be >= 35, boosted must beat engine #1
