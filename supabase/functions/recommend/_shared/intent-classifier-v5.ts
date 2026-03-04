@@ -297,14 +297,25 @@ export async function classifyIntentV5(
   const cuisineNamesLower = new Set(
     Object.keys(CUISINE_KEYWORDS).map((c) => c.toLowerCase()),
   );
-  // V9: Exclude meal-period words that are NOT dishes — prevents
-  // "romantic Italian dinner" from triggering dish-level intent
-  const MEAL_PERIOD_WORDS = new Set([
+  // V9: Exclude non-dish words from triggering dish-level intent.
+  // These are meal periods, drink categories, and venue-type words that
+  // appear in CUISINE_KEYWORDS but don't represent specific dishes.
+  // Without this, "dark moody cocktails" → dish_level_intent = true.
+  const NON_DISH_WORDS = new Set([
+    // Meal periods
     "dinner", "lunch", "breakfast", "brunch", "supper", "meal",
     "late night", "happy hour", "dessert",
+    // Drink / bar category words (map to Cocktail Bar / Brewery)
+    "cocktail", "cocktails", "cocktail bar", "cocktail lounge",
+    "speakeasy", "mixology", "whiskey", "bourbon", "mezcal",
+    "martini", "mojito", "old fashioned", "aperol", "absinthe",
+    "beer", "craft beer", "brewery",
+    "wine", "wine bar", "sake", "sake bar",
+    // Venue-type words
+    "cafe", "coffee", "diner", "bistro", "pub",
   ]);
   const matchedFoodItems = matchedKeywordStrings.filter(
-    (kw) => !cuisineNamesLower.has(kw) && !MEAL_PERIOD_WORDS.has(kw),
+    (kw) => !cuisineNamesLower.has(kw) && !NON_DISH_WORDS.has(kw),
   );
   const dishLevelIntent: string | null =
     matchedFoodItems.length > 0 ? input : null;
