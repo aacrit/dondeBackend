@@ -1,12 +1,12 @@
 # Backend Architecture
 
-Last updated: 2026-02-27
+Last updated: 2026-03-04
 
 ## System Overview
 
 | Layer | Technology |
 |-------|-----------|
-| API | Supabase Edge Function (Deno/TS), V7.3b |
+| API | Supabase Edge Function (Deno/TS), V9 |
 | AI | Claude Haiku 4.5 (recommendations, enrichment, intent classification) |
 | DB | Supabase PostgreSQL (10 tables, 27 migrations) |
 | Data | Google Places API (live fetch per request; only `google_place_id` stored per ToS §3.2.3) |
@@ -18,29 +18,23 @@ Last updated: 2026-02-27
 ```
 supabase/
   functions/recommend/
-    index.ts                      # V7.3b entry point
-    _shared/                      # 18 shared modules
+    index.ts                      # V9 entry point
+    _shared/                      # Active modules
       types.ts                    # Core types (RestaurantProfile, DeepProfile, etc.)
-      types-v7.ts                 # V7 types (V7Factors, V7Weights, V7MatchNarrative, V7IntentAlignment, etc.)
-      scoring-v7.ts               # V7 consolidated scoring engine (imports V3 factors + V5 weights)
-      weight-config-v7.ts         # [DEPRECATED] V7 34-rule weight system — replaced by V5 weights in V7.3
-      response-builder-v7.ts      # V7 response builder (ranked_queue, match_narrative, intent_alignment)
+      types-v9.ts                 # V9 types (V9Candidate, V9ScoreResult, V9ScoredCandidate, MatchNarrative, etc.)
+      scoring-v9.ts               # V9 scoring engine: Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)
+      response-builder-v9.ts      # V9 response builder (scoring_v9, ranked_queue, match_narrative)
       intent-classifier-v5.ts     # Deterministic (~80%) + Claude fallback (~15%)
-      filter-pipeline-v5.ts       # Hard filter cascade (6 filters + relaxation)
       prompts-v5.ts               # Claude system/user prompt templates
       scoring.ts                  # Shared: keyword dicts, diversity, slop detection
-      scoring-v3.ts               # [DEPRECATED] Factor functions — reused by scoring-v7.ts
-      scoring-v5.ts               # [DEPRECATED] V5 engine — replaced by scoring-v7.ts
-      weight-config-v5.ts         # V5 weight engine (28 rules) — still imported by scoring-v7.ts
-      types-v5.ts                 # [DEPRECATED] V5 types
-      response-builder-v5.ts      # [DEPRECATED] V5 response builder
       intent-classifier.ts        # V4 intent types (reused by V5 classifier)
       claude.ts                   # Anthropic API client (raw fetch, prompt caching)
       google-places.ts            # Google Places API wrapper (1.5s timeout)
       supabase.ts                 # Anon + service role clients
       cors.ts                     # CORS headers + JSON response helpers
       logger.ts                   # Structured JSON logging
-  migrations/                     # 27 SQL migration files
+    _archive/pre-v9/              # Deprecated V3-V8 scoring/types/filters/weights
+  migrations/                     # SQL migration files
 
 scripts/
   lib/                            # 6 shared pipeline libraries
@@ -58,18 +52,16 @@ tests/
 .github/workflows/                # 8 CI/CD workflows
 ```
 
-## V7 Scoring Engine Modules
+## V9 Scoring Engine Modules
 
 | Module | Purpose | Status |
 |--------|---------|--------|
-| `scoring-v7.ts` | Consolidated 5-factor engine: V3 factor fns + V5 weights + V7 intent alignment, match narrative, ranked queue | **Active** |
-| `weight-config-v5.ts` | 28-rule adaptive weight system (imported by scoring-v7.ts) | **Active** |
-| `response-builder-v7.ts` | Builds `scoring_v7`, `ranked_queue`, `match_narrative`, `intent_alignment` fields | **Active** |
-| `types-v7.ts` | V7Factors, V7Weights, V7MatchNarrative, V7IntentAlignment, V7ScoredCandidate | **Active** |
-| `scoring-v5.ts` | Old V5 engine | **@deprecated** |
-| `weight-config-v7.ts` | Old V7 34-rule engine with stacking caps (caused score regression) | **@deprecated** |
-| `scoring-v3.ts` | V3 factor functions (computeFoodMatch, computeAtmosphere, etc.) — still called by scoring-v7.ts | **@deprecated** |
-| `types-v5.ts`, `response-builder-v5.ts` | Old V5 types + builder | **@deprecated** |
+| `scoring-v9.ts` | Relevance × Quality engine with review intelligence, query-type-aware weights, match narrative | **Active** |
+| `types-v9.ts` | V9Candidate, V9ScoreResult, V9ScoredCandidate, V9Factors, MatchNarrative, ClaudeRecommendation | **Active** |
+| `response-builder-v9.ts` | Builds `scoring_v9` (relevance + quality + factors), `ranked_queue`, `match_narrative` | **Active** |
+| `intent-classifier-v5.ts` | Deterministic intent classification (scoring-engine-independent) | **Active** |
+| `prompts-v5.ts` | Claude prompt templates (scoring-engine-independent) | **Active** |
+| All V3-V8 modules | Archived to `_archive/pre-v9/` | **Archived** |
 
 ## Deployment
 

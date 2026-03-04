@@ -1,6 +1,6 @@
 # DondeAI Backend
 
-Last updated: 2026-02-27
+Last updated: 2026-03-04
 
 > **Read all `docs/*.md` files for context before making changes. Only open source files when modifying code.**
 
@@ -10,9 +10,9 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 
 | Doc | Contents |
 |-----|----------|
-| `docs/ARCHITECTURE.md` | Repo structure, tech stack, V7 modules, deployment, CI/CD |
+| `docs/ARCHITECTURE.md` | Repo structure, tech stack, V9 modules, deployment, CI/CD |
 | `docs/DATABASE.md` | Complete DB schema — all tables, columns, types, RPC, relationships |
-| `docs/API-WORKFLOWS.md` | V7 request flow, scoring model, pipeline inventory, Google integration |
+| `docs/API-WORKFLOWS.md` | V9 request flow, scoring model, pipeline inventory, Google integration |
 | `docs/FEATURES.md` | Backend feature checklist with implementation status |
 
 ## Tests
@@ -25,30 +25,29 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `tests/GOLDEN_DATASET_RESULTS.md` | Latest golden dataset results |
 | `tests/TEST_RESULTS.md` | Latest catalog results: 273 pass, 3 fail, 30 warn (2026-02-24) |
 
-**Golden dataset V7.3b baseline (2026-02-27):** 67 pass / 2 fail / 19 warn / 74 avg DondeMatch (76% pass rate). V5 baseline was 70/2/16/76.
+**V9 scoring test baseline (2026-03-04):** 95/95 pass. V9 replaces V7.3b's geometric mean with Relevance × Quality architecture.
 
-## Scoring Engine — V7.3b (active)
+## Scoring Engine — V9 (active)
 
-**Active engine:** `scoring-v7.ts` + `weight-config-v5.ts` (V5 weights imported, V7 features layered on top)
+**Active engine:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts`
 
-**Formula:** `DondeScore = (FQ^w * VB^w * SV^w * RP^w * CV^w) × 12`
+**Formula:** `DondeScore = Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)`
 
-| Factor | Base Weight | Key Signals |
-|--------|------------|-------------|
-| Food | 0.25 | Cuisine match, flavor profile, dietary fit, menu interest |
-| Vibe | 0.18 | Noise, lighting, dress, energy, music, vibe keywords |
-| Service | 0.17 | Occasion base, service style, pacing, social dynamics |
-| Reputation | 0.25 | Stretched Google rating (3.5→0, 5.0→10), reviews, awards |
-| Convenience | 0.15 | Timing, reservation, wait time, parking |
+- **Relevance** is a GATE: uses review intelligence (`cuisine_signals`, `dish_catalog`, `popular_dishes`) to classify match type (dish > cuisine > vibe > open_ended). Low relevance = low score regardless of quality.
+- **Quality** uses query-type-aware weight profiles (no weight-shift rules). Computes 5 factors: food, vibe, service, reputation, convenience.
+- **Self-healing**: When `cuisine_type` is NULL, V9 falls back to `cuisine_signals` from review intelligence (1806/2719 restaurants affected).
 
-**V7 additions over V5:**
-- **Intent Alignment Score** (0.0–1.0): cuisine/dish/vibe/constraint matching → used as ranking tiebreaker + UI narrative
-- **Match Narrative**: structured "why this match" text for UI storytelling
-- **Ranked Queue**: pre-computed top 5 results → instant Try Again (<100ms)
-- **Post-Google re-scoring**: reputation re-computed with real Google ratings before final rank
-- **V5 weight engine**: 28-rule system (no stacking caps) — V7's original 34-rule system caused regression
+| Factor | Key Signals |
+|--------|-------------|
+| Food | Review intelligence cuisine signals, dish catalog, menu highlights, dietary fit |
+| Vibe | Noise, lighting, dress, energy, music, vibe keywords |
+| Service | Occasion base, service style, pacing, social dynamics |
+| Reputation | Stretched Google rating (3.5→0, 5.0→10), reviews, awards |
+| Convenience | Timing, reservation, wait time, parking |
 
-**Deprecated (do not use):** `scoring-v5.ts`, `scoring-v3.ts`, `weight-config-v7.ts`, `response-builder-v5.ts`, `types-v5.ts` — all marked `@deprecated`, replaced by V7 equivalents.
+**V9 RPC** (`get_candidates_v9`): Adds `p_query` for full-text search on reviews, `p_exclude` at SQL level. No `p_target_cuisine` (relevance handles this).
+
+**Deprecated (archived to `_archive/pre-v9/`):** `scoring-v3.ts`, `scoring-v5.ts`, `scoring-v7.ts`, `scoring-v8.ts`, `types-v5.ts`, `types-v7.ts`, `types-v8.ts`, `weight-config-v5.ts`, `weight-config-v7.ts`, `response-builder-v5.ts`, `response-builder-v7.ts`, `filter-pipeline-v5.ts`.
 
 ## API Contract (Immutable)
 
@@ -74,7 +73,7 @@ Timeout: 15s (AbortController on frontend)
 }
 ```
 
-**Response (V7):**
+**Response (V9):**
 ```json
 {
   "success": true,
@@ -91,17 +90,17 @@ Timeout: 15s (AbortController on frontend)
   "donde_match": "integer 0-99",
   "scores": { "date_friendly_score", "group_friendly_score", "family_friendly_score",
     "business_lunch_score", "solo_dining_score", "hole_in_wall_factor", "romantic_rating" },
-  "scoring_v7": {
+  "scoring_v9": {
+    "relevance_score", "relevance_type", "relevance_details",
+    "quality_score", "occasion_bonus", "data_completeness",
     "food", "vibe", "service", "reputation", "convenience",
-    "weights_used", "weight_shift_reasons", "confidence", "data_completeness",
-    "factor_details", "intent_alignment": {"score", "cuisine", "dish", "vibe", "constraints"}
+    "weights_used"
   },
-  "scoring_v5": "<alias of scoring_v7 for backward compatibility>",
   "match_narrative": {
     "strongest_factor", "key_signals", "summary", "weak_spots", "comparison_context"
   },
   "ranked_queue": [
-    { "rank", "restaurant", "donde_match", "scoring_v7", "match_headline" }
+    { "rank", "restaurant", "donde_match", "scoring_v9", "match_headline" }
   ],
   "deep_context": { "signature_dishes", "service_style", "reservation_difficulty", "..." },
   "tags": ["string"],

@@ -1,8 +1,8 @@
 # API & Workflows
 
-Last updated: 2026-02-27
+Last updated: 2026-03-04
 
-## Edge Function Request Flow (V7.3b)
+## Edge Function Request Flow (V9)
 
 ```
 index.ts orchestration — single POST /recommend endpoint
@@ -11,11 +11,9 @@ index.ts orchestration — single POST /recommend endpoint
 1. **Parse & sanitize** — Extract craving, occasion, neighborhood, price, exclude, dietary, time_of_day, open_now. Prompt injection defense.
 2. **Rate limit** — 30 req/min/IP (soft: logs warning, returns 429)
 3. **Cache check** — 5-min TTL, 100-entry LRU. Bypassed if exclude list non-empty.
-4. **[Parallel]** Intent classification (`classifyIntentV5`) + user feedback fetch + RPC `get_ranked_restaurants`
-5. **Hard filter pipeline** (`runFilterPipeline`) — 6-stage cascade:
-   - Exclude list → Neighborhood → Price → Dietary → Cuisine (from intent) → Open Now
-   - Relaxation cascade if <12 candidates survive (drops stricter filters)
-6. **V7 scoring** (`reRankV7`) — 5-factor geometric mean WITHOUT Google data. Intent alignment tiebreaker for ties ≤5 DM points.
+4. **[Parallel]** Intent classification (`classifyIntentV5`) + user feedback fetch + RPC `get_candidates_v9` (includes full-text search on reviews via `p_query`)
+5. **Dietary filter** — Safety-critical hard filter on dietary restrictions (never relaxed). No other hard filters — V9 relevance gating handles cuisine/dish/vibe.
+6. **V9 scoring** (`reRankV9`) — Relevance(0-1) × Quality(0-100) + OccasionBonus(±5). Relevance uses review intelligence (dish_catalog, cuisine_signals, popular_dishes).
 7. **Diversity filter** — `ensureDiversity()` max 2 same cuisine in top results
 8. **Google Places fetch** — Top 5 candidates, 1.5s timeout, parallel
 9. **Post-Google re-score** — Re-compute all candidates with real Google data for reputation accuracy. Simple descending re-sort.
@@ -23,56 +21,44 @@ index.ts orchestration — single POST /recommend endpoint
 11. **Claude recommendation** — System prompt (voice + tone tier) + user prompt (candidates + reviews). Claude picks restaurant, writes 100-120 word blurb, optional intent boost.
 12. **Intent Boost guard rails** — If Claude elevates lower candidate: base >= 35, boosted must beat #1.
 13. **Cuisine mismatch cap** — If high-importance cuisine mismatch: cap DondeMatch at 65 post-Claude.
-14. **Response build** — `buildV7SuccessResponse()` with `scoring_v7`, `match_narrative`, `ranked_queue`. Cache result. Fire-and-forget query log.
+14. **Response build** — `buildV9SuccessResponse()` with `scoring_v9`, `match_narrative`, `ranked_queue`. Cache result. Fire-and-forget query log.
 
 **Fallback tiers:** JSON parse → regex recovery → fallback response (top restaurant, no AI text) → no-results → error
 
-## V7 Scoring Model
+## V9 Scoring Model
 
-**Formula:** `DondeScore = (FQ^w_f * VB^w_v * SV^w_s * RP^w_r * CV^w_c) × 12`
+**Formula:** `DondeScore = Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)`
 
-Score range: 0-99 (clamped). Factors on 0-10 scale. Multiplier: fixed ×12.
+Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score regardless of quality.
 
-| Factor | Base Weight | Key Signals |
-|--------|------------|-------------|
-| Food | 0.25 | Cuisine match, flavor profile, dietary fit, dish-level intent |
-| Vibe | 0.18 | Noise, lighting, dress code, energy, music, vibe keywords |
-| Service | 0.17 | Occasion base, service style, pacing, social dynamics |
-| Reputation | 0.25 | Stretched Google rating (3.5→0, 5.0→10), review count confidence, awards, community signal |
-| Convenience | 0.15 | Timing, reservation accessibility, wait time, parking, BYOB |
+**Relevance** classifies match type using review intelligence:
+- **dish** (R=1.0): Exact dish found in `dish_catalog` or `popular_dishes`
+- **cuisine** (R=0.85-1.0): Cuisine matches `cuisine_signals` or `cuisine_type`
+- **vibe** (R=0.50-0.75): Vibe/occasion match but no food signal
+- **open_ended** (R=0.40-0.60): Generic query, no specific match signal
 
-**Weight System** (`weight-config-v5.ts` — imported by scoring-v7.ts):
+**Quality** computes 5 factors (0-10 each) with query-type-aware weight profiles:
 
-1. **Base weights** — Food: 0.25, Vibe: 0.18, Service: 0.17, Reputation: 0.25, Convenience: 0.15
-2. **28 context shift rules** — Occasion (8), cuisine importance (3), emotional intent (3), constraints (6), context signals (8)
-3. **Data-quality adaptation** — Low-confidence factors regressed toward 5.5 prior
-4. **Pool-size adaptation** — Adjusts when candidate pool is slim
+| Factor | Key Signals |
+|--------|-------------|
+| Food | Review intelligence cuisine signals, dish catalog, menu highlights, dietary fit |
+| Vibe | Noise, lighting, dress code, energy, music, vibe keywords |
+| Service | Occasion base, service style, pacing, social dynamics |
+| Reputation | Stretched Google rating (3.5→0, 5.0→10), review count confidence, awards |
+| Convenience | Timing, reservation accessibility, wait time, parking |
 
-Clamped [0.05, 0.50], normalized to sum 1.0.
-
-**Confidence system:** Factor-specific confidence levels (high/medium/low). Low-confidence factors regressed toward prior (5.5). Prior: all factors = 5.5.
-
-**V7 Intent Alignment** (for ranking + UI, NOT score multiplier):
-```
-intentAlignment.score = weighted avg of cuisine_match + dish_match + vibe_match + constraint_match
-```
-Used as tiebreaker in `reRankV7`: restaurants within 5 DM points and >0.15 alignment difference get reordered.
+**Self-healing:** When `cuisine_type` is NULL (1806/2719 restaurants), V9 falls back to `cuisine_signals` from review intelligence.
 
 **Score tiers:** 90+ Outstanding | 80-89 Strong Pick | 70-79 Solid Option | 60-69 Worth a Try | <60 Best Available
 
 **Intent Boost:** Claude may elevate a lower-ranked candidate by 5-25 points. Guard rails: base score >= 35, boosted must exceed engine's #1. Post-boost cuisine mismatch cap at 65.
 
-## Golden Dataset Benchmark
+## Scoring Test Benchmark
 
-**Test:** `tests/golden-dataset-test.sh` — 50 queries, 88 checks across Food/Vibe/Service/Reputation/Convenience.
-
-| Version | Pass | Fail | Warn | Avg DM | Notes |
-|---------|------|------|------|--------|-------|
-| V5 baseline | 70 | 2 | 16 | 76 | Reference |
-| V7.0 | 66 | 4 | 18 | 72 | Intent multiplier caused regression |
-| V7.3b (current) | 67 | 2 | 19 | 74 | V5 weights + no cuisine caps |
-
-±4 pass variance per run due to Claude non-determinism.
+| Version | Tests | Pass | Notes |
+|---------|-------|------|-------|
+| V9.0 (current) | 95 | 95/95 | Relevance × Quality, review intelligence, self-healing |
+| V7.3b (archived) | 88 | 67/88 | Geometric mean, V5 weights |
 
 ## Pipeline Inventory (18 scripts in `scripts/pipelines/`)
 
