@@ -7,6 +7,7 @@ on:
       - '**'
     paths:
       - 'supabase/functions/recommend/**'
+      - 'supabase/functions/review-intelligence/**'
 
 jobs:
   deploy:
@@ -27,5 +28,10 @@ jobs:
 
       - name: Deploy recommend function
         run: supabase functions deploy recommend --no-verify-jwt
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy review-intelligence function
+        run: supabase functions deploy review-intelligence --no-verify-jwt
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
