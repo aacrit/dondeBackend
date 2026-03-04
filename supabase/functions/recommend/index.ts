@@ -918,7 +918,9 @@ Deno.serve(async (req: Request) => {
     const responseTimeMs = Date.now() - startTime;
     const unmatchedKw = extractUnmatchedKeywords(special_request);
 
-    supabase
+    // Use service client for reliable logging (anon key lacks RLS INSERT permission)
+    const serviceForLog = createServiceClient();
+    serviceForLog
       .from("user_queries")
       .insert({
         occasion,
