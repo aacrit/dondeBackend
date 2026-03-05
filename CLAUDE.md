@@ -25,27 +25,35 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `tests/TEST-FULL.md` | 170-scenario agent-driven test spec |
 | `tests/V9_E2E_100_RESULTS.md` | V9 E2E: 490 pass, 0 fail, 1 warn (99%) |
 
-**V9 scoring baseline (2026-03-04):** 95/95 pass. Relevance × Quality architecture.
+**V10 scoring baseline (2026-03-05):** 50-case benchmark: 44P/4F/2W, avg DM 70. V9 baseline was 39P/4F/7W, avg DM 68.
 
-## Scoring Engine — V9 (active)
+## Scoring Engine — V10 (active)
 
 **Active engine:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts`
 
 **Formula:** `DondeScore = Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)`
 
-- **Relevance** is a GATE: uses review intelligence (`cuisine_signals`, `dish_catalog`, `popular_dishes`) to classify match type (dish > cuisine > vibe > open_ended). Low relevance = low score regardless of quality.
-- **Quality** uses query-type-aware weight profiles. Computes 5 factors: food, vibe, service, reputation, convenience.
-- **Self-healing**: When `cuisine_type` is NULL, V9 falls back to `cuisine_signals` (1806/2719 restaurants).
+- **Relevance** is a GATE: uses review intelligence (`cuisine_signals`, `dish_catalog`, `popular_dishes`) to classify match type (dish > cuisine > vibe > **reputation** > open_ended). Low relevance = low score regardless of quality.
+- **Quality** uses query-type-aware weight profiles (5 profiles: dish, cuisine, vibe, reputation, open_ended). Computes 5 factors: food, vibe, service, reputation, convenience.
+- **V10 enhancements:**
+  - Reputation relevance type for "michelin", "james beard", "best in chicago" queries
+  - Dish synonym map (50+ entries) for fuzzy dish matching
+  - Word stemming for plural/gerund/past-tense dish variants
+  - Neighborhood alias resolution (45+ landmarks → neighborhoods)
+  - Expanded vibe signals: crowd_profile, origin_story, unique_selling_point
+  - Confidence-weighted quality: scores shrink toward conservative mean when data is sparse
+  - Practical constraint scoring: BYOB, outdoor, walk-in, budget, quiet, parking matching
+- **Self-healing**: When `cuisine_type` is NULL, V10 falls back to `cuisine_signals` (1806/2719 restaurants).
 
 | Factor | Key Signals |
 |--------|-------------|
-| Food | Review intelligence cuisine signals, dish catalog, menu highlights, dietary fit |
-| Vibe | Noise, lighting, dress, energy, music, vibe keywords |
-| Service | Occasion base, service style, pacing, social dynamics |
-| Reputation | Stretched Google rating (3.5→0, 5.0→10), reviews, awards |
-| Convenience | Timing, reservation, wait time, parking |
+| Food | Review intelligence cuisine signals, dish catalog, menu highlights, dietary fit, dish synonyms |
+| Vibe | Noise, lighting, dress, energy, music, vibe keywords, crowd_profile, wow_factors |
+| Service | Occasion base, service style, pacing, social dynamics, crowd matching |
+| Reputation | Stretched Google rating, reviews, awards, chef_notable, neighborhood_integration |
+| Convenience | Timing, reservation, wait time, parking, practical constraints (BYOB, outdoor, walk-in) |
 
-**V9 RPC** (`get_candidates_v9`): Adds `p_query` for full-text search on reviews, `p_exclude` at SQL level.
+**V10 RPC** (`get_candidates_v10`): Adds `p_target_cuisines` and `p_target_tags` for cuisine/tag-aware candidate boosting. Falls back to V9 RPC if migration not applied.
 
 **Score tiers:** 90+ Outstanding | 80-89 Strong Pick | 70-79 Solid Option | 60-69 Worth a Try | <60 Best Available
 

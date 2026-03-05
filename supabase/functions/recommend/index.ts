@@ -20,7 +20,7 @@ import {
 import type { UserFeedbackSignals } from "./_shared/scoring.ts";
 // V9 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
-import { computeV9Score, reRankV9 } from "./_shared/scoring-v9.ts";
+import { computeV9Score, reRankV9, NEIGHBORHOOD_ALIASES } from "./_shared/scoring-v9.ts";
 import { buildV5SystemPrompt, buildV5UserPrompt, buildBlurbOnlyPrompt } from "./_shared/prompts-v5.ts";
 import {
   buildV9SuccessResponse,
@@ -49,7 +49,7 @@ import type {
 } from "./_shared/types-v9.ts";
 import { getScoreTier } from "./_shared/types-v9.ts";
 
-const API_VERSION = "9.0.0";
+const API_VERSION = "10.0.0";
 
 // --- In-memory response cache ---
 interface CacheEntry {
@@ -205,7 +205,7 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({
       status: "ok",
       version: API_VERSION,
-      engine: "v9",
+      engine: "v10",
       timestamp: new Date().toISOString(),
     });
   }
@@ -288,7 +288,9 @@ Deno.serve(async (req: Request) => {
     const body: UserRequest & { open_now?: boolean } = await req.json();
     const special_request = sanitizeInput((body.special_request || "").slice(0, 500));
     const occasion = body.occasion || "Any";
-    const neighborhood = body.neighborhood || "Anywhere";
+    // V10: Resolve neighborhood aliases (landmarks, alternate names)
+    const rawNeighborhood = body.neighborhood || "Anywhere";
+    const neighborhood = NEIGHBORHOOD_ALIASES[rawNeighborhood.toLowerCase()] || rawNeighborhood;
     const price_level = body.price_level || "Any";
     const open_now = body.open_now === true; // V5: Open Now toggle
 
@@ -386,55 +388,89 @@ Deno.serve(async (req: Request) => {
           })
       : Promise.resolve(null);
 
-    // V9: Wider RPC with text search on review intelligence
-    const rpcLimit = 50;
-
-    const [intentResult, userFeedback, initialRpc] = await Promise.all([
+    // V10: Intent classification FIRST so we can pass signals to RPC
+    const [intentResult, userFeedback] = await Promise.all([
       classifyIntentV5(special_request, occasion),
       feedbackPromise,
-      supabase.rpc("get_candidates_v9", {
-        p_query: special_request || null,
-        p_neighborhood: neighborhood,
-        p_occasion: occasion,
-        p_limit: rpcLimit,
-        p_exclude: exclude,
-      }),
     ]);
 
     const intent = intentResult.intent;
     const classificationPath = intentResult.classificationPath;
 
-    logInfo("V9 intent classification", {
+    logInfo("V10 intent classification", {
       path: classificationPath,
       cuisines: intent?.target_cuisines || [],
       importance: intent?.cuisine_importance || "none",
       emotional: intent?.emotional_intent || "none",
     });
 
-    let { data: rpcData, error: rpcError } = initialRpc;
+    // V10: Dynamic candidate pool — vibe/open-ended queries get more candidates
+    const hasVibeOnly = (intent?.vibe_keywords?.length ?? 0) > 0 && (intent?.target_cuisines?.length ?? 0) === 0;
+    const isOpenEndedQuery = !intent || (
+      (intent.target_cuisines?.length ?? 0) === 0 &&
+      (intent.target_tags?.length ?? 0) === 0 &&
+      (intent.vibe_keywords?.length ?? 0) === 0 &&
+      !intent.dish_level_intent
+    );
+    const rpcLimit = (hasVibeOnly || isOpenEndedQuery) ? 80 : 50;
+
+    // V10: Pass cuisine and tag targets to RPC for smarter retrieval
+    const targetCuisines = intent?.target_cuisines || [];
+    const targetTags = intent?.target_tags || [];
+
+    const { data: rpcData, error: rpcError } = await supabase.rpc("get_candidates_v10", {
+      p_query: special_request || null,
+      p_neighborhood: neighborhood,
+      p_occasion: occasion,
+      p_limit: rpcLimit,
+      p_exclude: exclude,
+      p_target_cuisines: targetCuisines,
+      p_target_tags: targetTags,
+    }).then(result => {
+      // Fallback to v9 RPC if v10 doesn't exist yet (migration not applied)
+      if (result.error?.message?.includes("get_candidates_v10")) {
+        logWarn("V10 RPC not found, falling back to V9");
+        return supabase.rpc("get_candidates_v9", {
+          p_query: special_request || null,
+          p_neighborhood: neighborhood,
+          p_occasion: occasion,
+          p_limit: rpcLimit,
+          p_exclude: exclude,
+        });
+      }
+      return result;
+    });
+
+    let finalRpcData = rpcData;
+    let finalRpcError = rpcError;
 
     // If neighborhood filter returned nothing, retry broader
-    if ((!rpcData || rpcData.length === 0) && !rpcError && neighborhood !== "Anywhere") {
-      logInfo("V9: Broadening RPC to Anywhere", { neighborhood });
+    if ((!finalRpcData || finalRpcData.length === 0) && !finalRpcError && neighborhood !== "Anywhere") {
+      logInfo("V10: Broadening RPC to Anywhere", { neighborhood });
       const { data: broadData, error: broadError } = await supabase.rpc(
-        "get_candidates_v9",
-        { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude }
-      );
+        "get_candidates_v10",
+        { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags }
+      ).then(result => {
+        if (result.error?.message?.includes("get_candidates_v10")) {
+          return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
+        }
+        return result;
+      });
       if (!broadError && broadData && broadData.length > 0) {
-        rpcData = broadData;
-        rpcError = null;
+        finalRpcData = broadData;
+        finalRpcError = null;
       }
     }
 
-    if (rpcError || !rpcData || rpcData.length === 0) {
-      logError("RPC failed or returned no results", { error: rpcError ? String(rpcError) : "empty" });
+    if (finalRpcError || !finalRpcData || finalRpcData.length === 0) {
+      logError("RPC failed or returned no results", { error: finalRpcError ? String(finalRpcError) : "empty" });
       return jsonResponse(buildV9NoResultsResponse(neighborhood, price_level));
     }
 
     // ================================================================
     // STEP 2: Map RPC results to V9Candidate (RestaurantProfile + review intelligence)
     // ================================================================
-    const allCandidates: V9Candidate[] = (rpcData as Record<string, unknown>[]).map(
+    const allCandidates: V9Candidate[] = (finalRpcData as Record<string, unknown>[]).map(
       (row) => mapRpcToCandidate(row as Record<string, unknown>)
     );
 
@@ -503,12 +539,19 @@ Deno.serve(async (req: Request) => {
         threshold: NEIGHBORHOOD_QUALITY_THRESHOLD,
       });
 
-      const { data: broadData } = await supabase.rpc("get_candidates_v9", {
+      const { data: broadData } = await supabase.rpc("get_candidates_v10", {
         p_query: special_request || null,
         p_neighborhood: "Anywhere",
         p_occasion: occasion,
         p_limit: rpcLimit,
         p_exclude: exclude,
+        p_target_cuisines: targetCuisines,
+        p_target_tags: targetTags,
+      }).then(result => {
+        if (result.error?.message?.includes("get_candidates_v10")) {
+          return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
+        }
+        return result;
       });
 
       if (broadData?.length) {
@@ -978,7 +1021,7 @@ Deno.serve(async (req: Request) => {
       intentBoost: !!(responseBody as Record<string, unknown>).intent_boost,
       candidatePool: rerankedScored.length,
       rankedQueueSize: rankedQueue.length,
-      engine: "v9",
+      engine: "v10",
     });
 
     const response = jsonResponse(responseBody);

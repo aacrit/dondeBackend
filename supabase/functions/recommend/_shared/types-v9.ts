@@ -165,7 +165,7 @@ export interface V9Candidate extends RestaurantProfile {
 // ==========================================
 
 /** The type of relevance match */
-export type V9RelevanceType = "dish" | "cuisine" | "vibe" | "open_ended";
+export type V9RelevanceType = "dish" | "cuisine" | "vibe" | "reputation" | "open_ended";
 
 /** Relevance computation result */
 export interface V9Relevance {
