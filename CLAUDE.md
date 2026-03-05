@@ -1,8 +1,8 @@
 # DondeAI Backend
 
-Last updated: 2026-03-04
+Last updated: 2026-03-05
 
-> **Read all `docs/*.md` files for context before making changes. Only open source files when modifying code.**
+> **Read this file first, then `docs/*.md` only as needed. Only open source files when modifying code.**
 
 AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines.
 
@@ -14,6 +14,7 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `docs/DATABASE.md` | Complete DB schema — all tables, columns, types, RPC, relationships |
 | `docs/API-WORKFLOWS.md` | V9 request flow, scoring model, pipeline inventory, Google integration |
 | `docs/FEATURES.md` | Backend feature checklist with implementation status |
+| `_archive/VERSION-HISTORY.md` | Pre-V9 scoring evolution, V8 optimization, historical test results, case studies |
 
 ## Tests
 
@@ -22,10 +23,9 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `tests/test_catalog.sh` | 65-scenario bash API test suite |
 | `tests/golden-dataset-test.sh` | 50-query golden dataset (88 checks) — primary scoring benchmark |
 | `tests/TEST-FULL.md` | 170-scenario agent-driven test spec |
-| `tests/GOLDEN_DATASET_RESULTS.md` | Latest golden dataset results |
-| `tests/TEST_RESULTS.md` | Latest catalog results: 273 pass, 3 fail, 30 warn (2026-02-24) |
+| `tests/V9_E2E_100_RESULTS.md` | V9 E2E: 490 pass, 0 fail, 1 warn (99%) |
 
-**V9 scoring test baseline (2026-03-04):** 95/95 pass. V9 replaces V7.3b's geometric mean with Relevance × Quality architecture.
+**V9 scoring baseline (2026-03-04):** 95/95 pass. Relevance × Quality architecture.
 
 ## Scoring Engine — V9 (active)
 
@@ -34,8 +34,8 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 **Formula:** `DondeScore = Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)`
 
 - **Relevance** is a GATE: uses review intelligence (`cuisine_signals`, `dish_catalog`, `popular_dishes`) to classify match type (dish > cuisine > vibe > open_ended). Low relevance = low score regardless of quality.
-- **Quality** uses query-type-aware weight profiles (no weight-shift rules). Computes 5 factors: food, vibe, service, reputation, convenience.
-- **Self-healing**: When `cuisine_type` is NULL, V9 falls back to `cuisine_signals` from review intelligence (1806/2719 restaurants affected).
+- **Quality** uses query-type-aware weight profiles. Computes 5 factors: food, vibe, service, reputation, convenience.
+- **Self-healing**: When `cuisine_type` is NULL, V9 falls back to `cuisine_signals` (1806/2719 restaurants).
 
 | Factor | Key Signals |
 |--------|-------------|
@@ -45,9 +45,9 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | Reputation | Stretched Google rating (3.5→0, 5.0→10), reviews, awards |
 | Convenience | Timing, reservation, wait time, parking |
 
-**V9 RPC** (`get_candidates_v9`): Adds `p_query` for full-text search on reviews, `p_exclude` at SQL level. No `p_target_cuisine` (relevance handles this).
+**V9 RPC** (`get_candidates_v9`): Adds `p_query` for full-text search on reviews, `p_exclude` at SQL level.
 
-**Deprecated (archived to `_archive/pre-v9/`):** `scoring-v3.ts`, `scoring-v5.ts`, `scoring-v7.ts`, `scoring-v8.ts`, `types-v5.ts`, `types-v7.ts`, `types-v8.ts`, `weight-config-v5.ts`, `weight-config-v7.ts`, `response-builder-v5.ts`, `response-builder-v7.ts`, `filter-pipeline-v5.ts`.
+**Score tiers:** 90+ Outstanding | 80-89 Strong Pick | 70-79 Solid Option | 60-69 Worth a Try | <60 Best Available
 
 ## API Contract (Immutable)
 
