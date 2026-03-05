@@ -376,25 +376,23 @@ export function computeRelevance(
   specialRequest: string,
 ): V9Relevance {
 
+  // V10: Reputation-focused queries — check FIRST, unconditionally.
+  // Reputation keywords ("michelin", "james beard", "best") are an explicit signal
+  // that should override any cuisine/dish classification from Claude.
+  // Without this, Claude sometimes returns target_cuisines (e.g. "French" for "michelin star"),
+  // which blocks the reputation path and produces low relevance scores.
+  if (isReputationQuery(intent, specialRequest)) {
+    return computeReputationRelevance(candidate);
+  }
+
   // No intent → everything is equally relevant (open-ended query)
   if (!intent || isOpenEnded(intent)) {
-    // V10: Check for reputation query even without structured intent
-    if (isReputationQuery(intent, specialRequest)) {
-      const repRelevance = computeReputationRelevance(candidate);
-      return repRelevance;
-    }
     return { score: 1.0, type: "open_ended", details: "No specific request — all restaurants relevant" };
   }
 
   const hasDish = !!intent.dish_level_intent;
   const hasCuisine = (intent.target_cuisines?.length ?? 0) > 0;
   const hasVibe = (intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0;
-
-  // V10: Reputation-focused queries (before dish/cuisine/vibe)
-  if (isReputationQuery(intent, specialRequest) && !hasDish && !hasCuisine) {
-    const repRelevance = computeReputationRelevance(candidate);
-    return repRelevance;
-  }
 
   // === DISH-LEVEL RELEVANCE (highest priority) ===
   if (hasDish) {
