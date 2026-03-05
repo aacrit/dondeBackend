@@ -558,13 +558,13 @@ function computeCuisineRelevance(
 function computeReputationRelevance(candidate: V9Candidate): V9Relevance {
   const dp = candidate.deep_profile;
   const ri = candidate.review_intelligence;
-  let score = 0.20; // Base: everyone gets a floor
+  let score = 0.50; // Base: generous floor — reputation queries should still show good restaurants
   const signals: string[] = [];
 
   // Awards recognition (strongest signal)
   if (dp?.awards_recognition?.length) {
     const awardText = dp.awards_recognition.join(" ").toLowerCase();
-    score += 0.35;
+    score += 0.25;
     signals.push(dp.awards_recognition[0]);
     // Extra boost for Michelin/James Beard specifically
     if (awardText.includes("michelin") || awardText.includes("james beard")) {
@@ -574,29 +574,24 @@ function computeReputationRelevance(candidate: V9Candidate): V9Relevance {
 
   // Notable chef
   if (dp?.chef_notable) {
-    score += 0.15;
+    score += 0.10;
     signals.push("Notable chef");
   }
 
-  // High review intelligence food quality (8+/10)
+  // High review intelligence food quality (8+/10) — strong indirect reputation signal
   if (ri?.review_food_quality != null && ri.review_food_quality >= 8) {
     score += 0.10;
   }
 
-  // Cultural authenticity high
-  if (dp?.cultural_authenticity != null && dp.cultural_authenticity >= 8) {
-    score += 0.05;
-  }
-
-  // Neighborhood institution/destination
+  // Neighborhood institution/destination — local reputation
   if (dp?.neighborhood_integration === "institution") {
-    score += 0.10;
+    score += 0.05;
     signals.push("Neighborhood institution");
   } else if (dp?.neighborhood_integration === "destination") {
-    score += 0.05;
+    score += 0.03;
   }
 
-  // Trending score high
+  // Trending score high — current popularity
   if (candidate.trending_score != null && Number(candidate.trending_score) >= 7) {
     score += 0.05;
   }
@@ -606,7 +601,7 @@ function computeReputationRelevance(candidate: V9Candidate): V9Relevance {
     type: "reputation",
     details: signals.length > 0
       ? `Reputation match: ${signals.join(", ")}`
-      : "Limited reputation data",
+      : "Quality establishment",
   };
 }
 
@@ -647,9 +642,10 @@ function computeVibeRelevance(
   }
 
   const hitRate = hits / signals.length;
-  // V10: Lowered floor from 0.65 to 0.40 to better differentiate vibe mismatches.
-  // Full hit = 1.0, zero hits = 0.40 (was 0.65).
-  return 0.40 + 0.60 * hitRate;
+  // V10: Lowered floor from 0.65 to 0.50 to better differentiate vibe mismatches
+  // while still allowing decent-quality restaurants through.
+  // Full hit = 1.0, zero hits = 0.50 (was 0.65).
+  return 0.50 + 0.50 * hitRate;
 }
 
 // ==========================================
@@ -1312,14 +1308,14 @@ export function computeV9Score(
   const { quality, weights, factors, factorDetails, factorConfidence } = computeQuality(candidate, relevance.type, context);
 
   // Step 3: V10 confidence-weighted quality adjustment
-  // When data is sparse, shrink quality toward conservative mean (55) to avoid
-  // inflating scores for restaurants we know nothing about.
+  // When data is sparse, shrink quality toward conservative mean slightly.
+  // This prevents restaurants with missing data from getting inflated neutral scores.
   const dp = candidate.deep_profile;
   const hasRI = candidate.review_intelligence != null;
   const hasDP = dp != null;
   const dataCompleteness = (hasRI ? 0.4 : 0) + (hasDP ? 0.4 : 0) + (dp?.enrichment_confidence ?? 0) * 0.2;
-  const CONFIDENCE_MEAN = 55;
-  const confidenceFactor = 0.5 + 0.5 * dataCompleteness; // 0.5 to 1.0
+  const CONFIDENCE_MEAN = 60;
+  const confidenceFactor = 0.75 + 0.25 * dataCompleteness; // 0.75 to 1.0 (gentle adjustment)
   const adjustedQuality = CONFIDENCE_MEAN + (quality - CONFIDENCE_MEAN) * confidenceFactor;
 
   // Step 3b: V9 Score = Relevance × Quality (now confidence-adjusted)
