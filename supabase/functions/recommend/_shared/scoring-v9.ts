@@ -117,6 +117,159 @@ function tagToString(t: unknown): string {
   return "";
 }
 
+// ==========================================
+// V10 ENHANCEMENTS: Stemming, Synonyms, Reputation
+// ==========================================
+
+/** Basic stemming — strip common English suffixes */
+function stem(word: string): string {
+  const w = word.toLowerCase();
+  if (w.endsWith("ies") && w.length > 4) return w.slice(0, -3) + "y";
+  if (w.endsWith("es") && w.length > 3) return w.slice(0, -2);
+  if (w.endsWith("s") && !w.endsWith("ss") && w.length > 3) return w.slice(0, -1);
+  if (w.endsWith("ing") && w.length > 5) return w.slice(0, -3);
+  if (w.endsWith("ed") && w.length > 4) return w.slice(0, -2);
+  return w;
+}
+
+/** Tokenize and stem a phrase into word stems */
+function stemTokens(phrase: string): string[] {
+  return phrase.toLowerCase().split(/\s+/).filter(w => w.length > 1).map(stem);
+}
+
+/** Fuzzy match: do two phrases overlap significantly? Uses stemmed word overlap (Jaccard) */
+function fuzzyDishMatch(query: string, candidate: string): number {
+  const qStems = stemTokens(query);
+  const cStems = stemTokens(candidate);
+  if (qStems.length === 0 || cStems.length === 0) return 0;
+  const intersection = qStems.filter(s => cStems.includes(s)).length;
+  const union = new Set([...qStems, ...cStems]).size;
+  return intersection / union;
+}
+
+/** Dish synonym map — canonical dish → aliases for Chicago restaurants */
+const DISH_SYNONYMS: Record<string, string[]> = {
+  "soup dumplings": ["xiao long bao", "xlb", "xiaolongbao", "soup dumpling"],
+  "xiao long bao": ["soup dumplings", "xlb", "xiaolongbao", "soup dumpling"],
+  "deep dish pizza": ["chicago style pizza", "chicago pizza", "deep dish", "stuffed pizza"],
+  "chicago style pizza": ["deep dish pizza", "deep dish", "stuffed pizza"],
+  "al pastor": ["pastor tacos", "tacos al pastor"],
+  "birria": ["birria tacos", "birria quesatacos", "birria quesadillas"],
+  "birria tacos": ["birria", "birria quesatacos"],
+  "pad thai": ["phad thai", "pad tai"],
+  "pho": ["phở", "beef pho", "chicken pho"],
+  "ramen": ["tonkotsu ramen", "shoyu ramen", "miso ramen"],
+  "gyoza": ["potstickers", "pot stickers", "dumplings"],
+  "potstickers": ["gyoza", "pot stickers", "dumplings"],
+  "tacos": ["taco", "street tacos"],
+  "burger": ["burgers", "hamburger", "hamburgers", "smash burger", "smashburger"],
+  "smash burger": ["burger", "smashburger", "smashed burger"],
+  "wings": ["chicken wings", "wing", "buffalo wings", "hot wings"],
+  "chicken wings": ["wings", "wing", "buffalo wings"],
+  "bao": ["bao buns", "steamed buns", "baozi"],
+  "momo": ["momos", "tibetan dumplings", "nepali dumplings"],
+  "momos": ["momo", "tibetan dumplings", "nepali dumplings"],
+  "ceviche": ["cebiche", "seviche"],
+  "pupusa": ["pupusas"],
+  "empanada": ["empanadas"],
+  "arepa": ["arepas"],
+  "pierogi": ["pierogies", "pierogy", "perogies"],
+  "dim sum": ["dimsum", "yum cha"],
+  "shawarma": ["shwarma", "schwarma"],
+  "falafel": ["falafels"],
+  "kebab": ["kebabs", "kabob", "kabobs"],
+  "naan": ["nan", "tandoori naan"],
+  "tikka masala": ["chicken tikka masala", "tikka"],
+  "chicken tikka masala": ["tikka masala", "tikka"],
+  "bulgogi": ["bool kogi", "bul gogi"],
+  "bibimbap": ["bibim bap", "bibimbop"],
+  "sushi": ["nigiri", "maki", "sashimi"],
+  "omakase": ["chef's choice", "chefs tasting"],
+};
+
+/** Expand a dish query into canonical + synonyms */
+function expandDishQuery(dish: string): string[] {
+  const lower = dish.toLowerCase();
+  const expanded = [lower];
+  for (const [canonical, aliases] of Object.entries(DISH_SYNONYMS)) {
+    if (canonical === lower || aliases.includes(lower)) {
+      expanded.push(canonical);
+      for (const alias of aliases) {
+        if (!expanded.includes(alias)) expanded.push(alias);
+      }
+    }
+  }
+  return expanded;
+}
+
+/** Reputation keywords that trigger reputation-aware relevance */
+const REPUTATION_KEYWORDS = [
+  "best", "top rated", "top-rated", "highest rated", "award", "award-winning",
+  "michelin", "james beard", "critically acclaimed", "best reviewed", "most popular",
+  "five star", "finest", "premier", "legendary", "world class", "world-class",
+  "famous", "iconic", "celebrated", "renowned",
+];
+
+/** Check if the query/intent signals a reputation-focused search */
+function isReputationQuery(intent: IntentClassificationV2 | null, specialRequest: string): boolean {
+  const lower = specialRequest.toLowerCase();
+  if (REPUTATION_KEYWORDS.some(kw => lower.includes(kw))) return true;
+  if (intent?.target_tags?.some((t: string) => t.toLowerCase() === "reputation-focused")) return true;
+  return false;
+}
+
+// ==========================================
+// NEIGHBORHOOD ALIASES (V10)
+// ==========================================
+
+export const NEIGHBORHOOD_ALIASES: Record<string, string> = {
+  "downtown": "The Loop",
+  "the loop": "The Loop",
+  "loop": "The Loop",
+  "wrigley": "Lakeview",
+  "wrigley field": "Lakeview",
+  "wrigleyville": "Lakeview",
+  "magnificent mile": "River North",
+  "mag mile": "River North",
+  "navy pier": "Streeterville",
+  "streeterville": "Streeterville",
+  "united center": "West Loop",
+  "millennium park": "The Loop",
+  "grant park": "The Loop",
+  "old town": "Lincoln Park",
+  "boystown": "Lakeview",
+  "chinatown": "Chinatown",
+  "little italy": "University Village",
+  "pilsen": "Pilsen",
+  "hyde park": "Hyde Park",
+  "south loop": "South Loop",
+  "gold coast": "Gold Coast",
+  "edgewater": "Edgewater",
+  "andersonville": "Andersonville",
+  "uptown": "Uptown",
+  "ravenswood": "Lincoln Square",
+  "albany park": "Albany Park",
+  "avondale": "Avondale",
+  "humboldt park": "Humboldt Park",
+  "little village": "Little Village",
+  "bridgeport": "Bridgeport",
+  "rogers park": "Rogers Park",
+  "devon avenue": "Rogers Park",
+  "devon": "Rogers Park",
+  "argyle": "Uptown",
+  "argyle street": "Uptown",
+  "fulton market": "West Loop",
+  "randolph street": "West Loop",
+  "restaurant row": "West Loop",
+  "greektown": "West Loop",
+  "ukrainian village": "Ukrainian Village",
+  "bucktown": "Bucktown",
+  "north center": "North Center",
+  "roscoe village": "North Center",
+  "irving park": "Irving Park",
+  "portage park": "Portage Park",
+};
+
 // Occasion noise/service expectations — retained from V8
 const OCCASION_NOISE: Record<string, string[]> = {
   "Date Night": ["Quiet", "Moderate"], "Group Hangout": ["Moderate", "Loud"],
@@ -186,6 +339,10 @@ const QUALITY_WEIGHTS: Record<V9RelevanceType, V9QualityWeights> = {
     // "quiet intimate anniversary" — vibe is what matters
     food: 0.15, reputation: 0.25, vibe: 0.35, service: 0.15, convenience: 0.10,
   },
+  reputation: {
+    // "michelin star", "best in chicago" — reputation dominates
+    food: 0.20, reputation: 0.50, vibe: 0.10, service: 0.10, convenience: 0.10,
+  },
   open_ended: {
     // "surprise me" — reputation is the deciding factor
     food: 0.18, reputation: 0.45, vibe: 0.15, service: 0.12, convenience: 0.10,
@@ -221,12 +378,23 @@ export function computeRelevance(
 
   // No intent → everything is equally relevant (open-ended query)
   if (!intent || isOpenEnded(intent)) {
+    // V10: Check for reputation query even without structured intent
+    if (isReputationQuery(intent, specialRequest)) {
+      const repRelevance = computeReputationRelevance(candidate);
+      return repRelevance;
+    }
     return { score: 1.0, type: "open_ended", details: "No specific request — all restaurants relevant" };
   }
 
   const hasDish = !!intent.dish_level_intent;
   const hasCuisine = (intent.target_cuisines?.length ?? 0) > 0;
   const hasVibe = (intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0;
+
+  // V10: Reputation-focused queries (before dish/cuisine/vibe)
+  if (isReputationQuery(intent, specialRequest) && !hasDish && !hasCuisine) {
+    const repRelevance = computeReputationRelevance(candidate);
+    return repRelevance;
+  }
 
   // === DISH-LEVEL RELEVANCE (highest priority) ===
   if (hasDish) {
@@ -276,17 +444,33 @@ function computeDishRelevance(
   const dish = intent.dish_level_intent!.toLowerCase();
   const ri = candidate.review_intelligence;
 
-  // Level 1: Review intelligence dish catalog (NEW in V9)
+  // V10: Expand dish query with synonyms
+  const dishVariants = expandDishQuery(dish);
+
+  // Level 1: Review intelligence dish catalog — now with synonyms + fuzzy matching
   if (ri?.dish_catalog?.length) {
-    const exactDish = ri.dish_catalog.some(d =>
-      d.toLowerCase().includes(dish) || dish.includes(d.toLowerCase())
-    );
-    if (exactDish) {
-      const isPopular = ri.popular_dishes?.some(d =>
-        d.toLowerCase().includes(dish) || dish.includes(d.toLowerCase())
+    // Exact/substring match against any variant
+    for (const variant of dishVariants) {
+      const exactDish = ri.dish_catalog.some(d =>
+        d.toLowerCase().includes(variant) || variant.includes(d.toLowerCase())
       );
-      return isPopular ? 1.0 : 0.90; // Popular dish = perfect, any mention = excellent
+      if (exactDish) {
+        const isPopular = ri.popular_dishes?.some(d =>
+          dishVariants.some(v => d.toLowerCase().includes(v) || v.includes(d.toLowerCase()))
+        );
+        return isPopular ? 1.0 : 0.90;
+      }
     }
+
+    // V10: Fuzzy match against dish catalog (stemmed word overlap)
+    let bestFuzzy = 0;
+    for (const catalogDish of ri.dish_catalog) {
+      for (const variant of dishVariants) {
+        const score = fuzzyDishMatch(variant, catalogDish);
+        if (score > bestFuzzy) bestFuzzy = score;
+      }
+    }
+    if (bestFuzzy >= 0.5) return Math.min(0.85, 0.60 + bestFuzzy * 0.25);
   }
 
   // Level 2: Full-text search rank from SQL (already computed in RPC)
@@ -294,25 +478,32 @@ function computeDishRelevance(
     return Math.min(0.85, 0.50 + candidate.ri_text_rank);
   }
 
-  // Level 3: Structured data — signature_dishes, menu_highlights (same as V8 fallback)
+  // Level 3: Structured data — signature_dishes, menu_highlights (with synonyms)
   const dp = candidate.deep_profile;
   if (dp?.signature_dishes?.length) {
-    const match = dp.signature_dishes.some(d =>
-      d.dish.toLowerCase().includes(dish) || dish.includes(d.dish.toLowerCase())
-    );
-    if (match) return 0.85;
+    for (const variant of dishVariants) {
+      const match = dp.signature_dishes.some(d =>
+        d.dish.toLowerCase().includes(variant) || variant.includes(d.dish.toLowerCase())
+      );
+      if (match) return 0.85;
+    }
 
-    // Word-level match
-    const words = dish.split(/\s+/).filter(w => w.length > 2);
-    const wordMatch = dp.signature_dishes.some(d =>
-      words.some(w => d.dish.toLowerCase().includes(w))
-    );
+    // V10: Fuzzy word-level match with stemming
+    const dishStems = stemTokens(dish);
+    const wordMatch = dp.signature_dishes.some(d => {
+      const sigStems = stemTokens(d.dish);
+      return dishStems.some(s => sigStems.includes(s));
+    });
     if (wordMatch) return 0.50;
   }
 
-  // Level 4: menu_highlights (AI-predicted, lowest priority)
-  if (dp?.menu_highlights?.some(h => h.toLowerCase().includes(dish))) {
-    return 0.65;
+  // Level 4: menu_highlights (AI-predicted) — now with synonyms
+  if (dp?.menu_highlights?.length) {
+    for (const variant of dishVariants) {
+      if (dp.menu_highlights.some(h => h.toLowerCase().includes(variant))) {
+        return 0.65;
+      }
+    }
   }
 
   // Level 5: No dish data at all
@@ -362,6 +553,63 @@ function computeCuisineRelevance(
   return 0.10; // No data at all
 }
 
+// ---- Reputation Relevance (0-1.0) — V10: Awards, Critics, Recognition ----
+
+function computeReputationRelevance(candidate: V9Candidate): V9Relevance {
+  const dp = candidate.deep_profile;
+  const ri = candidate.review_intelligence;
+  let score = 0.20; // Base: everyone gets a floor
+  const signals: string[] = [];
+
+  // Awards recognition (strongest signal)
+  if (dp?.awards_recognition?.length) {
+    const awardText = dp.awards_recognition.join(" ").toLowerCase();
+    score += 0.35;
+    signals.push(dp.awards_recognition[0]);
+    // Extra boost for Michelin/James Beard specifically
+    if (awardText.includes("michelin") || awardText.includes("james beard")) {
+      score += 0.15;
+    }
+  }
+
+  // Notable chef
+  if (dp?.chef_notable) {
+    score += 0.15;
+    signals.push("Notable chef");
+  }
+
+  // High review intelligence food quality (8+/10)
+  if (ri?.review_food_quality != null && ri.review_food_quality >= 8) {
+    score += 0.10;
+  }
+
+  // Cultural authenticity high
+  if (dp?.cultural_authenticity != null && dp.cultural_authenticity >= 8) {
+    score += 0.05;
+  }
+
+  // Neighborhood institution/destination
+  if (dp?.neighborhood_integration === "institution") {
+    score += 0.10;
+    signals.push("Neighborhood institution");
+  } else if (dp?.neighborhood_integration === "destination") {
+    score += 0.05;
+  }
+
+  // Trending score high
+  if (candidate.trending_score != null && Number(candidate.trending_score) >= 7) {
+    score += 0.05;
+  }
+
+  return {
+    score: Math.min(1.0, score),
+    type: "reputation",
+    details: signals.length > 0
+      ? `Reputation match: ${signals.join(", ")}`
+      : "Limited reputation data",
+  };
+}
+
 // ---- Vibe Relevance (0-1.0) — Tag + Deep Profile Matching ----
 
 function computeVibeRelevance(
@@ -374,22 +622,34 @@ function computeVibeRelevance(
   const tags = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
   const dp = candidate.deep_profile;
   const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+  const ri = candidate.review_intelligence;
 
   let hits = 0;
   for (const signal of signals) {
     const sl = signal.toLowerCase();
-    if (tags.some(t => t.includes(sl))) { hits++; continue; }
+    const slStemmed = stem(sl);
+    // V9 signals
+    if (tags.some(t => t.includes(sl) || t.includes(slStemmed))) { hits++; continue; }
     if (dp?.decor_style?.toLowerCase().includes(sl)) { hits++; continue; }
     if (dp?.music_vibe?.toLowerCase().includes(sl)) { hits++; continue; }
     if (dp?.wow_factors?.some(w => w.toLowerCase().includes(sl))) { hits++; continue; }
     if (dp?.service_style?.toLowerCase().includes(sl)) { hits++; continue; }
     if (oneliner.includes(sl)) { hits++; continue; }
+    // V10: Additional signal sources for better vibe matching
+    if (dp?.crowd_profile?.some((c: string) => c.toLowerCase().includes(sl))) { hits++; continue; }
+    if (dp?.origin_story?.toLowerCase().includes(sl)) { hits++; continue; }
+    if (dp?.unique_selling_point?.toLowerCase().includes(sl)) { hits++; continue; }
+    if (dp?.date_progression?.toLowerCase().includes(sl)) { hits++; continue; }
+    if (dp?.best_seat_in_house?.toLowerCase().includes(sl)) { hits++; continue; }
+    if (ri?.cuisine_signals?.some(s => s.toLowerCase().includes(sl))) { hits++; continue; }
+    // V10: Stemmed matching on tags for "romantic" → "romance", "intimate" → "intimacy" etc
+    if (tags.some(t => stem(t).includes(slStemmed) || slStemmed.includes(stem(t)))) { hits++; continue; }
   }
 
   const hitRate = hits / signals.length;
-  // Vibe queries are fuzzy — sparse tag data ≠ bad match.
-  // Floor at 0.65 (vs 0.25 before). Full hit = 1.0.
-  return 0.65 + 0.35 * hitRate;
+  // V10: Lowered floor from 0.65 to 0.40 to better differentiate vibe mismatches.
+  // Full hit = 1.0, zero hits = 0.40 (was 0.65).
+  return 0.40 + 0.60 * hitRate;
 }
 
 // ==========================================
@@ -846,6 +1106,62 @@ function computeConvenienceQuality(
     }
   }
 
+  // V10: Practical constraint matching from intent
+  if (intent?.practical_constraints?.length) {
+    let constraintHits = 0;
+    let constraintTotal = 0;
+    for (const constraint of intent.practical_constraints) {
+      const cl = constraint.toLowerCase();
+      constraintTotal++;
+
+      if (cl === "byob" && dp?.byob_policy) {
+        if (dp.byob_policy !== "not_allowed" && dp.byob_policy !== "no") {
+          constraintHits++;
+          score += 0.5;
+        } else {
+          score -= 0.5;
+        }
+      } else if (cl === "outdoor_preferred" && candidate.outdoor_seating) {
+        constraintHits++;
+        score += 0.5;
+      } else if (cl === "pet_friendly" && candidate.pet_friendly) {
+        constraintHits++;
+        score += 0.5;
+      } else if (cl === "walk_in" && dp?.reservation_difficulty === "walk_in_friendly") {
+        constraintHits++;
+        score += 0.5;
+      } else if (cl === "parking_needed" && candidate.parking_availability &&
+                 !/none|no /i.test(candidate.parking_availability)) {
+        constraintHits++;
+        score += 0.3;
+      } else if (cl === "budget_conscious") {
+        if (dp?.check_average_per_person != null && dp.check_average_per_person <= 25) {
+          constraintHits++;
+          score += 0.5;
+        } else if (candidate.price_level === "$" || candidate.price_level === "$$") {
+          constraintHits++;
+          score += 0.3;
+        }
+      } else if (cl === "quiet_environment") {
+        if (candidate.noise_level === "Quiet") { constraintHits++; score += 0.5; }
+        else if (candidate.noise_level === "Moderate") { constraintHits += 0.5; score += 0.2; }
+      } else if (cl === "private_dining" && dp?.service_style) {
+        if (candidate.tags?.some(t => tagToString(t).toLowerCase().includes("private"))) {
+          constraintHits++;
+          score += 0.5;
+        }
+      }
+    }
+    if (constraintTotal > 0) {
+      details.constraints = {
+        score: constraintHits,
+        max: constraintTotal,
+        signal: `${constraintHits}/${constraintTotal} constraints met`,
+      };
+      hasData = true;
+    }
+  }
+
   const confidence: "high" | "medium" | "low" = (clientTimeOfDay && dp?.reservation_difficulty) ? "high" : hasData ? "medium" : "low";
   return { score: Math.min(10, Math.max(0, score)), details, confidence };
 }
@@ -929,6 +1245,9 @@ function generateV9MatchNarrative(
   if (relevance.type === "cuisine" && intent?.target_cuisines?.length) {
     keySignals.push(`Matches ${intent.target_cuisines[0]} cuisine`);
   }
+  if (relevance.type === "reputation") {
+    keySignals.push("Recognized quality establishment");
+  }
   if (relevance.score >= 0.90) {
     keySignals.push("Strong relevance match");
   }
@@ -992,18 +1311,25 @@ export function computeV9Score(
   // Step 2: Compute Quality (the RANK)
   const { quality, weights, factors, factorDetails, factorConfidence } = computeQuality(candidate, relevance.type, context);
 
-  // Step 3: V9 Score = Relevance × Quality
-  const v9Score = Math.round(relevance.score * quality);
+  // Step 3: V10 confidence-weighted quality adjustment
+  // When data is sparse, shrink quality toward conservative mean (55) to avoid
+  // inflating scores for restaurants we know nothing about.
+  const dp = candidate.deep_profile;
+  const hasRI = candidate.review_intelligence != null;
+  const hasDP = dp != null;
+  const dataCompleteness = (hasRI ? 0.4 : 0) + (hasDP ? 0.4 : 0) + (dp?.enrichment_confidence ?? 0) * 0.2;
+  const CONFIDENCE_MEAN = 55;
+  const confidenceFactor = 0.5 + 0.5 * dataCompleteness; // 0.5 to 1.0
+  const adjustedQuality = CONFIDENCE_MEAN + (quality - CONFIDENCE_MEAN) * confidenceFactor;
+
+  // Step 3b: V9 Score = Relevance × Quality (now confidence-adjusted)
+  const v9Score = Math.round(relevance.score * adjustedQuality);
 
   // Step 4: Occasion adjustment (±5 max, tiebreaker only)
   const occasionBonus = computeOccasionBonus(candidate, context.occasion, context.intent);
   const finalScore = Math.min(99, Math.max(0, v9Score + occasionBonus));
 
-  // Step 5: Data completeness
-  const dp = candidate.deep_profile;
-  const hasRI = candidate.review_intelligence != null;
-  const hasDP = dp != null;
-  const dataCompleteness = (hasRI ? 0.4 : 0) + (hasDP ? 0.4 : 0) + (dp?.enrichment_confidence ?? 0) * 0.2;
+  // Step 5: Data completeness (already computed in Step 3)
 
   // Step 6: Generate match narrative
   const matchNarrative = generateV9MatchNarrative(

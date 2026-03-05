@@ -333,6 +333,32 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "group": { tags: ["great for groups"] },
   "large party": { tags: ["private dining", "great for groups"] },
 
+  // --- Reputation / Quality ---
+  "michelin": { tags: ["reputation-focused"] },
+  "michelin star": { tags: ["reputation-focused", "fine dining"] },
+  "james beard": { tags: ["reputation-focused"] },
+  "award winning": { tags: ["reputation-focused"] },
+  "best restaurant": { tags: ["reputation-focused"] },
+  "critically acclaimed": { tags: ["reputation-focused"] },
+  "top rated": { tags: ["reputation-focused"] },
+  "most popular": { tags: ["reputation-focused", "trendy"] },
+  "legendary": { tags: ["reputation-focused", "hidden gem"] },
+  "iconic": { tags: ["reputation-focused"] },
+  "famous": { tags: ["reputation-focused", "trendy"] },
+  "world class": { tags: ["reputation-focused", "fine dining"] },
+  "best in chicago": { tags: ["reputation-focused"] },
+  "finest": { tags: ["reputation-focused", "fine dining"] },
+
+  // --- Dining styles (gap fills) ---
+  "counter dining": { tags: ["hidden gem"] },
+  "counter service": { tags: ["counter service", "great value"] },
+  "bar dining": { tags: ["craft cocktails"] },
+  "chef's table": { tags: ["fine dining", "tasting menu"] },
+  "speakeasy": { tags: ["craft cocktails", "hidden gem"] },
+  "supper club": { tags: ["romantic", "fine dining"] },
+  "food hall": { tags: ["great value", "trendy"] },
+  "pop up": { tags: ["trendy"] },
+
   // --- Drinks ---
   "drinks": { tags: ["craft cocktails", "byob"] },
   "cocktail": { tags: ["craft cocktails"] },
