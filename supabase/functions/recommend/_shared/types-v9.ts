@@ -144,6 +144,12 @@ export interface ReviewIntelligence {
   review_service_quality: number | null;
   review_ambiance_quality: number | null;
   review_value_score: number | null;
+  /** V11: Conceptual descriptors — "celebrity hotspot", "pre-theater", "power lunch spot" */
+  semantic_descriptors?: string[];
+  /** V11: Scenario-based matching — "anniversary dinner", "client entertainment", "Instagram photos" */
+  best_for_scenarios?: string[];
+  /** V11: Similar restaurant references — "if you like Girl & the Goat" */
+  comparable_restaurants?: string[];
 }
 
 // ==========================================
@@ -235,6 +241,8 @@ export interface V9ScoringContext {
   userFeedback?: UserFeedbackSignals | null;
   clientTimeOfDay?: string | null;
   dietaryRestrictions?: string[];
+  /** V11: Semantic tags from intent classification */
+  semanticTags?: string[];
 }
 
 /** Individual factor scores (0-10 each) — for UI "Why This Match" bars */

@@ -20,7 +20,7 @@ import {
 import type { UserFeedbackSignals } from "./_shared/scoring.ts";
 // V9 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
-import { computeV9Score, reRankV9, NEIGHBORHOOD_ALIASES } from "./_shared/scoring-v9.ts";
+import { computeV9Score, reRankV9, NEIGHBORHOOD_ALIASES, expandQueryConcepts } from "./_shared/scoring-v9.ts";
 import { buildV5SystemPrompt, buildV5UserPrompt, buildBlurbOnlyPrompt, detectCultureTheme } from "./_shared/prompts-v5.ts";
 import type { CultureTheme } from "./_shared/prompts-v5.ts";
 import {
@@ -50,7 +50,7 @@ import type {
 } from "./_shared/types-v9.ts";
 import { getScoreTier } from "./_shared/types-v9.ts";
 
-const API_VERSION = "10.0.0";
+const API_VERSION = "11.0.0";
 
 // --- In-memory response cache ---
 interface CacheEntry {
@@ -186,6 +186,10 @@ function mapRpcToCandidate(row: Record<string, unknown>): V9Candidate {
       review_service_quality: (row.ri_review_service_quality as number | null) ?? null,
       review_ambiance_quality: (row.ri_review_ambiance_quality as number | null) ?? null,
       review_value_score: (row.ri_review_value_score as number | null) ?? null,
+      // V11: Semantic enrichment fields
+      semantic_descriptors: (row.ri_semantic_descriptors as string[]) || [],
+      best_for_scenarios: (row.ri_best_for_scenarios as string[]) || [],
+      comparable_restaurants: (row.ri_comparable_restaurants as string[]) || [],
     } : null;
   return {
     ...base,
@@ -206,7 +210,7 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({
       status: "ok",
       version: API_VERSION,
-      engine: "v10",
+      engine: "v11",
       timestamp: new Date().toISOString(),
     });
   }
@@ -409,7 +413,7 @@ Deno.serve(async (req: Request) => {
       emotional: intent?.emotional_intent || "none",
     });
 
-    // V10: Dynamic candidate pool — vibe/open-ended queries get more candidates
+    // V11: Dynamic candidate pool — complex/vibe/open-ended queries get more candidates
     const hasVibeOnly = (intent?.vibe_keywords?.length ?? 0) > 0 && (intent?.target_cuisines?.length ?? 0) === 0;
     const isOpenEndedQuery = !intent || (
       (intent.target_cuisines?.length ?? 0) === 0 &&
@@ -417,13 +421,24 @@ Deno.serve(async (req: Request) => {
       (intent.vibe_keywords?.length ?? 0) === 0 &&
       !intent.dish_level_intent
     );
-    const rpcLimit = (hasVibeOnly || isOpenEndedQuery) ? 80 : 50;
+    // V11: Count distinct signal categories for complex query detection
+    const signalCategories = intent ? [
+      (intent.target_cuisines?.length ?? 0) > 0 || !!intent.dish_level_intent,
+      (intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0,
+      (intent.practical_constraints?.length ?? 0) > 0,
+      (intent.semantic_tags?.length ?? 0) > 0,
+    ].filter(Boolean).length : 0;
+    const isComplexQuery = signalCategories >= 3 || (intent?.semantic_tags?.length ?? 0) > 0;
+    const rpcLimit = (hasVibeOnly || isOpenEndedQuery || isComplexQuery) ? 100 : 50;
 
-    // V10: Pass cuisine and tag targets to RPC for smarter retrieval
-    const targetCuisines = intent?.target_cuisines || [];
-    const targetTags = intent?.target_tags || [];
+    // V11: Pass cuisine, tag, and semantic targets to RPC for smarter retrieval
+    const semanticTags = intent?.semantic_tags || [];
+    // V11: Expand semantic concepts into structured signals for RPC enrichment
+    const conceptExpansion = expandQueryConcepts(semanticTags, special_request);
+    const targetCuisines = [...(intent?.target_cuisines || []), ...(conceptExpansion.cuisines || [])];
+    const targetTags = [...(intent?.target_tags || []), ...(conceptExpansion.tags || []), ...(conceptExpansion.vibes || [])];
 
-    const { data: rpcData, error: rpcError } = await supabase.rpc("get_candidates_v10", {
+    const { data: rpcData, error: rpcError } = await supabase.rpc("get_candidates_v11", {
       p_query: special_request || null,
       p_neighborhood: neighborhood,
       p_occasion: occasion,
@@ -431,16 +446,31 @@ Deno.serve(async (req: Request) => {
       p_exclude: exclude,
       p_target_cuisines: targetCuisines,
       p_target_tags: targetTags,
+      p_semantic_tags: semanticTags,
     }).then(result => {
-      // Fallback to v9 RPC if v10 doesn't exist yet (migration not applied)
-      if (result.error?.message?.includes("get_candidates_v10")) {
-        logWarn("V10 RPC not found, falling back to V9");
-        return supabase.rpc("get_candidates_v9", {
+      // Fallback chain: v11 → v10 → v9
+      if (result.error?.message?.includes("get_candidates_v11")) {
+        logWarn("V11 RPC not found, falling back to V10");
+        return supabase.rpc("get_candidates_v10", {
           p_query: special_request || null,
           p_neighborhood: neighborhood,
           p_occasion: occasion,
           p_limit: rpcLimit,
           p_exclude: exclude,
+          p_target_cuisines: targetCuisines,
+          p_target_tags: targetTags,
+        }).then(r => {
+          if (r.error?.message?.includes("get_candidates_v10")) {
+            logWarn("V10 RPC not found, falling back to V9");
+            return supabase.rpc("get_candidates_v9", {
+              p_query: special_request || null,
+              p_neighborhood: neighborhood,
+              p_occasion: occasion,
+              p_limit: rpcLimit,
+              p_exclude: exclude,
+            });
+          }
+          return r;
         });
       }
       return result;
@@ -451,13 +481,18 @@ Deno.serve(async (req: Request) => {
 
     // If neighborhood filter returned nothing, retry broader
     if ((!finalRpcData || finalRpcData.length === 0) && !finalRpcError && neighborhood !== "Anywhere") {
-      logInfo("V10: Broadening RPC to Anywhere", { neighborhood });
+      logInfo("V11: Broadening RPC to Anywhere", { neighborhood });
       const { data: broadData, error: broadError } = await supabase.rpc(
-        "get_candidates_v10",
-        { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags }
+        "get_candidates_v11",
+        { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags, p_semantic_tags: semanticTags }
       ).then(result => {
-        if (result.error?.message?.includes("get_candidates_v10")) {
-          return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
+        if (result.error?.message?.includes("get_candidates_v11")) {
+          return supabase.rpc("get_candidates_v10", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags }).then(r => {
+            if (r.error?.message?.includes("get_candidates_v10")) {
+              return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
+            }
+            return r;
+          });
         }
         return result;
       });
@@ -544,7 +579,7 @@ Deno.serve(async (req: Request) => {
         threshold: NEIGHBORHOOD_QUALITY_THRESHOLD,
       });
 
-      const { data: broadData } = await supabase.rpc("get_candidates_v10", {
+      const { data: broadData } = await supabase.rpc("get_candidates_v11", {
         p_query: special_request || null,
         p_neighborhood: "Anywhere",
         p_occasion: occasion,
@@ -552,9 +587,15 @@ Deno.serve(async (req: Request) => {
         p_exclude: exclude,
         p_target_cuisines: targetCuisines,
         p_target_tags: targetTags,
+        p_semantic_tags: semanticTags,
       }).then(result => {
-        if (result.error?.message?.includes("get_candidates_v10")) {
-          return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
+        if (result.error?.message?.includes("get_candidates_v11")) {
+          return supabase.rpc("get_candidates_v10", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags }).then(r => {
+            if (r.error?.message?.includes("get_candidates_v10")) {
+              return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
+            }
+            return r;
+          });
         }
         return result;
       });
@@ -1034,7 +1075,7 @@ Deno.serve(async (req: Request) => {
       intentBoost: !!(responseBody as Record<string, unknown>).intent_boost,
       candidatePool: rerankedScored.length,
       rankedQueueSize: rankedQueue.length,
-      engine: "v10",
+      engine: "v11",
     });
 
     const response = jsonResponse(responseBody);
