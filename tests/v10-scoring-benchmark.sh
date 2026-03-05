@@ -43,15 +43,18 @@ CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 # HELPERS
 ###############################################################################
 
+API_TMPFILE=$(mktemp)
+
 api_call() {
   local body="$1"
-  curl -s -w "\n%{http_code}" \
+  API_HTTP_CODE=$(curl -s -w "%{http_code}" \
     -X POST "$API_URL" \
     -H "Authorization: Bearer $ANON_KEY" \
     -H "apikey: $ANON_KEY" \
     -H "Content-Type: application/json" \
     -d "$body" \
-    --max-time 45 2>/dev/null
+    --max-time 60 \
+    -o "$API_TMPFILE" 2>/dev/null)
 }
 
 # Run a single benchmark test
@@ -76,10 +79,11 @@ run_benchmark() {
     --arg pl "$price_level" \
     '{special_request: $sr, occasion: $occ, neighborhood: $nb, price_level: $pl}')
 
-  local raw http_code response
-  raw=$(api_call "$body")
-  http_code=$(echo "$raw" | tail -n1)
-  response=$(echo "$raw" | sed '$d')
+  local http_code response
+  api_call "$body"
+  http_code="$API_HTTP_CODE"
+  # Strip invalid Unicode surrogate pairs that jq cannot parse (e.g. emoji in Google reviews)
+  response=$(sed 's/\\ud[89a-f][0-9a-f][0-9a-f]\\ud[c-f][0-9a-f][0-9a-f]//gi; s/\\ud[89a-f][0-9a-f][0-9a-f]//gi' "$API_TMPFILE")
 
   # Retry once on transient failure (timeout, empty response, non-200)
   local success_check
@@ -87,9 +91,10 @@ run_benchmark() {
   if [[ "$http_code" != "200" || "$success_check" != "true" ]]; then
     printf "  ${YELLOW}RETRY${NC} (got HTTP %s, success=%s) — retrying in 2s...\n" "$http_code" "$success_check"
     sleep 2
-    raw=$(api_call "$body")
-    http_code=$(echo "$raw" | tail -n1)
-    response=$(echo "$raw" | sed '$d')
+    api_call "$body"
+    http_code="$API_HTTP_CODE"
+    # Strip invalid Unicode surrogate pairs that jq cannot parse (e.g. emoji in Google reviews)
+  response=$(sed 's/\\ud[89a-f][0-9a-f][0-9a-f]\\ud[c-f][0-9a-f][0-9a-f]//gi; s/\\ud[89a-f][0-9a-f][0-9a-f]//gi' "$API_TMPFILE")
   fi
 
   if [[ "$http_code" != "200" ]]; then
@@ -395,6 +400,9 @@ echo '```' >> "$REPORT_PATH"
 
 echo "Report saved to: $REPORT_PATH"
 echo ""
+
+# Cleanup
+rm -f "$API_TMPFILE"
 
 # Exit code
 if (( FAIL > 0 )); then
