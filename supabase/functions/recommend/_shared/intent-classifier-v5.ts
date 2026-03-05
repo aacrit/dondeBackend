@@ -120,8 +120,14 @@ Confidence scoring:
 - confidence.constraints: "high" if constraints named, "medium" if implied, "low" if none
 - confidence.overall: "high" if detailed, "medium" if moderate, "low" if vague
 
+V11 semantic fields:
+- semantic_tags: freeform descriptors for concepts beyond fixed dictionaries. Examples: "celebrity hotspot", "pre-game dinner", "power lunch", "grandmother's cooking", "underground food scene", "Instagram-worthy plating". Extract 1-5 tags that capture the ESSENCE of the request. Always include at least 1 for requests with 3+ words.
+- similar_to: if user references a restaurant, experience, or place ("like Alinea", "reminds me of Tokyo"), extract that reference. null if none.
+- mood: emotional feeling — "adventurous", "nostalgic", "celebratory", "indulgent", "romantic", "comforting", "energetic", "sophisticated", "playful", "serene". More nuanced than emotional_intent.
+- implicit_cuisines: cuisines IMPLIED but not named. "dumplings" → ["Chinese","Japanese","Nepalese/Tibetan","Polish"]. "spicy noodles" → ["Thai","Chinese","Korean"]. Empty if cuisine already explicit.
+
 Respond ONLY in JSON (no markdown, no explanation):
-{"target_cuisines":[],"target_tags":[],"target_features":[],"cuisine_importance":"low","flavor_preferences":[],"vibe_keywords":[],"practical_constraints":[],"emotional_intent":"casual","date_type":null,"group_size_hint":null,"spontaneity":"unknown","confidence":{"cuisine":"low","vibe":"low","occasion":"low","constraints":"low","overall":"low"}}`;
+{"target_cuisines":[],"target_tags":[],"target_features":[],"cuisine_importance":"low","flavor_preferences":[],"vibe_keywords":[],"practical_constraints":[],"emotional_intent":"casual","date_type":null,"group_size_hint":null,"spontaneity":"unknown","confidence":{"cuisine":"low","vibe":"low","occasion":"low","constraints":"low","overall":"low"},"semantic_tags":[],"similar_to":null,"mood":null,"implicit_cuisines":[]}`;
 
 // ---------------------------------------------------------------------------
 // Tokenizer — produces unigrams, bigrams, and trigrams
@@ -168,7 +174,7 @@ async function classifyWithClaude(
       : `Classify: "${specialRequest}"`;
 
     const response = await callClaude(userPrompt, INTENT_SYSTEM_PROMPT_V2, {
-      maxTokens: 200,
+      maxTokens: 350,
       temperature: 0.1,
     });
 
@@ -221,11 +227,91 @@ async function classifyWithClaude(
       };
     }
 
+    // V11: Validate semantic fields
+    if (!Array.isArray(parsed.semantic_tags)) parsed.semantic_tags = [];
+    if (parsed.similar_to && typeof parsed.similar_to !== "string") parsed.similar_to = null;
+    if (parsed.mood && typeof parsed.mood !== "string") parsed.mood = null;
+    if (!Array.isArray(parsed.implicit_cuisines)) parsed.implicit_cuisines = [];
+
     return parsed;
   } catch (err) {
     console.warn("[V5 Intent] Claude fallback failed:", err);
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// V11: Deterministic semantic tag generation
+// Generates minimal semantic tags from deterministic signals for use in scoring.
+// Claude path generates richer tags; this is the zero-cost fallback.
+// ---------------------------------------------------------------------------
+
+function generateDeterministicSemanticTags(
+  input: string,
+  emotionalIntent: string,
+  vibeKeywords: string[],
+  targetTags: string[],
+  occasion: string,
+): string[] {
+  const tags: string[] = [];
+
+  // Map emotional intent to semantic tags
+  const EMOTIONAL_SEMANTIC: Record<string, string> = {
+    impress: "impressive dining",
+    celebrate: "celebration dinner",
+    indulge: "indulgent experience",
+    explore: "culinary exploration",
+    comfort: "comfort food experience",
+  };
+  if (EMOTIONAL_SEMANTIC[emotionalIntent]) {
+    tags.push(EMOTIONAL_SEMANTIC[emotionalIntent]);
+  }
+
+  // Map occasion to semantic tags
+  const OCCASION_SEMANTIC: Record<string, string> = {
+    "Date Night": "date night spot",
+    "Group Hangout": "group friendly spot",
+    "Family Dinner": "family dinner",
+    "Business Lunch": "power lunch",
+    "Solo Dining": "solo dining",
+    "Special Occasion": "special occasion",
+    "Treat Myself": "treat yourself",
+    Adventure: "culinary adventure",
+    "Chill Hangout": "chill hangout spot",
+  };
+  if (OCCASION_SEMANTIC[occasion]) {
+    tags.push(OCCASION_SEMANTIC[occasion]);
+  }
+
+  // Map contextual patterns to semantic tags
+  const CONTEXT_PATTERNS: Array<{ pattern: RegExp; tag: string }> = [
+    { pattern: /before.*(game|bulls|bears|cubs|sox|blackhawks|fire|concert|show|theater|theatre)/, tag: "pre-event dinner" },
+    { pattern: /after.*(game|concert|show|theater|theatre|bar|club)/, tag: "post-event dinner" },
+    { pattern: /birthday/, tag: "birthday celebration" },
+    { pattern: /anniversary/, tag: "anniversary dinner" },
+    { pattern: /graduation/, tag: "graduation celebration" },
+    { pattern: /instagram|insta|photo/, tag: "Instagram-worthy" },
+    { pattern: /celebrity|famous|celeb/, tag: "celebrity hotspot" },
+    { pattern: /local|locals|neighborhood/, tag: "neighborhood favorite" },
+    { pattern: /hidden|secret|underground/, tag: "hidden gem experience" },
+    { pattern: /authentic|traditional|old.?school/, tag: "authentic experience" },
+    { pattern: /parent|mom|dad|family visit/, tag: "parents visiting dinner" },
+    { pattern: /client|boss|impress/, tag: "client entertainment" },
+    { pattern: /bachelor|bachelorette/, tag: "bachelor party" },
+    { pattern: /book.?club|friends.?dinner/, tag: "social dinner" },
+    { pattern: /rainy|cold|winter/, tag: "cozy weather retreat" },
+    { pattern: /summer|rooftop|outdoor/, tag: "summer dining" },
+    { pattern: /late|midnight|after.?hours/, tag: "late night eats" },
+    { pattern: /quick|fast|between meetings|lunch break/, tag: "quick meal" },
+  ];
+
+  for (const { pattern, tag } of CONTEXT_PATTERNS) {
+    if (pattern.test(input) && !tags.includes(tag)) {
+      tags.push(tag);
+    }
+  }
+
+  return tags.slice(0, 5);
 }
 
 // ---------------------------------------------------------------------------
@@ -571,10 +657,17 @@ export async function classifyIntentV5(
   } else if (signalCount >= 2) {
     overallConfidence = "medium";
   } else if (words.length > 3) {
-    // <2 signals AND input >3 words → "low" (route to Claude)
+    // V11: <2 signals AND input >3 words → "low" (route to Claude for semantic understanding)
+    overallConfidence = "low";
+  } else if (signalCount >= 1) {
+    // V11: At least 1 signal with short input → "medium"
+    overallConfidence = "medium";
+  } else if (words.length >= 3) {
+    // V11: 0 signals but 3 words → "low" (previously "medium", now routes to Claude)
+    // This catches queries like "somewhere my mom would love" that have no dictionary hits
     overallConfidence = "low";
   } else {
-    // <2 signals AND input <=3 words → "medium" (short inputs are often clear)
+    // Very short, no signals → "medium" (e.g. "pizza" → deterministic is fine)
     overallConfidence = "medium";
   }
 
@@ -652,6 +745,11 @@ export async function classifyIntentV5(
     spontaneity,
     confidence,
     dish_level_intent: dishLevelIntent,  // V6
+    // V11: Semantic fields — deterministic path generates minimal semantic tags
+    semantic_tags: generateDeterministicSemanticTags(input, emotionalIntent, vibeKeywords, targetTags, occasion),
+    similar_to: null,
+    mood: emotionalIntent === "casual" ? null : emotionalIntent,
+    implicit_cuisines: [],
   };
 
   console.log(

@@ -22,28 +22,37 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 |------|-------------|
 | `tests/test_catalog.sh` | 65-scenario bash API test suite |
 | `tests/golden-dataset-test.sh` | 50-query golden dataset (88 checks) — primary scoring benchmark |
+| `tests/benchmark-200.sh` | 200-case V11 benchmark (10 categories × 20 queries) |
+| `tests/regression-guard.sh` | Scoring regression guard — compares against V10 baseline |
+| `tests/compare-scores.sh` | A/B score comparison tool for query debugging |
 | `tests/TEST-FULL.md` | 170-scenario agent-driven test spec |
 | `tests/V9_E2E_100_RESULTS.md` | V9 E2E: 490 pass, 0 fail, 1 warn (99%) |
 
 **V10 scoring baseline (2026-03-05):** 50-case benchmark: 44P/4F/2W, avg DM 70. V9 baseline was 39P/4F/7W, avg DM 68.
 
-## Scoring Engine — V10 (active)
+## Scoring Engine — V11 (active)
 
 **Active engine:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts`
 
 **Formula:** `DondeScore = Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)`
 
-- **Relevance** is a GATE: uses review intelligence (`cuisine_signals`, `dish_catalog`, `popular_dishes`) to classify match type (dish > cuisine > vibe > **reputation** > open_ended). Low relevance = low score regardless of quality.
-- **Quality** uses query-type-aware weight profiles (5 profiles: dish, cuisine, vibe, reputation, open_ended). Computes 5 factors: food, vibe, service, reputation, convenience.
-- **V10 enhancements:**
-  - Reputation relevance type for "michelin", "james beard", "best in chicago" queries
-  - Dish synonym map (50+ entries) for fuzzy dish matching
-  - Word stemming for plural/gerund/past-tense dish variants
-  - Neighborhood alias resolution (45+ landmarks → neighborhoods)
-  - Expanded vibe signals: crowd_profile, origin_story, unique_selling_point
-  - Confidence-weighted quality: scores shrink toward conservative mean when data is sparse
-  - Practical constraint scoring: BYOB, outdoor, walk-in, budget, quiet, parking matching
-- **Self-healing**: When `cuisine_type` is NULL, V10 falls back to `cuisine_signals` (1806/2719 restaurants).
+- **Relevance** is a GATE: uses review intelligence (`cuisine_signals`, `dish_catalog`, `popular_dishes`) to classify match type (dish > cuisine > vibe > **semantic** > **reputation** > open_ended). Low relevance = low score regardless of quality.
+- **Quality** uses query-type-aware weight profiles (6 profiles: dish, cuisine, vibe, reputation, open_ended, **multi_signal**). Computes 5 factors: food, vibe, service, reputation, convenience.
+- **V11 enhancements (over V10):**
+  - Semantic concept matching via `computeSemanticRelevance()` — matches `semantic_tags` against RI descriptors, scenarios, tags, wow_factors, crowd_profile
+  - LLM-enhanced intent classification with `semantic_tags`, `similar_to`, `mood`, `implicit_cuisines` fields
+  - Query expansion engine (`expandQueryConcepts()`) with 40+ concept mappings (pre-game, celebrity, instagrammable, etc.)
+  - Expanded DISH_SYNONYMS (150+ entries) with cross-cuisine mapping (dumplings → soup dumplings, gyoza, momo, pierogi)
+  - Dynamic vibe relevance floor: 0.45 for 3+ signals (was fixed 0.65), doubles differentiation range
+  - Multi-signal weight profile for queries spanning 3+ signal categories (balanced 0.25/0.25/0.25/0.15/0.10)
+  - Reduced confidence pull-to-center: CONFIDENCE_MEAN=55 (was 60), confidenceFactor 0.80-1.0 (was 0.75-1.0)
+  - Composite RPC scoring (v11): all signals scored simultaneously instead of sequential ORDER BY
+  - Semantic tag search in RPC via `p_semantic_tags` against tags, wow_factors, semantic_descriptors, best_for_scenarios
+  - Dynamic candidate pool: 100 candidates for complex/semantic queries (was 50/80)
+- **V10 features retained:**
+  - Reputation relevance type, dish synonyms, word stemming, neighborhood aliases
+  - Confidence-weighted quality, practical constraint scoring
+- **Self-healing**: When `cuisine_type` is NULL, falls back to `cuisine_signals` (1806/2719 restaurants).
 
 | Factor | Key Signals |
 |--------|-------------|
@@ -53,7 +62,7 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | Reputation | Stretched Google rating, reviews, awards, chef_notable, neighborhood_integration |
 | Convenience | Timing, reservation, wait time, parking, practical constraints (BYOB, outdoor, walk-in) |
 
-**V10 RPC** (`get_candidates_v10`): Adds `p_target_cuisines` and `p_target_tags` for cuisine/tag-aware candidate boosting. Falls back to V9 RPC if migration not applied.
+**V11 RPC** (`get_candidates_v11`): Composite scoring with `p_semantic_tags`. Falls back to V10 → V9 RPC if migration not applied.
 
 **Score tiers:** 90+ Outstanding | 80-89 Strong Pick | 70-79 Solid Option | 60-69 Worth a Try | <60 Best Available
 
@@ -136,6 +145,7 @@ cd scripts && npx tsx pipelines/enrichment.ts
 cd scripts && npx tsx pipelines/generate-occasion-scores.ts
 cd scripts && TARGET_CUISINES=Japanese npm run discovery:targeted
 cd scripts && DRY_RUN=true npm run discovery:gaps
+cd scripts && npx tsx pipelines/enrichment-review-intelligence.ts  # V11 semantic descriptors
 
 # Migrations
 supabase db push
@@ -143,6 +153,9 @@ supabase db push
 # Tests
 ./tests/test_catalog.sh
 ./tests/golden-dataset-test.sh
+./tests/benchmark-200.sh
+./tests/regression-guard.sh
+./tests/compare-scores.sh "romantic Italian dinner"
 ```
 
 ## Environment Variables

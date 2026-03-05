@@ -43,6 +43,20 @@ export interface IntentClassificationV2 extends IntentClassification {
    *  Set when a cuisine keyword match is a food item (not cuisine name) — indicates
    *  the user wants a specific dish, not just a cuisine category. */
   dish_level_intent?: string | null;
+  /** V11: Freeform semantic descriptors — concepts that don't map to fixed dictionaries.
+   *  Examples: "celebrity hangout", "pre-game dinner", "grandmother's cooking",
+   *  "underground food scene", "Instagram-worthy". Matched against restaurant
+   *  semantic_descriptors, best_for_scenarios, wow_factors, crowd_profile. */
+  semantic_tags?: string[];
+  /** V11: Reference restaurant or experience — "like Alinea but casual",
+   *  "reminds me of Tokyo". Used for comparable_restaurants matching. */
+  similar_to?: string | null;
+  /** V11: Emotional mood — "adventurous", "nostalgic", "celebratory", "indulgent".
+   *  More nuanced than emotional_intent, captures the feeling the user wants. */
+  mood?: string | null;
+  /** V11: Cuisines implied but not explicitly named — "dumplings" implies
+   *  Chinese, Japanese, Nepalese. Used to broaden candidate pool. */
+  implicit_cuisines?: string[];
 }
 
 const INTENT_SYSTEM_PROMPT_V2 = `You classify restaurant search intent for a Chicago dining recommendation app. Given a user's request, extract structured search criteria.

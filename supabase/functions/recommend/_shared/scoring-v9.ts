@@ -185,6 +185,29 @@ const DISH_SYNONYMS: Record<string, string[]> = {
   "bibimbap": ["bibim bap", "bibimbop"],
   "sushi": ["nigiri", "maki", "sashimi"],
   "omakase": ["chef's choice", "chefs tasting"],
+  // V11: Cross-cuisine dish mapping
+  "dumplings": ["gyoza", "potstickers", "momo", "momos", "pierogi", "xiao long bao", "soup dumplings", "wontons", "mandu"],
+  "noodles": ["ramen", "pho", "pad thai", "lo mein", "udon", "soba", "dan dan noodles", "laksa", "japchae", "pad see ew"],
+  "curry": ["tikka masala", "green curry", "red curry", "massaman", "panang", "korma", "vindaloo", "japanese curry", "katsu curry"],
+  "fried chicken": ["karaage", "nashville hot chicken", "korean fried chicken", "popeyes", "hot chicken", "chicken katsu"],
+  "steak": ["ribeye", "filet mignon", "wagyu", "porterhouse", "tomahawk", "t-bone", "strip steak"],
+  "tacos": ["taco", "street tacos", "birria tacos", "al pastor tacos", "fish tacos", "carnitas tacos"],
+  "sandwich": ["sub", "hoagie", "panini", "cubano", "banh mi", "po boy", "club sandwich", "cheesesteak"],
+  "pizza": ["deep dish", "thin crust", "neapolitan", "detroit style", "chicago style", "tavern cut", "flatbread"],
+  "salad": ["caesar", "chopped salad", "greek salad", "fattoush", "tabbouleh", "cobb salad"],
+  "soup": ["pho", "ramen", "tom yum", "miso soup", "french onion", "clam chowder", "pozole", "borscht"],
+  "wings": ["chicken wings", "buffalo wings", "korean wings", "hot wings", "garlic parmesan wings"],
+  "rice bowl": ["bibimbap", "poke bowl", "donburi", "chirashi", "burrito bowl"],
+  "flatbread": ["naan", "pita", "lavash", "focaccia", "roti"],
+  "wrap": ["burrito", "shawarma wrap", "gyro wrap", "spring rolls", "lumpia"],
+  "tasting menu": ["prix fixe", "omakase", "chef's table", "multi-course", "degustazione"],
+  "brunch": ["pancakes", "waffles", "eggs benedict", "avocado toast", "french toast", "chilaquiles"],
+  // V11: Colloquial terms
+  "za": ["pizza", "deep dish pizza"],
+  "noods": ["noodles", "ramen", "pho", "udon"],
+  "burg": ["burger", "hamburger", "smash burger"],
+  "chicky": ["chicken", "fried chicken"],
+  "nugs": ["chicken nuggets", "nuggets"],
 };
 
 /** Expand a dish query into canonical + synonyms */
@@ -270,6 +293,137 @@ export const NEIGHBORHOOD_ALIASES: Record<string, string> = {
   "portage park": "Portage Park",
 };
 
+// ==========================================
+// V11: CONCEPT MAP — semantic query expansion
+// ==========================================
+
+/** Maps abstract concepts to structured restaurant signals */
+interface ConceptSignal {
+  neighborhoods?: string[];
+  tags?: string[];
+  constraints?: string[];
+  vibes?: string[];
+  reputation_boost?: boolean;
+  cuisines?: string[];
+  price_hint?: string;
+}
+
+export const CONCEPT_MAP: Record<string, ConceptSignal> = {
+  // Event-based concepts
+  "pre-game": { neighborhoods: ["West Loop", "Wrigleyville", "South Loop"], tags: ["lively atmosphere"], constraints: ["walk_in"], vibes: ["lively", "buzzing"] },
+  "pre-game dinner": { neighborhoods: ["West Loop", "Wrigleyville", "South Loop"], tags: ["lively atmosphere"], constraints: ["walk_in"], vibes: ["lively"] },
+  "pre-concert": { neighborhoods: ["West Loop", "The Loop"], tags: ["lively atmosphere"], constraints: ["walk_in"] },
+  "post-theater": { neighborhoods: ["The Loop", "River North"], tags: ["late night", "craft cocktails"], vibes: ["elegant", "refined"] },
+  "pre-event dinner": { tags: ["lively atmosphere"], constraints: ["walk_in"], vibes: ["lively"] },
+  "post-event dinner": { tags: ["late night", "craft cocktails"] },
+
+  // Experience concepts
+  "celebrity": { tags: ["fine dining", "trendy"], reputation_boost: true, vibes: ["elegant", "modern"] },
+  "celebrity hotspot": { tags: ["fine dining", "trendy"], reputation_boost: true, vibes: ["elegant", "modern"] },
+  "Instagram-worthy": { tags: ["trendy", "instagrammable"], vibes: ["modern"] },
+  "instagrammable": { tags: ["trendy", "instagrammable"], vibes: ["modern"] },
+  "hidden gem experience": { tags: ["hidden gem"], vibes: ["cozy", "rustic"] },
+  "hidden gem": { tags: ["hidden gem"], vibes: ["cozy"] },
+  "neighborhood favorite": { tags: ["hidden gem", "great value"] },
+  "neighborhood institution": { reputation_boost: true },
+  "power lunch": { tags: ["quiet"], vibes: ["refined", "elegant"], constraints: ["walk_in"] },
+  "client entertainment": { tags: ["fine dining"], vibes: ["elegant", "refined"], reputation_boost: true },
+  "authentic experience": { vibes: ["rustic", "classic"] },
+
+  // Mood/feeling concepts
+  "culinary adventure": { tags: ["hidden gem"], vibes: ["funky"] },
+  "culinary exploration": { tags: ["hidden gem"], vibes: ["funky", "modern"] },
+  "comfort food experience": { cuisines: ["American", "Southern/Soul Food"], vibes: ["cozy", "warm"] },
+  "indulgent experience": { tags: ["fine dining", "tasting menu"], vibes: ["elegant"], price_hint: "$$$" },
+  "impressive dining": { tags: ["fine dining"], vibes: ["elegant", "refined"], reputation_boost: true },
+  "cozy weather retreat": { vibes: ["cozy", "warm"], tags: ["craft cocktails"] },
+  "summer dining": { tags: ["outdoor patio", "rooftop"], constraints: ["outdoor_preferred"] },
+  "late night eats": { tags: ["late night"], vibes: ["lively", "casual"] },
+  "quick meal": { constraints: ["walk_in"], vibes: ["casual"] },
+
+  // Social context concepts
+  "date night spot": { tags: ["romantic", "craft cocktails"], vibes: ["intimate", "warm"] },
+  "first date": { vibes: ["casual", "warm"], tags: ["craft cocktails"] },
+  "anniversary dinner": { tags: ["fine dining", "romantic"], vibes: ["intimate", "elegant"], reputation_boost: true },
+  "birthday celebration": { tags: ["lively atmosphere"], vibes: ["lively", "warm"] },
+  "graduation celebration": { tags: ["lively atmosphere"], vibes: ["lively"] },
+  "bachelor party": { tags: ["lively atmosphere", "craft cocktails"], vibes: ["lively", "buzzing"] },
+  "social dinner": { vibes: ["warm", "lively"] },
+  "family dinner": { vibes: ["warm", "casual"] },
+  "parents visiting dinner": { reputation_boost: true, vibes: ["warm", "classic"] },
+  "special occasion": { tags: ["fine dining"], vibes: ["elegant"], reputation_boost: true },
+
+  // Meta concepts
+  "grandmother's cooking": { vibes: ["cozy", "warm", "rustic"], tags: ["great value"] },
+  "underground food scene": { tags: ["hidden gem"], vibes: ["funky", "industrial"] },
+  "food so good": { reputation_boost: true },
+  "takes their craft seriously": { reputation_boost: true, vibes: ["refined"] },
+  "best kept secret": { tags: ["hidden gem"] },
+  "not tourist trap": { tags: ["hidden gem"], vibes: ["casual"] },
+  "people watching": { tags: ["outdoor patio"], vibes: ["lively", "buzzing"] },
+  "hear yourself talk": { tags: ["quiet"], vibes: ["intimate"] },
+};
+
+/**
+ * V11: Expand semantic tags and intent into structured concept signals.
+ * Merges all CONCEPT_MAP matches into a combined signal set.
+ */
+export function expandQueryConcepts(
+  semanticTags: string[],
+  specialRequest: string,
+): ConceptSignal {
+  const merged: ConceptSignal = {
+    neighborhoods: [],
+    tags: [],
+    constraints: [],
+    vibes: [],
+    reputation_boost: false,
+    cuisines: [],
+  };
+
+  const allSignals = [...semanticTags];
+  // Also check the raw request for concept map keys
+  const requestLower = specialRequest.toLowerCase();
+  for (const key of Object.keys(CONCEPT_MAP)) {
+    if (requestLower.includes(key.toLowerCase()) && !allSignals.includes(key)) {
+      allSignals.push(key);
+    }
+  }
+
+  for (const tag of allSignals) {
+    const signal = CONCEPT_MAP[tag.toLowerCase()];
+    if (!signal) continue;
+    if (signal.neighborhoods) {
+      for (const n of signal.neighborhoods) {
+        if (!merged.neighborhoods!.includes(n)) merged.neighborhoods!.push(n);
+      }
+    }
+    if (signal.tags) {
+      for (const t of signal.tags) {
+        if (!merged.tags!.includes(t)) merged.tags!.push(t);
+      }
+    }
+    if (signal.constraints) {
+      for (const c of signal.constraints) {
+        if (!merged.constraints!.includes(c)) merged.constraints!.push(c);
+      }
+    }
+    if (signal.vibes) {
+      for (const v of signal.vibes) {
+        if (!merged.vibes!.includes(v)) merged.vibes!.push(v);
+      }
+    }
+    if (signal.reputation_boost) merged.reputation_boost = true;
+    if (signal.cuisines) {
+      for (const c of signal.cuisines) {
+        if (!merged.cuisines!.includes(c)) merged.cuisines!.push(c);
+      }
+    }
+  }
+
+  return merged;
+}
+
 // Occasion noise/service expectations — retained from V8
 const OCCASION_NOISE: Record<string, string[]> = {
   "Date Night": ["Quiet", "Moderate"], "Group Hangout": ["Moderate", "Loud"],
@@ -347,6 +501,13 @@ const QUALITY_WEIGHTS: Record<V9RelevanceType, V9QualityWeights> = {
     // "surprise me" — reputation is the deciding factor
     food: 0.18, reputation: 0.45, vibe: 0.15, service: 0.12, convenience: 0.10,
   },
+// Note: multi_signal is NOT a V9RelevanceType — it's selected dynamically
+// when a query has signals across 3+ categories
+};
+
+/** V11: Multi-signal weight profile — balanced when query spans food + vibe + constraints */
+const MULTI_SIGNAL_WEIGHTS: V9QualityWeights = {
+  food: 0.25, reputation: 0.25, vibe: 0.25, service: 0.15, convenience: 0.10,
 };
 
 // ==========================================
@@ -390,6 +551,11 @@ export function computeRelevance(
     return { score: 1.0, type: "open_ended", details: "No specific request — all restaurants relevant" };
   }
 
+  // V11: Semantic concept matching — when semantic_tags are present, use them
+  // as a BONUS relevance path alongside the existing hierarchy.
+  // This doesn't override dish/cuisine/vibe — it provides an additional signal.
+  const semanticTags = intent?.semantic_tags || [];
+
   const hasDish = !!intent.dish_level_intent;
   const hasCuisine = (intent.target_cuisines?.length ?? 0) > 0;
   const hasVibe = (intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0;
@@ -425,7 +591,22 @@ export function computeRelevance(
   // === VIBE-LEVEL RELEVANCE ===
   if (hasVibe) {
     const vibeRelevance = computeVibeRelevance(candidate, intent);
+    // V11: Boost vibe relevance with semantic signal if available
+    if (semanticTags.length > 0) {
+      const semanticResult = computeSemanticRelevance(candidate, semanticTags, specialRequest);
+      if (semanticResult && semanticResult.score > vibeRelevance) {
+        return { score: Math.min(1.0, (vibeRelevance + semanticResult.score) / 2 + 0.10), type: "vibe", details: `Vibe+Semantic: ${((vibeRelevance + semanticResult.score) / 2).toFixed(2)}` };
+      }
+    }
     return { score: vibeRelevance, type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
+  }
+
+  // V11: Semantic concept matching for queries with semantic_tags but no food/vibe signals
+  if (semanticTags.length > 0) {
+    const semanticResult = computeSemanticRelevance(candidate, semanticTags, specialRequest);
+    if (semanticResult && semanticResult.score > 0.50) {
+      return semanticResult;
+    }
   }
 
   // Fallback: some intent but no clear food/vibe signal
@@ -640,10 +821,83 @@ function computeVibeRelevance(
   }
 
   const hitRate = hits / signals.length;
-  // V10: Keep 0.65 floor — vibe queries are inherently fuzzy and tag data is sparse.
-  // Lowering the floor causes regressions on occasion queries until tag coverage improves.
-  // The expanded signal sources (crowd_profile, origin_story, etc.) improve hit rate instead.
-  return 0.65 + 0.35 * hitRate;
+  // V11: Dynamic floor — strong vibe intent (3+ signals) gets lower floor for more differentiation
+  const floor = signals.length >= 3 ? 0.45 : 0.65;
+  const range = 1.0 - floor;
+  return floor + range * hitRate;
+}
+
+// ---- V11: Semantic Relevance (0-1.0) — Concept + Scenario Matching ----
+
+function computeSemanticRelevance(
+  candidate: V9Candidate,
+  semanticTags: string[],
+  specialRequest: string,
+): V9Relevance | null {
+  if (!semanticTags || semanticTags.length === 0) return null;
+
+  const ri = candidate.review_intelligence;
+  const dp = candidate.deep_profile;
+  const tags = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+  const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+
+  let hits = 0;
+  const matchedSignals: string[] = [];
+
+  for (const semTag of semanticTags) {
+    const stLower = semTag.toLowerCase();
+    const stStemmed = stem(stLower);
+
+    // Check against RI semantic_descriptors (V11 enrichment)
+    if (ri?.semantic_descriptors?.some((d: string) => d.toLowerCase().includes(stLower) || stLower.includes(d.toLowerCase()))) {
+      hits += 2; // Strong match — purpose-built for this
+      matchedSignals.push(semTag);
+      continue;
+    }
+
+    // Check against RI best_for_scenarios
+    if (ri?.best_for_scenarios?.some((s: string) => s.toLowerCase().includes(stLower) || stLower.includes(s.toLowerCase()))) {
+      hits += 2;
+      matchedSignals.push(semTag);
+      continue;
+    }
+
+    // Check against existing tags
+    if (tags.some(t => t.includes(stLower) || stLower.includes(t))) {
+      hits++;
+      matchedSignals.push(semTag);
+      continue;
+    }
+
+    // Check against wow_factors, crowd_profile, unique_selling_point
+    if (dp?.wow_factors?.some((w: string) => w.toLowerCase().includes(stLower))) { hits++; matchedSignals.push(semTag); continue; }
+    if (dp?.crowd_profile?.some((c: string) => c.toLowerCase().includes(stLower))) { hits++; matchedSignals.push(semTag); continue; }
+    if (dp?.unique_selling_point?.toLowerCase().includes(stLower)) { hits++; matchedSignals.push(semTag); continue; }
+    if (oneliner.includes(stLower)) { hits++; matchedSignals.push(semTag); continue; }
+    if (dp?.origin_story?.toLowerCase().includes(stLower)) { hits++; matchedSignals.push(semTag); continue; }
+
+    // Stemmed matching
+    if (tags.some(t => stem(t).includes(stStemmed) || stStemmed.includes(stem(t)))) {
+      hits += 0.5;
+      matchedSignals.push(semTag);
+      continue;
+    }
+  }
+
+  // Score: each semantic tag has max weight of 2 (from RI) or 1 (from structured data)
+  const maxScore = semanticTags.length * 2;
+  if (maxScore === 0) return null;
+
+  const hitRate = Math.min(1.0, hits / maxScore);
+  const score = 0.40 + 0.60 * hitRate;
+
+  return {
+    score,
+    type: "vibe", // Semantic queries use vibe relevance type for weight profile
+    details: matchedSignals.length > 0
+      ? `Semantic match: ${matchedSignals.slice(0, 3).join(", ")} (${hitRate.toFixed(2)})`
+      : `Semantic: no direct matches`,
+  };
 }
 
 // ==========================================
@@ -659,7 +913,20 @@ export function computeQuality(
   relevanceType: V9RelevanceType,
   context: V9ScoringContext,
 ): { quality: number; weights: V9QualityWeights; factors: V9Factors; factorDetails: V9FactorDetails; factorConfidence: V9FactorConfidence } {
-  const weights = QUALITY_WEIGHTS[relevanceType];
+  // V11: Use multi-signal weights when query spans 3+ signal categories
+  let weights = QUALITY_WEIGHTS[relevanceType];
+  if (context.intent) {
+    const signalCategories = [
+      (context.intent.target_cuisines?.length ?? 0) > 0 || !!context.intent.dish_level_intent,
+      (context.intent.vibe_keywords?.length ?? 0) > 0 || (context.intent.target_tags?.length ?? 0) > 0,
+      (context.intent.practical_constraints?.length ?? 0) > 0,
+      context.intent.emotional_intent !== "casual",
+      (context.intent.flavor_preferences?.length ?? 0) > 0,
+    ].filter(Boolean).length;
+    if (signalCategories >= 3) {
+      weights = MULTI_SIGNAL_WEIGHTS;
+    }
+  }
 
   // Compute raw quality dimensions (0-10 each) — now returns details + confidence
   const foodResult = computeFoodQuality(candidate, context.googleData, context.intent, relevanceType);
@@ -1312,8 +1579,9 @@ export function computeV9Score(
   const hasRI = candidate.review_intelligence != null;
   const hasDP = dp != null;
   const dataCompleteness = (hasRI ? 0.4 : 0) + (hasDP ? 0.4 : 0) + (dp?.enrichment_confidence ?? 0) * 0.2;
-  const CONFIDENCE_MEAN = 60;
-  const confidenceFactor = 0.75 + 0.25 * dataCompleteness; // 0.75 to 1.0 (gentle adjustment)
+  // V11: Reduced pull-to-center for better score differentiation
+  const CONFIDENCE_MEAN = 55;
+  const confidenceFactor = 0.80 + 0.20 * dataCompleteness; // 0.80 to 1.0 (gentler penalty)
   const adjustedQuality = CONFIDENCE_MEAN + (quality - CONFIDENCE_MEAN) * confidenceFactor;
 
   // Step 3b: V9 Score = Relevance × Quality (now confidence-adjusted)
