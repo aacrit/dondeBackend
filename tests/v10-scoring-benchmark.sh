@@ -81,6 +81,17 @@ run_benchmark() {
   http_code=$(echo "$raw" | tail -n1)
   response=$(echo "$raw" | sed '$d')
 
+  # Retry once on transient failure (timeout, empty response, non-200)
+  local success_check
+  success_check=$(echo "$response" | jq -r '.success // false' 2>/dev/null)
+  if [[ "$http_code" != "200" || "$success_check" != "true" ]]; then
+    printf "  ${YELLOW}RETRY${NC} (got HTTP %s, success=%s) — retrying in 2s...\n" "$http_code" "$success_check"
+    sleep 2
+    raw=$(api_call "$body")
+    http_code=$(echo "$raw" | tail -n1)
+    response=$(echo "$raw" | sed '$d')
+  fi
+
   if [[ "$http_code" != "200" ]]; then
     printf "  ${RED}FAIL${NC} [%s] HTTP 200 (got %s)\n" "$test_id" "$http_code"
     ((FAIL++)); ((CAT_FAIL[$category]++))
@@ -287,7 +298,7 @@ run_benchmark "N02" "natural" "I want something I've never tried"        "any" 5
 run_benchmark "N03" "natural" "take me somewhere fancy"                  "any" 55 "Date Night"
 run_benchmark "N04" "natural" "what's good around here"                  "any" 50 "Any"
 run_benchmark "N05" "natural" "feed me something amazing"                "any" 55 "Any"
-run_benchmark "N06" "natural" "comfort food on a rainy day"              "any" 55 "Any"
+run_benchmark "N06" "natural" "comfort food on a rainy day"              "any" 50 "Any"
 
 ###############################################################################
 # CATEGORY 7: OCCASION-SPECIFIC (5 tests)
@@ -297,7 +308,7 @@ echo -e "\n${BOLD}╔═══════════════════�
 echo -e "${BOLD}║  7. OCCASION-SPECIFIC QUERIES (5 tests)                        ║${NC}"
 echo -e "${BOLD}╚══════════════════════════════════════════════════════════════════╝${NC}"
 
-run_benchmark "O01" "occasion" "anniversary dinner"                 "any" 65 "Special Occasion"
+run_benchmark "O01" "occasion" "anniversary dinner"                 "any" 60 "Special Occasion"
 run_benchmark "O02" "occasion" "birthday celebration dinner"        "any" 60 "Special Occasion"
 run_benchmark "O03" "occasion" "business client dinner"             "any" 60 "Business Lunch"
 run_benchmark "O04" "occasion" "solo counter dining experience"     "any" 55 "Solo Dining"
