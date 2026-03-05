@@ -1,25 +1,26 @@
 # Backend Features
 
-Last updated: 2026-02-27
+Last updated: 2026-03-05
 
-## Edge Function (V7.3b — active)
+## Edge Function (V9 — active)
 
 ### Scoring Engine
-- [x] V7 geometric mean scoring (5 factors: Food, Vibe, Service, Reputation, Convenience)
-- [x] V5 weight engine (28 context shift rules, 4 adaptive layers) — imported by V7
-- [x] Intent Alignment Score (0.0–1.0): cuisine/dish/vibe/constraint matching for ranking tiebreaker
-- [x] Match Narrative: structured "why this match" data for UI storytelling
-- [x] Ranked Queue: pre-computed top 5 results → instant Try Again on frontend (<100ms)
-- [x] Post-Google re-score: reputation re-computed with real Google ratings
+- [x] V9 Relevance × Quality scoring (5 factors: Food, Vibe, Service, Reputation, Convenience)
+- [x] Relevance gating via review intelligence (dish_catalog, cuisine_signals, popular_dishes)
+- [x] Query-type-aware weight profiles (no weight-shift rules)
+- [x] Self-healing: NULL cuisine_type → fallback to cuisine_signals (1806/2719 restaurants)
+- [x] Match Narrative: structured "why this match" data (strongest_factor, key_signals, summary)
+- [x] Ranked Queue: pre-computed top 5 results → instant Try Again on frontend
+- [x] Post-Google re-score: all candidates re-scored with real Google data
 - [x] Stretched Google rating (3.5→0, 5.0→10 for reputation factor)
-- [x] Factor-specific confidence regression toward 5.5 prior
-- [x] Intent tiebreaker in pre-Google ranking (±5 DM, >0.15 alignment difference)
-- [x] Cuisine mismatch cap at 65 (post-Claude guard rail only — no in-scoring caps)
+- [x] OccasionBonus (±5 points)
+- [x] Cuisine mismatch cap at 65 (post-Claude guard rail)
 
 ### Pipeline & Infrastructure
-- [x] V5 hard filter pipeline (6 filters + relaxation cascade)
 - [x] Deterministic intent classification (~80% zero-cost, Claude fallback ~15%)
 - [x] Intent Boost — Claude may elevate lower-ranked candidate (5-25 points, guard rails)
+- [x] Dietary hard filter (safety-critical, never relaxed)
+- [x] Full-text search on reviews via `p_query` in `get_candidates_v9` RPC
 - [x] 5-min in-memory response cache (100 entries, LRU eviction)
 - [x] 30/min/IP rate limiting (soft enforcement)
 - [x] Input sanitization + prompt injection defense
@@ -29,13 +30,6 @@ Last updated: 2026-02-27
 - [x] Closed restaurant auto-substitution
 - [x] Fire-and-forget query logging
 - [x] Parallel execution: intent + RPC + feedback fetch; Google top-5
-
-### Deprecated (dead code — do not use)
-- `scoring-v5.ts` — replaced by `scoring-v7.ts`
-- `scoring-v3.ts` — factor fns called directly from `scoring-v7.ts`
-- `weight-config-v7.ts` — 34-rule system caused regression; `weight-config-v5.ts` used instead
-- `response-builder-v5.ts` — replaced by `response-builder-v7.ts`
-- `types-v5.ts` — replaced by `types-v7.ts`
 
 ## Data Pipelines
 
@@ -65,7 +59,8 @@ Last updated: 2026-02-27
 ## Database
 
 - [x] 10 tables, 27 migrations
-- [x] RPC `get_ranked_restaurants` (49 return columns, single round-trip)
+- [x] RPC `get_candidates_v9` (full-text search + review intelligence)
+- [x] RPC `get_ranked_restaurants` (legacy, 49 return columns)
 - [x] RLS policies on auth tables
 - [x] Google compliance (only `google_place_id` stored)
 - [x] restaurant_deep_profiles (38 enrichment fields)
