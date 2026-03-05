@@ -642,10 +642,10 @@ function computeVibeRelevance(
   }
 
   const hitRate = hits / signals.length;
-  // V10: Lowered floor from 0.65 to 0.50 to better differentiate vibe mismatches
-  // while still allowing decent-quality restaurants through.
-  // Full hit = 1.0, zero hits = 0.50 (was 0.65).
-  return 0.50 + 0.50 * hitRate;
+  // V10: Keep 0.65 floor — vibe queries are inherently fuzzy and tag data is sparse.
+  // Lowering the floor causes regressions on occasion queries until tag coverage improves.
+  // The expanded signal sources (crowd_profile, origin_story, etc.) improve hit rate instead.
+  return 0.65 + 0.35 * hitRate;
 }
 
 // ==========================================
