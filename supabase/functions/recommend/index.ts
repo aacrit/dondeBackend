@@ -21,7 +21,8 @@ import type { UserFeedbackSignals } from "./_shared/scoring.ts";
 // V9 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
 import { computeV9Score, reRankV9, NEIGHBORHOOD_ALIASES } from "./_shared/scoring-v9.ts";
-import { buildV5SystemPrompt, buildV5UserPrompt, buildBlurbOnlyPrompt } from "./_shared/prompts-v5.ts";
+import { buildV5SystemPrompt, buildV5UserPrompt, buildBlurbOnlyPrompt, detectCultureTheme } from "./_shared/prompts-v5.ts";
+import type { CultureTheme } from "./_shared/prompts-v5.ts";
 import {
   buildV9SuccessResponse,
   buildV9FallbackResponse,
@@ -252,8 +253,12 @@ Deno.serve(async (req: Request) => {
       // Determine score tier for tone modulation
       const scoreTier = context?.score_tier || "good";
 
+      // Detect culture theme for narrative voice from cuisine type and request
+      const cultureText = [restaurantData.cuisine_type, context?.special_request].filter(Boolean).join(' ');
+      const cultureTheme = detectCultureTheme(cultureText);
+
       // Build minimal prompt for single restaurant blurb
-      const systemPrompt = buildV5SystemPrompt(scoreTier as "exceptional" | "great" | "good" | "decent" | "weak");
+      const systemPrompt = buildV5SystemPrompt(scoreTier as "exceptional" | "great" | "good" | "decent" | "weak", cultureTheme);
       const userPrompt = buildBlurbOnlyPrompt(restaurantData, context || {});
 
       const rawText = await callClaude(userPrompt, systemPrompt, { maxTokens: 384, temperature: 0.7 });
@@ -677,8 +682,16 @@ Deno.serve(async (req: Request) => {
       const topRelevance = rerankedScored[0].relevance;
       const weightContext = `${topRelevance.type} query (R=${topRelevance.score.toFixed(2)}): ${topRelevance.details}`;
 
-      // System prompt with Donde character voice + tone directive
-      const systemPrompt = buildV5SystemPrompt(scoreTier);
+      // Detect culture theme for narrative voice from top candidate + user intent
+      const cultureText = [
+        rerankedScored[0].profile.cuisine_type,
+        intent?.target_cuisines?.join(' '),
+        special_request,
+      ].filter(Boolean).join(' ');
+      const cultureTheme = detectCultureTheme(cultureText);
+
+      // System prompt with Donde character voice + tone + narrative voice
+      const systemPrompt = buildV5SystemPrompt(scoreTier, cultureTheme);
 
       // User prompt with full candidate pool + top 10 deep profiles
       // Cast V9ScoredCandidate to V5ScoredCandidate for prompt compatibility
