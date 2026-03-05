@@ -49,7 +49,7 @@ import type {
 } from "./_shared/types-v9.ts";
 import { getScoreTier } from "./_shared/types-v9.ts";
 
-const API_VERSION = "9.0.0";
+const API_VERSION = "10.0.0";
 
 // --- In-memory response cache ---
 interface CacheEntry {
@@ -205,7 +205,7 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({
       status: "ok",
       version: API_VERSION,
-      engine: "v9",
+      engine: "v10",
       timestamp: new Date().toISOString(),
     });
   }
@@ -1021,7 +1021,7 @@ Deno.serve(async (req: Request) => {
       intentBoost: !!(responseBody as Record<string, unknown>).intent_boost,
       candidatePool: rerankedScored.length,
       rankedQueueSize: rankedQueue.length,
-      engine: "v9",
+      engine: "v10",
     });
 
     const response = jsonResponse(responseBody);
