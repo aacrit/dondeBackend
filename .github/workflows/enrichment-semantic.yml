@@ -9,13 +9,29 @@ on:
         default: true
 
 jobs:
-  enrich-semantic:
+  migrate-and-enrich:
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v4
 
+      # Step 1: Apply DB migration to ensure semantic_descriptors columns exist
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: supabase link --project-ref vwbzkgsxmgwcvmvuxnbe
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Apply pending migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      # Step 2: Run the enrichment pipeline
       - uses: actions/setup-node@v4
         with:
           node-version: '20'

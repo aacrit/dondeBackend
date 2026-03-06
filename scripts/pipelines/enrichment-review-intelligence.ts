@@ -102,8 +102,7 @@ async function main() {
 
   const supabase = createAdminClient();
 
-  // Query all restaurants — filter for empty/null semantic_descriptors client-side
-  // (PostgREST doesn't support empty-array filtering cleanly)
+  // Fetch all RI rows — semantic_descriptors column must exist (migration runs before this)
   const { data: restaurants, error: fetchErr } = await supabase
     .from("restaurant_review_intelligence")
     .select(`
@@ -114,9 +113,16 @@ async function main() {
       semantic_descriptors
     `);
 
-  if (fetchErr) throw fetchErr;
+  if (fetchErr) {
+    if (fetchErr.message?.includes("400") || fetchErr.message?.includes("Bad Request")) {
+      console.error("ERROR: semantic_descriptors column does not exist.");
+      console.error("Run the DB migration first: supabase db push (or use the migrate workflow)");
+      process.exit(1);
+    }
+    throw fetchErr;
+  }
 
-  // Filter to those needing enrichment
+  // Filter to those needing enrichment (null or empty array)
   const needsEnrichment = (restaurants || []).filter(
     (ri) =>
       ri.semantic_descriptors === null ||
