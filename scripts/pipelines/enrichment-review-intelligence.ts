@@ -102,8 +102,8 @@ async function main() {
 
   const supabase = createAdminClient();
 
-  // Query restaurants with review intelligence but no semantic_descriptors
-  // Note: migration sets DEFAULT '{}' (empty array), so we must match both NULL and empty
+  // Query all restaurants — filter for empty/null semantic_descriptors client-side
+  // (PostgREST doesn't support empty-array filtering cleanly)
   const { data: restaurants, error: fetchErr } = await supabase
     .from("restaurant_review_intelligence")
     .select(`
@@ -112,8 +112,7 @@ async function main() {
       popular_dishes,
       cuisine_signals,
       semantic_descriptors
-    `)
-    .or("semantic_descriptors.is.null,semantic_descriptors.eq.{}");
+    `);
 
   if (fetchErr) throw fetchErr;
 
