@@ -21,6 +21,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { createHash } from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TESTS_DIR = join(__dirname, "..", "..", "tests");
@@ -398,6 +399,164 @@ function loadLatestResults(outputDir: string): Map<string, QueryResult> {
   return map;
 }
 
+// ─── Supabase Persistence ────────────────────────────────────────────────────
+
+function computeDatasetHash(results: QueryResult[]): string {
+  const ids = results.map((r) => r.query_id).sort();
+  return createHash("sha256").update(ids.join("\n")).digest("hex").substring(0, 16);
+}
+
+async function persistToSupabase(
+  results: QueryResult[],
+  runId: string,
+  opts: { mode: string; atlasVersion: string; incremental: boolean; regression: boolean }
+): Promise<void> {
+  const serviceKey = process.env.SUPAB_SERVICE_ROLE_KEY;
+  const url = process.env.SUPAB_URL;
+  if (!serviceKey || !url) {
+    console.log("  ℹ Supabase persistence skipped (no SUPAB_SERVICE_ROLE_KEY)");
+    return;
+  }
+
+  const { createClient } = await import("@supabase/supabase-js");
+  const sb = createClient(url, serviceKey);
+
+  const datasetHash = computeDatasetHash(results);
+  const mode = opts.incremental ? "incremental" : opts.regression ? "regression" : opts.mode;
+
+  // Compute summary stats
+  const total = results.length;
+  const successful = results.filter((r) => r.result.success).length;
+  const passed60 = results.filter((r) => r.result.donde_match >= 60).length;
+  const passed80 = results.filter((r) => r.result.donde_match >= 80).length;
+  const passed90 = results.filter((r) => r.result.donde_match >= 90).length;
+  const avgDM = total > 0 ? results.reduce((s, r) => s + r.result.donde_match, 0) / total : 0;
+  const gapCount = results.filter((r) => r.evaluation.gap_type).length;
+  const avgResponseMs = total > 0 ? Math.round(results.reduce((s, r) => s + r.result.response_time_ms, 0) / total) : 0;
+
+  // Category stats
+  const catStats: Record<string, { avg_dm: number; pass_rate: number; gaps: number; total: number }> = {};
+  const catAcc: Record<string, { sumDM: number; total: number; passed: number; gaps: number }> = {};
+  for (const r of results) {
+    if (!catAcc[r.category]) catAcc[r.category] = { sumDM: 0, total: 0, passed: 0, gaps: 0 };
+    catAcc[r.category].sumDM += r.result.donde_match;
+    catAcc[r.category].total++;
+    if (r.result.donde_match >= 60) catAcc[r.category].passed++;
+    if (r.evaluation.gap_type) catAcc[r.category].gaps++;
+  }
+  for (const [cat, acc] of Object.entries(catAcc)) {
+    catStats[cat] = {
+      avg_dm: Math.round((acc.sumDM / acc.total) * 10) / 10,
+      pass_rate: Math.round((acc.passed / acc.total) * 1000) / 10,
+      gaps: acc.gaps,
+      total: acc.total,
+    };
+  }
+
+  // Gap type stats
+  const gapTypeStats: Record<string, { count: number; avg_dm: number }> = {};
+  const gapAcc: Record<string, { sumDM: number; count: number }> = {};
+  for (const r of results) {
+    if (!r.evaluation.gap_type) continue;
+    const gt = r.evaluation.gap_type;
+    if (!gapAcc[gt]) gapAcc[gt] = { sumDM: 0, count: 0 };
+    gapAcc[gt].sumDM += r.result.donde_match;
+    gapAcc[gt].count++;
+  }
+  for (const [gt, acc] of Object.entries(gapAcc)) {
+    gapTypeStats[gt] = { count: acc.count, avg_dm: Math.round((acc.sumDM / acc.count) * 10) / 10 };
+  }
+
+  // Factor averages
+  const factorAvg: Record<string, number> = {};
+  for (const f of ["food", "vibe", "service", "reputation", "convenience"] as const) {
+    factorAvg[f] = Math.round((results.reduce((s, r) => s + r.result[f], 0) / total) * 10) / 10;
+  }
+
+  // Find previous comparable run
+  const { data: prevRuns } = await sb
+    .from("gauntlet_runs")
+    .select("run_id, avg_dm, passed_60, gap_count")
+    .eq("dataset_hash", datasetHash)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  const prev = prevRuns && prevRuns.length > 0 ? prevRuns[0] : null;
+
+  // Build per-query delta map from previous run
+  let prevResultMap: Record<string, number> = {};
+  if (prev) {
+    const { data: prevResults } = await sb
+      .from("gauntlet_results")
+      .select("query_id, donde_match")
+      .eq("run_id", prev.run_id);
+    if (prevResults) {
+      for (const pr of prevResults) prevResultMap[pr.query_id] = pr.donde_match;
+    }
+  }
+
+  // Insert run
+  const { error: runError } = await sb.from("gauntlet_runs").insert({
+    run_id: runId,
+    dataset_hash: datasetHash,
+    dataset_size: total,
+    mode,
+    atlas_version: opts.atlasVersion,
+    total,
+    successful,
+    passed_60: passed60,
+    passed_80: passed80,
+    passed_90: passed90,
+    avg_dm: Math.round(avgDM * 10) / 10,
+    gap_count: gapCount,
+    avg_response_ms: avgResponseMs,
+    category_stats: catStats,
+    gap_type_stats: gapTypeStats,
+    factor_averages: factorAvg,
+    prev_run_id: prev?.run_id || null,
+    delta_avg_dm: prev ? Math.round((avgDM - Number(prev.avg_dm)) * 10) / 10 : null,
+    delta_passed_60: prev ? passed60 - prev.passed_60 : null,
+    delta_gap_count: prev ? gapCount - prev.gap_count : null,
+  });
+
+  if (runError) throw new Error(`Insert run failed: ${runError.message}`);
+
+  // Batch insert results
+  const BATCH = 500;
+  const rows = results.map((r) => {
+    const prevDM = prevResultMap[r.query_id] ?? null;
+    return {
+      run_id: runId,
+      query_id: r.query_id,
+      query: r.query,
+      tier: r.tier,
+      category: r.category,
+      donde_match: r.result.donde_match,
+      relevance_type: r.result.relevance_type,
+      food: r.result.food,
+      vibe: r.result.vibe,
+      service: r.result.service,
+      reputation: r.result.reputation,
+      convenience: r.result.convenience,
+      response_time_ms: r.result.response_time_ms,
+      score_pass: r.evaluation.score_pass,
+      gap_type: r.evaluation.gap_type,
+      gap_severity: r.evaluation.gap_severity,
+      restaurant_name: r.result.restaurant_name,
+      prev_dm: prevDM,
+      delta_dm: prevDM !== null ? r.result.donde_match - prevDM : null,
+    };
+  });
+
+  for (let i = 0; i < rows.length; i += BATCH) {
+    const batch = rows.slice(i, i + BATCH);
+    const { error } = await sb.from("gauntlet_results").insert(batch);
+    if (error) throw new Error(`Insert results batch ${i} failed: ${error.message}`);
+  }
+
+  console.log(`  ✓ Persisted to Supabase: ${total} results, dataset=${datasetHash.substring(0, 8)}${prev ? `, Δ avg_dm=${Math.round((avgDM - Number(prev.avg_dm)) * 10) / 10}` : " (first run for this dataset)"}`);
+}
+
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -502,6 +661,18 @@ async function main() {
   // Save results
   const jsonl = results.map((r) => JSON.stringify(r)).join("\n") + "\n";
   writeFileSync(outputPath, jsonl);
+
+  // Persist to Supabase
+  try {
+    await persistToSupabase(results, runId, {
+      mode: lightweight ? "lightweight" : "full",
+      atlasVersion: atlasPath.split("/").pop() || "",
+      incremental,
+      regression,
+    });
+  } catch (e) {
+    console.warn(`  ⚠ Supabase persistence failed: ${(e as Error).message}`);
+  }
 
   // Print summary
   console.log("\n\n╔══════════════════════════════════════════════════════════════╗");
