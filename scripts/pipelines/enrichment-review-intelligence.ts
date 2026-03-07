@@ -103,22 +103,15 @@ async function main() {
   const supabase = createAdminClient();
 
   // Fetch all RI rows — semantic_descriptors column must exist (migration runs before this)
-  const { data: restaurants, error: fetchErr } = await supabase
+  // Only fetch restaurant_id and semantic_descriptors for filtering
+  // (dish_catalog/popular_dishes/cuisine_signals are large JSON — fetch later per-batch)
+  const { data: restaurants, error: fetchErr, count } = await supabase
     .from("restaurant_review_intelligence")
-    .select(`
-      restaurant_id,
-      dish_catalog,
-      popular_dishes,
-      cuisine_signals,
-      semantic_descriptors
-    `);
+    .select("restaurant_id,semantic_descriptors", { count: "exact" });
 
   if (fetchErr) {
-    if (fetchErr.message?.includes("400") || fetchErr.message?.includes("Bad Request")) {
-      console.error("ERROR: semantic_descriptors column does not exist.");
-      console.error("Run the DB migration first: supabase db push (or use the migrate workflow)");
-      process.exit(1);
-    }
+    console.error("Fetch error details:", JSON.stringify(fetchErr, null, 2));
+    console.error("Status:", (fetchErr as any).status, "Code:", (fetchErr as any).code);
     throw fetchErr;
   }
 
