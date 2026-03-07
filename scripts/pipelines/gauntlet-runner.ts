@@ -23,6 +23,14 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createHash } from "crypto";
 
+// Configure proxy if HTTPS_PROXY is set (needed in containerized environments)
+if (process.env.HTTPS_PROXY || process.env.https_proxy) {
+  try {
+    const { ProxyAgent, setGlobalDispatcher } = await import("undici");
+    setGlobalDispatcher(new ProxyAgent(process.env.HTTPS_PROXY || process.env.https_proxy!));
+  } catch {}
+}
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TESTS_DIR = join(__dirname, "..", "..", "tests");
 const DEFAULT_OUTPUT = join(TESTS_DIR, "gauntlet-results");
