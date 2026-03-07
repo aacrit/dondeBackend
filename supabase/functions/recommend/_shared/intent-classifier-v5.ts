@@ -36,7 +36,7 @@ const FLAVOR_WORDS: string[] = [
 const VIBE_WORDS: string[] = [
   "intimate", "lively", "cozy", "elegant", "casual", "buzzing", "chill",
   "refined", "rustic", "modern", "industrial", "classic", "funky", "warm",
-  "minimalist",
+  "minimalist", "relaxed",
 ];
 
 /** Practical constraint trigger words mapped to constraint labels */
@@ -64,7 +64,7 @@ const EMOTIONAL_INTENT_PATTERNS: Array<{ intent: string; pattern: RegExp }> = [
   { intent: "celebrate", pattern: /celebrat|celebration|birthday|anniversary|graduation|engagement|milestone|promotion/ },
   { intent: "indulge", pattern: /treat|indulge|splurge|pamper|luxury|spoil|self.?care/ },
   { intent: "explore", pattern: /\bnew\b|try|adventure|explore|discover|never.?been|something new|different|unique/ },
-  { intent: "comfort", pattern: /cozy|comfortable|familiar|home|soul|nostalgia|homey|comforting/ },
+  { intent: "comfort", pattern: /cozy|comfortable|familiar|home|nostalgia|homey|comforting/ },
   // "casual" is the default — no pattern needed
 ];
 
