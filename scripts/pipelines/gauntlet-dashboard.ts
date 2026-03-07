@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "fs";
 import { join, dirname, basename } from "path";
 import { fileURLToPath } from "url";
+import { createHash } from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TESTS_DIR = join(__dirname, "..", "..", "tests");
@@ -118,7 +119,130 @@ function ragEmoji(dm: number): string {
 
 // ─── Main ───────────────────────────────────────────────────────────────────
 
-function generate(resultsPath: string) {
+// ─── Run History (Supabase) ──────────────────────────────────────────────────
+
+async function fetchRunHistory(results: QueryResult[], sourceFile: string) {
+  const empty = { current: null, previous: null, delta: null, timeline: [], regressions: [], improvements: [] };
+
+  try {
+    const url = process.env.SUPAB_URL;
+    const key = process.env.SUPAB_SERVICE_ROLE_KEY;
+    if (!url || !key) return empty;
+
+    const { createClient } = await import("@supabase/supabase-js");
+    const sb = createClient(url, key);
+
+    // Compute current dataset hash
+    const ids = results.map((r) => r.query_id).sort();
+    const datasetHash = createHash("sha256").update(ids.join("\n")).digest("hex").substring(0, 16);
+
+    // Current run's run_id (from the source filename)
+    const currentRunId = sourceFile.replace(".jsonl", "");
+
+    // Fetch timeline (all runs, newest first)
+    const { data: timeline } = await sb
+      .from("gauntlet_runs")
+      .select("run_id, created_at, avg_dm, passed_60, passed_80, gap_count, dataset_hash, dataset_size, mode, delta_avg_dm, delta_passed_60, delta_gap_count, factor_averages, gap_type_stats, prev_run_id")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (!timeline || timeline.length === 0) return empty;
+
+    // Find current run in timeline
+    const current = timeline.find((r) => r.run_id === currentRunId) || timeline[0];
+
+    // Find previous comparable run (same dataset_hash)
+    const previous = timeline.find((r) => r.dataset_hash === current.dataset_hash && r.run_id !== current.run_id) || null;
+
+    // Compute per-query regressions/improvements if we have a previous run
+    let regressions: { query_id: string; query: string; prev_dm: number; curr_dm: number; delta: number; gap_type: string | null }[] = [];
+    let improvements: { query_id: string; query: string; prev_dm: number; curr_dm: number; delta: number; prev_gap: string | null; curr_gap: string | null }[] = [];
+
+    if (previous) {
+      const { data: prevResults } = await sb
+        .from("gauntlet_results")
+        .select("query_id, donde_match, gap_type")
+        .eq("run_id", previous.run_id);
+
+      if (prevResults) {
+        const prevMap = new Map(prevResults.map((r) => [r.query_id, r]));
+
+        for (const r of results) {
+          const prev = prevMap.get(r.query_id);
+          if (!prev) continue;
+          const delta = r.result.donde_match - prev.donde_match;
+          if (delta < -3) {
+            regressions.push({
+              query_id: r.query_id,
+              query: r.query,
+              prev_dm: prev.donde_match,
+              curr_dm: r.result.donde_match,
+              delta,
+              gap_type: r.evaluation.gap_type,
+            });
+          } else if (delta > 3) {
+            improvements.push({
+              query_id: r.query_id,
+              query: r.query,
+              prev_dm: prev.donde_match,
+              curr_dm: r.result.donde_match,
+              delta,
+              prev_gap: prev.gap_type,
+              curr_gap: r.evaluation.gap_type,
+            });
+          }
+        }
+
+        regressions.sort((a, b) => a.delta - b.delta);
+        improvements.sort((a, b) => b.delta - a.delta);
+      }
+    }
+
+    return {
+      current: {
+        run_id: current.run_id,
+        created_at: current.created_at,
+        dataset_hash: current.dataset_hash,
+        avg_dm: current.avg_dm,
+        passed_60: current.passed_60,
+        gap_count: current.gap_count,
+      },
+      previous: previous ? {
+        run_id: previous.run_id,
+        created_at: previous.created_at,
+        avg_dm: previous.avg_dm,
+        passed_60: previous.passed_60,
+        gap_count: previous.gap_count,
+      } : null,
+      delta: previous ? {
+        avg_dm: Number(current.delta_avg_dm) || Math.round((Number(current.avg_dm) - Number(previous.avg_dm)) * 10) / 10,
+        passed_60: current.delta_passed_60 ?? (current.passed_60 - previous.passed_60),
+        gap_count: current.delta_gap_count ?? (current.gap_count - previous.gap_count),
+      } : null,
+      timeline: timeline.map((r) => ({
+        run_id: r.run_id,
+        created_at: r.created_at,
+        avg_dm: Number(r.avg_dm),
+        passed_60: r.passed_60,
+        passed_80: r.passed_80,
+        gap_count: r.gap_count,
+        dataset_hash: r.dataset_hash,
+        dataset_size: r.dataset_size,
+        mode: r.mode,
+        delta_avg_dm: r.delta_avg_dm ? Number(r.delta_avg_dm) : null,
+        delta_passed_60: r.delta_passed_60,
+        delta_gap_count: r.delta_gap_count,
+      })),
+      regressions: regressions.slice(0, 20),
+      improvements: improvements.slice(0, 20),
+    };
+  } catch (e) {
+    console.warn(`  ⚠ Run history fetch failed: ${(e as Error).message}`);
+    return empty;
+  }
+}
+
+async function generate(resultsPath: string) {
   const lines = readFileSync(resultsPath, "utf-8").split("\n").filter((l) => l.trim());
   const results: QueryResult[] = lines.map((l) => normalizeResult(JSON.parse(l)));
   const date = new Date().toISOString().substring(0, 10);
@@ -557,6 +681,7 @@ function generate(resultsPath: string) {
       label: b.label,
       count: results.filter((r) => r.result.donde_match >= b.min && r.result.donde_match <= b.max).length,
     })),
+    run_history: await fetchRunHistory(results, basename(resultsPath)),
   };
 
   const jsonPath = join(TESTS_DIR, "gauntlet-results", "dashboard-data.json");
@@ -566,18 +691,21 @@ function generate(resultsPath: string) {
 
 // ─── Main ───────────────────────────────────────────────────────────────────
 
-const resultsPath = process.argv[2];
-if (!resultsPath) {
-  // Try to find latest results
-  const resultsDir = join(TESTS_DIR, "gauntlet-results");
-  if (existsSync(resultsDir)) {
-    const files = readdirSync(resultsDir).filter((f) => f.startsWith("run-") && f.endsWith(".jsonl")).sort().reverse();
-    if (files.length > 0) {
-      generate(join(resultsDir, files[0]));
-      process.exit(0);
+async function main() {
+  const resultsPath = process.argv[2];
+  if (!resultsPath) {
+    // Try to find latest results
+    const resultsDir = join(TESTS_DIR, "gauntlet-results");
+    if (existsSync(resultsDir)) {
+      const files = readdirSync(resultsDir).filter((f) => f.startsWith("run-") && f.endsWith(".jsonl")).sort().reverse();
+      if (files.length > 0) {
+        await generate(join(resultsDir, files[0]));
+        return;
+      }
     }
+    console.error("Usage: npx tsx pipelines/gauntlet-dashboard.ts <results.jsonl>");
+    process.exit(1);
   }
-  console.error("Usage: npx tsx pipelines/gauntlet-dashboard.ts <results.jsonl>");
-  process.exit(1);
+  await generate(resultsPath);
 }
-generate(resultsPath);
+main().catch(console.error);
