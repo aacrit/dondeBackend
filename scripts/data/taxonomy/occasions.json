@@ -1,0 +1,24 @@
+{
+  "occasions": [
+    { "name": "date night", "search_volume": "high", "api_value": "Date Night", "occasion_field": "date_friendly_score", "synonyms": ["date", "date spot", "romantic dinner"] },
+    { "name": "group dinner", "search_volume": "high", "api_value": "Group Dinner", "occasion_field": "group_friendly_score", "synonyms": ["group", "large party", "big group", "dinner for 8", "dinner for 10"] },
+    { "name": "family dinner", "search_volume": "high", "api_value": "Family", "occasion_field": "family_friendly_score", "synonyms": ["family", "family friendly", "kids", "with children"] },
+    { "name": "business lunch", "search_volume": "high", "api_value": "Business", "occasion_field": "business_lunch_score", "synonyms": ["business dinner", "client dinner", "corporate", "work lunch", "power lunch"] },
+    { "name": "solo dining", "search_volume": "medium", "api_value": "Solo", "occasion_field": "solo_dining_score", "synonyms": ["eating alone", "solo", "by myself", "table for one"] },
+    { "name": "birthday", "search_volume": "high", "api_value": "Birthday", "occasion_field": "group_friendly_score", "synonyms": ["birthday dinner", "birthday celebration", "birthday party"] },
+    { "name": "anniversary", "search_volume": "medium", "api_value": "Anniversary", "occasion_field": "romantic_rating", "synonyms": ["anniversary dinner", "wedding anniversary"] },
+    { "name": "celebration", "search_volume": "medium", "api_value": "Celebration", "occasion_field": "group_friendly_score", "synonyms": ["special occasion", "milestone", "promotion dinner", "congratulations dinner"] },
+    { "name": "brunch", "search_volume": "high", "api_value": "Brunch", "occasion_field": null, "synonyms": ["weekend brunch", "sunday brunch", "saturday brunch", "bottomless brunch"] },
+    { "name": "late night", "search_volume": "high", "api_value": "Late Night", "occasion_field": null, "synonyms": ["late night food", "after midnight", "midnight snack", "after hours", "late eats"] },
+    { "name": "happy hour", "search_volume": "high", "api_value": "Happy Hour", "occasion_field": null, "synonyms": ["after work drinks", "post-work", "drinks and apps", "happy hour food"] },
+    { "name": "casual hangout", "search_volume": "high", "api_value": "Casual", "occasion_field": null, "synonyms": ["hanging out", "casual dinner", "no fuss", "low key", "chill dinner"] }
+  ],
+  "query_templates": [
+    "{occasion} restaurant",
+    "good place for {occasion}",
+    "where to go for {occasion}",
+    "{occasion} spot",
+    "{occasion} in Chicago",
+    "best {occasion} restaurant"
+  ]
+}

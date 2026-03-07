@@ -1,0 +1,118 @@
+{
+  "chicago_iconic": {
+    "search_volume": "high",
+    "dishes": [
+      { "name": "deep dish pizza", "cuisine": "Italian", "synonyms": ["chicago style pizza", "stuffed pizza", "deep dish"] },
+      { "name": "Italian beef", "cuisine": "Italian/American", "synonyms": ["Italian beef sandwich", "beef sandwich", "wet Italian beef", "hot giardiniera beef"] },
+      { "name": "Chicago hot dog", "cuisine": "American", "synonyms": ["chicago dog", "hot dog chicago style", "vienna beef"] },
+      { "name": "tavern-style pizza", "cuisine": "Italian", "synonyms": ["tavern cut pizza", "thin crust chicago", "party cut pizza", "square cut pizza"] },
+      { "name": "jibaritos", "cuisine": "Puerto Rican", "synonyms": ["jibarito sandwich", "plantain sandwich"] },
+      { "name": "gym shoe", "cuisine": "American", "synonyms": ["gym shoe sandwich", "sub sandwich chicago"] },
+      { "name": "mother-in-law", "cuisine": "American", "synonyms": ["mother in law sandwich", "tamale sandwich"] },
+      { "name": "Maxwell Street Polish", "cuisine": "Polish/American", "synonyms": ["maxwell street polish sausage", "polish sausage chicago"] },
+      { "name": "Chicago mix popcorn", "cuisine": "Snack", "synonyms": ["garrett mix", "cheese and caramel popcorn"] },
+      { "name": "rainbow cone", "cuisine": "Dessert", "synonyms": ["rainbow cone ice cream"] },
+      { "name": "paczki", "cuisine": "Polish", "synonyms": ["polish donut", "paczki day"] },
+      { "name": "breaded steak sandwich", "cuisine": "Italian/American", "synonyms": ["ricobene's breaded steak", "breaded steak"] },
+      { "name": "South Side rib tips", "cuisine": "BBQ", "synonyms": ["rib tips", "chicago rib tips", "rib tip dinner"] },
+      { "name": "Chicago cheesesteak", "cuisine": "American", "synonyms": ["philly cheesesteak chicago"] },
+      { "name": "sport peppers", "cuisine": "American", "synonyms": [] },
+      { "name": "Italian ice", "cuisine": "Italian", "synonyms": ["lemon ice", "mario's italian lemonade"] },
+      { "name": "pierogi", "cuisine": "Polish", "synonyms": ["pierogies", "pierogy", "perogies"] },
+      { "name": "kolaczki", "cuisine": "Polish", "synonyms": ["kolacky", "polish cookies"] }
+    ]
+  },
+  "global_popular": {
+    "search_volume": "high",
+    "dishes": [
+      { "name": "sushi", "cuisine": "Japanese", "synonyms": ["nigiri", "maki", "sashimi", "sushi rolls"] },
+      { "name": "ramen", "cuisine": "Japanese", "synonyms": ["tonkotsu ramen", "shoyu ramen", "miso ramen", "spicy ramen"] },
+      { "name": "pho", "cuisine": "Vietnamese", "synonyms": ["beef pho", "chicken pho", "pho bo", "pho ga"] },
+      { "name": "pad thai", "cuisine": "Thai", "synonyms": ["phad thai", "pad tai"] },
+      { "name": "tacos", "cuisine": "Mexican", "synonyms": ["street tacos", "taco", "taqueria"] },
+      { "name": "birria tacos", "cuisine": "Mexican", "synonyms": ["birria", "birria quesatacos", "birria quesadillas", "quesabirria"] },
+      { "name": "al pastor", "cuisine": "Mexican", "synonyms": ["tacos al pastor", "pastor tacos", "al pastor tacos"] },
+      { "name": "burrito", "cuisine": "Mexican", "synonyms": ["burritos", "wet burrito", "burrito bowl"] },
+      { "name": "pizza", "cuisine": "Italian", "synonyms": ["neapolitan pizza", "wood-fired pizza", "margherita pizza"] },
+      { "name": "pasta", "cuisine": "Italian", "synonyms": ["spaghetti", "fettuccine", "penne", "handmade pasta", "fresh pasta"] },
+      { "name": "burger", "cuisine": "American", "synonyms": ["hamburger", "smash burger", "cheeseburger", "smashburger"] },
+      { "name": "fried chicken", "cuisine": "American", "synonyms": ["nashville hot chicken", "korean fried chicken", "hot chicken", "chicken katsu", "karaage"] },
+      { "name": "wings", "cuisine": "American", "synonyms": ["chicken wings", "buffalo wings", "hot wings", "korean wings"] },
+      { "name": "steak", "cuisine": "American", "synonyms": ["ribeye", "filet mignon", "wagyu", "porterhouse", "tomahawk", "strip steak"] },
+      { "name": "soup dumplings", "cuisine": "Chinese", "synonyms": ["xiao long bao", "xlb", "xiaolongbao"] },
+      { "name": "dim sum", "cuisine": "Chinese", "synonyms": ["dimsum", "yum cha", "chinese brunch"] },
+      { "name": "dumplings", "cuisine": "Multi", "synonyms": ["gyoza", "potstickers", "momo", "mandu", "wontons"] },
+      { "name": "noodles", "cuisine": "Multi", "synonyms": ["lo mein", "udon", "soba", "dan dan noodles", "hand-pulled noodles"] },
+      { "name": "curry", "cuisine": "Multi", "synonyms": ["tikka masala", "green curry", "red curry", "massaman", "vindaloo", "japanese curry"] },
+      { "name": "kebab", "cuisine": "Middle Eastern", "synonyms": ["kebabs", "kabob", "kabobs", "shish kebab"] },
+      { "name": "shawarma", "cuisine": "Middle Eastern", "synonyms": ["shwarma", "schwarma", "chicken shawarma", "beef shawarma"] },
+      { "name": "falafel", "cuisine": "Middle Eastern", "synonyms": ["falafels", "falafel wrap", "falafel plate"] },
+      { "name": "gyro", "cuisine": "Greek", "synonyms": ["gyros", "lamb gyro", "chicken gyro"] },
+      { "name": "banh mi", "cuisine": "Vietnamese", "synonyms": ["bahn mi", "vietnamese sandwich"] },
+      { "name": "bibimbap", "cuisine": "Korean", "synonyms": ["bibim bap", "bibimbop", "dolsot bibimbap"] },
+      { "name": "bulgogi", "cuisine": "Korean", "synonyms": ["bool kogi", "bul gogi", "korean bbq beef"] },
+      { "name": "tikka masala", "cuisine": "Indian", "synonyms": ["chicken tikka masala", "tikka"] },
+      { "name": "butter chicken", "cuisine": "Indian", "synonyms": ["murgh makhani"] },
+      { "name": "dosa", "cuisine": "Indian", "synonyms": ["masala dosa", "crispy dosa"] },
+      { "name": "naan", "cuisine": "Indian", "synonyms": ["garlic naan", "tandoori naan"] },
+      { "name": "ceviche", "cuisine": "Peruvian", "synonyms": ["cebiche", "seviche"] },
+      { "name": "empanadas", "cuisine": "Latin American", "synonyms": ["empanada"] },
+      { "name": "pupusas", "cuisine": "Salvadoran", "synonyms": ["pupusa"] },
+      { "name": "arepas", "cuisine": "Venezuelan/Colombian", "synonyms": ["arepa"] },
+      { "name": "injera", "cuisine": "Ethiopian", "synonyms": ["ethiopian bread", "injera platter"] },
+      { "name": "omakase", "cuisine": "Japanese", "synonyms": ["chef's choice sushi", "sushi omakase"] },
+      { "name": "lobster roll", "cuisine": "Seafood", "synonyms": ["lobster sandwich"] },
+      { "name": "brisket", "cuisine": "BBQ", "synonyms": ["smoked brisket", "texas brisket"] },
+      { "name": "mole", "cuisine": "Mexican", "synonyms": ["mole negro", "mole poblano", "mole sauce"] },
+      { "name": "tasting menu", "cuisine": "Fine Dining", "synonyms": ["prix fixe", "degustazione", "multi-course"] }
+    ]
+  },
+  "brunch_breakfast": {
+    "search_volume": "high",
+    "dishes": [
+      { "name": "brunch", "cuisine": "Multi", "synonyms": ["weekend brunch", "bottomless brunch", "boozy brunch"] },
+      { "name": "pancakes", "cuisine": "American", "synonyms": ["pancake", "flapjacks"] },
+      { "name": "eggs benedict", "cuisine": "American", "synonyms": ["eggs benny", "benedict"] },
+      { "name": "french toast", "cuisine": "American", "synonyms": ["brioche french toast"] },
+      { "name": "avocado toast", "cuisine": "American", "synonyms": ["avo toast"] },
+      { "name": "chilaquiles", "cuisine": "Mexican", "synonyms": ["chilaquiles rojos", "chilaquiles verdes"] },
+      { "name": "waffles", "cuisine": "American", "synonyms": ["waffle", "chicken and waffles"] },
+      { "name": "omelette", "cuisine": "American", "synonyms": ["omelet", "omelettes"] }
+    ]
+  },
+  "dessert_drinks": {
+    "search_volume": "medium",
+    "dishes": [
+      { "name": "ice cream", "cuisine": "Multi", "synonyms": ["gelato", "frozen custard", "soft serve"] },
+      { "name": "boba", "cuisine": "Taiwanese", "synonyms": ["bubble tea", "boba tea", "milk tea"] },
+      { "name": "cocktails", "cuisine": "Bar", "synonyms": ["craft cocktails", "signature cocktails", "old fashioned", "martini"] },
+      { "name": "coffee", "cuisine": "Cafe", "synonyms": ["espresso", "latte", "cappuccino", "pour over"] },
+      { "name": "cheesecake", "cuisine": "American", "synonyms": ["eli's cheesecake"] },
+      { "name": "tiramisu", "cuisine": "Italian", "synonyms": [] },
+      { "name": "churros", "cuisine": "Mexican", "synonyms": ["churro"] },
+      { "name": "baklava", "cuisine": "Middle Eastern", "synonyms": [] },
+      { "name": "mochi", "cuisine": "Japanese", "synonyms": ["mochi ice cream"] }
+    ]
+  },
+  "seafood": {
+    "search_volume": "high",
+    "dishes": [
+      { "name": "oysters", "cuisine": "Seafood", "synonyms": ["raw oysters", "oyster bar", "oyster happy hour"] },
+      { "name": "crab legs", "cuisine": "Seafood", "synonyms": ["king crab", "snow crab", "crab boil"] },
+      { "name": "shrimp", "cuisine": "Seafood", "synonyms": ["grilled shrimp", "shrimp cocktail", "fried shrimp"] },
+      { "name": "fish tacos", "cuisine": "Mexican", "synonyms": ["fish taco", "baja fish tacos"] },
+      { "name": "poke bowl", "cuisine": "Hawaiian", "synonyms": ["poke", "poké", "poke bowls"] },
+      { "name": "clam chowder", "cuisine": "American", "synonyms": ["new england clam chowder"] },
+      { "name": "calamari", "cuisine": "Italian", "synonyms": ["fried calamari", "grilled calamari"] }
+    ]
+  },
+  "query_templates": [
+    "{dish}",
+    "best {dish}",
+    "best {dish} in Chicago",
+    "where to get {dish}",
+    "{dish} near me",
+    "good {dish}",
+    "{dish} restaurant"
+  ]
+}

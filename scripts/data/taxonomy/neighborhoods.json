@@ -1,0 +1,42 @@
+{
+  "canonical": [
+    { "name": "West Loop", "search_volume": "high", "aliases": ["fulton market", "randolph street", "restaurant row", "greektown", "united center"] },
+    { "name": "River North", "search_volume": "high", "aliases": ["magnificent mile", "mag mile", "river north"] },
+    { "name": "Lincoln Park", "search_volume": "high", "aliases": ["old town", "lincoln park", "depaul"] },
+    { "name": "Wicker Park", "search_volume": "high", "aliases": ["wicker park", "wicker"] },
+    { "name": "Logan Square", "search_volume": "high", "aliases": ["logan square", "logan"] },
+    { "name": "Lakeview", "search_volume": "high", "aliases": ["wrigleyville", "wrigley", "wrigley field", "boystown", "lakeview"] },
+    { "name": "Bucktown", "search_volume": "medium", "aliases": ["bucktown"] },
+    { "name": "Pilsen", "search_volume": "medium", "aliases": ["pilsen", "18th street"] },
+    { "name": "The Loop", "search_volume": "high", "aliases": ["downtown", "the loop", "loop", "millennium park", "grant park", "michigan avenue"] },
+    { "name": "Chinatown", "search_volume": "medium", "aliases": ["chinatown", "china town"] },
+    { "name": "Hyde Park", "search_volume": "medium", "aliases": ["hyde park", "university of chicago", "u of c"] },
+    { "name": "Andersonville", "search_volume": "medium", "aliases": ["andersonville"] },
+    { "name": "Uptown", "search_volume": "medium", "aliases": ["uptown", "argyle", "argyle street", "little saigon"] },
+    { "name": "South Loop", "search_volume": "medium", "aliases": ["south loop", "museum campus", "soldier field"] },
+    { "name": "Gold Coast", "search_volume": "medium", "aliases": ["gold coast", "rush street"] },
+    { "name": "Ukrainian Village", "search_volume": "medium", "aliases": ["ukrainian village", "ukie village", "east village"] },
+    { "name": "Humboldt Park", "search_volume": "low", "aliases": ["humboldt park", "humboldt"] },
+    { "name": "Rogers Park", "search_volume": "low", "aliases": ["rogers park", "devon avenue", "devon"] },
+    { "name": "Albany Park", "search_volume": "low", "aliases": ["albany park", "north park"] },
+    { "name": "Avondale", "search_volume": "low", "aliases": ["avondale"] },
+    { "name": "Bridgeport", "search_volume": "low", "aliases": ["bridgeport"] },
+    { "name": "North Center", "search_volume": "low", "aliases": ["north center", "roscoe village"] },
+    { "name": "Lincoln Square", "search_volume": "medium", "aliases": ["lincoln square", "ravenswood"] },
+    { "name": "Edgewater", "search_volume": "low", "aliases": ["edgewater"] },
+    { "name": "Irving Park", "search_volume": "low", "aliases": ["irving park"] },
+    { "name": "Portage Park", "search_volume": "low", "aliases": ["portage park"] },
+    { "name": "Little Village", "search_volume": "low", "aliases": ["little village", "la villita"] },
+    { "name": "Streeterville", "search_volume": "medium", "aliases": ["streeterville", "navy pier"] },
+    { "name": "Old Town", "search_volume": "medium", "aliases": ["old town", "old town chicago"] },
+    { "name": "Near North Side", "search_volume": "low", "aliases": ["near north", "near north side"] }
+  ],
+  "query_templates": [
+    "restaurants in {neighborhood}",
+    "best food in {neighborhood}",
+    "where to eat in {neighborhood}",
+    "{neighborhood} restaurants",
+    "{neighborhood} food",
+    "dinner in {neighborhood}"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "vibes": [
+    { "name": "cozy", "search_volume": "high", "tags": ["cozy", "warm"], "synonyms": ["comfy", "snug", "homey"] },
+    { "name": "romantic", "search_volume": "high", "tags": ["romantic", "intimate"], "synonyms": ["love", "couples"] },
+    { "name": "lively", "search_volume": "high", "tags": ["lively atmosphere"], "synonyms": ["energetic", "upbeat", "vibrant"] },
+    { "name": "trendy", "search_volume": "high", "tags": ["trendy"], "synonyms": ["hip", "hot", "popular", "buzzy"] },
+    { "name": "elegant", "search_volume": "medium", "tags": ["fine dining"], "synonyms": ["refined", "sophisticated", "classy"] },
+    { "name": "casual", "search_volume": "high", "tags": ["casual"], "synonyms": ["laid back", "relaxed", "chill", "easy going"] },
+    { "name": "funky", "search_volume": "low", "tags": ["funky"], "synonyms": ["eclectic", "quirky", "unique"] },
+    { "name": "rustic", "search_volume": "medium", "tags": ["rustic"], "synonyms": ["farmhouse", "country", "earthy"] },
+    { "name": "modern", "search_volume": "medium", "tags": ["modern"], "synonyms": ["contemporary", "sleek", "minimalist"] },
+    { "name": "upscale", "search_volume": "high", "tags": ["fine dining", "upscale"], "synonyms": ["fancy", "high end", "luxurious", "posh"] },
+    { "name": "dark moody", "search_volume": "medium", "tags": ["dark", "moody"], "synonyms": ["dim", "atmospheric", "speakeasy vibe"] },
+    { "name": "classic", "search_volume": "medium", "tags": ["classic"], "synonyms": ["old school", "traditional", "timeless", "vintage"] },
+    { "name": "buzzing", "search_volume": "medium", "tags": ["lively atmosphere"], "synonyms": ["busy", "happening", "popular"] },
+    { "name": "intimate", "search_volume": "high", "tags": ["intimate", "quiet"], "synonyms": ["small", "private", "secluded"] },
+    { "name": "warm", "search_volume": "medium", "tags": ["warm"], "synonyms": ["welcoming", "friendly", "inviting"] },
+    { "name": "industrial", "search_volume": "low", "tags": ["industrial"], "synonyms": ["loft", "warehouse", "exposed brick"] },
+    { "name": "rooftop", "search_volume": "high", "tags": ["rooftop"], "synonyms": ["roof deck", "sky bar", "terrace"] },
+    { "name": "outdoor", "search_volume": "high", "tags": ["outdoor patio"], "synonyms": ["patio", "al fresco", "garden", "sidewalk cafe"] },
+    { "name": "speakeasy", "search_volume": "medium", "tags": ["speakeasy", "hidden gem"], "synonyms": ["hidden bar", "secret bar", "prohibition style"] },
+    { "name": "family friendly", "search_volume": "high", "tags": ["family friendly"], "synonyms": ["kid friendly", "kids welcome", "good for families"] }
+  ],
+  "query_templates": [
+    "{vibe} restaurant",
+    "{vibe} dinner spot",
+    "{vibe} place to eat",
+    "{vibe} bar",
+    "{vibe} restaurant Chicago",
+    "somewhere {vibe}"
+  ]
+}

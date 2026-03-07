@@ -1,0 +1,18 @@
+{
+  "modifiers": [
+    { "name": "best", "search_volume": "high", "relevance_signal": "reputation", "synonyms": ["top", "number one", "#1", "greatest"] },
+    { "name": "authentic", "search_volume": "high", "relevance_signal": "cuisine", "synonyms": ["real", "traditional", "legit", "genuine", "true"] },
+    { "name": "cheap", "search_volume": "high", "relevance_signal": "convenience", "synonyms": ["affordable", "budget", "inexpensive", "value", "bargain", "under $20"] },
+    { "name": "top-rated", "search_volume": "medium", "relevance_signal": "reputation", "synonyms": ["highest rated", "top rated", "highly reviewed", "five star", "5 star"] },
+    { "name": "hidden gem", "search_volume": "high", "relevance_signal": "discovery", "synonyms": ["underrated", "hole in the wall", "secret spot", "off the beaten path", "local secret"] },
+    { "name": "new", "search_volume": "medium", "relevance_signal": "discovery", "synonyms": ["just opened", "new opening", "recently opened", "newest"] },
+    { "name": "classic", "search_volume": "medium", "relevance_signal": "reputation", "synonyms": ["iconic", "legendary", "institution", "old school", "historic"] },
+    { "name": "award-winning", "search_volume": "medium", "relevance_signal": "reputation", "synonyms": ["michelin", "james beard", "critically acclaimed", "award winning"] }
+  ],
+  "query_templates": [
+    "{modifier} {cuisine} restaurant",
+    "{modifier} {dish}",
+    "{modifier} restaurant in {neighborhood}",
+    "{modifier} restaurant Chicago"
+  ]
+}

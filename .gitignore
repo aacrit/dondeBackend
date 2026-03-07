@@ -24,3 +24,7 @@ Thumbs.db
 # Build
 dist/
 *.js.map
+
+# Gauntlet test artifacts (generated, large)
+tests/search-atlas-*.jsonl
+tests/gauntlet-results/

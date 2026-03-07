@@ -1,0 +1,64 @@
+{
+  "families": {
+    "Mediterranean": {
+      "cuisines": ["Greek", "Italian", "Spanish", "Moroccan", "Levantine"],
+      "search_volume": "high"
+    },
+    "East Asian": {
+      "cuisines": ["Japanese", "Chinese", "Korean", "Taiwanese", "Sichuan", "Cantonese"],
+      "search_volume": "high"
+    },
+    "Southeast Asian": {
+      "cuisines": ["Thai", "Vietnamese", "Cambodian", "Laotian", "Malaysian", "Singaporean", "Filipino", "Indonesian"],
+      "search_volume": "high"
+    },
+    "Latin American": {
+      "cuisines": ["Mexican", "Peruvian", "Brazilian", "Puerto Rican", "Colombian", "Ecuadorian", "Venezuelan", "Salvadoran", "Argentine"],
+      "search_volume": "high"
+    },
+    "Caribbean": {
+      "cuisines": ["Cuban", "Jamaican", "Trinidadian", "Haitian"],
+      "search_volume": "medium"
+    },
+    "South Asian": {
+      "cuisines": ["Indian", "Nepalese", "Tibetan", "Pakistani", "Sri Lankan", "Bangladeshi"],
+      "search_volume": "high"
+    },
+    "East African": {
+      "cuisines": ["Ethiopian", "Eritrean", "Somali"],
+      "search_volume": "medium"
+    },
+    "West African": {
+      "cuisines": ["Nigerian", "Ghanaian", "Senegalese", "Liberian"],
+      "search_volume": "low"
+    },
+    "Middle Eastern": {
+      "cuisines": ["Persian", "Yemeni", "Kurdish", "Palestinian", "Lebanese", "Turkish", "Afghan", "Israeli"],
+      "search_volume": "medium"
+    },
+    "European": {
+      "cuisines": ["Polish", "German", "French", "British", "Ukrainian", "Irish", "Swedish", "Serbian", "Bosnian", "Portuguese"],
+      "search_volume": "medium"
+    },
+    "American": {
+      "cuisines": ["BBQ", "Southern", "Soul Food", "Cajun", "Creole", "Hawaiian", "New American"],
+      "search_volume": "high"
+    },
+    "Central Asian": {
+      "cuisines": ["Georgian", "Azerbaijani", "Uzbek"],
+      "search_volume": "low"
+    }
+  },
+  "query_templates": [
+    "{cuisine} restaurant",
+    "{cuisine} food",
+    "{cuisine} food near me",
+    "best {cuisine}",
+    "best {cuisine} in Chicago",
+    "good {cuisine} restaurant",
+    "authentic {cuisine}",
+    "{cuisine} place",
+    "where to get {cuisine} food"
+  ],
+  "total_cuisines": 55
+}
