@@ -1,0 +1,26 @@
+{
+  "constraints": [
+    { "name": "BYOB", "search_volume": "high", "field": "byob_policy", "synonyms": ["bring your own", "bring your own bottle", "no corkage"] },
+    { "name": "outdoor seating", "search_volume": "high", "field": "outdoor_seating", "synonyms": ["patio", "outdoor dining", "al fresco", "sidewalk seating", "garden seating"] },
+    { "name": "gluten-free", "search_volume": "high", "field": "dietary_options", "synonyms": ["gluten free", "celiac friendly", "gf options"] },
+    { "name": "vegan", "search_volume": "high", "field": "dietary_options", "synonyms": ["vegan friendly", "plant based", "vegan options", "vegan menu"] },
+    { "name": "vegetarian", "search_volume": "high", "field": "dietary_options", "synonyms": ["vegetarian friendly", "veggie", "vegetarian options"] },
+    { "name": "halal", "search_volume": "medium", "field": "dietary_options", "synonyms": ["halal food", "halal certified", "halal meat"] },
+    { "name": "kosher", "search_volume": "low", "field": "dietary_options", "synonyms": ["kosher food", "kosher certified"] },
+    { "name": "budget-friendly", "search_volume": "high", "field": "price_level", "synonyms": ["cheap", "affordable", "inexpensive", "under $20", "under $15", "cheap eats", "budget"] },
+    { "name": "late-night hours", "search_volume": "high", "field": "best_times", "synonyms": ["open late", "late night", "midnight food", "after 10pm", "after midnight"] },
+    { "name": "walk-in", "search_volume": "medium", "field": "reservation_difficulty", "synonyms": ["no reservation", "no reservations needed", "walk in", "no resy needed"] },
+    { "name": "parking", "search_volume": "medium", "field": "parking_availability", "synonyms": ["easy parking", "free parking", "valet", "parking lot"] },
+    { "name": "private room", "search_volume": "medium", "field": "seating_options", "synonyms": ["private dining", "private space", "semi-private", "private event"] },
+    { "name": "kid-friendly", "search_volume": "high", "field": "kid_friendliness", "synonyms": ["kids menu", "family friendly", "children welcome", "high chairs", "good for kids"] },
+    { "name": "wheelchair accessible", "search_volume": "low", "field": "accessibility_features", "synonyms": ["accessible", "ADA compliant", "wheelchair"] },
+    { "name": "quick service", "search_volume": "high", "field": "meal_pacing", "synonyms": ["fast", "quick lunch", "grab and go", "counter service", "fast casual"] }
+  ],
+  "query_templates": [
+    "{constraint} restaurant",
+    "{constraint} restaurant Chicago",
+    "restaurant with {constraint}",
+    "{constraint} food",
+    "{constraint} dining"
+  ]
+}
