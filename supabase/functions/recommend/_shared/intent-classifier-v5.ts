@@ -36,7 +36,7 @@ const FLAVOR_WORDS: string[] = [
 const VIBE_WORDS: string[] = [
   "intimate", "lively", "cozy", "elegant", "casual", "buzzing", "chill",
   "refined", "rustic", "modern", "industrial", "classic", "funky", "warm",
-  "minimalist",
+  "minimalist", "relaxed",
 ];
 
 /** Practical constraint trigger words mapped to constraint labels */
