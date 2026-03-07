@@ -129,6 +129,10 @@ function buildDeepContext(
     chef_notable: dp.chef_notable || null,
     menu_highlights: dp.menu_highlights || null,
     review_value_score: (chosen as any).review_intelligence?.review_value_score ?? null,
+    // V11: Semantic enrichment fields for frontend transparency
+    semantic_descriptors: (chosen as any).review_intelligence?.semantic_descriptors || null,
+    best_for_scenarios: (chosen as any).review_intelligence?.best_for_scenarios || null,
+    comparable_restaurants: (chosen as any).review_intelligence?.comparable_restaurants || null,
   };
 }
 
