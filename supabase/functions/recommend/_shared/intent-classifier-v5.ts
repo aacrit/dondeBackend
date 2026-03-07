@@ -64,7 +64,7 @@ const EMOTIONAL_INTENT_PATTERNS: Array<{ intent: string; pattern: RegExp }> = [
   { intent: "celebrate", pattern: /celebrat|celebration|birthday|anniversary|graduation|engagement|milestone|promotion/ },
   { intent: "indulge", pattern: /treat|indulge|splurge|pamper|luxury|spoil|self.?care/ },
   { intent: "explore", pattern: /\bnew\b|try|adventure|explore|discover|never.?been|something new|different|unique/ },
-  { intent: "comfort", pattern: /cozy|comfortable|familiar|home|soul|nostalgia|homey|comforting/ },
+  { intent: "comfort", pattern: /cozy|comfortable|familiar|home|nostalgia|homey|comforting/ },
   // "casual" is the default — no pattern needed
 ];
 
