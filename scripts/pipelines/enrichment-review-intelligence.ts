@@ -105,13 +105,7 @@ async function main() {
   // Fetch all RI rows — semantic_descriptors column must exist (migration runs before this)
   const { data: restaurants, error: fetchErr } = await supabase
     .from("restaurant_review_intelligence")
-    .select(`
-      restaurant_id,
-      dish_catalog,
-      popular_dishes,
-      cuisine_signals,
-      semantic_descriptors
-    `);
+    .select("restaurant_id,dish_catalog,popular_dishes,cuisine_signals,semantic_descriptors");
 
   if (fetchErr) {
     if (fetchErr.message?.includes("400") || fetchErr.message?.includes("Bad Request")) {
