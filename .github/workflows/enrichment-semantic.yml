@@ -16,7 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Step 1: Apply DB migration to ensure semantic_descriptors columns exist
+      # Step 1: Apply semantic_descriptors columns via direct SQL
+      # (Using supabase db execute instead of db push, since migration
+      # files may not be on the checked-out branch)
       - uses: supabase/setup-cli@v1
         with:
           version: latest
@@ -26,8 +28,18 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
-      - name: Apply pending migrations
-        run: supabase db push
+      - name: Ensure semantic_descriptors columns exist
+        run: |
+          supabase db execute --project-ref vwbzkgsxmgwcvmvuxnbe <<'EOSQL'
+          ALTER TABLE restaurant_review_intelligence
+            ADD COLUMN IF NOT EXISTS semantic_descriptors text[] DEFAULT '{}',
+            ADD COLUMN IF NOT EXISTS best_for_scenarios text[] DEFAULT '{}',
+            ADD COLUMN IF NOT EXISTS comparable_restaurants text[] DEFAULT '{}';
+
+          CREATE INDEX IF NOT EXISTS idx_ri_semantic ON restaurant_review_intelligence USING GIN (semantic_descriptors);
+          CREATE INDEX IF NOT EXISTS idx_ri_scenarios ON restaurant_review_intelligence USING GIN (best_for_scenarios);
+          CREATE INDEX IF NOT EXISTS idx_ri_comparable ON restaurant_review_intelligence USING GIN (comparable_restaurants);
+          EOSQL
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
