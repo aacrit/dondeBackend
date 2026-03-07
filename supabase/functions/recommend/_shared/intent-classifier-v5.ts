@@ -55,12 +55,13 @@ const CONSTRAINT_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
   { pattern: /kosher/, label: "kosher" },
   { pattern: /wheelchair|accessible|accessibility/, label: "accessibility" },
   { pattern: /quiet|peaceful|calm/, label: "quiet_environment" },
-  { pattern: /private|semi.?private/, label: "private_dining" },
+  { pattern: /private|semi.?private|private chef/, label: "private_dining" },
+  { pattern: /tasting menu|prix fixe|omakase/, label: "tasting_menu" },
 ];
 
 /** Emotional intent detection — order matters (first match wins) */
 const EMOTIONAL_INTENT_PATTERNS: Array<{ intent: string; pattern: RegExp }> = [
-  { intent: "impress", pattern: /impress|wow|blow.?them.?away|blow.?away|make.?impression/ },
+  { intent: "impress", pattern: /impress|wow|blow.?them.?away|blow.?away|make.?impression|james beard|most awarded|outstanding chef|award.?winning|top rated|best rated|highest rated|yelp/ },
   { intent: "celebrate", pattern: /celebrat|celebration|birthday|anniversary|graduation|engagement|milestone|promotion/ },
   { intent: "indulge", pattern: /treat|indulge|splurge|pamper|luxury|spoil|self.?care/ },
   { intent: "explore", pattern: /\bnew\b|try|adventure|explore|discover|never.?been|something new|different|unique/ },
@@ -303,6 +304,16 @@ function generateDeterministicSemanticTags(
     { pattern: /summer|rooftop|outdoor/, tag: "summer dining" },
     { pattern: /late|midnight|after.?hours/, tag: "late night eats" },
     { pattern: /quick|fast|between meetings|lunch break/, tag: "quick meal" },
+    { pattern: /james beard|outstanding chef|most awarded|award.?winning/, tag: "award-winning dining" },
+    { pattern: /yelp|top.?rated|best.?rated|highest.?rated/, tag: "highly rated dining" },
+    { pattern: /tasting menu|prix fixe|omakase/, tag: "tasting menu experience" },
+    { pattern: /drag/, tag: "drag brunch entertainment" },
+    { pattern: /sunday|weekend.*morning/, tag: "weekend brunch" },
+    { pattern: /soul food|southern comfort/, tag: "authentic soul food" },
+    { pattern: /craft beer|brewery|tap.?room/, tag: "craft beer destination" },
+    { pattern: /private chef|chef.?s?\s+table|chef consult/, tag: "exclusive chef experience" },
+    { pattern: /relaxed|laid.?back|easy.?going/, tag: "relaxed atmosphere" },
+    { pattern: /cozy.*brunch|brunch.*cozy/, tag: "cozy brunch spot" },
   ];
 
   for (const { pattern, tag } of CONTEXT_PATTERNS) {
