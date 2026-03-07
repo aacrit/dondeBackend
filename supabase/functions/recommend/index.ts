@@ -672,6 +672,8 @@ Deno.serve(async (req: Request) => {
         occasionBonus: reResult.occasionBonus,
         matchNarrative: reResult.matchNarrative,
         dataCompleteness: reResult.dataCompleteness,
+        factorDetails: reResult.factorDetails,
+        factorConfidence: reResult.factorConfidence,
         googleData,
       };
     });
