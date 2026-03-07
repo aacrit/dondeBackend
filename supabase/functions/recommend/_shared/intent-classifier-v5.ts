@@ -36,12 +36,12 @@ const FLAVOR_WORDS: string[] = [
 const VIBE_WORDS: string[] = [
   "intimate", "lively", "cozy", "elegant", "casual", "buzzing", "chill",
   "refined", "rustic", "modern", "industrial", "classic", "funky", "warm",
-  "minimalist", "relaxed",
+  "minimalist", "relaxed", "rooftop", "bottomless", "upscale", "trendy",
 ];
 
 /** Practical constraint trigger words mapped to constraint labels */
 const CONSTRAINT_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
-  { pattern: /budget|cheap|affordable|value|inexpensive|under \$|low.?cost/, label: "budget_conscious" },
+  { pattern: /budget|cheap|affordable|value|inexpensive|under \$|under \d+\s*(dollar|buck)|low.?cost/, label: "budget_conscious" },
   { pattern: /walk.?in|no reservat/, label: "walk_in" },
   { pattern: /byob/, label: "byob" },
   { pattern: /cash only|cash/, label: "cash_only" },
@@ -57,13 +57,14 @@ const CONSTRAINT_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
   { pattern: /quiet|peaceful|calm/, label: "quiet_environment" },
   { pattern: /private|semi.?private|private chef/, label: "private_dining" },
   { pattern: /tasting menu|prix fixe|omakase/, label: "tasting_menu" },
+  { pattern: /kid.?friendly|family.?friendly|child|children|\bkids\b/, label: "family_friendly" },
 ];
 
 /** Emotional intent detection — order matters (first match wins) */
 const EMOTIONAL_INTENT_PATTERNS: Array<{ intent: string; pattern: RegExp }> = [
   { intent: "impress", pattern: /impress|wow|blow.?them.?away|blow.?away|make.?impression|james beard|most awarded|outstanding chef|award.?winning|top rated|best rated|highest rated|yelp/ },
   { intent: "celebrate", pattern: /celebrat|celebration|birthday|anniversary|graduation|engagement|milestone|promotion/ },
-  { intent: "indulge", pattern: /treat|indulge|splurge|pamper|luxury|spoil|self.?care/ },
+  { intent: "indulge", pattern: /treat|indulge|splurge|pamper|luxury|spoil|self.?care|power lunch|treat myself|treat me/ },
   { intent: "explore", pattern: /\bnew\b|try|adventure|explore|discover|never.?been|something new|different|unique/ },
   { intent: "comfort", pattern: /cozy|comfortable|familiar|home|nostalgia|homey|comforting/ },
   // "casual" is the default — no pattern needed
@@ -308,12 +309,14 @@ function generateDeterministicSemanticTags(
     { pattern: /yelp|top.?rated|best.?rated|highest.?rated/, tag: "highly rated dining" },
     { pattern: /tasting menu|prix fixe|omakase/, tag: "tasting menu experience" },
     { pattern: /drag/, tag: "drag brunch entertainment" },
-    { pattern: /sunday|weekend.*morning/, tag: "weekend brunch" },
+    { pattern: /sunday|weekend.*morning|brunch.*(weekend|saturday|sunday)|(weekend|saturday|sunday).*brunch/, tag: "weekend brunch" },
     { pattern: /soul food|southern comfort/, tag: "authentic soul food" },
     { pattern: /craft beer|brewery|tap.?room/, tag: "craft beer destination" },
     { pattern: /private chef|chef.?s?\s+table|chef consult/, tag: "exclusive chef experience" },
     { pattern: /relaxed|laid.?back|easy.?going/, tag: "relaxed atmosphere" },
     { pattern: /cozy.*brunch|brunch.*cozy/, tag: "cozy brunch spot" },
+    { pattern: /bottomless/, tag: "bottomless brunch" },
+    { pattern: /kid.?friendly|family.*kid|kid.*brunch|family.*brunch/, tag: "family-friendly dining" },
   ];
 
   for (const { pattern, tag } of CONTEXT_PATTERNS) {
