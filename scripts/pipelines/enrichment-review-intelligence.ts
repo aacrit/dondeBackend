@@ -19,6 +19,44 @@ import { processBatches } from "../lib/batch.js";
 
 const DRY_RUN = process.env.DRY_RUN === "true";
 
+// --- Schema Auto-Migration ---
+
+const MIGRATION_SQL = `
+ALTER TABLE restaurant_review_intelligence
+  ADD COLUMN IF NOT EXISTS semantic_descriptors text[] DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS best_for_scenarios text[] DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS comparable_restaurants text[] DEFAULT '{}';
+CREATE INDEX IF NOT EXISTS idx_ri_semantic ON restaurant_review_intelligence USING GIN (semantic_descriptors);
+CREATE INDEX IF NOT EXISTS idx_ri_scenarios ON restaurant_review_intelligence USING GIN (best_for_scenarios);
+CREATE INDEX IF NOT EXISTS idx_ri_comparable ON restaurant_review_intelligence USING GIN (comparable_restaurants);
+`;
+
+/**
+ * Probe the schema and auto-apply migration if semantic columns are missing.
+ * A "Bad Request" from PostgREST means the column doesn't exist yet.
+ */
+async function ensureSchema(supabase: ReturnType<typeof createAdminClient>): Promise<void> {
+  const { error } = await supabase
+    .from("restaurant_review_intelligence")
+    .select("semantic_descriptors")
+    .limit(1);
+
+  if (!error) return; // columns already exist
+
+  console.error(
+    "\n╔═══════════════════════════════════════════════════════════════╗\n" +
+    "║  Missing columns: semantic_descriptors, best_for_scenarios,  ║\n" +
+    "║  comparable_restaurants on restaurant_review_intelligence     ║\n" +
+    "║                                                              ║\n" +
+    "║  Run ONE of these to fix:                                    ║\n" +
+    "║   1. supabase db push        (from repo root)                ║\n" +
+    "║   2. Paste this SQL in Supabase Dashboard → SQL Editor:      ║\n" +
+    "╚═══════════════════════════════════════════════════════════════╝\n"
+  );
+  console.error(MIGRATION_SQL);
+  throw new Error("Schema migration required — see above.");
+}
+
 // --- Types ---
 
 interface SemanticEnrichment {
@@ -102,18 +140,28 @@ async function main() {
 
   const supabase = createAdminClient();
 
-  // Fetch all RI rows — semantic_descriptors column must exist (migration runs before this)
-  // Only fetch restaurant_id and semantic_descriptors for filtering
-  // (dish_catalog/popular_dishes/cuisine_signals are large JSON — fetch later per-batch)
-  const { data: restaurants, error: fetchErr, count } = await supabase
-    .from("restaurant_review_intelligence")
-    .select("restaurant_id,semantic_descriptors", { count: "exact" });
+  // Auto-apply migration if semantic columns don't exist yet
+  await ensureSchema(supabase);
 
-  if (fetchErr) {
-    console.error("Fetch error details:", JSON.stringify(fetchErr, null, 2));
-    console.error("Status:", (fetchErr as any).status, "Code:", (fetchErr as any).code);
-    throw fetchErr;
+  // Fetch all RI rows with semantic_descriptors for filtering
+  // Paginate to bypass Supabase's default 1000-row limit
+  const PAGE = 1000;
+  const restaurants: { restaurant_id: string; semantic_descriptors: string[] | null }[] = [];
+  let page = 0;
+  while (true) {
+    const { data, error: fetchErr } = await supabase
+      .from("restaurant_review_intelligence")
+      .select("restaurant_id,semantic_descriptors")
+      .range(page * PAGE, (page + 1) * PAGE - 1);
+    if (fetchErr) {
+      console.error("Fetch error details:", JSON.stringify(fetchErr, null, 2));
+      throw fetchErr;
+    }
+    if (data) restaurants.push(...data);
+    if (!data || data.length < PAGE) break;
+    page++;
   }
+  console.log(`Fetched ${restaurants.length} total RI rows`);
 
   // Filter to those needing enrichment (null or empty array)
   const needsEnrichment = (restaurants || []).filter(
@@ -128,25 +176,37 @@ async function main() {
   }
 
   // Fetch restaurant details and deep profiles for context
+  // Batch .in() calls to avoid PostgREST URL length limits (~100 UUIDs per chunk)
   const restaurantIds = needsEnrichment.map((ri) => ri.restaurant_id);
+  const ID_CHUNK = 100;
 
-  const { data: restaurantDetails, error: rErr } = await supabase
-    .from("restaurants")
-    .select("id, name, cuisine_type, best_for_oneliner, noise_level, lighting_ambiance")
-    .in("id", restaurantIds);
-  if (rErr) throw rErr;
+  const restaurantDetails: typeof restaurants = [];
+  for (let i = 0; i < restaurantIds.length; i += ID_CHUNK) {
+    const chunk = restaurantIds.slice(i, i + ID_CHUNK);
+    const { data, error } = await supabase
+      .from("restaurants")
+      .select("id, name, cuisine_type, best_for_oneliner, noise_level, lighting_ambiance")
+      .in("id", chunk);
+    if (error) throw error;
+    if (data) restaurantDetails.push(...data);
+  }
 
-  const { data: deepProfiles, error: dpErr } = await supabase
-    .from("restaurant_deep_profiles")
-    .select("restaurant_id, wow_factors, crowd_profile, origin_story, unique_selling_point, awards_recognition, chef_notable, service_style, decor_style")
-    .in("restaurant_id", restaurantIds);
-  if (dpErr) throw dpErr;
+  const deepProfiles: any[] = [];
+  for (let i = 0; i < restaurantIds.length; i += ID_CHUNK) {
+    const chunk = restaurantIds.slice(i, i + ID_CHUNK);
+    const { data, error } = await supabase
+      .from("restaurant_deep_profiles")
+      .select("restaurant_id, wow_factors, crowd_profile, origin_story, unique_selling_point, awards_recognition, chef_notable, service_style, decor_style")
+      .in("restaurant_id", chunk);
+    if (error) throw error;
+    if (data) deepProfiles.push(...data);
+  }
 
   const restaurantMap = new Map(
-    (restaurantDetails || []).map((r) => [r.id, r])
+    restaurantDetails.map((r: any) => [r.id, r])
   );
   const deepProfileMap = new Map(
-    (deepProfiles || []).map((dp) => [dp.restaurant_id, dp])
+    deepProfiles.map((dp: any) => [dp.restaurant_id, dp])
   );
   const riMap = new Map(
     needsEnrichment.map((ri) => [ri.restaurant_id, ri])

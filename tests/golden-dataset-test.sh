@@ -122,8 +122,8 @@ run_golden_test() {
   cuisine_type=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // "unknown"' 2>/dev/null)
 
   local food_score vibe_score
-  food_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v5.food // 0' 2>/dev/null)
-  vibe_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v5.vibe // 0' 2>/dev/null)
+  food_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.food // 0' 2>/dev/null)
+  vibe_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.vibe // 0' 2>/dev/null)
 
   echo "  → $restaurant_name ($cuisine_type) | DM: $donde_match | Food: $food_score | Vibe: $vibe_score"
 

@@ -491,15 +491,15 @@ const QUALITY_WEIGHTS: Record<V9RelevanceType, V9QualityWeights> = {
   },
   vibe: {
     // "quiet intimate anniversary" — vibe is what matters
-    food: 0.15, reputation: 0.25, vibe: 0.35, service: 0.15, convenience: 0.10,
+    food: 0.10, reputation: 0.25, vibe: 0.40, service: 0.15, convenience: 0.10,
   },
   reputation: {
     // "michelin star", "best in chicago" — reputation dominates
-    food: 0.20, reputation: 0.50, vibe: 0.10, service: 0.10, convenience: 0.10,
+    food: 0.15, reputation: 0.55, vibe: 0.10, service: 0.10, convenience: 0.10,
   },
   open_ended: {
     // "surprise me" — reputation is the deciding factor
-    food: 0.18, reputation: 0.45, vibe: 0.15, service: 0.12, convenience: 0.10,
+    food: 0.13, reputation: 0.50, vibe: 0.15, service: 0.12, convenience: 0.10,
   },
 // Note: multi_signal is NOT a V9RelevanceType — it's selected dynamically
 // when a query has signals across 3+ categories
@@ -1000,7 +1000,7 @@ function computeFoodQuality(
     const BAYESIAN_M = 4.15;
     const reviewCount = googleData.google_review_count || 0;
     const bayesianRating = (BAYESIAN_C * BAYESIAN_M + reviewCount * googleData.google_rating) / (BAYESIAN_C + reviewCount);
-    const googleFood = Math.max(0, Math.min(10, (bayesianRating - 3.5) / 1.5 * 10));
+    const googleFood = Math.max(0, Math.min(10, (bayesianRating - 3.0) / 2.0 * 10));
     score = signals > 0 ? (score * signals + googleFood) / (signals + 1) : googleFood;
     signals += 1;
     details.google = { score: Math.round(googleFood * 10) / 10, max: 10, signal: `Google ${googleData.google_rating} ★ (Bayesian)` };
