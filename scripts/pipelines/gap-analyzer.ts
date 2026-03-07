@@ -59,6 +59,79 @@ interface Gap {
   fix_action: string;
 }
 
+// ─── Schema Adapter (V8/V9 legacy → Gauntlet format) ─────────────────────────
+
+function computeScoreTier(dm: number): string {
+  if (dm >= 90) return "outstanding";
+  if (dm >= 80) return "excellent";
+  if (dm >= 70) return "strong";
+  if (dm >= 60) return "solid";
+  if (dm >= 50) return "marginal";
+  return "weak";
+}
+
+function detectGapType(r: { donde_match: number; category?: string; intent_alignment?: { score: number; cuisine: number; dish: number; vibe: number } }): { gap_type: string | null; gap_severity: string | null } {
+  const dm = r.donde_match;
+  const ia = r.intent_alignment;
+
+  if (dm < 40) return { gap_type: "db_coverage", gap_severity: "P0" };
+  if (ia && ia.vibe < 0.3 && ia.cuisine < 0.3) return { gap_type: "intent", gap_severity: "P1" };
+  if (dm >= 40 && dm < 60) return { gap_type: "scoring", gap_severity: "P1" };
+  if (dm >= 60 && dm < 70) return { gap_type: "relevance_ceiling", gap_severity: "P2" };
+  return { gap_type: null, gap_severity: null };
+}
+
+function normalizeResult(raw: any): QueryResult {
+  // Already in gauntlet format
+  if (raw.query_id && raw.result && raw.evaluation) return raw as QueryResult;
+
+  // V8/V9 legacy flat format → gauntlet nested format
+  const dm = raw.donde_match ?? 0;
+  const gap = detectGapType(raw);
+
+  return {
+    query_id: raw.test_id || raw.id || "UNKNOWN",
+    query: raw.query || "",
+    tier: raw.tier ?? 0,
+    category: (raw.category || "unknown").toLowerCase(),
+    params: {
+      special_request: raw.query || "",
+      occasion: raw.occasion || "Any",
+      neighborhood: raw.neighborhood || "Anywhere",
+      price_level: raw.price_level || "Any",
+    },
+    result: {
+      success: !!raw.restaurant_name || !!raw.top1?.name,
+      restaurant_name: raw.restaurant_name || raw.top1?.name || null,
+      cuisine_type: raw.cuisine_type || raw.top1?.cuisine || null,
+      neighborhood: raw.neighborhood || null,
+      donde_match: dm,
+      relevance_score: raw.intent_alignment?.score ?? 0.5,
+      relevance_type: raw.relevance_type || "unknown",
+      quality_score: dm,
+      food: raw.food ?? raw.top1?.food_q ?? 0,
+      vibe: raw.vibe ?? 0,
+      service: raw.service ?? 0,
+      reputation: raw.reputation ?? 0,
+      convenience: raw.convenience ?? 0,
+      ranked_queue_size: raw.result_count ?? 1,
+      response_time_ms: raw.response_time_ms ?? 0,
+      error: raw.error,
+    },
+    evaluation: {
+      score_tier: computeScoreTier(dm),
+      score_pass: dm >= 60,
+      relevance_correct: raw.intent_alignment?.score >= 0.5,
+      cuisine_match: raw.expected_cuisines
+        ? raw.expected_cuisines === "any" || (raw.cuisine_type || "").toLowerCase().includes(raw.expected_cuisines.toLowerCase())
+        : null,
+      neighborhood_match: null,
+      gap_type: gap.gap_type,
+      gap_severity: gap.gap_severity,
+    },
+  };
+}
+
 // ─── Impact Scoring ──────────────────────────────────────────────────────────
 
 function volumeWeight(result: QueryResult): number {
@@ -140,7 +213,7 @@ function detectDiversityGaps(results: QueryResult[]): Gap[] {
 
 function analyze(resultsPath: string) {
   const lines = readFileSync(resultsPath, "utf-8").split("\n").filter((l) => l.trim());
-  const results: QueryResult[] = lines.map((l) => JSON.parse(l));
+  const results: QueryResult[] = lines.map((l) => normalizeResult(JSON.parse(l)));
 
   console.log(`\n  Analyzing ${results.length} results from ${basename(resultsPath)}...`);
 
@@ -175,7 +248,8 @@ function analyze(resultsPath: string) {
   // ─── Generate Gap Report (Markdown) ──────────────────────────────────────
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-").substring(0, 19);
-  const reportPath = join(dirname(resultsPath), `gap-report-${timestamp}.md`);
+  const gauntletResultsDir = join(__dirname, "..", "..", "tests", "gauntlet-results");
+  const reportPath = join(gauntletResultsDir, `gap-report-${timestamp}.md`);
 
   let md = `# Donde Gauntlet Gap Report — ${new Date().toISOString().substring(0, 10)}\n\n`;
 
@@ -249,7 +323,7 @@ function analyze(resultsPath: string) {
 
   // ─── Generate Gap Details (JSON) ──────────────────────────────────────────
 
-  const detailsPath = join(dirname(resultsPath), `gap-details-${timestamp}.json`);
+  const detailsPath = join(gauntletResultsDir, `gap-details-${timestamp}.json`);
   writeFileSync(
     detailsPath,
     JSON.stringify(

@@ -40,6 +40,65 @@ interface QueryResult {
   timestamp: string;
 }
 
+// ─── Schema Adapter (V8/V9 legacy → Gauntlet format) ─────────────────────────
+
+function computeScoreTier(dm: number): string {
+  if (dm >= 90) return "outstanding";
+  if (dm >= 80) return "excellent";
+  if (dm >= 70) return "strong";
+  if (dm >= 60) return "solid";
+  if (dm >= 50) return "marginal";
+  return "weak";
+}
+
+function detectGapType(r: { donde_match: number; intent_alignment?: { score: number; cuisine: number; dish: number; vibe: number } }): { gap_type: string | null; gap_severity: string | null } {
+  const dm = r.donde_match;
+  const ia = r.intent_alignment;
+
+  if (dm < 40) return { gap_type: "db_coverage", gap_severity: "P0" };
+  if (ia && ia.vibe < 0.3 && ia.cuisine < 0.3) return { gap_type: "intent", gap_severity: "P1" };
+  if (dm >= 40 && dm < 60) return { gap_type: "scoring", gap_severity: "P1" };
+  if (dm >= 60 && dm < 70) return { gap_type: "relevance_ceiling", gap_severity: "P2" };
+  return { gap_type: null, gap_severity: null };
+}
+
+function normalizeResult(raw: any): QueryResult {
+  if (raw.query_id && raw.result && raw.evaluation) return raw as QueryResult;
+
+  const dm = raw.donde_match ?? 0;
+  const gap = detectGapType(raw);
+
+  return {
+    query_id: raw.test_id || raw.id || "UNKNOWN",
+    query: raw.query || "",
+    tier: raw.tier ?? 0,
+    category: (raw.category || "unknown").toLowerCase(),
+    result: {
+      success: !!raw.restaurant_name || !!raw.top1?.name,
+      restaurant_name: raw.restaurant_name || raw.top1?.name || null,
+      cuisine_type: raw.cuisine_type || raw.top1?.cuisine || null,
+      neighborhood: raw.neighborhood || null,
+      donde_match: dm,
+      relevance_type: raw.relevance_type || "unknown",
+      food: raw.food ?? raw.top1?.food_q ?? 0,
+      vibe: raw.vibe ?? 0,
+      service: raw.service ?? 0,
+      reputation: raw.reputation ?? 0,
+      convenience: raw.convenience ?? 0,
+      response_time_ms: raw.response_time_ms ?? 0,
+      was_lightweight: raw.was_lightweight ?? false,
+      error: raw.error,
+    },
+    evaluation: {
+      score_tier: computeScoreTier(dm),
+      score_pass: dm >= 60,
+      gap_type: gap.gap_type,
+      gap_severity: gap.gap_severity,
+    },
+    timestamp: raw.timestamp || new Date().toISOString(),
+  };
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function pct(n: number, d: number): string {
@@ -61,7 +120,7 @@ function ragEmoji(dm: number): string {
 
 function generate(resultsPath: string) {
   const lines = readFileSync(resultsPath, "utf-8").split("\n").filter((l) => l.trim());
-  const results: QueryResult[] = lines.map((l) => JSON.parse(l));
+  const results: QueryResult[] = lines.map((l) => normalizeResult(JSON.parse(l)));
   const date = new Date().toISOString().substring(0, 10);
 
   // ─── Compute Statistics ──────────────────────────────────────────────────

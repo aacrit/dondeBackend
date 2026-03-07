@@ -102,7 +102,8 @@ if [[ -z "$ANALYZE_ONLY" ]]; then
   # Find the latest result file
   LATEST_RESULT=$(ls -t "$RESULTS_DIR"/run-*.jsonl 2>/dev/null | head -1)
 else
-  LATEST_RESULT="$ANALYZE_ONLY"
+  # Resolve to absolute path
+  LATEST_RESULT="$(cd "$(dirname "$ANALYZE_ONLY")" && pwd)/$(basename "$ANALYZE_ONLY")"
 fi
 
 if [[ -z "$LATEST_RESULT" ]] || [[ ! -f "$LATEST_RESULT" ]]; then
