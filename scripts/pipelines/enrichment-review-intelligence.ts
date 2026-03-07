@@ -144,16 +144,24 @@ async function main() {
   await ensureSchema(supabase);
 
   // Fetch all RI rows with semantic_descriptors for filtering
-  // (dish_catalog/popular_dishes/cuisine_signals are large JSON — fetch later per-batch)
-  const { data: restaurants, error: fetchErr, count } = await supabase
-    .from("restaurant_review_intelligence")
-    .select("restaurant_id,semantic_descriptors", { count: "exact" });
-
-  if (fetchErr) {
-    console.error("Fetch error details:", JSON.stringify(fetchErr, null, 2));
-    console.error("Status:", (fetchErr as any).status, "Code:", (fetchErr as any).code);
-    throw fetchErr;
+  // Paginate to bypass Supabase's default 1000-row limit
+  const PAGE = 1000;
+  const restaurants: { restaurant_id: string; semantic_descriptors: string[] | null }[] = [];
+  let page = 0;
+  while (true) {
+    const { data, error: fetchErr } = await supabase
+      .from("restaurant_review_intelligence")
+      .select("restaurant_id,semantic_descriptors")
+      .range(page * PAGE, (page + 1) * PAGE - 1);
+    if (fetchErr) {
+      console.error("Fetch error details:", JSON.stringify(fetchErr, null, 2));
+      throw fetchErr;
+    }
+    if (data) restaurants.push(...data);
+    if (!data || data.length < PAGE) break;
+    page++;
   }
+  console.log(`Fetched ${restaurants.length} total RI rows`);
 
   // Filter to those needing enrichment (null or empty array)
   const needsEnrichment = (restaurants || []).filter(
