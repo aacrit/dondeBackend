@@ -136,21 +136,71 @@ function generate(resultsPath: string) {
   const lightweight = results.filter((r) => r.result.was_lightweight).length;
   const totalCost = lightweight === total ? 0.21 * (total / 7000) : (total - lightweight) * 0.018 + lightweight * 0.00003;
 
-  // Category stats
+  // ─── Statistical helpers ──────────────────────────────────────────────────
+  const allDM = results.map((r) => r.result.donde_match).sort((a, b) => a - b);
+  const percentile = (arr: number[], p: number) => arr[Math.min(Math.floor(arr.length * p), arr.length - 1)];
+  const stddev = (arr: number[], mean: number) =>
+    Math.sqrt(arr.reduce((s, v) => s + (v - mean) ** 2, 0) / arr.length);
+
+  const globalStats = {
+    stddev: Math.round(stddev(allDM, avgDM) * 10) / 10,
+    min: allDM[0],
+    max: allDM[allDM.length - 1],
+    p25: percentile(allDM, 0.25),
+    p50: percentile(allDM, 0.5),
+    p75: percentile(allDM, 0.75),
+    p95: percentile(allDM, 0.95),
+    scores: allDM,
+  };
+
+  // Global factor averages
+  const factorSums = { food: 0, vibe: 0, service: 0, reputation: 0, convenience: 0 };
+  for (const r of results) {
+    factorSums.food += r.result.food;
+    factorSums.vibe += r.result.vibe;
+    factorSums.service += r.result.service;
+    factorSums.reputation += r.result.reputation;
+    factorSums.convenience += r.result.convenience;
+  }
+  const globalFactorAverages = {
+    food: Math.round((factorSums.food / total) * 10) / 10,
+    vibe: Math.round((factorSums.vibe / total) * 10) / 10,
+    service: Math.round((factorSums.service / total) * 10) / 10,
+    reputation: Math.round((factorSums.reputation / total) * 10) / 10,
+    convenience: Math.round((factorSums.convenience / total) * 10) / 10,
+  };
+
+  // Category stats (enriched)
   interface CatStat {
     total: number; sumDM: number; pass60: number; pass80: number;
     below40: number; gaps: number; pass_score: number;
+    dmValues: number[];
+    sumFood: number; sumVibe: number; sumService: number; sumReputation: number; sumConvenience: number;
+    gapTypeBreakdown: Record<string, number>;
   }
   const catStats: Record<string, CatStat> = {};
   for (const r of results) {
-    if (!catStats[r.category]) catStats[r.category] = { total: 0, sumDM: 0, pass60: 0, pass80: 0, below40: 0, gaps: 0, pass_score: 0 };
+    if (!catStats[r.category]) catStats[r.category] = {
+      total: 0, sumDM: 0, pass60: 0, pass80: 0, below40: 0, gaps: 0, pass_score: 0,
+      dmValues: [], sumFood: 0, sumVibe: 0, sumService: 0, sumReputation: 0, sumConvenience: 0,
+      gapTypeBreakdown: {},
+    };
     const s = catStats[r.category];
     s.total++;
     s.sumDM += r.result.donde_match;
+    s.dmValues.push(r.result.donde_match);
+    s.sumFood += r.result.food;
+    s.sumVibe += r.result.vibe;
+    s.sumService += r.result.service;
+    s.sumReputation += r.result.reputation;
+    s.sumConvenience += r.result.convenience;
     if (r.result.donde_match >= 60) s.pass60++;
     if (r.result.donde_match >= 80) s.pass80++;
     if (r.result.donde_match < 40) s.below40++;
-    if (r.evaluation.gap_type) s.gaps++;
+    if (r.evaluation.gap_type) {
+      s.gaps++;
+      s.gapTypeBreakdown[r.evaluation.gap_type] = (s.gapTypeBreakdown[r.evaluation.gap_type] || 0) + 1;
+    }
     if (r.evaluation.score_pass) s.pass_score++;
   }
 
@@ -299,6 +349,134 @@ function generate(resultsPath: string) {
   writeFileSync(dashboardPath, md);
   console.log(`  ✓ Dashboard: ${dashboardPath.split("/tests/")[1]}`);
 
+  // ─── Gap Impact Analysis ──────────────────────────────────────────────────
+  const fixabilityMap: Record<string, string> = {
+    intent: "auto", scoring: "tuning", db_coverage: "auto",
+    relevance_ceiling: "architectural", diversity: "tuning",
+    synonym: "auto", neighborhood: "auto", constraint: "tuning",
+  };
+
+  const gapImpact: Record<string, { count: number; sumDM: number; below60: number; fixability: string }> = {};
+  for (const g of gaps) {
+    const gt = g.evaluation.gap_type!;
+    if (!gapImpact[gt]) gapImpact[gt] = { count: 0, sumDM: 0, below60: 0, fixability: fixabilityMap[gt] || "manual" };
+    gapImpact[gt].count++;
+    gapImpact[gt].sumDM += g.result.donde_match;
+    if (g.result.donde_match < 60) gapImpact[gt].below60++;
+  }
+
+  const gapImpactOutput = Object.fromEntries(
+    Object.entries(gapImpact).map(([type, gi]) => [
+      type,
+      {
+        count: gi.count,
+        avg_dm: Math.round((gi.sumDM / gi.count) * 10) / 10,
+        fixability: gi.fixability,
+        projected_dm_gain: Math.round(gi.below60 > 0
+          ? gaps.filter((g) => g.evaluation.gap_type === type && g.result.donde_match < 60)
+              .reduce((s, g) => s + (60 - g.result.donde_match), 0) / total * 10
+          : 0) / 10,
+        projected_pass_rate_gain: Math.round((gi.below60 / total) * 1000) / 10,
+      },
+    ])
+  );
+
+  // ─── Load gap-details for enriched gaps ─────────────────────────────────────
+  const resultsDir = join(TESTS_DIR, "gauntlet-results");
+  const gapDetailFiles = existsSync(resultsDir)
+    ? readdirSync(resultsDir).filter((f) => f.startsWith("gap-details-") && f.endsWith(".json")).sort().reverse()
+    : [];
+  let gapDetailsMap: Record<string, { impact_score: number; fix_action: string; gap_severity: string }> = {};
+  let gapDetailsFile: string | null = null;
+  if (gapDetailFiles.length > 0) {
+    gapDetailsFile = gapDetailFiles[0];
+    try {
+      const gd = JSON.parse(readFileSync(join(resultsDir, gapDetailsFile), "utf-8"));
+      for (const g of gd.gaps || []) {
+        gapDetailsMap[g.query_id || g.query] = {
+          impact_score: g.impact_score ?? 0,
+          fix_action: g.fix_action ?? "",
+          gap_severity: g.gap_severity ?? "P2",
+        };
+      }
+    } catch (_) { /* ignore */ }
+  }
+
+  // ─── Generate Recommendations ───────────────────────────────────────────────
+  const recommendations: { priority: number; action: string; expected_impact: string; rationale: string; section: string }[] = [];
+
+  // 1. Highest-impact gap type
+  const sortedGapImpact = Object.entries(gapImpactOutput).sort((a, b) => b[1].projected_dm_gain - a[1].projected_dm_gain);
+  if (sortedGapImpact.length > 0) {
+    const [topGapType, topGap] = sortedGapImpact[0];
+    if (topGap.projected_dm_gain > 0) {
+      recommendations.push({
+        priority: 1,
+        action: `Fix ${topGap.count} ${topGapType} gaps (${topGap.fixability} fix)`,
+        expected_impact: `+${topGap.projected_dm_gain} avg DM, +${topGap.projected_pass_rate_gain}% pass rate`,
+        rationale: `${topGap.count} queries avg ${topGap.avg_dm} DM. ${topGap.fixability === "auto" ? "Dictionary expansion — fast automated fix." : topGap.fixability === "tuning" ? "Weight tuning required." : "Requires architectural changes to relevance multiplier."}`,
+        section: "gaps",
+      });
+    }
+  }
+
+  // 2. Worst category
+  const catEntries = Object.entries(catStats).sort((a, b) => (a[1].sumDM / a[1].total) - (b[1].sumDM / b[1].total));
+  if (catEntries.length > 0) {
+    const [worstCat, worstStats] = catEntries[0];
+    const worstAvg = Math.round((worstStats.sumDM / worstStats.total) * 10) / 10;
+    const topGapInCat = Object.entries(worstStats.gapTypeBreakdown).sort((a, b) => b[1] - a[1])[0];
+    recommendations.push({
+      priority: 2,
+      action: `Improve "${worstCat}" category (${worstStats.pass60}/${worstStats.total} passing)`,
+      expected_impact: `Category avg ${worstAvg} DM → target 65+`,
+      rationale: topGapInCat
+        ? `Primary gap type: ${topGapInCat[0]} (${topGapInCat[1]} gaps). Focus fixes here for max category lift.`
+        : `${worstStats.gaps} gaps detected. Review scoring weights for this category.`,
+      section: "categories",
+    });
+  }
+
+  // 3. Relevance ceiling cluster
+  const ceilingGaps = gaps.filter((g) => g.evaluation.gap_type === "relevance_ceiling");
+  if (ceilingGaps.length > total * 0.3) {
+    const ceilingAvg = Math.round(ceilingGaps.reduce((s, g) => s + g.result.donde_match, 0) / ceilingGaps.length * 10) / 10;
+    recommendations.push({
+      priority: 3,
+      action: `Address relevance ceiling (${ceilingGaps.length} queries stuck at ${ceilingAvg} avg)`,
+      expected_impact: `${Math.round(ceilingGaps.length / total * 100)}% of queries capped by relevance multiplier`,
+      rationale: `These queries match correctly but score 60-69 due to relevance multiplier caps. Consider raising thresholds for high-quality restaurants or adjusting relevance scoring bands.`,
+      section: "analysis",
+    });
+  }
+
+  // 4. Factor weakness
+  const factorEntries = Object.entries(globalFactorAverages) as [string, number][];
+  const weakestFactor = factorEntries.sort((a, b) => a[1] - b[1])[0];
+  if (weakestFactor && weakestFactor[1] < 6.5) {
+    recommendations.push({
+      priority: 4,
+      action: `Strengthen "${weakestFactor[0]}" factor scoring (avg ${weakestFactor[1]}/10)`,
+      expected_impact: `Lowest-performing factor across all queries`,
+      rationale: `"${weakestFactor[0]}" consistently scores below other factors. Review data completeness and scoring signals for this dimension.`,
+      section: "analysis",
+    });
+  }
+
+  // 5. Second gap type if exists
+  if (sortedGapImpact.length > 1) {
+    const [secType, secGap] = sortedGapImpact[1];
+    if (secGap.projected_dm_gain > 0) {
+      recommendations.push({
+        priority: 5,
+        action: `Then fix ${secGap.count} ${secType} gaps`,
+        expected_impact: `Additional +${secGap.projected_dm_gain} avg DM, +${secGap.projected_pass_rate_gain}% pass rate`,
+        rationale: `Second highest ROI gap type. ${secGap.fixability === "auto" ? "Automated fix available." : "Manual tuning needed."}`,
+        section: "gaps",
+      });
+    }
+  }
+
   // JSON for frontend
   const jsonData = {
     generated: new Date().toISOString(),
@@ -311,6 +489,8 @@ function generate(resultsPath: string) {
       mode: lightweight === total ? "lightweight" : "full-fidelity",
       cost_estimate: Math.round(totalCost * 100) / 100,
     },
+    statistics: globalStats,
+    factor_averages: globalFactorAverages,
     tiers: Object.fromEntries(
       Object.entries(tierStats).map(([tier, stats]) => [
         tier,
@@ -325,27 +505,54 @@ function generate(resultsPath: string) {
       ])
     ),
     categories: Object.fromEntries(
-      Object.entries(catStats).map(([cat, stats]) => [
-        cat,
-        {
+      Object.entries(catStats).map(([cat, stats]) => {
+        const catDM = stats.dmValues.sort((a, b) => a - b);
+        const catAvg = stats.sumDM / stats.total;
+        return [cat, {
           total: stats.total,
-          avg_dm: Math.round((stats.sumDM / stats.total) * 10) / 10,
+          avg_dm: Math.round(catAvg * 10) / 10,
           pass_rate_60: Math.round((stats.pass60 / stats.total) * 1000) / 10,
           excellence_rate: Math.round((stats.pass80 / stats.total) * 1000) / 10,
           weak_rate: Math.round((stats.below40 / stats.total) * 1000) / 10,
           gap_count: stats.gaps,
-        },
-      ])
+          stddev: Math.round(stddev(catDM, catAvg) * 10) / 10,
+          p25: percentile(catDM, 0.25),
+          p50: percentile(catDM, 0.5),
+          p75: percentile(catDM, 0.75),
+          factor_averages: {
+            food: Math.round((stats.sumFood / stats.total) * 10) / 10,
+            vibe: Math.round((stats.sumVibe / stats.total) * 10) / 10,
+            service: Math.round((stats.sumService / stats.total) * 10) / 10,
+            reputation: Math.round((stats.sumReputation / stats.total) * 10) / 10,
+            convenience: Math.round((stats.sumConvenience / stats.total) * 10) / 10,
+          },
+          gap_type_breakdown: stats.gapTypeBreakdown,
+        }];
+      })
     ),
     relevance_types: relTypeCounts,
     gap_types: gapTypeCounts,
-    top_gaps: gaps.slice(0, 50).map((g) => ({
-      query: g.query,
-      dm: g.result.donde_match,
-      gap_type: g.evaluation.gap_type,
-      category: g.category,
-      restaurant: g.result.restaurant_name,
-    })),
+    gap_impact: gapImpactOutput,
+    recommendations,
+    all_gaps: gaps.map((g) => {
+      const detail = gapDetailsMap[g.query_id] || gapDetailsMap[g.query] || {};
+      return {
+        query: g.query,
+        dm: g.result.donde_match,
+        gap_type: g.evaluation.gap_type,
+        gap_severity: (detail as any).gap_severity || g.evaluation.gap_severity || "P2",
+        category: g.category,
+        restaurant: g.result.restaurant_name,
+        impact_score: (detail as any).impact_score || 0,
+        fix_action: (detail as any).fix_action || "",
+        food: g.result.food,
+        vibe: g.result.vibe,
+        service: g.result.service,
+        reputation: g.result.reputation,
+        convenience: g.result.convenience,
+      };
+    }),
+    gap_details_file: gapDetailsFile,
     score_distribution: buckets.map((b) => ({
       label: b.label,
       count: results.filter((r) => r.result.donde_match >= b.min && r.result.donde_match <= b.max).length,
