@@ -1,17 +1,17 @@
-# Donde Gauntlet Dashboard — 2026-03-07
+# Donde Gauntlet Dashboard — 2026-03-08
 
 ## Executive Summary
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  Queries Tested:    200                                 │
-│  API Success Rate:  100.0%                              │
-│  Pass Rate (DM≥60): 77.5%                               │
-│  Excellence (DM≥80):44.0%                               │
-│  Outstanding(DM≥90):0.5%                                │
-│  Average DondeMatch:72.2                                │
-│  Gaps Detected:     85                                  │
-│  Avg Response Time:  5674ms                             │
+│  Queries Tested:    375                                 │
+│  API Success Rate:  99.2%                               │
+│  Pass Rate (DM≥60): 81.6%                               │
+│  Excellence (DM≥80):32.8%                               │
+│  Outstanding(DM≥90):0.3%                                │
+│  Average DondeMatch:71.0                                │
+│  Gaps Detected:     215                                 │
+│  Avg Response Time:  6025ms                             │
 │  Mode:              Lightweight                         │
 │  Est. Cost:         ~$0.01                              │
 └──────────────────────────────────────────────────────┘
@@ -21,73 +21,78 @@
 
 | Tier | Name | Queries | Avg DM | Pass (≥60) | Excel (≥80) | Weak (<40) | Gaps |
 |------|------|---------|--------|------------|-------------|------------|------|
-| 0 | Gold Standard | 200 | 72.2 | 77.5% | 44.0% | 0.0% | 85 |
+| 1 | Core Singles | 375 | 71.0 | 81.6% | 32.8% | 3.2% | 215 |
 
 ## Category Performance
 
 | Category | Queries | Avg DM | Pass (≥60) | Excel (≥80) | Weak (<40) | Gaps |
 |----------|---------|--------|------------|-------------|------------|------|
-| food | 40 | 74.6 | 87.5% | 42.5% | 0.0% | 18 |
-| reputation | 40 | 77.9 | 95.0% | 72.5% | 0.0% | 6 |
-| convenience | 40 | 65.4 | 45.0% | 20.0% | 0.0% | 26 |
-| vibe | 40 | 69.6 | 80.0% | 25.0% | 0.0% | 22 |
-| service | 40 | 73.4 | 80.0% | 60.0% | 0.0% | 13 |
+| cuisine | 143 | 69.8 | 79.0% | 26.6% | 4.2% | 86 |
+| dish | 77 | 75.6 | 94.8% | 48.1% | 2.6% | 44 |
+| vibe | 58 | 65.8 | 74.1% | 24.1% | 5.2% | 34 |
+| chicago_specific | 42 | 72.0 | 71.4% | 31.0% | 2.4% | 20 |
+| occasion | 36 | 68.5 | 77.8% | 11.1% | 0.0% | 27 |
+| reputation | 19 | 80.7 | 100.0% | 89.5% | 0.0% | 4 |
 
 ## Relevance Type Distribution
 
 | Type | Count | % |
 |------|-------|---|
-| vibe | 54 | 27.0% |
-| open_ended | 53 | 26.5% |
-| cuisine | 36 | 18.0% |
-| reputation | 29 | 14.5% |
-| dish | 28 | 14.0% |
+| cuisine | 123 | 32.8% |
+| vibe | 89 | 23.7% |
+| reputation | 71 | 18.9% |
+| dish | 55 | 14.7% |
+| open_ended | 34 | 9.1% |
+| unknown | 3 | 0.8% |
 
 ## Gap Summary
 
 | Gap Type | Count | Severity |
 |----------|-------|----------|
-| scoring | 45 | P1 |
-| relevance_ceiling | 25 | P2 |
-| cuisine_mismatch | 15 | P2 |
+| intent | 109 | P1 |
+| scoring | 47 | P1 |
+| relevance_ceiling | 28 | P2 |
+| cuisine_mismatch | 22 | P2 |
+| neighborhood | 6 | P1 |
+| api_error | 3 | P0 |
 
 ## Top 20 Gaps (Lowest Scores)
 
 | # | Query | DM | Type | Category | Restaurant |
 |---|-------|-----|------|----------|------------|
-| 1 | near thalia hall | 45 | scoring | convenience | Nepal House (Divisio |
-| 2 | house butchery | 46 | scoring | service | Saigon Sisters |
-| 3 | private chef consultation | 46 | scoring | service | Saigon Sisters |
-| 4 | teppanyaki | 47 | scoring | food | Tamu Sushi |
-| 5 | bustling brasserie | 47 | scoring | vibe | Galit |
-| 6 | shabu shabu | 47 | scoring | food | Tamu Sushi |
-| 7 | chef interaction | 49 | scoring | vibe | Little Vietnam Resta |
-| 8 | cheap eats | 49 | scoring | convenience | Sunset Phở Caffe |
-| 9 | wheelchair accessible | 50 | scoring | convenience | Eggholic - Indian St |
-| 10 | craft beer | 50 | scoring | food | Pilot Project Brewin |
-| 11 | cajun food | 51 | scoring | food | Roux |
-| 12 | turkish food | 51 | scoring | food | Avaspi |
-| 13 | valentine's day dinner | 51 | scoring | service | Fancy Plants Cafe |
-| 14 | best thai chicago | 52 | scoring | reputation | Eat Fine Design By K |
-| 15 | arcade bar | 54 | scoring | vibe | Bavette's Bar & Boeu |
-| 16 | greenhouse dining | 54 | scoring | vibe | Bavette's Bar & Boeu |
-| 17 | water sommelier | 54 | scoring | service | Bavette's Bar & Boeu |
-| 18 | near lakefront trail | 54 | scoring | convenience | Bavette's Bar & Boeu |
-| 19 | takeout only | 54 | scoring | service | Bavette's Bar & Boeu |
-| 20 | most reviewed restaurant | 54 | scoring | reputation | Bavette's Bar & Boeu |
+| 1 | Ecuadorian food near me | 0 | api_error | cuisine | none |
+| 2 | where to get pancakes | 0 | api_error | dish | none |
+| 3 | where to get cheesecake | 0 | api_error | dish | none |
+| 4 | somewhere upscale | 7 | intent | vibe | Ever Restaurant |
+| 5 | upscale restaurant Chicago | 7 | intent | vibe | Ever Restaurant |
+| 6 | upscale bar | 7 | intent | vibe | Ever Restaurant |
+| 7 | Nepalese food | 12 | cuisine_mismatch | cuisine | HaiSous Vietnamese K |
+| 8 | where to get Nepalese food | 12 | cuisine_mismatch | cuisine | HaiSous Vietnamese K |
+| 9 | Argyle Street food | 38 | cuisine_mismatch | chicago_specific | Bavette's Bar & Boeu |
+| 10 | Somali place | 41 | scoring | cuisine | Safari Somali Cuisin |
+| 11 | good Eritrean restaurant | 45 | scoring | cuisine | Awash Ethiopian Rest |
+| 12 | authentic Nepalese | 46 | intent | cuisine | Nepal House (South L |
+| 13 | authentic Nigerian | 46 | scoring | cuisine | Teranga African Rest |
+| 14 | Senegalese food near me | 46 | scoring | cuisine | Teranga African Rest |
+| 15 | where to get Tibetan food | 46 | scoring | cuisine | Revolution Brewing - |
+| 16 | authentic Malaysian | 47 | scoring | cuisine | Serai |
+| 17 | Malaysian restaurant | 47 | scoring | cuisine | Serai |
+| 18 | good Lebanese restaurant | 48 | scoring | cuisine | Suda's |
+| 19 | Southern restaurant | 48 | scoring | cuisine | Big Jones |
+| 20 | Creole restaurant | 48 | scoring | cuisine | Big Jones |
 
 ## Score Distribution
 
 | Range | Count | % | Bar |
 |-------|-------|---|-----|
-| 90-99 (Outstanding) | 1 | 0.5% |  |
-| 80-89 (Excellent) | 87 | 43.5% | █████████████████ |
-| 70-79 (Strong) | 41 | 20.5% | ████████ |
-| 60-69 (Solid) | 26 | 13.0% | █████ |
-| 50-59 (Marginal) | 37 | 18.5% | ███████ |
-| 40-49 (Weak) | 8 | 4.0% | ██ |
-| < 40 (Critical) | 0 | 0.0% |  |
+| 90-99 (Outstanding) | 1 | 0.3% |  |
+| 80-89 (Excellent) | 122 | 32.5% | █████████████ |
+| 70-79 (Strong) | 146 | 38.9% | ████████████████ |
+| 60-69 (Solid) | 37 | 9.9% | ████ |
+| 50-59 (Marginal) | 43 | 11.5% | █████ |
+| 40-49 (Weak) | 14 | 3.7% | █ |
+| < 40 (Critical) | 12 | 3.2% | █ |
 
 ---
 
-*Generated: 2026-03-07T18:32:17.376Z | Source: run-2026-03-07T18-24-44.jsonl*
+*Generated: 2026-03-08T04:30:54.887Z | Source: run-2026-03-08T04-22-43.jsonl*
