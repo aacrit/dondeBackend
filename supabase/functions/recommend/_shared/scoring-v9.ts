@@ -576,6 +576,7 @@ export function computeRelevance(
   intent: IntentClassificationV2 | null,
   specialRequest: string,
 ): V9Relevance {
+  let weakVibeScore: number | null = null;
 
   // V10: Reputation-focused queries — check FIRST, unconditionally.
   // Reputation keywords ("michelin", "james beard", "best") are an explicit signal
@@ -638,7 +639,12 @@ export function computeRelevance(
         return { score: Math.min(1.0, (vibeRelevance + semanticResult.score) / 2 + 0.10), type: "vibe", details: `Vibe+Semantic: ${((vibeRelevance + semanticResult.score) / 2).toFixed(2)}` };
       }
     }
-    return { score: vibeRelevance, type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
+    // V12: If vibe hits are weak (at floor), don't return yet — let constraints/neighborhood try
+    if (vibeRelevance > 0.55) {
+      return { score: vibeRelevance, type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
+    }
+    // Store weak vibe as fallback — check constraints below, use max
+    weakVibeScore = vibeRelevance;
   }
 
   // V11: Semantic concept matching for queries with semantic_tags but no food/vibe signals
@@ -691,7 +697,8 @@ export function computeRelevance(
   }
 
   // Fallback: some intent but no clear food/vibe signal
-  return { score: 0.70, type: "open_ended", details: "Weak signal" };
+  const fallbackScore = weakVibeScore !== null ? Math.max(weakVibeScore, 0.70) : 0.70;
+  return { score: fallbackScore, type: "open_ended", details: "Weak signal" };
 }
 
 // ---- Dish Relevance (0-1.0) — Uses Review Intelligence ----
