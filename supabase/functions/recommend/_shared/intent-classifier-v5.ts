@@ -37,6 +37,7 @@ const VIBE_WORDS: string[] = [
   "intimate", "lively", "cozy", "elegant", "casual", "buzzing", "chill",
   "refined", "rustic", "modern", "industrial", "classic", "funky", "warm",
   "minimalist", "relaxed", "rooftop", "bottomless", "upscale", "trendy",
+  "romantic", "speakeasy", "sophisticated", "vibrant",
 ];
 
 /** Practical constraint trigger words mapped to constraint labels */
@@ -62,9 +63,9 @@ const CONSTRAINT_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
 
 /** Emotional intent detection — order matters (first match wins) */
 const EMOTIONAL_INTENT_PATTERNS: Array<{ intent: string; pattern: RegExp }> = [
-  { intent: "impress", pattern: /impress|wow|blow.?them.?away|blow.?away|make.?impression|james beard|most awarded|outstanding chef|award.?winning|top rated|best rated|highest rated|yelp/ },
+  { intent: "impress", pattern: /impress|wow|blow.?them.?away|blow.?away|make.?impression|james beard|most awarded|outstanding chef|award.?winning|top rated|best rated|highest rated|yelp|romantic|date night|upscale|fine dining|bib gourmand|eater 38|infatuation/ },
   { intent: "celebrate", pattern: /celebrat|celebration|birthday|anniversary|graduation|engagement|milestone|promotion/ },
-  { intent: "indulge", pattern: /treat|indulge|splurge|pamper|luxury|spoil|self.?care|power lunch|treat myself|treat me/ },
+  { intent: "indulge", pattern: /treat|indulge|splurge|pamper|luxury|spoil|self.?care|power lunch|treat myself|treat me|tasting menu|prix fixe|speakeasy/ },
   { intent: "explore", pattern: /\bnew\b|try|adventure|explore|discover|never.?been|something new|different|unique/ },
   { intent: "comfort", pattern: /cozy|comfortable|familiar|home|nostalgia|homey|comforting/ },
   // "casual" is the default — no pattern needed
@@ -317,6 +318,45 @@ function generateDeterministicSemanticTags(
     { pattern: /cozy.*brunch|brunch.*cozy/, tag: "cozy brunch spot" },
     { pattern: /bottomless/, tag: "bottomless brunch" },
     { pattern: /kid.?friendly|family.*kid|kid.*brunch|family.*brunch/, tag: "family-friendly dining" },
+    // V12: Vibe & occasion semantic tags
+    { pattern: /upscale|fine dining|white tablecloth|high end/, tag: "upscale dining experience" },
+    { pattern: /speakeasy/, tag: "speakeasy experience" },
+    { pattern: /romantic|candlelit/, tag: "romantic dining" },
+    { pattern: /classic.*restaurant|classic.*dinner|classic.*place/, tag: "classic Chicago dining" },
+    { pattern: /business lunch|power lunch|client lunch|corporate/, tag: "business dining" },
+    { pattern: /casual.*hangout|chill.*hangout|hangout/, tag: "casual hangout spot" },
+    { pattern: /group dinner|group.*dining|large group/, tag: "group dining" },
+    { pattern: /date night/, tag: "date night spot" },
+    // V12: Chicago-specific dish semantic tags
+    { pattern: /italian beef/, tag: "Chicago classic" },
+    { pattern: /gym shoe/, tag: "Chicago classic" },
+    { pattern: /mother.?in.?law/, tag: "Chicago classic" },
+    { pattern: /sport pepper/, tag: "Chicago classic" },
+    { pattern: /chicago mix|chicago.?style popcorn/, tag: "Chicago classic" },
+    { pattern: /maxwell street/, tag: "Chicago classic" },
+    { pattern: /rainbow cone/, tag: "Chicago classic" },
+    { pattern: /deep dish/, tag: "Chicago classic" },
+    { pattern: /rib tips|south side rib/, tag: "BBQ destination" },
+    { pattern: /bbq|barbecue|brisket|smoked meat/, tag: "BBQ destination" },
+    // V12: Reputation semantic tags
+    { pattern: /bib gourmand/, tag: "Michelin recognized" },
+    { pattern: /eater\s*\d+|eater.*pick/, tag: "critically acclaimed dining" },
+    { pattern: /infatuation.*pick|infatuation/, tag: "critically acclaimed dining" },
+    // V12: Category semantic tags
+    { pattern: /cocktail|mixology|craft cocktail/, tag: "craft cocktail destination" },
+    { pattern: /\bburger\b/, tag: "burger destination" },
+    { pattern: /\bsteak\b|steakhouse/, tag: "steakhouse experience" },
+    { pattern: /\btaco|tacos\b/, tag: "taco destination" },
+    { pattern: /fried chicken/, tag: "fried chicken destination" },
+    { pattern: /\bbrunch\b/, tag: "brunch destination" },
+    { pattern: /\bwings\b/, tag: "wings destination" },
+    { pattern: /\bpizza\b/, tag: "pizza destination" },
+    { pattern: /\bcurry\b/, tag: "curry destination" },
+    { pattern: /\bsushi\b/, tag: "sushi destination" },
+    { pattern: /\bramen\b/, tag: "ramen destination" },
+    { pattern: /ice cream|gelato/, tag: "dessert destination" },
+    { pattern: /churros|tiramisu|mochi|cannoli/, tag: "dessert destination" },
+    { pattern: /dumpling|dumplings/, tag: "dumpling destination" },
   ];
 
   for (const { pattern, tag } of CONTEXT_PATTERNS) {

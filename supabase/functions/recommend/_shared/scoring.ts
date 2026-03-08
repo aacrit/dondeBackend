@@ -156,7 +156,7 @@ export const TAG_KEYWORDS: Record<string, string[]> = {
   "outdoor seating": ["outdoor seating", "patio dining", "sidewalk cafe", "garden seating"],
   // V8.6: Reputation-focused tag — triggers Rule 13 weight shift for reputation-priority queries.
   // These keywords signal the user cares about quality/prestige, not a specific cuisine or vibe.
-  "reputation-focused": ["best rated", "top rated", "highly rated", "award", "michelin", "james beard", "critically acclaimed", "best reviewed", "highest rated", "award-winning", "five star", "most popular"],
+  "reputation-focused": ["best rated", "top rated", "highly rated", "award", "michelin", "james beard", "critically acclaimed", "best reviewed", "highest rated", "award-winning", "five star", "most popular", "bib gourmand", "eater 38", "eater", "infatuation", "infatuation picks"],
 };
 
 // --- Enhancement 4: Semantic intent expansion ---
@@ -932,6 +932,100 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "open now": { tags: [] },
   "24 hour": { tags: ["late night"] },
   "24 hour restaurant": { tags: ["late night"] },
+
+  // ============================================================
+  // PHASE 3: 109-Gap Coverage Expansion
+  // ============================================================
+
+  // --- Missing Cuisine-Type Mappings (to closest existing categories) ---
+  "bangladeshi": { cuisines: ["Indian"] },
+  "bangladeshi food": { cuisines: ["Indian"] },
+  "sri lankan": { cuisines: ["Indian"] },
+  "sri lankan food": { cuisines: ["Indian"] },
+  "azerbaijani": { cuisines: ["Middle Eastern", "Georgian"] },
+  "swedish": { cuisines: ["German"] },
+  "kurdish": { cuisines: ["Middle Eastern"] },
+  "serbian": { cuisines: ["Mediterranean"] },
+  "levantine": { cuisines: ["Middle Eastern"] },
+  "levantine food": { cuisines: ["Middle Eastern"] },
+  "bosnian": { cuisines: ["Middle Eastern", "Mediterranean"] },
+  "bosnian food": { cuisines: ["Middle Eastern", "Mediterranean"] },
+  "portuguese": { cuisines: ["Mediterranean", "Spanish"] },
+  "portuguese place": { cuisines: ["Mediterranean", "Spanish"] },
+  "british": { cuisines: ["Irish"] },
+  "british food": { cuisines: ["Irish"] },
+  "israeli": { cuisines: ["Middle Eastern"] },
+  "israeli place": { cuisines: ["Middle Eastern"] },
+  "trinidadian": { cuisines: ["Caribbean/Jamaican"] },
+  "trinidadian food": { cuisines: ["Caribbean/Jamaican"] },
+  "singaporean": { cuisines: ["Malaysian"] },
+  "singaporean restaurant": { cuisines: ["Malaysian"] },
+  "singaporean place": { cuisines: ["Malaysian"] },
+  "afghan": { cuisines: ["Middle Eastern", "Indian"] },
+  "afghan food": { cuisines: ["Middle Eastern", "Indian"] },
+  "indonesian": { cuisines: ["Malaysian"] },
+  "indonesian place": { cuisines: ["Malaysian"] },
+  "indonesian food": { cuisines: ["Malaysian"] },
+  "nepalese food": { cuisines: ["Nepalese/Tibetan"] },
+  "nepalese": { cuisines: ["Nepalese/Tibetan"] },
+
+  // --- Chicago-Specific Dish Intents ---
+  "italian beef": { cuisines: ["American", "Italian"] },
+  "gym shoe": { cuisines: ["American"] },
+  "gym shoe sandwich": { cuisines: ["American"] },
+  "mother-in-law": { cuisines: ["American", "Mexican"] },
+  "sport peppers": { cuisines: ["American"] },
+  "chicago mix popcorn": { cuisines: ["American"] },
+  "chicago mix": { cuisines: ["American"] },
+  "maxwell street polish": { cuisines: ["Polish", "American"] },
+  "maxwell street": { cuisines: ["Polish", "American"] },
+  "rainbow cone": { cuisines: ["Italian", "American"] },
+  "italian ice": { cuisines: ["Italian"] },
+  "south side rib tips": { cuisines: ["BBQ", "Southern/Soul Food"] },
+  "rib tips": { cuisines: ["BBQ", "Southern/Soul Food"] },
+  "chicago cheesesteak": { cuisines: ["American"] },
+  "paczki": { cuisines: ["Polish"] },
+  "kolaczki": { cuisines: ["Polish"] },
+
+  // --- Missing Dish-to-Cuisine Mappings ---
+  "eggs benedict": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
+  "french toast": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
+  "omelette": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
+  "avocado toast": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
+  "birria tacos": { cuisines: ["Mexican"] },
+  "breaded steak sandwich": { cuisines: ["American"] },
+  "pad thai": { cuisines: ["Thai"] },
+  "butter chicken": { cuisines: ["Indian"] },
+  "churros": { cuisines: ["Mexican", "Spanish"] },
+  "cocktails": { tags: ["craft cocktails"] },
+  "cocktails restaurant": { tags: ["craft cocktails"] },
+
+  // --- Reputation-Specific Intents ---
+  "bib gourmand": { tags: ["reputation-focused"] },
+  "bib gourmand chicago": { tags: ["reputation-focused"] },
+  "eater 38": { tags: ["reputation-focused", "trendy"] },
+  "eater 38 chicago": { tags: ["reputation-focused", "trendy"] },
+  "infatuation": { tags: ["reputation-focused", "trendy"] },
+  "infatuation picks": { tags: ["reputation-focused", "trendy"] },
+  "infatuation chicago": { tags: ["reputation-focused", "trendy"] },
+  "infatuation chicago picks": { tags: ["reputation-focused", "trendy"] },
+
+  // --- Occasion-Specific Intents ---
+  "date night restaurant": { tags: ["romantic", "quiet"] },
+  "birthday restaurant": { tags: ["trendy", "craft cocktails", "lively atmosphere"] },
+  "best birthday": { tags: ["trendy", "craft cocktails", "lively atmosphere"] },
+  "anniversary restaurant": { tags: ["romantic", "fine dining"] },
+  "best anniversary": { tags: ["romantic", "fine dining"] },
+  "business lunch": { tags: ["quiet"] },
+  "business lunch restaurant": { tags: ["quiet"] },
+  "casual hangout": { tags: ["great value", "lively atmosphere"] },
+  "casual hangout restaurant": { tags: ["great value", "lively atmosphere"] },
+  "group dinner": { tags: ["lively atmosphere"] },
+  "group dinner restaurant": { tags: ["lively atmosphere"] },
+  "brunch spot": { tags: ["brunch spot"] },
+  "brunch restaurant": { tags: ["brunch spot"] },
+  "best brunch": { tags: ["brunch spot", "reputation-focused"] },
+  "best brunch restaurant": { tags: ["brunch spot", "reputation-focused"] },
 };
 
 // --- Unmatched keyword extraction (for continuous learning) ---
