@@ -510,6 +510,34 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // V12: If cuisine filter returned nothing, retry without cuisine filter
+    // This handles rare cuisines (Ecuadorian, etc.) where no restaurants have that cuisine_type
+    if ((!finalRpcData || finalRpcData.length === 0) && !finalRpcError && targetCuisines.length > 0) {
+      logInfo("V12: Broadening RPC by removing cuisine filter", { cuisines: targetCuisines });
+      const { data: broadData2, error: broadError2 } = await supabase.rpc(
+        "get_candidates_v11",
+        { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: [], p_target_tags: targetTags, p_semantic_tags: semanticTags }
+      ).then(result => {
+        if (result.error?.message?.includes("get_candidates_v11")) {
+          return supabase.rpc("get_candidates_v10", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: [], p_target_tags: targetTags }).then(r => {
+            if (r.error?.message?.includes("get_candidates_v10")) {
+              return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
+            }
+            return r;
+          });
+        }
+        return result;
+      });
+      if (!broadError2 && broadData2 && broadData2.length > 0) {
+        finalRpcData = broadData2;
+        finalRpcError = null;
+        // Downgrade cuisine importance since we broadened
+        if (intent) {
+          intent.cuisine_importance = "medium";
+        }
+      }
+    }
+
     if (finalRpcError || !finalRpcData || finalRpcData.length === 0) {
       logError("RPC failed or returned no results", { error: finalRpcError ? String(finalRpcError) : "empty" });
       return jsonResponse(buildV9NoResultsResponse(neighborhood, price_level));

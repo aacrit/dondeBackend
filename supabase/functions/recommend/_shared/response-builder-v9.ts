@@ -204,29 +204,38 @@ function buildQueueBlurb(
   profile: RestaurantProfile,
   narrative: MatchNarrative | undefined,
 ): string | null {
-  if (!narrative) return null;
-
   const dp = profile.deep_profile;
   const parts: string[] = [];
 
-  if (narrative.strongest_factor_label) {
-    parts.push(narrative.strongest_factor_label + ".");
-  }
-  if (narrative.key_signals?.length > 0) {
-    parts.push(narrative.key_signals[0] + ".");
-  }
+  // Lead with the unique selling point or best_for_oneliner (human-written content)
   if (dp?.unique_selling_point) {
-    parts.push(dp.unique_selling_point + ".");
-  } else if (dp?.signature_dishes?.[0]) {
-    parts.push(`Known for the ${dp.signature_dishes[0].dish}.`);
-  }
-  if (narrative.weak_spots?.length > 0) {
-    parts.push(narrative.weak_spots[0] + ".");
-  } else if (dp?.check_average_per_person) {
-    parts.push(`Around $${dp.check_average_per_person} per person.`);
+    // Ensure it ends with a period
+    const usp = dp.unique_selling_point;
+    parts.push(usp.endsWith(".") ? usp : usp + ".");
+  } else if (profile.best_for_oneliner) {
+    const oneliner = profile.best_for_oneliner;
+    parts.push(oneliner.endsWith(".") ? oneliner : oneliner + ".");
   }
 
-  return parts.length >= 2 ? parts.join(" ") : null;
+  // Add a concrete detail — signature dish or award
+  if (dp?.signature_dishes?.[0]) {
+    parts.push(`Known for the ${dp.signature_dishes[0].dish}.`);
+  } else if (narrative?.key_signals?.length) {
+    // Use key signals but skip generic ones
+    const useful = narrative.key_signals.find(s =>
+      !s.includes("Strong relevance") && !s.includes("Recognized quality")
+    );
+    if (useful) parts.push(useful.endsWith(".") ? useful : useful + ".");
+  }
+
+  // Add price context or caveat
+  if (dp?.check_average_per_person) {
+    parts.push(`Around $${dp.check_average_per_person} per person.`);
+  } else if (narrative?.weak_spots?.length) {
+    parts.push(narrative.weak_spots[0].endsWith(".") ? narrative.weak_spots[0] : narrative.weak_spots[0] + ".");
+  }
+
+  return parts.length >= 1 ? parts.join(" ") : null;
 }
 
 /**
