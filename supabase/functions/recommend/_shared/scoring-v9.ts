@@ -377,6 +377,8 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
   "dog friendly patio": { constraints: ["pet_friendly", "outdoor_preferred"], tags: ["outdoor patio"] },
   "outdoor seating": { constraints: ["outdoor_preferred"], tags: ["outdoor patio"] },
   "walk in friendly": { constraints: ["walk_in"], vibes: ["casual"] },
+  "walk-in friendly": { constraints: ["walk_in"], vibes: ["casual"] },
+  "walk in": { constraints: ["walk_in"] },
   "byob": { constraints: ["byob"], tags: ["great value", "byob"] },
   "byob restaurant": { constraints: ["byob"], tags: ["great value", "byob"] },
   "fancy dinner": { tags: ["fine dining"], vibes: ["elegant", "refined"], reputation_boost: true },
@@ -392,6 +394,8 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
   "cocktail bar": { vibes: ["refined", "intimate", "modern"], tags: ["craft cocktails"] },
   "wine bar": { vibes: ["cozy", "intimate", "refined"], tags: ["craft cocktails"] },
   "rooftop bar": { vibes: ["lively", "modern"], tags: ["rooftop", "outdoor patio"], constraints: ["outdoor_preferred"] },
+  "rooftop dining": { vibes: ["modern", "lively"], tags: ["rooftop", "outdoor patio"], constraints: ["outdoor_preferred"] },
+  "rooftop": { tags: ["rooftop", "outdoor patio"], constraints: ["outdoor_preferred"] },
 
   // Meta concepts
   "grandmother's cooking": { vibes: ["cozy", "warm", "rustic"], tags: ["great value"] },
@@ -610,13 +614,13 @@ export function computeRelevance(
     // Dish requested but not found → fall through to cuisine (penalized but not crushed)
     if (hasCuisine) {
       const cuisineRelevance = computeCuisineRelevance(candidate, intent);
-      // Cap at 0.75 — right cuisine but wrong dish. The cuisine match still
+      // Cap at 0.80 — right cuisine but wrong dish. The cuisine match still
       // carries significant weight (user wanted Italian → got Italian).
-      // 0.60 was too conservative — fondue/romantic Italian got DM=46.
+      // 0.75 still left fondue/romantic Italian at DM=57.
       return {
-        score: Math.min(0.75, cuisineRelevance * 0.75),
+        score: Math.min(0.80, cuisineRelevance * 0.80),
         type: "cuisine",
-        details: `Cuisine match but no dish (capped 0.75)`,
+        details: `Cuisine match but no dish (capped 0.80)`,
       };
     }
     // Dish requested, no cuisine match either → very low relevance
