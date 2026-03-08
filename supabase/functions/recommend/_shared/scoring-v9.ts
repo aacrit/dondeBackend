@@ -298,6 +298,17 @@ export const NEIGHBORHOOD_ALIASES: Record<string, string> = {
   "wicker park": "Wicker Park",
   "lakeview": "Lakeview",
   "near wrigley": "Lakeview",
+  // Sports venues — "dinner before X game" queries
+  "bulls game": "West Loop",
+  "blackhawks game": "West Loop",
+  "bears game": "South Loop",
+  "soldier field": "South Loop",
+  "cubs game": "Lakeview",
+  "white sox game": "Bridgeport",
+  "sox game": "Bridgeport",
+  "guaranteed rate": "Bridgeport",
+  "fire game": "Bridgeport",
+  "concert at united center": "West Loop",
 };
 
 // ==========================================
@@ -686,17 +697,26 @@ export function computeRelevance(
   }
 
   // Neighborhood relevance: if query mentions a neighborhood and restaurant is there, boost
+  // V12: Increased neighborhood match to 0.90 (was 0.80) and added mismatch penalty (0.55)
+  // to ensure "food near Wrigley Field" strongly prefers Lakeview restaurants
   if (specialRequest) {
     const reqLower = specialRequest.toLowerCase();
+    let neighborhoodMentioned = false;
     for (const [alias, canonical] of Object.entries(NEIGHBORHOOD_ALIASES)) {
       if (reqLower.includes(alias)) {
+        neighborhoodMentioned = true;
         const restNeighborhood = (candidate.neighborhood_name || "").toLowerCase();
         const canonicalLower = canonical.toLowerCase();
         if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
-          return { score: 0.80, type: "open_ended", details: `Neighborhood match: ${canonical}` };
+          return { score: 0.90, type: "open_ended", details: `Neighborhood match: ${canonical}` };
         }
         break;
       }
+    }
+    // If neighborhood was mentioned but restaurant isn't there, penalize
+    if (neighborhoodMentioned) {
+      const penaltyScore = weakVibeScore !== null ? Math.max(weakVibeScore, 0.55) : 0.55;
+      return { score: penaltyScore, type: "open_ended", details: "Neighborhood mismatch penalty" };
     }
   }
 

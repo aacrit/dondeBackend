@@ -1026,6 +1026,20 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "brunch restaurant": { tags: ["brunch spot"] },
   "best brunch": { tags: ["brunch spot", "reputation-focused"] },
   "best brunch restaurant": { tags: ["brunch spot", "reputation-focused"] },
+
+  // --- Missing Dish Intents (from API error & gap analysis) ---
+  "pancakes": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
+  "cheesecake": { cuisines: ["American"] },
+  "waffles": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
+  "waffle": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
+  "pancake": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
+  "crepes": { cuisines: ["French", "Brunch"], tags: ["brunch spot"] },
+  "ice cream shop": { tags: ["great value"] },
+  "gelato shop": { cuisines: ["Italian"], tags: ["great value"] },
+
+  // --- "where to get X" pattern coverage ---
+  "soul food food": { cuisines: ["Southern/Soul Food"] },
+  "soul food": { cuisines: ["Southern/Soul Food"] },
 };
 
 // --- Unmatched keyword extraction (for continuous learning) ---
