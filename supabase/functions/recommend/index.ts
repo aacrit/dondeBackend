@@ -262,7 +262,7 @@ Deno.serve(async (req: Request) => {
       const cultureTheme = detectCultureTheme(cultureText);
 
       // Build minimal prompt for single restaurant blurb
-      const systemPrompt = buildV5SystemPrompt(scoreTier as "exceptional" | "great" | "good" | "decent" | "weak", cultureTheme);
+      const systemPrompt = buildV5SystemPrompt(scoreTier as "exceptional" | "great" | "good" | "decent" | "weak", cultureTheme, context?.occasion || "");
       const userPrompt = buildBlurbOnlyPrompt(restaurantData, context || {});
 
       const rawText = await callClaude(userPrompt, systemPrompt, { maxTokens: 384, temperature: 0.7 });
@@ -733,8 +733,8 @@ Deno.serve(async (req: Request) => {
       ].filter(Boolean).join(' ');
       const cultureTheme = detectCultureTheme(cultureText);
 
-      // System prompt with Donde character voice + tone + narrative voice
-      const systemPrompt = buildV5SystemPrompt(scoreTier, cultureTheme);
+      // System prompt with Donde character voice + tone + narrative voice + occasion register
+      const systemPrompt = buildV5SystemPrompt(scoreTier, cultureTheme, occasion);
 
       // User prompt with full candidate pool + top 10 deep profiles
       // Cast V9ScoredCandidate to V5ScoredCandidate for prompt compatibility
