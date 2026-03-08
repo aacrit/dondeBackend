@@ -385,6 +385,14 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
   "affordable date night": { tags: ["romantic", "great value"], vibes: ["cozy", "intimate"], constraints: ["budget_conscious"] },
   "high end tasting menu": { tags: ["fine dining", "tasting menu"], vibes: ["elegant", "refined"], reputation_boost: true, price_hint: "$$$$" },
 
+  // Bar/nightlife concepts
+  "dive bar": { vibes: ["casual", "no-frills", "lively"], tags: ["hidden gem", "great value", "craft cocktails"] },
+  "karaoke bar": { vibes: ["lively", "buzzing", "casual"], tags: ["lively atmosphere", "late night"] },
+  "sports bar": { vibes: ["lively", "casual", "buzzing"], tags: ["lively atmosphere"] },
+  "cocktail bar": { vibes: ["refined", "intimate", "modern"], tags: ["craft cocktails"] },
+  "wine bar": { vibes: ["cozy", "intimate", "refined"], tags: ["craft cocktails"] },
+  "rooftop bar": { vibes: ["lively", "modern"], tags: ["rooftop", "outdoor patio"], constraints: ["outdoor_preferred"] },
+
   // Meta concepts
   "grandmother's cooking": { vibes: ["cozy", "warm", "rustic"], tags: ["great value"] },
   "underground food scene": { tags: ["hidden gem"], vibes: ["funky", "industrial"] },

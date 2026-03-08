@@ -437,6 +437,14 @@ Deno.serve(async (req: Request) => {
     const conceptExpansion = expandQueryConcepts(semanticTags, special_request);
     const targetCuisines = [...(intent?.target_cuisines || []), ...(conceptExpansion.cuisines || [])];
     const targetTags = [...(intent?.target_tags || []), ...(conceptExpansion.tags || []), ...(conceptExpansion.vibes || [])];
+    // V12: Merge concept vibes into intent for vibe relevance scoring
+    if (conceptExpansion.vibes?.length && intent) {
+      const existingVibes = new Set((intent.vibe_keywords || []).map((v: string) => v.toLowerCase()));
+      const newVibes = conceptExpansion.vibes.filter(v => !existingVibes.has(v.toLowerCase()));
+      if (newVibes.length > 0) {
+        intent.vibe_keywords = [...(intent.vibe_keywords || []), ...newVibes];
+      }
+    }
 
     const { data: rpcData, error: rpcError } = await supabase.rpc("get_candidates_v11", {
       p_query: special_request || null,
