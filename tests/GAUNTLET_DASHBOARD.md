@@ -1,19 +1,19 @@
-# Donde Gauntlet Dashboard — 2026-03-07
+# Donde Gauntlet Dashboard — 2026-03-08
 
 ## Executive Summary
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  Queries Tested:    200                                 │
-│  API Success Rate:  100.0%                              │
-│  Pass Rate (DM≥60): 79.0%                               │
-│  Excellence (DM≥80):0.5%                                │
-│  Outstanding(DM≥90):0.0%                                │
-│  Average DondeMatch:62.2                                │
-│  Gaps Detected:     186                                 │
-│  Avg Response Time:  0ms                                │
-│  Mode:              Full-fidelity                       │
-│  Est. Cost:         ~$3.60                              │
+│  Queries Tested:    375                                 │
+│  API Success Rate:  99.2%                               │
+│  Pass Rate (DM≥60): 81.6%                               │
+│  Excellence (DM≥80):32.8%                               │
+│  Outstanding(DM≥90):0.3%                                │
+│  Average DondeMatch:71.0                                │
+│  Gaps Detected:     215                                 │
+│  Avg Response Time:  6025ms                             │
+│  Mode:              Lightweight                         │
+│  Est. Cost:         ~$0.01                              │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -21,69 +21,78 @@
 
 | Tier | Name | Queries | Avg DM | Pass (≥60) | Excel (≥80) | Weak (<40) | Gaps |
 |------|------|---------|--------|------------|-------------|------------|------|
-| 0 | Gold Standard | 200 | 62.2 | 79.0% | 0.5% | 0.0% | 186 |
+| 1 | Core Singles | 375 | 71.0 | 81.6% | 32.8% | 3.2% | 215 |
 
 ## Category Performance
 
 | Category | Queries | Avg DM | Pass (≥60) | Excel (≥80) | Weak (<40) | Gaps |
 |----------|---------|--------|------------|-------------|------------|------|
-| reputation | 40 | 62.2 | 85.0% | 0.0% | 0.0% | 40 |
-| food | 40 | 59.4 | 50.0% | 0.0% | 0.0% | 33 |
-| convenience | 40 | 63.4 | 90.0% | 0.0% | 0.0% | 39 |
-| vibe | 40 | 62.5 | 80.0% | 2.5% | 0.0% | 36 |
-| service | 40 | 63.6 | 90.0% | 0.0% | 0.0% | 38 |
+| cuisine | 143 | 69.8 | 79.0% | 26.6% | 4.2% | 86 |
+| dish | 77 | 75.6 | 94.8% | 48.1% | 2.6% | 44 |
+| vibe | 58 | 65.8 | 74.1% | 24.1% | 5.2% | 34 |
+| chicago_specific | 42 | 72.0 | 71.4% | 31.0% | 2.4% | 20 |
+| occasion | 36 | 68.5 | 77.8% | 11.1% | 0.0% | 27 |
+| reputation | 19 | 80.7 | 100.0% | 89.5% | 0.0% | 4 |
 
 ## Relevance Type Distribution
 
 | Type | Count | % |
 |------|-------|---|
-| unknown | 200 | 100.0% |
+| cuisine | 123 | 32.8% |
+| vibe | 89 | 23.7% |
+| reputation | 71 | 18.9% |
+| dish | 55 | 14.7% |
+| open_ended | 34 | 9.1% |
+| unknown | 3 | 0.8% |
 
 ## Gap Summary
 
 | Gap Type | Count | Severity |
 |----------|-------|----------|
-| relevance_ceiling | 144 | P2 |
-| scoring | 31 | P1 |
-| intent | 11 | P1 |
+| intent | 109 | P1 |
+| scoring | 47 | P1 |
+| relevance_ceiling | 28 | P2 |
+| cuisine_mismatch | 22 | P2 |
+| neighborhood | 6 | P1 |
+| api_error | 3 | P0 |
 
 ## Top 20 Gaps (Lowest Scores)
 
 | # | Query | DM | Type | Category | Restaurant |
 |---|-------|-----|------|----------|------------|
-| 1 | relaxed brunch spot | 45 | intent | vibe | Twin Anchors Restaur |
-| 2 | james beard outstanding chef | 47 | intent | reputation | The Gundis Kurdish K |
-| 3 | craft beer | 47 | intent | food | The Gundis Kurdish K |
-| 4 | sunday morning cafe | 48 | intent | vibe | Mirella’s Tavern |
-| 5 | soul food | 48 | intent | food | Tepalcates |
-| 6 | cozy brunch | 48 | intent | vibe | Geraldine's |
-| 7 | valentine's day dinner | 48 | scoring | service | The Gundis Kurdish K |
-| 8 | wheelchair accessible | 48 | scoring | convenience | The Gundis Kurdish K |
-| 9 | boba tea | 48 | scoring | food | The Gundis Kurdish K |
-| 10 | best vietnamese chicago | 49 | scoring | reputation | The Gundis Kurdish K |
-| 11 | drag brunch | 50 | intent | vibe | Geraldine's |
-| 12 | cajun food | 50 | scoring | food | S & T Steakhouse |
-| 13 | private chef consultation | 50 | intent | service | MingHin Cuisine |
-| 14 | hot pot | 50 | scoring | food | Sochi Saigonese Kitc |
-| 15 | macarons | 51 | scoring | food | Suda's |
-| 16 | korean bbq | 51 | scoring | food | Sochi Saigonese Kitc |
-| 17 | most awarded chicago chef | 51 | intent | reputation | MingHin Cuisine |
-| 18 | yelp top rated brunch | 51 | intent | reputation | Geraldine's |
-| 19 | house butchery | 51 | scoring | service | MingHin Cuisine |
-| 20 | oxtail stew | 51 | scoring | food | The Gundis Kurdish K |
+| 1 | Ecuadorian food near me | 0 | api_error | cuisine | none |
+| 2 | where to get pancakes | 0 | api_error | dish | none |
+| 3 | where to get cheesecake | 0 | api_error | dish | none |
+| 4 | somewhere upscale | 7 | intent | vibe | Ever Restaurant |
+| 5 | upscale restaurant Chicago | 7 | intent | vibe | Ever Restaurant |
+| 6 | upscale bar | 7 | intent | vibe | Ever Restaurant |
+| 7 | Nepalese food | 12 | cuisine_mismatch | cuisine | HaiSous Vietnamese K |
+| 8 | where to get Nepalese food | 12 | cuisine_mismatch | cuisine | HaiSous Vietnamese K |
+| 9 | Argyle Street food | 38 | cuisine_mismatch | chicago_specific | Bavette's Bar & Boeu |
+| 10 | Somali place | 41 | scoring | cuisine | Safari Somali Cuisin |
+| 11 | good Eritrean restaurant | 45 | scoring | cuisine | Awash Ethiopian Rest |
+| 12 | authentic Nepalese | 46 | intent | cuisine | Nepal House (South L |
+| 13 | authentic Nigerian | 46 | scoring | cuisine | Teranga African Rest |
+| 14 | Senegalese food near me | 46 | scoring | cuisine | Teranga African Rest |
+| 15 | where to get Tibetan food | 46 | scoring | cuisine | Revolution Brewing - |
+| 16 | authentic Malaysian | 47 | scoring | cuisine | Serai |
+| 17 | Malaysian restaurant | 47 | scoring | cuisine | Serai |
+| 18 | good Lebanese restaurant | 48 | scoring | cuisine | Suda's |
+| 19 | Southern restaurant | 48 | scoring | cuisine | Big Jones |
+| 20 | Creole restaurant | 48 | scoring | cuisine | Big Jones |
 
 ## Score Distribution
 
 | Range | Count | % | Bar |
 |-------|-------|---|-----|
-| 90-99 (Outstanding) | 0 | 0.0% |  |
-| 80-89 (Excellent) | 1 | 0.5% |  |
-| 70-79 (Strong) | 13 | 6.5% | ███ |
-| 60-69 (Solid) | 144 | 72.0% | █████████████████████████████ |
-| 50-59 (Marginal) | 32 | 16.0% | ██████ |
-| 40-49 (Weak) | 10 | 5.0% | ██ |
-| < 40 (Critical) | 0 | 0.0% |  |
+| 90-99 (Outstanding) | 1 | 0.3% |  |
+| 80-89 (Excellent) | 122 | 32.5% | █████████████ |
+| 70-79 (Strong) | 146 | 38.9% | ████████████████ |
+| 60-69 (Solid) | 37 | 9.9% | ████ |
+| 50-59 (Marginal) | 43 | 11.5% | █████ |
+| 40-49 (Weak) | 14 | 3.7% | █ |
+| < 40 (Critical) | 12 | 3.2% | █ |
 
 ---
 
-*Generated: 2026-03-07T16:44:46.754Z | Source: V8_200_RAW_RESULTS.jsonl*
+*Generated: 2026-03-08T04:30:54.887Z | Source: run-2026-03-08T04-22-43.jsonl*
