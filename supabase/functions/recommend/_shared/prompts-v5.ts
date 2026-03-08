@@ -196,10 +196,12 @@ OUTPUT FORMAT (JSON only, no markdown):
  * Returns the tone directive block for a given score tier.
  * Higher tiers get more authority; lower tiers get more honesty.
  */
-function getToneDirective(tier: V5ScoreTier): string {
+function getToneDirective(tier: V5ScoreTier | string): string {
   switch (tier) {
     case "perfect_match":
-      return `TONE (Perfect Match, 88-99):
+    case "outstanding_match":
+    case "excellent_match":
+      return `TONE (Perfect Match, 80-99):
 Declarative authority. Don't hedge. "This is where we'd eat tonight." The caveat is a footnote, almost an afterthought. Sentences have punch. You might be slightly smug. Close with a command: "Go."`;
 
     case "strong_pick":

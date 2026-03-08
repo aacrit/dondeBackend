@@ -56,6 +56,7 @@ const CONSTRAINT_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
   { pattern: /kosher/, label: "kosher" },
   { pattern: /wheelchair|accessible|accessibility/, label: "accessibility" },
   { pattern: /quiet|peaceful|calm/, label: "quiet_environment" },
+  { pattern: /work|laptop|study|wifi|remote/, label: "work_friendly" },
   { pattern: /private|semi.?private|private chef/, label: "private_dining" },
   { pattern: /tasting menu|prix fixe|omakase/, label: "tasting_menu" },
   { pattern: /kid.?friendly|family.?friendly|child|children|\bkids\b/, label: "family_friendly" },
@@ -412,8 +413,21 @@ export async function classifyIntentV5(
   for (const [cuisine, keywords] of Object.entries(CUISINE_KEYWORDS)) {
     for (const kw of keywords) {
       const kwLower = kw.toLowerCase();
-      // Check if any token matches OR if input contains the keyword as substring
-      if (tokens.includes(kwLower) || input.includes(kwLower)) {
+      // Check if any token matches (unigram/bigram/trigram)
+      let matched = tokens.includes(kwLower);
+      // For multi-word keywords not in tokens, check input with word-boundary awareness
+      // to avoid false positives like "manti" matching inside "romantic"
+      if (!matched && kwLower.includes(" ")) {
+        matched = input.includes(kwLower);
+      }
+      // For single-word keywords not in tokens, require word boundaries
+      if (!matched && !kwLower.includes(" ") && input.includes(kwLower)) {
+        const idx = input.indexOf(kwLower);
+        const before = idx === 0 || /\s/.test(input[idx - 1]);
+        const after = idx + kwLower.length >= input.length || /\s/.test(input[idx + kwLower.length]);
+        matched = before && after;
+      }
+      if (matched) {
         matchedCuisines.add(cuisine);
         cuisineKeywordMatchCount++;
         matchedKeywordStrings.push(kwLower);  // V6

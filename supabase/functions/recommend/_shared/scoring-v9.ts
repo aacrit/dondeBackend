@@ -654,9 +654,11 @@ export function computeRelevance(
         return { score: Math.min(1.0, (vibeRelevance + semanticResult.score) / 2 + 0.10), type: "vibe", details: `Vibe+Semantic: ${((vibeRelevance + semanticResult.score) / 2).toFixed(2)}` };
       }
     }
-    // V12: If vibe hits are weak (at floor), don't return yet — let constraints/neighborhood try
-    if (vibeRelevance > 0.55) {
-      return { score: vibeRelevance, type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
+    // V12: If vibe is the primary signal (2+ vibe keywords with no cuisine), always use vibe path.
+    // Only defer to constraints/neighborhood when vibe is weak AND secondary.
+    const vibeIsPrimary = (intent.vibe_keywords?.length ?? 0) >= 2 && !hasCuisine;
+    if (vibeRelevance > 0.50 || vibeIsPrimary) {
+      return { score: Math.max(vibeRelevance, 0.55), type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
     }
     // Store weak vibe as fallback — check constraints below, use max
     weakVibeScore = vibeRelevance;
@@ -688,11 +690,18 @@ export function computeRelevance(
       else if (cl === "private_dining" && (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("private"))) constraintHits++;
       else if (cl === "quiet_environment" && candidate.noise_level === "Quiet") constraintHits++;
       else if (cl === "family_friendly" && dp?.kid_friendliness != null && dp.kid_friendliness >= 6) constraintHits++;
+      else if (cl === "work_friendly" && (
+        candidate.noise_level === "Quiet" ||
+        (candidate.cuisine_type || "").toLowerCase().includes("coffee") ||
+        (candidate.cuisine_type || "").toLowerCase().includes("cafe") ||
+        (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("quiet") || tagToString(t).toLowerCase().includes("wifi") || tagToString(t).toLowerCase().includes("cafe"))
+      )) constraintHits++;
     }
     if (constraintHits > 0) {
       const constraintRate = constraintHits / constraintTotal;
-      const constraintRelevance = 0.75 + 0.25 * constraintRate;
-      return { score: constraintRelevance, type: "open_ended", details: `Constraint match: ${constraintHits}/${constraintTotal} (${constraintRelevance.toFixed(2)})` };
+      // Cap at 0.90 — constraints are practical matches, not cuisine/dish precision
+      const constraintRelevance = Math.min(0.90, 0.70 + 0.20 * constraintRate);
+      return { score: constraintRelevance, type: "vibe", details: `Constraint match: ${constraintHits}/${constraintTotal} (${constraintRelevance.toFixed(2)})` };
     }
   }
 
