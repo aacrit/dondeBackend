@@ -546,7 +546,8 @@ const QUALITY_WEIGHTS: Record<V9RelevanceType, V9QualityWeights> = {
   },
   vibe: {
     // "quiet intimate anniversary" — vibe is what matters
-    food: 0.10, reputation: 0.25, vibe: 0.40, service: 0.15, convenience: 0.10,
+    // V12: Boosted vibe 0.40→0.45, reduced service 0.15→0.10 (low service shouldn't punish vibe matches)
+    food: 0.10, reputation: 0.25, vibe: 0.45, service: 0.10, convenience: 0.10,
   },
   reputation: {
     // "michelin star", "best in chicago" — reputation dominates
@@ -657,8 +658,14 @@ export function computeRelevance(
     // V12: If vibe is the primary signal (2+ vibe keywords with no cuisine), always use vibe path.
     // Only defer to constraints/neighborhood when vibe is weak AND secondary.
     const vibeIsPrimary = (intent.vibe_keywords?.length ?? 0) >= 2 && !hasCuisine;
-    if (vibeRelevance > 0.50 || vibeIsPrimary) {
-      return { score: Math.max(vibeRelevance, 0.55), type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
+    // V12: Compute the no-hit floor to detect zero-hit vibe results.
+    // When vibeRelevance equals floor (no actual tag matches), defer to constraint path
+    // so constraint-driven queries (BYOB, budget, quiet+work) aren't trapped in vibe.
+    const vibeFloor = (signals => signals.length >= 3 ? 0.55 : 0.60)([...new Set([...(intent.vibe_keywords || []), ...(intent.target_tags || [])])]);
+    const hasVibeHits = vibeRelevance > vibeFloor + 0.001;
+    if ((hasVibeHits && vibeRelevance > 0.50) || vibeIsPrimary) {
+      // V12: Raised minimum from 0.55 to 0.65 so vibe queries have a viable DM floor
+      return { score: Math.max(vibeRelevance, 0.65), type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
     }
     // Store weak vibe as fallback — check constraints below, use max
     weakVibeScore = vibeRelevance;
@@ -699,8 +706,8 @@ export function computeRelevance(
     }
     if (constraintHits > 0) {
       const constraintRate = constraintHits / constraintTotal;
-      // Cap at 0.90 — constraints are practical matches, not cuisine/dish precision
-      const constraintRelevance = Math.min(0.90, 0.70 + 0.20 * constraintRate);
+      // V12: Raised cap 0.90→0.95 and base 0.70→0.75 so strong constraint matches reach DM≥80
+      const constraintRelevance = Math.min(0.95, 0.75 + 0.20 * constraintRate);
       return { score: constraintRelevance, type: "vibe", details: `Constraint match: ${constraintHits}/${constraintTotal} (${constraintRelevance.toFixed(2)})` };
     }
   }
@@ -717,7 +724,9 @@ export function computeRelevance(
         const restNeighborhood = (candidate.neighborhood_name || "").toLowerCase();
         const canonicalLower = canonical.toLowerCase();
         if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
-          return { score: 0.90, type: "open_ended", details: `Neighborhood match: ${canonical}` };
+          // V12: Use vibe weights when tags present (e.g. "Wicker Park brunch") instead of reputation-heavy open_ended
+          const matchType = hasVibe ? "vibe" as const : "open_ended" as const;
+          return { score: 0.90, type: matchType, details: `Neighborhood match: ${canonical}` };
         }
         break;
       }
@@ -911,7 +920,9 @@ function computeVibeRelevance(
   candidate: V9Candidate,
   intent: IntentClassificationV2,
 ): number {
-  const signals = [...(intent.vibe_keywords || []), ...(intent.target_tags || [])];
+  // V12: Deduplicate signals — "romantic" appearing in both vibe_keywords and target_tags
+  // shouldn't inflate the denominator and reduce hit rate
+  const signals = [...new Set([...(intent.vibe_keywords || []), ...(intent.target_tags || [])])];
   if (signals.length === 0) return 0.80;
 
   const tags = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
@@ -943,8 +954,8 @@ function computeVibeRelevance(
 
   const hitRate = hits / signals.length;
   // V11: Dynamic floor — more signals = lower floor for differentiation
-  // Was: 3+ → 0.45, 1-2 → 0.65. 0.65 was too high — dive bar/karaoke got DM=54.
-  const floor = signals.length >= 3 ? 0.45 : 0.50;
+  // V12: Raised floors: 0.55/0.60 (was 0.45/0.50) to boost vibe queries toward DM≥80
+  const floor = signals.length >= 3 ? 0.55 : 0.60;
   const range = 1.0 - floor;
   return floor + range * hitRate;
 }
@@ -1613,22 +1624,47 @@ function computeConvenienceQuality(
 // OCCASION BONUS (±5 tiebreaker)
 // ==========================================
 
+// V12: Infer occasion from intent when user sends "Any" (default)
+function inferOccasion(intent: IntentClassificationV2 | null): string | null {
+  if (!intent) return null;
+  const emo = intent.emotional_intent?.toLowerCase() || "";
+  const vibes = (intent.vibe_keywords || []).map(v => v.toLowerCase());
+  const tags = (intent.target_tags || []).map(t => t.toLowerCase());
+  const all = [...vibes, ...tags, emo];
+  if (all.some(s => s.includes("birthday") || s.includes("anniversar") || s.includes("celebrat"))) return "Special Occasion";
+  if (all.some(s => s.includes("romantic") || s.includes("date") || s.includes("intimate"))) return "Date Night";
+  if (all.some(s => s.includes("group") || s.includes("party") || s.includes("friends"))) return "Group Hangout";
+  if (all.some(s => s.includes("family") || s.includes("kid"))) return "Family Dinner";
+  if (all.some(s => s.includes("business") || s.includes("work") || s.includes("client"))) return "Business Lunch";
+  if (all.some(s => s.includes("solo") || s.includes("alone"))) return "Solo Dining";
+  if (all.some(s => s.includes("fun") || s.includes("lively") || s.includes("adventure"))) return "Adventure";
+  return null;
+}
+
 function computeOccasionBonus(
   candidate: V9Candidate,
   occasion: string,
   _intent: IntentClassificationV2 | null,
 ): number {
-  if (occasion === "Any") return 0;
+  // V12: Infer occasion from intent signals when user didn't specify one
+  const inferred = occasion === "Any";
+  const effectiveOccasion = !inferred ? occasion : inferOccasion(_intent) || "Any";
+  if (effectiveOccasion === "Any") return 0;
+  occasion = effectiveOccasion;
 
   const dp = candidate.deep_profile;
 
-  // Service style clash: -5
-  const clashes = SERVICE_CLASH[occasion] || [];
-  if (dp?.service_style && clashes.includes(dp.service_style)) return -5;
+  // Service style clash: -5 (only for explicit occasions — inferred shouldn't penalize)
+  if (!inferred) {
+    const clashes = SERVICE_CLASH[occasion] || [];
+    if (dp?.service_style && clashes.includes(dp.service_style)) return -5;
+  }
 
-  // Noise mismatch: -2
-  const expectedNoise = OCCASION_NOISE[occasion] || [];
-  if (candidate.noise_level && !expectedNoise.includes(candidate.noise_level)) return -2;
+  // Noise mismatch: -2 (only for explicit occasions)
+  if (!inferred) {
+    const expectedNoise = OCCASION_NOISE[occasion] || [];
+    if (candidate.noise_level && !expectedNoise.includes(candidate.noise_level)) return -2;
+  }
 
   // Good occasion fit: +3 to +5
   const occasionScore = computeWeightedOccasionScore(candidate, occasion);
