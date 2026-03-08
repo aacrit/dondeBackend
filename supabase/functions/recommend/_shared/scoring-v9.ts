@@ -601,13 +601,13 @@ export function computeRelevance(
     // Dish requested but not found → fall through to cuisine (penalized but not crushed)
     if (hasCuisine) {
       const cuisineRelevance = computeCuisineRelevance(candidate, intent);
-      // Cap at 0.60 — right cuisine but wrong dish. The cuisine match still
+      // Cap at 0.75 — right cuisine but wrong dish. The cuisine match still
       // carries significant weight (user wanted Italian → got Italian).
-      // 0.40 was too aggressive and tanked quality-80+ restaurants to DM=37.
+      // 0.60 was too conservative — fondue/romantic Italian got DM=46.
       return {
-        score: Math.min(0.60, cuisineRelevance * 0.60),
+        score: Math.min(0.75, cuisineRelevance * 0.75),
         type: "cuisine",
-        details: `Cuisine match but no dish (capped 0.60)`,
+        details: `Cuisine match but no dish (capped 0.75)`,
       };
     }
     // Dish requested, no cuisine match either → very low relevance
@@ -664,6 +664,21 @@ export function computeRelevance(
       const constraintRate = constraintHits / constraintTotal;
       const constraintRelevance = 0.75 + 0.25 * constraintRate;
       return { score: constraintRelevance, type: "open_ended", details: `Constraint match: ${constraintHits}/${constraintTotal} (${constraintRelevance.toFixed(2)})` };
+    }
+  }
+
+  // Neighborhood relevance: if query mentions a neighborhood and restaurant is there, boost
+  if (specialRequest) {
+    const reqLower = specialRequest.toLowerCase();
+    for (const [alias, canonical] of Object.entries(NEIGHBORHOOD_ALIASES)) {
+      if (reqLower.includes(alias)) {
+        const restNeighborhood = (candidate.neighborhood_name || "").toLowerCase();
+        const canonicalLower = canonical.toLowerCase();
+        if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
+          return { score: 0.80, type: "open_ended", details: `Neighborhood match: ${canonical}` };
+        }
+        break;
+      }
     }
   }
 
@@ -879,8 +894,9 @@ function computeVibeRelevance(
   }
 
   const hitRate = hits / signals.length;
-  // V11: Dynamic floor — strong vibe intent (3+ signals) gets lower floor for more differentiation
-  const floor = signals.length >= 3 ? 0.45 : 0.65;
+  // V11: Dynamic floor — more signals = lower floor for differentiation
+  // Was: 3+ → 0.45, 1-2 → 0.65. 0.65 was too high — dive bar/karaoke got DM=54.
+  const floor = signals.length >= 3 ? 0.45 : 0.50;
   const range = 1.0 - floor;
   return floor + range * hitRate;
 }
