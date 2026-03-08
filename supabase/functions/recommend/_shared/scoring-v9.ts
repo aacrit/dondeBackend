@@ -291,6 +291,13 @@ export const NEIGHBORHOOD_ALIASES: Record<string, string> = {
   "roscoe village": "North Center",
   "irving park": "Irving Park",
   "portage park": "Portage Park",
+  "logan square": "Logan Square",
+  "river north": "River North",
+  "west loop": "West Loop",
+  "lincoln park": "Lincoln Park",
+  "wicker park": "Wicker Park",
+  "lakeview": "Lakeview",
+  "near wrigley": "Lakeview",
 };
 
 // ==========================================
@@ -352,6 +359,31 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
   "family dinner": { vibes: ["warm", "casual"] },
   "parents visiting dinner": { reputation_boost: true, vibes: ["warm", "classic"] },
   "special occasion": { tags: ["fine dining"], vibes: ["elegant"], reputation_boost: true },
+
+  // Dining format concepts
+  "happy hour": { tags: ["craft cocktails", "great value"], vibes: ["lively", "casual"], constraints: ["walk_in"] },
+  "prix fixe": { tags: ["fine dining", "tasting menu"], vibes: ["elegant", "refined"] },
+  "prix fixe dinner": { tags: ["fine dining", "tasting menu"], vibes: ["elegant", "refined"] },
+  "tasting menu": { tags: ["fine dining", "tasting menu"], vibes: ["elegant", "refined"] },
+  "sunday dinner": { vibes: ["warm", "classic", "cozy"] },
+  "weekday lunch": { constraints: ["walk_in", "budget_conscious"], vibes: ["casual"] },
+  "quick lunch": { constraints: ["walk_in", "budget_conscious"], vibes: ["casual"] },
+  "budget friendly": { tags: ["great value"], constraints: ["budget_conscious"] },
+  "cheap eats": { tags: ["great value"], constraints: ["budget_conscious"] },
+  "affordable": { tags: ["great value"], constraints: ["budget_conscious"] },
+  "large party": { constraints: ["private_dining"], vibes: ["lively", "warm"] },
+  "large party dining": { constraints: ["private_dining"], vibes: ["lively", "warm"] },
+  "dog friendly": { constraints: ["pet_friendly"], tags: ["outdoor patio"] },
+  "dog friendly patio": { constraints: ["pet_friendly", "outdoor_preferred"], tags: ["outdoor patio"] },
+  "outdoor seating": { constraints: ["outdoor_preferred"], tags: ["outdoor patio"] },
+  "walk in friendly": { constraints: ["walk_in"], vibes: ["casual"] },
+  "byob": { constraints: ["byob"], tags: ["great value", "byob"] },
+  "byob restaurant": { constraints: ["byob"], tags: ["great value", "byob"] },
+  "fancy dinner": { tags: ["fine dining"], vibes: ["elegant", "refined"], reputation_boost: true },
+  "fancy dinner splurge": { tags: ["fine dining"], vibes: ["elegant", "refined"], reputation_boost: true, price_hint: "$$$$" },
+  "cozy date night": { tags: ["romantic"], vibes: ["cozy", "intimate", "warm"] },
+  "affordable date night": { tags: ["romantic", "great value"], vibes: ["cozy", "intimate"], constraints: ["budget_conscious"] },
+  "high end tasting menu": { tags: ["fine dining", "tasting menu"], vibes: ["elegant", "refined"], reputation_boost: true, price_hint: "$$$$" },
 
   // Meta concepts
   "grandmother's cooking": { vibes: ["cozy", "warm", "rustic"], tags: ["great value"] },
@@ -606,6 +638,32 @@ export function computeRelevance(
     const semanticResult = computeSemanticRelevance(candidate, semanticTags, specialRequest);
     if (semanticResult && semanticResult.score > 0.50) {
       return semanticResult;
+    }
+  }
+
+  // V12: Practical constraint relevance — when query is constraint-driven
+  // (BYOB, outdoor, pet_friendly, walk_in, budget_conscious, tasting_menu, etc.)
+  // boost relevance for restaurants that match those constraints
+  if (intent?.practical_constraints?.length) {
+    const dp = candidate.deep_profile;
+    let constraintHits = 0;
+    const constraintTotal = intent.practical_constraints.length;
+    for (const c of intent.practical_constraints) {
+      const cl = c.toLowerCase();
+      if (cl === "byob" && dp?.byob_policy && dp.byob_policy !== "not_allowed" && dp.byob_policy !== "no") constraintHits++;
+      else if (cl === "outdoor_preferred" && candidate.outdoor_seating) constraintHits++;
+      else if (cl === "pet_friendly" && candidate.pet_friendly) constraintHits++;
+      else if (cl === "walk_in" && dp?.reservation_difficulty === "walk_in_friendly") constraintHits++;
+      else if (cl === "budget_conscious" && (candidate.price_level === "$" || candidate.price_level === "$$" || (dp?.check_average_per_person != null && dp.check_average_per_person <= 30))) constraintHits++;
+      else if (cl === "tasting_menu" && (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("tasting"))) constraintHits++;
+      else if (cl === "private_dining" && (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("private"))) constraintHits++;
+      else if (cl === "quiet_environment" && candidate.noise_level === "Quiet") constraintHits++;
+      else if (cl === "family_friendly" && dp?.kid_friendliness != null && dp.kid_friendliness >= 6) constraintHits++;
+    }
+    if (constraintHits > 0) {
+      const constraintRate = constraintHits / constraintTotal;
+      const constraintRelevance = 0.75 + 0.25 * constraintRate;
+      return { score: constraintRelevance, type: "open_ended", details: `Constraint match: ${constraintHits}/${constraintTotal} (${constraintRelevance.toFixed(2)})` };
     }
   }
 
@@ -1262,9 +1320,19 @@ function computeServiceQuality(
     }
   }
 
-  // Occasion "Any" with no data → neutral
+  // Occasion "Any" with no data → use computed service components (style, social, crowd)
+  // instead of flat 5.0 which was suppressing differentiation
   if (occasion === "Any" && occasionBase === 0) {
-    return { score: 5, details, confidence: "low" };
+    // score already includes serviceStylePoints (0-2), socialScore (0-2), crowd (0-0.5)
+    // Rebase around 5.5 using what we have: base 5.0 + any service/social/crowd bonuses
+    const anyScore = 5.0 + (serviceStylePoints - 1) + clampedSocial * 0.5;
+    // Boost from review intelligence service quality and trending score
+    const ri = candidate.review_intelligence;
+    const riServiceAdj = ri?.review_service_quality != null ? Math.max(0, (ri.review_service_quality - 6) * 0.4) : 0;
+    const trendAdj = candidate.trending_score != null ? Math.max(0, (Number(candidate.trending_score) - 5) * 0.2) : 0;
+    const finalAny = Math.min(8, Math.max(4, anyScore + riServiceAdj + trendAdj));
+    details.occasion = { score: Math.round(finalAny * 10) / 10, max: 10, signal: "Service quality (Any occasion)" };
+    return { score: finalAny, details, confidence: "low" };
   }
 
   const confidence: "high" | "medium" | "low" = (dp?.service_style && dp?.kid_friendliness != null) ? "high" : dp?.service_style ? "medium" : "low";
@@ -1367,6 +1435,19 @@ function computeConvenienceQuality(
     }
   }
 
+  // V12: Budget detection from request text (when price_level is "Any")
+  if ((!priceLevel || priceLevel === "Any") && /cheap|budget|affordable|under \$?\d+|inexpensive|low.?cost|great value/i.test(requestLower)) {
+    if (dp?.check_average_per_person != null && dp.check_average_per_person <= 25) {
+      score += 1.0;
+      details.budget = { score: 1.5, max: 2, signal: `~$${dp.check_average_per_person}/person (budget match)` };
+      hasData = true;
+    } else if (candidate.price_level === "$" || candidate.price_level === "$$") {
+      score += 0.5;
+      details.budget = { score: 1, max: 2, signal: `${candidate.price_level} (budget-friendly)` };
+      hasData = true;
+    }
+  }
+
   // V10: Practical constraint matching from intent
   if (intent?.practical_constraints?.length) {
     let constraintHits = 0;
@@ -1411,6 +1492,22 @@ function computeConvenienceQuality(
           constraintHits++;
           score += 0.5;
         }
+      } else if (cl === "halal" || cl === "kosher") {
+        const dietaryOpts = (candidate.dietary_options || "").toLowerCase();
+        if (dietaryOpts.includes(cl)) {
+          constraintHits++;
+          score += 0.5;
+        }
+      } else if (cl === "family_friendly") {
+        if (dp?.kid_friendliness != null && dp.kid_friendliness >= 6) {
+          constraintHits++;
+          score += 0.5;
+        }
+      } else if (cl === "tasting_menu") {
+        if (candidate.tags?.some(t => tagToString(t).toLowerCase().includes("tasting"))) {
+          constraintHits++;
+          score += 0.5;
+        }
       }
     }
     if (constraintTotal > 0) {
@@ -1420,6 +1517,27 @@ function computeConvenienceQuality(
         signal: `${constraintHits}/${constraintTotal} constraints met`,
       };
       hasData = true;
+    }
+  }
+
+  // V12: Neighborhood match boost — when query mentions a neighborhood,
+  // reward restaurants that are actually in that neighborhood
+  if (specialRequest) {
+    const reqLower = specialRequest.toLowerCase();
+    for (const [alias, canonical] of Object.entries(NEIGHBORHOOD_ALIASES)) {
+      if (reqLower.includes(alias)) {
+        const restNeighborhood = (candidate.neighborhood_name || "").toLowerCase();
+        const canonicalLower = canonical.toLowerCase();
+        if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
+          score += 2.0;
+          details.neighborhood = { score: 2, max: 2, signal: `In ${canonical}` };
+        } else {
+          score -= 0.5;
+          details.neighborhood = { score: 0, max: 2, signal: `Not in ${canonical}` };
+        }
+        hasData = true;
+        break;
+      }
     }
   }
 
