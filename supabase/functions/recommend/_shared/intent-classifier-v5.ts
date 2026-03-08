@@ -38,6 +38,7 @@ const VIBE_WORDS: string[] = [
   "refined", "rustic", "modern", "industrial", "classic", "funky", "warm",
   "minimalist", "relaxed", "rooftop", "bottomless", "upscale", "trendy",
   "romantic", "speakeasy", "sophisticated", "vibrant",
+  "fun", "festive", "celebratory",
 ];
 
 /** Practical constraint trigger words mapped to constraint labels */
