@@ -16,6 +16,10 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `docs/FEATURES.md` | Backend feature checklist with implementation status |
 | `_archive/VERSION-HISTORY.md` | Pre-V9 scoring evolution, V8 optimization, historical test results, case studies |
 
+## Skills
+
+**`/ceo-advisor`** — Strategic product advisor. Reads all product docs (backend + frontend) and delivers Top 10 prioritized recommendations or answers specific CEO questions. See `.claude/skills/ceo-advisor/SKILL.md`.
+
 ## Tests
 
 | File | Description |
