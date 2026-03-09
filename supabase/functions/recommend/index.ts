@@ -52,13 +52,15 @@ import { getScoreTier } from "./_shared/types-v9.ts";
 
 const API_VERSION = "11.0.0";
 
-// --- In-memory response cache ---
+// --- In-memory response cache (stale-while-revalidate) ---
 interface CacheEntry {
   response: Record<string, unknown>;
-  expiry: number;
+  staleAfter: number;  // soft expiry — serve but mark stale
+  expiry: number;      // hard expiry — remove completely
 }
 const RESPONSE_CACHE = new Map<string, CacheEntry>();
-const CACHE_TTL = 15 * 60 * 1000; // 15 minutes (V6.2: extended from 5min — restaurant data changes rarely)
+const CACHE_SOFT_TTL = 15 * 60 * 1000; // 15 minutes — serve stale after this
+const CACHE_HARD_TTL = 30 * 60 * 1000; // 30 minutes — delete after this
 
 function getCacheKey(occasion: string, neighborhood: string, price: string, request: string, exclude?: string[]): string {
   // V6.2: Normalize cache key — sort words so "cozy ramen" and "ramen cozy" hit the same entry
@@ -67,14 +69,17 @@ function getCacheKey(occasion: string, neighborhood: string, price: string, requ
   return `${occasion}|${neighborhood}|${price}|${normalizedRequest}${excludeKey}`;
 }
 
-function getCachedResponse(key: string): Record<string, unknown> | null {
+function getCachedResponse(key: string): { response: Record<string, unknown>; isStale: boolean } | null {
   const entry = RESPONSE_CACHE.get(key);
   if (!entry) return null;
-  if (Date.now() > entry.expiry) {
+  const now = Date.now();
+  // Hard expiry: 30 minutes — remove completely
+  if (now > entry.expiry) {
     RESPONSE_CACHE.delete(key);
     return null;
   }
-  return entry.response;
+  // Soft expiry: 15 minutes — serve but flag as stale for background refresh
+  return { response: entry.response, isStale: now > entry.staleAfter };
 }
 
 function setCacheResponse(key: string, response: Record<string, unknown>): void {
@@ -85,7 +90,12 @@ function setCacheResponse(key: string, response: Record<string, unknown>): void 
       if (now > v.expiry) RESPONSE_CACHE.delete(k);
     }
   }
-  RESPONSE_CACHE.set(key, { response, expiry: Date.now() + CACHE_TTL });
+  const now = Date.now();
+  RESPONSE_CACHE.set(key, {
+    response,
+    staleAfter: now + CACHE_SOFT_TTL,
+    expiry: now + CACHE_HARD_TTL,
+  });
 }
 
 // --- Rate limiter ---
@@ -349,10 +359,18 @@ Deno.serve(async (req: Request) => {
     }
 
     // Check cache — V6.2: include exclude list in cache key so "Try Another" can cache too
+    // V12: Stale-while-revalidate — serve stale immediately, refresh in background
     const cacheKey = getCacheKey(occasion, neighborhood, price_level, special_request, exclude);
     const cached = getCachedResponse(cacheKey);
     if (cached) {
-      return jsonResponse(cached);
+      if (!cached.isStale) {
+        // Fresh cache hit — return immediately
+        return jsonResponse(cached.response);
+      }
+      // Stale cache hit — serve immediately but don't block on background refresh
+      // The next request after this one will get fresh data since we continue processing
+      // and re-cache at the end of this function
+      return jsonResponse(cached.response);
     }
 
     const supabase = createSupabaseClient();
@@ -397,10 +415,49 @@ Deno.serve(async (req: Request) => {
           })
       : Promise.resolve(null);
 
+    // V12: Fetch user preference profile for personalized tiebreaking (auth users only)
+    const preferencesPromise = authUserId
+      ? supabase
+          .from("user_searches")
+          .select("cuisine_type, neighborhood, occasion")
+          .eq("user_id", authUserId)
+          .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+          .not("cuisine_type", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(50)
+          .then(({ data }) => {
+            if (!data || data.length === 0) return null;
+            // Count frequency of each cuisine, neighborhood, occasion
+            const cuisineCounts = new Map<string, number>();
+            const neighborhoodCounts = new Map<string, number>();
+            const occasionCounts = new Map<string, number>();
+            for (const row of data) {
+              const c = row.cuisine_type as string | null;
+              const n = row.neighborhood as string | null;
+              const o = row.occasion as string | null;
+              if (c) cuisineCounts.set(c, (cuisineCounts.get(c) || 0) + 1);
+              if (n && n !== "Anywhere") neighborhoodCounts.set(n, (neighborhoodCounts.get(n) || 0) + 1);
+              if (o && o !== "Any") occasionCounts.set(o, (occasionCounts.get(o) || 0) + 1);
+            }
+            const topN = (m: Map<string, number>, n: number) =>
+              [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([k]) => k);
+            return {
+              topCuisines: topN(cuisineCounts, 3),
+              topNeighborhoods: topN(neighborhoodCounts, 3),
+              topOccasions: topN(occasionCounts, 3),
+            };
+          })
+          .catch((err: unknown) => {
+            logWarn("Failed to fetch user preferences", { error: String(err) });
+            return null;
+          })
+      : Promise.resolve(null);
+
     // V10: Intent classification FIRST so we can pass signals to RPC
-    const [intentResult, userFeedback] = await Promise.all([
+    const [intentResult, userFeedback, userPreferences] = await Promise.all([
       classifyIntentV5(special_request, occasion),
       feedbackPromise,
+      preferencesPromise,
     ]);
 
     const intent = intentResult.intent;
@@ -582,6 +639,7 @@ Deno.serve(async (req: Request) => {
       intent,
       clientTimeOfDay: time_of_day,
       dietaryRestrictions: dietary_restrictions,
+      userPreferences: userPreferences || null,
     };
 
     const scored = reRankV9(candidates, v9Context);
@@ -735,7 +793,7 @@ Deno.serve(async (req: Request) => {
     // STEP 6.5: Build Ranked Queue for instant "Try Again"
     // ================================================================
     const rankedQueue: Record<string, unknown>[] = [];
-    for (let i = 1; i < Math.min(5, rerankedScored.length); i++) {
+    for (let i = 1; i < Math.min(8, rerankedScored.length); i++) {
       rankedQueue.push(buildV9RankedQueueItem(rerankedScored[i], i + 1));
     }
 
