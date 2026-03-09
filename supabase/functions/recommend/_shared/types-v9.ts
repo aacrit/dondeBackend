@@ -243,6 +243,12 @@ export interface V9ScoringContext {
   dietaryRestrictions?: string[];
   /** V11: Semantic tags from intent classification */
   semanticTags?: string[];
+  /** V12: User preference profile for personalized tiebreaking */
+  userPreferences?: {
+    topCuisines: string[];
+    topNeighborhoods: string[];
+    topOccasions: string[];
+  } | null;
 }
 
 /** Individual factor scores (0-10 each) — for UI "Why This Match" bars */

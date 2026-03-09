@@ -1863,6 +1863,25 @@ export function reRankV9(
   // Sort by DondeMatch — relevance is already factored in
   scored.sort((a, b) => b.dondeMatch - a.dondeMatch);
 
+  // V12: User preference tiebreaker — boost restaurants matching user's historical preferences
+  // Conservative: max +3, only on cuisine match, only for authenticated users with history
+  if (context.userPreferences?.topCuisines?.length) {
+    const prefs = context.userPreferences;
+    for (const item of scored) {
+      const cuisineType = (item.profile as Record<string, unknown>).cuisine_type as string | null;
+      if (!cuisineType) continue;
+      const cuisineLower = cuisineType.toLowerCase();
+      const cuisineMatch = prefs.topCuisines.some(c =>
+        cuisineLower.includes(c.toLowerCase())
+      );
+      if (cuisineMatch) {
+        item.dondeMatch = Math.min(99, item.dondeMatch + 3);
+      }
+    }
+    // Re-sort after preference adjustment
+    scored.sort((a, b) => b.dondeMatch - a.dondeMatch);
+  }
+
   // Add comparison context to narratives
   if (scored.length >= 2) {
     const topScore = scored[0].dondeMatch;
