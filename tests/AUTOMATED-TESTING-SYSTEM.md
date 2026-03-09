@@ -75,9 +75,10 @@
 
 | Component | Location | Technology | Purpose |
 |-----------|----------|------------|---------|
-| Dashboard | `dondeAI/arcade-ops.html` | HTML/CSS/JS | CEO command center |
-| Dashboard CSS | `dondeAI/css/arcade-ops.css` | CSS3 | 90s arcade theme |
-| Dashboard JS | `dondeAI/js/arcade-ops.js` | ES Modules | Controls, polling, gamification |
+| Command Center | `dondeAI/command-center.html` | HTML/CSS/JS | Unified CEO dashboard |
+| Command Center CSS | `dondeAI/css/command-center.css` | CSS3 | Dark theme executive design |
+| Command Center JS | `dondeAI/js/cc-*.js` | ES Modules | Agents, analytics, UI |
+| Dashboard (legacy) | `dondeAI/arcade-ops.html` | HTML/CSS/JS | Redirects to Command Center |
 | Orchestrator | `dondeBackend/scripts/pipelines/agent-orchestrator.ts` | TypeScript/Node | Agent lifecycle + budget |
 | ATLAS Agent | `dondeBackend/scripts/pipelines/agents/atlas-runner.ts` | TypeScript | Gauntlet query execution |
 | QAUDIT Agent | `dondeBackend/scripts/pipelines/agents/quality-auditor.ts` | TypeScript | Blurb & score analysis |
@@ -724,9 +725,12 @@ IDLE → [START] → RUNNING → [PAUSE] → PAUSED → [START] → RUNNING
 
 | File | Description |
 |------|-------------|
-| `dondeAI/arcade-ops.html` | CEO command center |
-| `dondeAI/css/arcade-ops.css` | 90s arcade theme |
-| `dondeAI/js/arcade-ops.js` | Dashboard logic |
+| `dondeAI/command-center.html` | Unified CEO Command Center |
+| `dondeAI/css/command-center.css` | Dark theme executive design |
+| `dondeAI/js/cc-config.js` | Constants, state, helpers |
+| `dondeAI/js/cc-agents.js` | Agent engine & cycles |
+| `dondeAI/js/cc-analytics.js` | Gauntlet data & rendering |
+| `dondeAI/js/cc-ui.js` | UI updates & initialization |
 
 ---
 
