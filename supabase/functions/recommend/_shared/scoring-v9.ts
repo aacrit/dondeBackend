@@ -415,6 +415,8 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
   "takes their craft seriously": { reputation_boost: true, vibes: ["refined"] },
   "best kept secret": { tags: ["hidden gem"] },
   "not tourist trap": { tags: ["hidden gem"], vibes: ["casual"] },
+  "hole in the wall": { tags: ["hidden gem", "great value"], vibes: ["casual", "no-frills", "rustic"], constraints: ["budget_conscious"] },
+  "hole in the wall gem": { tags: ["hidden gem", "great value"], vibes: ["casual", "no-frills"], constraints: ["budget_conscious"] },
   "people watching": { tags: ["outdoor patio"], vibes: ["lively", "buzzing"] },
   "hear yourself talk": { tags: ["quiet"], vibes: ["intimate"] },
 };
