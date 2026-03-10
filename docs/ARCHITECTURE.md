@@ -1,40 +1,39 @@
 # Backend Architecture
 
-Last updated: 2026-03-04
+Last updated: 2026-03-10
 
 ## System Overview
 
 | Layer | Technology |
 |-------|-----------|
-| API | Supabase Edge Function (Deno/TS), V9 |
+| API | Supabase Edge Function (Deno/TS), V11 scoring engine |
 | AI | Claude Haiku 4.5 (recommendations, enrichment, intent classification) |
-| DB | Supabase PostgreSQL (10 tables, 27 migrations) |
+| DB | Supabase PostgreSQL (10 tables, 27+ migrations) |
 | Data | Google Places API (live fetch per request; only `google_place_id` stored per ToS §3.2.3) |
 | Pipelines | Node.js 20 + tsx scripts, GitHub Actions cron |
-| CI/CD | 8 GitHub Actions workflows |
+| CI/CD | 8+ GitHub Actions workflows |
 
 ## File Tree
 
 ```
 supabase/
   functions/recommend/
-    index.ts                      # V9 entry point
+    index.ts                      # V11 entry point (filenames retained from V9)
     _shared/                      # Active modules
       types.ts                    # Core types (RestaurantProfile, DeepProfile, etc.)
-      types-v9.ts                 # V9 types (V9Candidate, V9ScoreResult, V9ScoredCandidate, MatchNarrative, etc.)
-      scoring-v9.ts               # V9 scoring engine: Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)
-      response-builder-v9.ts      # V9 response builder (scoring_v9, ranked_queue, match_narrative)
-      intent-classifier-v5.ts     # Deterministic (~80%) + Claude fallback (~15%)
-      prompts-v5.ts               # Claude system/user prompt templates
+      types-v9.ts                 # V11 types (V9Candidate, V9ScoreResult, V9ScoredCandidate, MatchNarrative, etc.)
+      scoring-v9.ts               # V11 scoring engine: Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)
+      response-builder-v9.ts      # V11 response builder (scoring_v9, ranked_queue, match_narrative)
+      intent-classifier-v5.ts     # Deterministic (~80%) + Claude fallback (~15%), semantic tags
+      prompts-v5.ts               # Claude system/user prompt templates (5 literary voices, 9 occasions, 5 tone tiers)
       scoring.ts                  # Shared: keyword dicts, diversity, slop detection
       intent-classifier.ts        # V4 intent types (reused by V5 classifier)
-      claude.ts                   # Anthropic API client (raw fetch, prompt caching)
+      claude.ts                   # Anthropic API client (raw fetch, prompt caching, retry)
       google-places.ts            # Google Places API wrapper (1.5s timeout)
       supabase.ts                 # Anon + service role clients
       cors.ts                     # CORS headers + JSON response helpers
       logger.ts                   # Structured JSON logging
     _archive/pre-v9/              # Deprecated V3-V8 scoring/types/filters/weights
-  migrations/                     # SQL migration files
 
 scripts/
   lib/                            # 6 shared pipeline libraries
@@ -45,22 +44,24 @@ scripts/
 tests/
   test_catalog.sh                 # 65-scenario bash API test suite
   golden-dataset-test.sh          # 50-query golden dataset benchmark (88 checks)
+  benchmark-200.sh                # 200-case V11 benchmark
+  regression-guard.sh             # V10 baseline regression guard
+  compare-scores.sh               # A/B score comparison tool
   TEST-FULL.md                    # 170-scenario agent-driven test spec
   GOLDEN_DATASET_RESULTS.md       # Latest golden dataset results
-  TEST_RESULTS.md                 # Latest catalog results
 
-.github/workflows/                # 8 CI/CD workflows
+.github/workflows/                # 8+ CI/CD workflows
 ```
 
-## V9 Scoring Engine Modules
+## V11 Scoring Engine Modules
 
 | Module | Purpose | Status |
 |--------|---------|--------|
-| `scoring-v9.ts` | Relevance × Quality engine with review intelligence, query-type-aware weights, match narrative | **Active** |
-| `types-v9.ts` | V9Candidate, V9ScoreResult, V9ScoredCandidate, V9Factors, MatchNarrative, ClaudeRecommendation | **Active** |
-| `response-builder-v9.ts` | Builds `scoring_v9` (relevance + quality + factors), `ranked_queue`, `match_narrative` | **Active** |
-| `intent-classifier-v5.ts` | Deterministic intent classification (scoring-engine-independent) | **Active** |
-| `prompts-v5.ts` | Claude prompt templates (scoring-engine-independent) | **Active** |
+| `scoring-v9.ts` | Relevance × Quality engine with review intelligence, semantic matching, query-type-aware weights, match narrative | **Active (V11)** |
+| `types-v9.ts` | V9Candidate, V9ScoreResult, V9ScoredCandidate, V9Factors, MatchNarrative, ClaudeRecommendation | **Active (V11)** |
+| `response-builder-v9.ts` | Builds `scoring_v9` (relevance + quality + factors), `ranked_queue`, `match_narrative`, queue blurbs | **Active (V11)** |
+| `intent-classifier-v5.ts` | Deterministic intent classification + semantic tags, similar_to, mood, implicit_cuisines | **Active** |
+| `prompts-v5.ts` | Claude prompt templates — 5 literary personas, 9 occasion registers, 5 tone tiers | **Active** |
 | All V3-V8 modules | Archived to `_archive/pre-v9/` | **Archived** |
 
 ## Deployment
@@ -83,6 +84,7 @@ tests/
 | `scores-and-tags.yml` | Monthly 1st, 7:00 UTC | Occasion scores (7 dims) + tag generation |
 | `regenerate-scores-tags.yml` | Manual dispatch | Full scores + tags regeneration |
 | `deploy-edge-function.yml` | Push to any branch + manual dispatch | Edge Function deployment |
+| `maintenance-worker.yml` | Every 5 min | Polls `maintenance_requests` table, executes pipeline operations |
 
 ## Google API Compliance
 

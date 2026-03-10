@@ -1,28 +1,34 @@
 # DondeAI Backend
 
-Last updated: 2026-03-05
+Last updated: 2026-03-10
 
 > **Read this file first, then `docs/*.md` only as needed. Only open source files when modifying code.**
 
-AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines.
+AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines. 2,719 restaurants total, 913 active, 912 with deep profiles. 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification.
 
 ## Documentation Index
 
 | Doc | Contents |
 |-----|----------|
-| `docs/ARCHITECTURE.md` | Repo structure, tech stack, V9 modules, deployment, CI/CD |
+| `docs/ARCHITECTURE.md` | Repo structure, tech stack, V11 modules, deployment, CI/CD |
 | `docs/DATABASE.md` | Complete DB schema — all tables, columns, types, RPC, relationships |
-| `docs/API-WORKFLOWS.md` | V9 request flow, scoring model, pipeline inventory, Google integration |
+| `docs/API-WORKFLOWS.md` | V11 request flow, scoring model, pipeline inventory, Google integration |
 | `docs/FEATURES.md` | Backend feature checklist with implementation status |
+| `docs/RECOMMENDATION-BLURBS.md` | Blurb generation architecture — Claude prompts, literary voices, quality guardrails, intent boost |
+| `docs/CEO-COMMAND-CENTER.md` | Admin dashboard architecture (agents, pipelines, data health, maintenance worker) |
+| `docs/OPTIMIZATION-RECOMMENDATIONS.md` | Backend optimization priorities (learning flywheel, caching, match narrative) |
 | `_archive/VERSION-HISTORY.md` | Pre-V9 scoring evolution, V8 optimization, historical test results, case studies |
 
 ## Skills
 
-**`/ceo-advisor`** — Strategic product advisor. Reads all product docs (backend + frontend) and delivers Top 10 prioritized recommendations or answers specific CEO questions. See `.claude/skills/ceo-advisor/SKILL.md`.
+| Skill | Purpose | Trigger |
+|-------|---------|---------|
+| `/ceo-advisor` | Strategic product advisor — Top 10 prioritized recommendations | Manual |
+| `/donde-premium-advisor` | Premium app audit (UI polish, backend, marketing psychology, Claude Code mastery) | Manual |
+| `/donde-ciso` | Security audit across 10 domains — severity-ranked findings with remediation | Manual or auto on security changes |
+| `/update-docs` | Scans codebase and updates all MD files to reflect current state — run after major changes | Manual or after major changes |
 
-**`/donde-premium-advisor`** — Premium app advisor. Scans frontend and backend repos, then delivers concrete, prioritized audit report across UI/UX polish, backend optimization, marketing psychology, and Claude Code workflow mastery. See `.claude/skills/donde-premium-advisor/SKILL.md`.
-
-**`/donde-ciso`** — Chief Information Security Officer. Audits frontend and backend repos across 10 security domains (secrets, API security, injection, data protection, auth, frontend security, supply chain, infrastructure, AI-specific, compliance). Delivers severity-ranked findings with Security Scorecard. Auto-activates on security-relevant code changes. See `.claude/skills/donde-ciso/SKILL.md`.
+All skills in `.claude/skills/`.
 
 ## Tests
 
@@ -38,29 +44,30 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 
 **V10 scoring baseline (2026-03-05):** 50-case benchmark: 44P/4F/2W, avg DM 70. V9 baseline was 39P/4F/7W, avg DM 68.
 
-## Scoring Engine — V11 (active)
+## Scoring Engine — V11 (Active)
 
-**Active engine:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts`
+**Active files:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts` (filenames retained from V9, logic is V11)
 
 **Formula:** `DondeScore = Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)`
 
-- **Relevance** is a GATE: uses review intelligence (`cuisine_signals`, `dish_catalog`, `popular_dishes`) to classify match type (dish > cuisine > vibe > **semantic** > **reputation** > open_ended). Low relevance = low score regardless of quality.
-- **Quality** uses query-type-aware weight profiles (6 profiles: dish, cuisine, vibe, reputation, open_ended, **multi_signal**). Computes 5 factors: food, vibe, service, reputation, convenience.
-- **V11 enhancements (over V10):**
-  - Semantic concept matching via `computeSemanticRelevance()` — matches `semantic_tags` against RI descriptors, scenarios, tags, wow_factors, crowd_profile
-  - LLM-enhanced intent classification with `semantic_tags`, `similar_to`, `mood`, `implicit_cuisines` fields
-  - Query expansion engine (`expandQueryConcepts()`) with 40+ concept mappings (pre-game, celebrity, instagrammable, etc.)
-  - Expanded DISH_SYNONYMS (150+ entries) with cross-cuisine mapping (dumplings → soup dumplings, gyoza, momo, pierogi)
-  - Dynamic vibe relevance floor: 0.45 for 3+ signals (was fixed 0.65), doubles differentiation range
-  - Multi-signal weight profile for queries spanning 3+ signal categories (balanced 0.25/0.25/0.25/0.15/0.10)
-  - Reduced confidence pull-to-center: CONFIDENCE_MEAN=55 (was 60), confidenceFactor 0.80-1.0 (was 0.75-1.0)
-  - Composite RPC scoring (v11): all signals scored simultaneously instead of sequential ORDER BY
-  - Semantic tag search in RPC via `p_semantic_tags` against tags, wow_factors, semantic_descriptors, best_for_scenarios
-  - Dynamic candidate pool: 100 candidates for complex/semantic queries (was 50/80)
-- **V10 features retained:**
-  - Reputation relevance type, dish synonyms, word stemming, neighborhood aliases
-  - Confidence-weighted quality, practical constraint scoring
-- **Self-healing**: When `cuisine_type` is NULL, falls back to `cuisine_signals` (1806/2719 restaurants).
+- **Relevance** is a GATE: uses review intelligence (`cuisine_signals`, `dish_catalog`, `popular_dishes`) to classify match type (dish > cuisine > vibe > semantic > reputation > open_ended). Low relevance = low score regardless of quality.
+- **Quality** uses query-type-aware weight profiles (6 profiles: dish, cuisine, vibe, reputation, open_ended, multi_signal). Computes 5 factors: food, vibe, service, reputation, convenience.
+
+**V11 enhancements (over V10):**
+- Semantic concept matching via `computeSemanticRelevance()` — matches `semantic_tags` against RI descriptors, scenarios, tags, wow_factors, crowd_profile
+- LLM-enhanced intent classification with `semantic_tags`, `similar_to`, `mood`, `implicit_cuisines` fields
+- Query expansion engine (`expandQueryConcepts()`) with 40+ concept mappings
+- Expanded DISH_SYNONYMS (150+ entries) with cross-cuisine mapping
+- Dynamic vibe relevance floor: 0.45 for 3+ signals (was fixed 0.65)
+- Multi-signal weight profile for queries spanning 3+ signal categories
+- Reduced confidence pull-to-center: CONFIDENCE_MEAN=55, confidenceFactor 0.80-1.0
+- Composite RPC scoring (v11): all signals scored simultaneously instead of sequential ORDER BY
+- Semantic tag search in RPC via `p_semantic_tags`
+- Dynamic candidate pool: 100 candidates for complex/semantic queries (was 50/80)
+
+**V10 features retained:** Reputation relevance type, dish synonyms, word stemming, neighborhood aliases, confidence-weighted quality, practical constraint scoring.
+
+**Self-healing**: When `cuisine_type` is NULL, falls back to `cuisine_signals` (1806/2719 restaurants).
 
 | Factor | Key Signals |
 |--------|-------------|
@@ -98,7 +105,7 @@ Timeout: 15s (AbortController on frontend)
 }
 ```
 
-**Response (V9):**
+**Response (V11):**
 ```json
 {
   "success": true,
