@@ -178,14 +178,12 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "tapas": { cuisines: ["Mediterranean"], tags: ["trendy"] },
   "dim sum": { cuisines: ["Chinese"] },
   "omakase": { cuisines: ["Japanese"] },
-  "comfort food": { cuisines: ["American"], tags: ["great value"] },
   "comfort": { cuisines: ["American"], tags: ["great value"] },
   "sandwich": { cuisines: ["American"], tags: ["great value"] },
   "salad": { tags: ["farm-to-table", "vegan friendly"] },
   "soup": { cuisines: ["Vietnamese", "Japanese"] },
   "dessert": { tags: ["trendy"] },
   "pastry": { tags: ["trendy"] },
-  "coffee": { tags: ["brunch spot"] },
   "cafe": { tags: ["brunch spot", "quiet"] },
   "bakery": { tags: ["brunch spot"] },
   "poke": { cuisines: ["Japanese"], tags: ["farm-to-table"] },
@@ -208,8 +206,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "ghanaian": { cuisines: ["West African"] },
   "sichuan": { cuisines: ["Sichuan", "Chinese"] },
   "szechuan": { cuisines: ["Sichuan", "Chinese"] },
-  "cuban": { cuisines: ["Cuban", "Caribbean/Jamaican"] },
-  "taiwanese": { cuisines: ["Taiwanese", "Chinese"] },
   "persian": { cuisines: ["Persian", "Middle Eastern"] },
   "iranian": { cuisines: ["Persian", "Middle Eastern"] },
   "german": { cuisines: ["German"] },
@@ -334,14 +330,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "large party": { tags: ["private dining", "great for groups"] },
 
   // --- Reputation / Quality ---
-  "michelin": { tags: ["reputation-focused"] },
-  "michelin star": { tags: ["reputation-focused", "fine dining"] },
-  "james beard": { tags: ["reputation-focused"] },
-  "award winning": { tags: ["reputation-focused"] },
-  "best restaurant": { tags: ["reputation-focused"] },
-  "critically acclaimed": { tags: ["reputation-focused"] },
-  "top rated": { tags: ["reputation-focused"] },
-  "most popular": { tags: ["reputation-focused", "trendy"] },
   "legendary": { tags: ["reputation-focused", "hidden gem"] },
   "iconic": { tags: ["reputation-focused"] },
   "famous": { tags: ["reputation-focused", "trendy"] },
@@ -356,7 +344,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "chef's table": { tags: ["fine dining", "tasting menu"] },
   "speakeasy": { tags: ["craft cocktails", "hidden gem"] },
   "supper club": { tags: ["romantic", "fine dining"] },
-  "food hall": { tags: ["great value", "trendy"] },
   "pop up": { tags: ["trendy"] },
 
   // --- Drinks ---
@@ -382,14 +369,13 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "early bird": { tags: ["great value"] },
   "breakfast": { tags: ["brunch spot"] },
   "hangover food": { cuisines: ["American", "Mexican"], tags: ["great value"] },
-  "cheap eats": { tags: ["great value", "hidden gem"] },
+  "cheap eats": { tags: ["great value", "hidden gem", "counter service"] },
   "fast casual": { tags: ["counter service", "great value"] },
 
   // --- Price & value ---
   "quick": { tags: ["great value"] },
   "fast": { tags: ["great value"] },
   "cheap": { tags: ["great value", "hidden gem"] },
-  "cheap eats": { tags: ["great value", "counter service"] },
   "affordable": { tags: ["great value", "hidden gem"] },
   "healthy": { cuisines: ["Vegan", "Mediterranean"], tags: ["farm-to-table", "vegan friendly"] },
 
@@ -418,7 +404,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "skyline": { tags: ["rooftop", "scenic view"] },
   "garden": { features: ["outdoor_seating"] },
   "terrace": { features: ["outdoor_seating"] },
-  "outdoor dining": { features: ["outdoor_seating"] },
   "patio": { tags: ["outdoor patio"], features: ["outdoor_seating"] },
   "candlelit": { tags: ["romantic"] },
   "private dining": { tags: ["romantic", "quiet"] },
@@ -455,8 +440,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "hotpot": { cuisines: ["Chinese"] },
   "hot pot": { cuisines: ["Chinese"] },
   "peking duck": { cuisines: ["Chinese"] },
-  "szechuan": { cuisines: ["Chinese"] },
-  "sichuan": { cuisines: ["Chinese"] },
   "wonton": { cuisines: ["Chinese"] },
   "dan dan": { cuisines: ["Chinese"] },
   "kung pao": { cuisines: ["Chinese"] },
@@ -602,7 +585,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   // Steak additions
   "filet mignon": { cuisines: ["Steak"] },
   "ribeye": { cuisines: ["Steak"] },
-  "wagyu": { cuisines: ["Steak", "Japanese"] },
   "porterhouse": { cuisines: ["Steak"] },
 
   // --- Additional gap-fill entries ---
@@ -688,7 +670,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "ramen": { cuisines: ["Japanese"] },
   "brunch": { tags: ["brunch spot"] },
   "chai": { cuisines: ["Indian", "Coffee/Cafe"] },
-  "boba": { cuisines: ["Chinese", "Coffee/Cafe"] },
   "bubble tea": { cuisines: ["Chinese", "Coffee/Cafe"] },
   "dumplings": { cuisines: ["Chinese", "Japanese"] },
   "wings": { cuisines: ["American"], tags: ["great value"] },
@@ -705,7 +686,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "cuban food": { cuisines: ["Cuban", "Caribbean/Jamaican"] },
   "jamaican": { cuisines: ["Caribbean/Jamaican"] },
   "jamaican food": { cuisines: ["Caribbean/Jamaican"] },
-  "filipino": { cuisines: ["Filipino"] },
   "filipino food": { cuisines: ["Filipino"] },
   "taiwanese": { cuisines: ["Taiwanese", "Chinese"] },
   "taiwanese food": { cuisines: ["Taiwanese", "Chinese"] },
@@ -766,7 +746,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
 
   // French
   "croque monsieur": { cuisines: ["French"] },
-  "fondue": { cuisines: ["French"] },
   "raclette": { cuisines: ["French"] },
   "macaron": { cuisines: ["French"] },
   "macarons": { cuisines: ["French"] },
@@ -798,7 +777,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "grain bowl": { tags: ["vegan friendly", "farm-to-table"] },
   "acai bowl": { cuisines: ["Brazilian"], tags: ["vegan friendly"] },
   "acai": { cuisines: ["Brazilian"], tags: ["vegan friendly"] },
-  "wrap": { tags: ["great value"] },
   "sub sandwich": { cuisines: ["American"], tags: ["great value"] },
   "sandwich shop": { cuisines: ["American"], tags: ["great value"] },
 
@@ -834,7 +812,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "ice cream shop": { tags: ["great value"] },
 
   // --- Missing Vibe/Occasion Intents ---
-  "speakeasy": { tags: ["craft cocktails", "hidden gem"] },
   "dive bar": { tags: ["great value", "hidden gem"] },
   "jazz bar": { tags: ["live music", "craft cocktails"] },
   "jazz": { tags: ["live music"] },
@@ -863,8 +840,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "chicago institution": { tags: ["hidden gem"] },
   "food hall": { tags: ["great value", "lively atmosphere"] },
   "food truck": { tags: ["great value", "hidden gem"] },
-  "street food": { tags: ["great value", "hidden gem"] },
-  "chef's table": { tags: ["trendy", "romantic"] },
   "chefs table": { tags: ["trendy", "romantic"] },
   "open kitchen": { tags: ["trendy"] },
   "communal table": { tags: ["lively atmosphere"] },
@@ -894,7 +869,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "valet": { tags: [] },
   "valet parking": { tags: [] },
   "family style": { tags: [] },
-  "small plates": { tags: ["trendy"] },
   "byob": { tags: ["byob", "great value"] },
   "byob restaurant": { tags: ["byob", "great value"] },
   "dog friendly": { features: ["pet_friendly"], tags: ["outdoor patio"] },
@@ -928,7 +902,6 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
 
   // --- Convenience/location intents ---
   "near me": { tags: [] },
-  "late night food": { tags: ["late night"] },
   "late night eats": { tags: ["late night"] },
   "open late": { tags: ["late night"] },
   "open now": { tags: [] },
@@ -1031,54 +1004,30 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
 
   // --- Missing Dish Intents (from API error & gap analysis) ---
   "pancakes": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
-  "cheesecake": { cuisines: ["American"] },
   "waffles": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
   "waffle": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
   "pancake": { cuisines: ["Brunch", "American"], tags: ["brunch spot"] },
   "crepes": { cuisines: ["French", "Brunch"], tags: ["brunch spot"] },
-  "ice cream shop": { tags: ["great value"] },
   "gelato shop": { cuisines: ["Italian"], tags: ["great value"] },
 
   // --- "where to get X" pattern coverage ---
   "soul food food": { cuisines: ["Southern/Soul Food"] },
-  "soul food": { cuisines: ["Southern/Soul Food"] },
 
   // V13: Additional INTENT_MAP entries from gap analysis (346 gaps)
-  "southern food": { cuisines: ["Southern/Soul Food"] },
-  "midwestern cuisine": { cuisines: ["American"] },
-  "midwestern": { cuisines: ["American"] },
-  "jamaican food": { cuisines: ["Caribbean/Jamaican"] },
-  "jamaican": { cuisines: ["Caribbean/Jamaican"] },
   "fondue": { cuisines: ["French"], tags: ["romantic"] },
-  "raclette": { cuisines: ["French"] },
-  "teppanyaki": { cuisines: ["Japanese"] },
-  "sukiyaki": { cuisines: ["Japanese"] },
-  "shabu shabu": { cuisines: ["Japanese"] },
-  "hibachi": { cuisines: ["Japanese"] },
   "spanish tapas": { cuisines: ["Spanish", "Mediterranean"], tags: ["trendy"] },
-  "afternoon tea": { tags: ["brunch spot", "quiet"] },
-  "kombucha": { tags: ["vegan friendly"] },
-  "oxtail": { cuisines: ["Caribbean/Jamaican", "Southern/Soul Food"] },
   "oxtail stew": { cuisines: ["Caribbean/Jamaican", "Southern/Soul Food"] },
   "chicago style hot dog": { cuisines: ["American"] },
   "chicago hot dog": { cuisines: ["American"] },
-  "croque monsieur": { cuisines: ["French"] },
-  "curry goat": { cuisines: ["Caribbean/Jamaican"] },
-  "muffuletta": { cuisines: ["American"] },
-  "calzone": { cuisines: ["Italian"] },
-  "negroni": { tags: ["craft cocktails"] },
   "wagyu beef": { cuisines: ["Japanese", "Steak"], tags: ["fine dining"] },
   "wagyu": { cuisines: ["Japanese", "Steak"], tags: ["fine dining"] },
   "pozole rojo": { cuisines: ["Mexican"] },
-  "pozole": { cuisines: ["Mexican"] },
   "street food": { tags: ["great value", "food truck"] },
   "wrap": { cuisines: ["American"], tags: ["great value"] },
-  "juice bar": { tags: ["vegan friendly"] },
   "dairy free": { tags: ["vegan friendly"] },
   "dairy free options": { tags: ["vegan friendly"] },
   "comfort food": { cuisines: ["American", "Southern/Soul Food"], tags: ["great value"] },
   "lebanese food": { cuisines: ["Middle Eastern"] },
-  "lebanese": { cuisines: ["Middle Eastern"] },
   "turkish food": { cuisines: ["Middle Eastern"] },
   "cajun food": { cuisines: ["Southern/Soul Food"] },
   "creole food": { cuisines: ["Southern/Soul Food"] },
@@ -1096,12 +1045,9 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "uzbek food": { cuisines: ["Central Asian"] },
   "tibetan": { cuisines: ["Nepalese/Tibetan"] },
   "tibetan food": { cuisines: ["Nepalese/Tibetan"] },
-  "cajun": { cuisines: ["Southern/Soul Food"] },
   "cajun restaurant": { cuisines: ["Southern/Soul Food"] },
-  "creole": { cuisines: ["Southern/Soul Food"] },
   "creole restaurant": { cuisines: ["Southern/Soul Food"] },
   "creole place": { cuisines: ["Southern/Soul Food"] },
-  "vegan": { tags: ["vegan friendly"] },
   "vegan restaurant": { tags: ["vegan friendly"] },
   "vegan food": { tags: ["vegan friendly"] },
   // --- Reputation gaps ---
@@ -1116,9 +1062,7 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "yelp": { tags: ["reputation-focused"] },
   "yelp top rated": { tags: ["reputation-focused"] },
   // --- Vibe/service gaps ---
-  "dark moody": { tags: ["craft cocktails", "romantic"], cuisines: [] },
   "dark moody bar": { tags: ["craft cocktails", "romantic"], cuisines: [] },
-  "buzzing": { tags: ["lively atmosphere"] },
   "buzzing restaurant": { tags: ["lively atmosphere"] },
   "lively dinner": { tags: ["lively atmosphere"] },
   "lively dinner spot": { tags: ["lively atmosphere"] },
@@ -2788,7 +2732,7 @@ export function filterAndRank(
         ...(idx > 0 ? [PRICE_ORDER[idx - 1]] : []),
         ...(idx < PRICE_ORDER.length - 1 ? [PRICE_ORDER[idx + 1]] : []),
       ];
-      const relaxed = filtered.filter((p) => adjacent.includes(p.price_level));
+      const relaxed = filtered.filter((p) => p.price_level != null && adjacent.includes(p.price_level));
       if (relaxed.length > 0) {
         filtered = relaxed;
       }
