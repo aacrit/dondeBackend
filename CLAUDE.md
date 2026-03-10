@@ -20,6 +20,8 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 
 **`/ceo-advisor`** — Strategic product advisor. Reads all product docs (backend + frontend) and delivers Top 10 prioritized recommendations or answers specific CEO questions. See `.claude/skills/ceo-advisor/SKILL.md`.
 
+**`/donde-premium-advisor`** — Premium app advisor. Scans frontend and backend repos, then delivers concrete, prioritized audit report across UI/UX polish, backend optimization, marketing psychology, and Claude Code workflow mastery. See `.claude/skills/donde-premium-advisor/SKILL.md`.
+
 ## Tests
 
 | File | Description |
