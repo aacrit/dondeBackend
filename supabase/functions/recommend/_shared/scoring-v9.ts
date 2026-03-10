@@ -546,9 +546,16 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
   "sports bar": { vibes: ["lively", "casual", "buzzing"], tags: ["lively atmosphere"] },
   "cocktail bar": { vibes: ["refined", "intimate", "modern"], tags: ["craft cocktails"] },
   "wine bar": { vibes: ["cozy", "intimate", "refined"], tags: ["craft cocktails"] },
+  "upscale bar": { vibes: ["elegant", "refined", "sophisticated"], tags: ["fine dining", "craft cocktails"], reputation_boost: true, price_hint: "$$$" },
+  "upscale restaurant": { vibes: ["elegant", "refined", "sophisticated"], tags: ["fine dining"], reputation_boost: true, price_hint: "$$$" },
+  "upscale dining": { vibes: ["elegant", "refined", "sophisticated"], tags: ["fine dining"], reputation_boost: true, price_hint: "$$$" },
+  "somewhere upscale": { vibes: ["elegant", "refined", "sophisticated"], tags: ["fine dining"], reputation_boost: true, price_hint: "$$$" },
   "rooftop bar": { vibes: ["lively", "modern"], tags: ["rooftop", "outdoor patio"], constraints: ["outdoor_preferred"] },
   "rooftop dining": { vibes: ["modern", "lively"], tags: ["rooftop", "outdoor patio"], constraints: ["outdoor_preferred"] },
   "rooftop": { tags: ["rooftop", "outdoor patio"], constraints: ["outdoor_preferred"] },
+  "rooftop brunch": { tags: ["rooftop", "outdoor patio", "brunch spot"], constraints: ["outdoor_preferred"], vibes: ["lively", "modern"] },
+  "kid friendly brunch": { tags: ["kid friendly", "brunch spot"], constraints: ["family_friendly"], vibes: ["warm", "casual"] },
+  "family brunch": { tags: ["kid friendly", "brunch spot"], constraints: ["family_friendly"], vibes: ["warm", "casual"] },
 
   // Meta concepts
   "grandmother's cooking": { vibes: ["cozy", "warm", "rustic"], tags: ["great value"] },
@@ -579,7 +586,7 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
   "private chef consultation": { tags: ["fine dining", "tasting menu"], vibes: ["elegant", "intimate"] },
   "private chef experience": { tags: ["fine dining", "tasting menu"], vibes: ["elegant", "intimate"] },
   "recipe card takeaway": { vibes: ["warm", "casual"] },
-  "allergy alert service": { tags: ["fine dining"] },
+  "allergy alert service": { tags: ["fine dining", "tasting menu"], vibes: ["refined", "elegant"] },
   "group menu planning": { constraints: ["private_dining"], vibes: ["warm"] },
   "group reservation management": { constraints: ["private_dining"], vibes: ["warm"] },
   "group of 10": { constraints: ["private_dining"], vibes: ["lively", "warm"] },
@@ -1006,6 +1013,39 @@ export function computeRelevance(
   // === CUISINE-LEVEL RELEVANCE ===
   if (hasCuisine) {
     const cuisineRelevance = computeCuisineRelevance(candidate, intent);
+    // V14: When both cuisine and vibe signals exist (e.g., "rooftop brunch"),
+    // boost cuisine relevance for restaurants that also match the vibe signals.
+    // This ensures "rooftop brunch" prefers brunch spots WITH rooftop tags.
+    if (hasVibe && cuisineRelevance >= 0.50) {
+      const vibeRelevance = computeVibeRelevance(candidate, intent);
+      const vibeFloor = (signals => signals.length >= 3 ? 0.55 : 0.60)([...new Set([...(intent.vibe_keywords || []), ...(intent.target_tags || [])])]);
+      const vibeHasHits = vibeRelevance > vibeFloor + 0.001;
+      if (vibeHasHits) {
+        // Blend: 70% cuisine + 30% vibe, with a small bonus for both matching
+        const blended = Math.min(1.0, cuisineRelevance * 0.70 + vibeRelevance * 0.30 + 0.05);
+        return { score: blended, type: "cuisine", details: `Cuisine+Vibe: ${cuisineRelevance.toFixed(2)}/${vibeRelevance.toFixed(2)}` };
+      }
+    }
+    // V14: When both cuisine and constraints exist (e.g., "kid friendly brunch"),
+    // boost cuisine relevance for restaurants that match the constraints.
+    if (intent?.practical_constraints?.length && cuisineRelevance >= 0.50) {
+      const dp = candidate.deep_profile;
+      let constraintHits = 0;
+      for (const c of intent.practical_constraints) {
+        const cl = c.toLowerCase();
+        if (cl === "family_friendly" && dp?.kid_friendliness != null && dp.kid_friendliness >= 6) constraintHits++;
+        else if (cl === "halal") constraintHits++; // Halal is a filter, not scored against restaurant data here
+        else if (cl === "kosher") constraintHits++;
+        else if (cl === "budget_conscious" && (candidate.price_level === "$" || candidate.price_level === "$$")) constraintHits++;
+        else if (cl === "outdoor_preferred" && candidate.outdoor_seating) constraintHits++;
+        else if (cl === "accessibility" && dp?.kid_friendliness != null) constraintHits++; // Proxy
+      }
+      if (constraintHits > 0) {
+        const constraintBonus = 0.05 * (constraintHits / intent.practical_constraints.length);
+        const boosted = Math.min(1.0, cuisineRelevance + constraintBonus);
+        return { score: boosted, type: "cuisine", details: `Cuisine+Constraint: ${cuisineRelevance.toFixed(2)}+${constraintBonus.toFixed(2)}` };
+      }
+    }
     return { score: cuisineRelevance, type: "cuisine", details: `Cuisine: ${cuisineRelevance.toFixed(2)}` };
   }
 
@@ -1206,11 +1246,40 @@ function computeCuisineRelevance(
     if (riMatch) return 0.95; // Reviews confirm this cuisine
   }
 
+  // V14: RI family-level matching — when target is a family/umbrella cuisine,
+  // match sub-cuisines via RI cuisine_signals (e.g., "Somali" in RI → "East African" target)
+  if (ri?.cuisine_signals?.length) {
+    const riFamily = targets.some(t => {
+      const tLower = t.toLowerCase();
+      return ri.cuisine_signals.some((s: string) => {
+        const sLower = s.toLowerCase();
+        const sFamily = getCuisineFamily(s);
+        const tFamily = getCuisineFamily(t);
+        // Sub-cuisine in RI matches target family (e.g., RI="Somali", target="East African")
+        if (sFamily && sFamily.toLowerCase() === tLower) return true;
+        // Both are in the same family (e.g., RI="Somali", target="Ethiopian" → both East African)
+        if (sFamily && tFamily && sFamily === tFamily) return true;
+        // Target is a sub-cuisine and RI has the family name
+        if (tFamily && tFamily.toLowerCase() === sLower) return true;
+        return false;
+      });
+    });
+    if (riFamily) return 0.88; // Strong family match via RI evidence
+  }
+
   // Structured cuisine_type (same as V8 6-level taxonomy)
   if (candidate.cuisine_type) {
     const cl = candidate.cuisine_type.toLowerCase();
     if (targets.some(t => t.toLowerCase() === cl)) return 1.0;           // Exact
     if (targets.some(t => cl.includes(t.toLowerCase()) || t.toLowerCase().includes(cl))) return 0.80; // Contains
+    // V14: Sub-cuisine → family match (e.g., cuisine_type="Somali", target="East African")
+    // This is stronger than a generic family match since the restaurant IS the requested cuisine
+    const isSubOfTarget = targets.some(t => {
+      const tLower = t.toLowerCase();
+      const family = getCuisineFamily(candidate.cuisine_type!);
+      return family && family.toLowerCase() === tLower;
+    });
+    if (isSubOfTarget) return 0.85; // Sub-cuisine IS the target family
     if (isRelatedCuisine(candidate.cuisine_type, targets)) return 0.50;  // Same family
     if (isAdjacentCuisine(candidate.cuisine_type, targets)) return 0.30; // Adjacent
     return 0.05; // Different cuisine entirely

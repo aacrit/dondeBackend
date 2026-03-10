@@ -304,9 +304,9 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "neighborhood spot": { tags: ["hidden gem", "great value"] },
   "hole in the wall": { tags: ["hidden gem", "great value"] },
   "dive": { tags: ["hidden gem", "great value"] },
-  "fancy": { tags: ["trendy", "romantic"] },
-  "upscale": { tags: ["trendy", "romantic"] },
-  "elegant": { tags: ["romantic"] },
+  "fancy": { tags: ["fine dining", "romantic"] },
+  "upscale": { tags: ["fine dining", "romantic"] },
+  "elegant": { tags: ["fine dining", "romantic"] },
 
   // --- Occasion & social context ---
   "anniversary": { tags: ["romantic", "scenic view"] },
