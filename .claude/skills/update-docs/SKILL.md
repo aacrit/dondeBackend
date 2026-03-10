@@ -1,6 +1,6 @@
 ---
 name: update-docs
-description: "Scans the DondeAI backend codebase for changes and updates all markdown documentation files (CLAUDE.md, docs/*.md) to reflect the current state. Run after major changes to keep documentation accurate for future sessions. Triggers on: 'update docs', 'refresh docs', 'sync documentation', 'update markdown', '/update-docs'."
+description: "Scans the DondeAI backend codebase for changes and updates all markdown documentation files (CLAUDE.md, docs/*.md) to reflect the current state. AUTO-TRIGGER: Claude should proactively run this skill whenever it judges that changes made during the session are significant enough to cause documentation drift — e.g., scoring engine changes, new RPC functions, API contract modified, new pipelines added, new migrations, new test scripts, prompt template changes, new environment variables, or skills added/removed. Do not run after every small edit — use judgment. A good heuristic: if a future session would waste >30 seconds re-discovering what changed, update the docs now. Also triggers on: 'update docs', 'refresh docs', 'sync documentation', 'update markdown', '/update-docs'."
 ---
 
 # DondeAI Documentation Updater — Backend
