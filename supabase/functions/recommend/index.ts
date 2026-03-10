@@ -257,6 +257,9 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  // Source tracking — command-center test calls vs website production
+  const requestSource = req.headers.get("x-donde-source") || "website";
+
   // V8.8: Route detection — /recommend/blurb for lazy Try Again blurb generation
   const url = new URL(req.url);
   const isBlurbRequest = url.pathname.endsWith("/blurb");
@@ -1181,6 +1184,7 @@ Deno.serve(async (req: Request) => {
       response_time_ms: responseTimeMs,
       unmatched_keywords: unmatchedKw.length > 0 ? unmatchedKw : null,
       auth_user_id: authUserId || null,
+      source: requestSource,
     };
     serviceForLog
       .from("user_queries")
