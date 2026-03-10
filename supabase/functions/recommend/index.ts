@@ -868,7 +868,7 @@ Deno.serve(async (req: Request) => {
 
       // Single Claude API call — blurb + potential boost (Sonnet for primary, stronger voice differentiation)
       const claudeText = await callClaude(userPrompt, systemPrompt, {
-        model: "claude-sonnet-4-6-20260217",
+        model: "claude-sonnet-4-6",
       });
 
       // Parse Claude response
