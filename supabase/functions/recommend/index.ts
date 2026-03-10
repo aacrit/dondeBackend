@@ -345,13 +345,15 @@ Deno.serve(async (req: Request) => {
     }
 
     // Process feedback if included (fire-and-forget)
-    if (body.feedback?.restaurant_id && body.feedback?.feedback && user_id) {
-      const supabaseForFeedback = createSupabaseClient();
-      supabaseForFeedback
+    // Note: feedback column may not exist in user_queries yet (pending migration)
+    // Use auth_user_id since user_id column doesn't exist in current schema
+    if (body.feedback?.restaurant_id && body.feedback?.feedback && authUserId) {
+      const serviceForFeedback = createServiceClient();
+      serviceForFeedback
         .from("user_queries")
-        .update({ feedback: body.feedback.feedback })
+        .update({ claude_relevance_score: body.feedback.feedback === "like" ? 1 : 0 })
         .eq("recommended_restaurant_id", body.feedback.restaurant_id)
-        .eq("user_id", user_id)
+        .eq("auth_user_id", authUserId)
         .order("created_at", { ascending: false })
         .limit(1)
         .then(() => {})
@@ -378,16 +380,16 @@ Deno.serve(async (req: Request) => {
     // ================================================================
     // STEP 1: Intent classification + User feedback + RPC (parallel)
     // ================================================================
-    const feedbackColumn = authUserId ? "auth_user_id" : "user_id";
-    const feedbackValue = authUserId || user_id;
-    const feedbackLimit = authUserId ? 50 : 20;
+    // Use auth_user_id for feedback lookup (user_id column doesn't exist in schema)
+    const feedbackValue = authUserId;
+    const feedbackLimit = 50;
 
     const feedbackPromise = feedbackValue
       ? supabase
           .from("user_queries")
-          .select("recommended_restaurant_id, feedback, restaurants!inner(cuisine_type)")
-          .eq(feedbackColumn, feedbackValue)
-          .not("feedback", "is", null)
+          .select("recommended_restaurant_id, claude_relevance_score, restaurants!inner(cuisine_type)")
+          .eq("auth_user_id", feedbackValue)
+          .not("claude_relevance_score", "is", null)
           .order("created_at", { ascending: false })
           .limit(feedbackLimit)
           .then(({ data }) => {
@@ -399,10 +401,12 @@ Deno.serve(async (req: Request) => {
             for (const row of data) {
               const cuisine = (row.restaurants as Record<string, unknown>)?.cuisine_type as string | null;
               const rid = row.recommended_restaurant_id as string;
-              if (row.feedback === "like") {
+              // Use claude_relevance_score as feedback proxy (1 = like, 0 = dislike)
+              const score = (row as Record<string, unknown>).claude_relevance_score as number | null;
+              if (score === 1) {
                 if (rid) signals.likedRestaurantIds.push(rid);
                 if (cuisine && !signals.likedCuisines.includes(cuisine)) signals.likedCuisines.push(cuisine);
-              } else if (row.feedback === "dislike") {
+              } else if (score === 0) {
                 if (rid) signals.dislikedRestaurantIds.push(rid);
                 if (cuisine && !signals.dislikedCuisines.includes(cuisine)) signals.dislikedCuisines.push(cuisine);
               }
@@ -1113,24 +1117,27 @@ Deno.serve(async (req: Request) => {
     const unmatchedKw = extractUnmatchedKeywords(special_request);
 
     // Use service client for reliable logging (anon key lacks RLS INSERT permission)
+    // Generate UUID client-side since table lacks DEFAULT gen_random_uuid()
     const serviceForLog = createServiceClient();
+    // Only insert columns that exist in the current schema
+    // user_id, dietary_restrictions, feedback columns may not exist yet
+    const queryLogRow: Record<string, unknown> = {
+      id: crypto.randomUUID(),
+      occasion,
+      price_level,
+      special_request,
+      neighborhood_id: rerankedScored[0]?.profile?.neighborhood_id || null,
+      recommended_restaurant_id: chosenId || null,
+      donde_match: (responseBody.donde_match as number) || null,
+      exclude_count: exclude.length,
+      was_fallback: wasFallback,
+      response_time_ms: responseTimeMs,
+      unmatched_keywords: unmatchedKw.length > 0 ? unmatchedKw : null,
+      auth_user_id: authUserId || null,
+    };
     serviceForLog
       .from("user_queries")
-      .insert({
-        occasion,
-        price_level,
-        special_request,
-        neighborhood_id: rerankedScored[0]?.profile?.neighborhood_id || null,
-        recommended_restaurant_id: chosenId || null,
-        donde_match: (responseBody.donde_match as number) || null,
-        exclude_count: exclude.length,
-        was_fallback: wasFallback,
-        response_time_ms: responseTimeMs,
-        unmatched_keywords: unmatchedKw.length > 0 ? unmatchedKw : null,
-        user_id: user_id || null,
-        auth_user_id: authUserId || null,
-        dietary_restrictions: dietary_restrictions.length > 0 ? dietary_restrictions : null,
-      })
+      .insert(queryLogRow)
       .then(() => {})
       .catch((err: unknown) => logError("Failed to log query", { error: String(err) }));
 
