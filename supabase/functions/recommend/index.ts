@@ -1185,6 +1185,7 @@ Deno.serve(async (req: Request) => {
       unmatched_keywords: unmatchedKw.length > 0 ? unmatchedKw : null,
       auth_user_id: authUserId || null,
       source: requestSource,
+      recommendation_text: (responseBody as Record<string, unknown>).recommendation || null,
     };
     serviceForLog
       .from("user_queries")
