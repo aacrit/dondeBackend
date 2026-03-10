@@ -10,7 +10,7 @@
  * - Review intelligence provides evidence-based dish/cuisine data (self-healing for null cuisine_type)
  */
 
-import { corsPreflightResponse, jsonResponse } from "./_shared/cors.ts";
+import { corsPreflightResponse, jsonResponse, buildCorsHeaders } from "./_shared/cors.ts";
 import { createSupabaseClient, createServiceClient } from "./_shared/supabase.ts";
 import { callClaude, parseClaudeJson } from "./_shared/claude.ts";
 import {
@@ -222,9 +222,11 @@ function mapRpcToCandidate(row: Record<string, unknown>): V9Candidate {
 }
 
 Deno.serve(async (req: Request) => {
+  const requestOrigin = req.headers.get("origin");
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return corsPreflightResponse();
+    return corsPreflightResponse(requestOrigin);
   }
 
   // Health check endpoint
@@ -234,13 +236,14 @@ Deno.serve(async (req: Request) => {
       version: API_VERSION,
       engine: "v11",
       timestamp: new Date().toISOString(),
-    });
+    }, 200, requestOrigin);
   }
 
   if (req.method !== "POST") {
     return jsonResponse(
       { success: false, recommendation: "Method not allowed" },
-      405
+      405,
+      requestOrigin
     );
   }
 
@@ -253,7 +256,8 @@ Deno.serve(async (req: Request) => {
     logWarn("Rate limit exceeded", { ip: clientIp });
     return jsonResponse(
       { success: false, recommendation: "Too many requests. Please wait a moment." },
-      429
+      429,
+      requestOrigin
     );
   }
 
@@ -1221,13 +1225,13 @@ Deno.serve(async (req: Request) => {
       engine: "v11",
     });
 
-    const response = jsonResponse(responseBody);
+    const response = jsonResponse(responseBody, 200, requestOrigin);
     response.headers.set("X-API-Version", API_VERSION);
     response.headers.set("X-Engine", "v9");
     return response;
   } catch (error) {
     logError("V9 engine error", { error: String(error) });
-    return jsonResponse(buildV9ErrorResponse(error), 500);
+    return jsonResponse(buildV9ErrorResponse(error), 500, requestOrigin);
   }
 });
 
