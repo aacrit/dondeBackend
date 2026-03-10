@@ -275,7 +275,7 @@ Deno.serve(async (req: Request) => {
       const context = blurbBody.context;
 
       if (!restaurantData?.name) {
-        return jsonResponse({ success: false, error: "Missing restaurant_data.name" }, 400);
+        return jsonResponse({ success: false, error: "Missing restaurant_data.name" }, 400, requestOrigin);
       }
 
       // Sanitize user-provided strings
@@ -318,10 +318,10 @@ Deno.serve(async (req: Request) => {
         recommendation: parsed.recommendation || null,
         match_headline: parsed.match_headline || null,
         insider_tip: parsed.insider_tip,
-      });
+      }, 200, requestOrigin);
     } catch (err) {
       logError("Blurb endpoint error", { error: err instanceof Error ? err.message : String(err) });
-      return jsonResponse({ success: false, error: "Failed to generate blurb" }, 500);
+      return jsonResponse({ success: false, error: "Failed to generate blurb" }, 500, requestOrigin);
     }
   }
 
@@ -394,12 +394,12 @@ Deno.serve(async (req: Request) => {
     if (cached) {
       if (!cached.isStale) {
         // Fresh cache hit — return immediately
-        return jsonResponse(cached.response);
+        return jsonResponse(cached.response, 200, requestOrigin);
       }
       // Stale cache hit — serve immediately but don't block on background refresh
       // The next request after this one will get fresh data since we continue processing
       // and re-cache at the end of this function
-      return jsonResponse(cached.response);
+      return jsonResponse(cached.response, 200, requestOrigin);
     }
 
     const supabase = createSupabaseClient();
@@ -628,7 +628,7 @@ Deno.serve(async (req: Request) => {
 
     if (finalRpcError || !finalRpcData || finalRpcData.length === 0) {
       logError("RPC failed or returned no results", { error: finalRpcError ? String(finalRpcError) : "empty" });
-      return jsonResponse(buildV9NoResultsResponse(neighborhood, price_level));
+      return jsonResponse(buildV9NoResultsResponse(neighborhood, price_level), 200, requestOrigin);
     }
 
     // ================================================================
@@ -655,7 +655,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (candidates.length === 0) {
-      return jsonResponse(buildV9NoResultsResponse(neighborhood, price_level));
+      return jsonResponse(buildV9NoResultsResponse(neighborhood, price_level), 200, requestOrigin);
     }
 
     // ================================================================
@@ -687,7 +687,7 @@ Deno.serve(async (req: Request) => {
     }).filter(Boolean) as V9ScoredCandidate[];
 
     if (diverseScored.length === 0) {
-      return jsonResponse(buildV9NoResultsResponse(neighborhood, price_level));
+      return jsonResponse(buildV9NoResultsResponse(neighborhood, price_level), 200, requestOrigin);
     }
 
     // ================================================================
