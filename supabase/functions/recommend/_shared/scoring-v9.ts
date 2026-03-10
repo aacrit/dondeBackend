@@ -161,10 +161,10 @@ const DISH_SYNONYMS: Record<string, string[]> = {
   "ramen": ["tonkotsu ramen", "shoyu ramen", "miso ramen"],
   "gyoza": ["potstickers", "pot stickers", "dumplings"],
   "potstickers": ["gyoza", "pot stickers", "dumplings"],
-  "tacos": ["taco", "street tacos"],
+  "tacos": ["taco", "street tacos", "birria tacos", "al pastor tacos", "fish tacos", "carnitas tacos"],
   "burger": ["burgers", "hamburger", "hamburgers", "smash burger", "smashburger"],
   "smash burger": ["burger", "smashburger", "smashed burger"],
-  "wings": ["chicken wings", "wing", "buffalo wings", "hot wings"],
+  "wings": ["chicken wings", "wing", "buffalo wings", "hot wings", "korean wings", "garlic parmesan wings"],
   "chicken wings": ["wings", "wing", "buffalo wings"],
   "bao": ["bao buns", "steamed buns", "baozi"],
   "momo": ["momos", "tibetan dumplings", "nepali dumplings"],
@@ -191,12 +191,10 @@ const DISH_SYNONYMS: Record<string, string[]> = {
   "curry": ["tikka masala", "green curry", "red curry", "massaman", "panang", "korma", "vindaloo", "japanese curry", "katsu curry"],
   "fried chicken": ["karaage", "nashville hot chicken", "korean fried chicken", "popeyes", "hot chicken", "chicken katsu"],
   "steak": ["ribeye", "filet mignon", "wagyu", "porterhouse", "tomahawk", "t-bone", "strip steak"],
-  "tacos": ["taco", "street tacos", "birria tacos", "al pastor tacos", "fish tacos", "carnitas tacos"],
   "sandwich": ["sub", "hoagie", "panini", "cubano", "banh mi", "po boy", "club sandwich", "cheesesteak"],
   "pizza": ["deep dish", "thin crust", "neapolitan", "detroit style", "chicago style", "tavern cut", "flatbread"],
   "salad": ["caesar", "chopped salad", "greek salad", "fattoush", "tabbouleh", "cobb salad"],
   "soup": ["pho", "ramen", "tom yum", "miso soup", "french onion", "clam chowder", "pozole", "borscht"],
-  "wings": ["chicken wings", "buffalo wings", "korean wings", "hot wings", "garlic parmesan wings"],
   "rice bowl": ["bibimbap", "poke bowl", "donburi", "chirashi", "burrito bowl"],
   "flatbread": ["naan", "pita", "lavash", "focaccia", "roti"],
   "wrap": ["burrito", "shawarma wrap", "gyro wrap", "spring rolls", "lumpia"],
@@ -217,7 +215,7 @@ const DISH_SYNONYMS: Record<string, string[]> = {
   "oxtail stew": ["oxtail", "braised oxtail"],
   "calzone": ["stromboli", "stuffed pizza"],
   "croque monsieur": ["croque madame", "french grilled cheese"],
-  "muffuletta": ["muffaletta"],
+  "muffuletta": ["muffaletta", "central grocery"],
   "pozole": ["pozole rojo", "posole", "pozole verde"],
   "pozole rojo": ["pozole", "posole"],
   "wagyu": ["wagyu beef", "a5 wagyu", "japanese wagyu", "kobe beef"],
@@ -230,7 +228,6 @@ const DISH_SYNONYMS: Record<string, string[]> = {
   "afternoon tea": ["high tea", "tea service", "cream tea"],
   "kombucha": ["fermented tea"],
   "curry goat": ["goat curry", "jamaican curry goat"],
-  "muffuletta": ["muffaletta", "central grocery"],
 };
 
 /** Expand a dish query into canonical + synonyms */
@@ -2344,7 +2341,7 @@ export function reRankV9(
   if (context.userPreferences?.topCuisines?.length) {
     const prefs = context.userPreferences;
     for (const item of scored) {
-      const cuisineType = (item.profile as Record<string, unknown>).cuisine_type as string | null;
+      const cuisineType = (item.profile as unknown as Record<string, unknown>).cuisine_type as string | null;
       if (!cuisineType) continue;
       const cuisineLower = cuisineType.toLowerCase();
       const cuisineMatch = prefs.topCuisines.some(c =>
