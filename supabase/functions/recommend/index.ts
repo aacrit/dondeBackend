@@ -866,6 +866,78 @@ Deno.serve(async (req: Request) => {
       }
 
       // ================================================================
+      // STEP 7.5: Slop guardrail — retry once if banned patterns detected
+      // ================================================================
+      const SLOP_PATTERNS = [
+        "\u2014",                // em dash — strictly prohibited
+        "nestled",
+        "mouthwatering",
+        "culinary journey",
+        "hidden gem",
+        "hidden treasure",
+        "a must-visit",
+        "must-visit",
+        "if you're looking for",
+        "whether you're",
+        "look no further",
+        "culinary",
+        "elevated",
+        "delectable",
+        "exquisite",
+        "tantalizing",
+        "impeccable",
+        "burst of flavor",
+        "taste buds",
+        "every bite",
+        "something for everyone",
+        "won't disappoint",
+        "does not disappoint",
+        "dining experience",
+        "unforgettable",
+        "the perfect spot",
+        "go-to spot",
+        "ideal for",
+        "the ultimate",
+      ];
+      const blurbText = (parsed.recommendation || "").toLowerCase();
+      const headlineText = (parsed.match_headline || "").toLowerCase();
+      const combinedText = blurbText + " " + headlineText;
+      const foundSlop = SLOP_PATTERNS.filter(p => combinedText.includes(p.toLowerCase()));
+
+      if (foundSlop.length > 0) {
+        logWarn("Slop detected in Claude blurb, retrying", {
+          patterns: foundSlop,
+          restaurant: rerankedScored[parsed.restaurant_index || 0]?.profile.name,
+        });
+        try {
+          const retryPrompt = userPrompt + `\n\nCRITICAL RETRY: Your previous response contained banned patterns: ${foundSlop.map(p => `"${p}"`).join(", ")}. Rewrite WITHOUT these patterns. Same JSON format.`;
+          const retryText = await callClaude(retryPrompt, systemPrompt);
+          const retryParsed = parseClaudeJson<ClaudeRecommendation>(retryText);
+          // Only accept retry if it's cleaner
+          const retryBlurb = (retryParsed.recommendation || "").toLowerCase();
+          const retryHeadline = (retryParsed.match_headline || "").toLowerCase();
+          const retryCombined = retryBlurb + " " + retryHeadline;
+          const retrySlop = SLOP_PATTERNS.filter(p => retryCombined.includes(p.toLowerCase()));
+          if (retrySlop.length < foundSlop.length) {
+            parsed = retryParsed;
+            logInfo("Slop retry accepted", {
+              originalPatterns: foundSlop.length,
+              retryPatterns: retrySlop.length,
+            });
+          } else {
+            logWarn("Slop retry not cleaner, using original", {
+              originalPatterns: foundSlop.length,
+              retryPatterns: retrySlop.length,
+            });
+          }
+        } catch (retryErr) {
+          logWarn("Slop retry failed, using original", {
+            error: retryErr instanceof Error ? retryErr.message : String(retryErr),
+          });
+        }
+      }
+
+      // ================================================================
       // STEP 8: Process Intent Boost
       // ================================================================
       let chosenIdx = Math.min(Math.max(0, parsed.restaurant_index || 0), rerankedScored.length - 1);
