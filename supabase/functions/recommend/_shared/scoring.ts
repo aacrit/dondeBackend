@@ -304,9 +304,9 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "neighborhood spot": { tags: ["hidden gem", "great value"] },
   "hole in the wall": { tags: ["hidden gem", "great value"] },
   "dive": { tags: ["hidden gem", "great value"] },
-  "fancy": { tags: ["trendy", "romantic"] },
-  "upscale": { tags: ["trendy", "romantic"] },
-  "elegant": { tags: ["romantic"] },
+  "fancy": { tags: ["fine dining", "romantic"] },
+  "upscale": { tags: ["fine dining", "romantic"] },
+  "elegant": { tags: ["fine dining", "romantic"] },
 
   // --- Occasion & social context ---
   "anniversary": { tags: ["romantic", "scenic view"] },
@@ -701,14 +701,14 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   // ============================================================
 
   // --- Missing Cuisine-Type Intents ---
-  "cuban": { cuisines: ["Caribbean/Jamaican"] },
-  "cuban food": { cuisines: ["Caribbean/Jamaican"] },
+  "cuban": { cuisines: ["Cuban", "Caribbean/Jamaican"] },
+  "cuban food": { cuisines: ["Cuban", "Caribbean/Jamaican"] },
   "jamaican": { cuisines: ["Caribbean/Jamaican"] },
   "jamaican food": { cuisines: ["Caribbean/Jamaican"] },
   "filipino": { cuisines: ["Filipino"] },
   "filipino food": { cuisines: ["Filipino"] },
-  "taiwanese": { cuisines: ["Chinese"] },
-  "taiwanese food": { cuisines: ["Chinese"] },
+  "taiwanese": { cuisines: ["Taiwanese", "Chinese"] },
+  "taiwanese food": { cuisines: ["Taiwanese", "Chinese"] },
   "new american": { cuisines: ["American"], tags: ["trendy"] },
   "new american cuisine": { cuisines: ["American"], tags: ["trendy", "farm-to-table"] },
   "scandinavian": { cuisines: ["American"], tags: ["farm-to-table"] },
@@ -1082,6 +1082,50 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "turkish food": { cuisines: ["Middle Eastern"] },
   "cajun food": { cuisines: ["Southern/Soul Food"] },
   "creole food": { cuisines: ["Southern/Soul Food"] },
+
+  // V14: Missing INTENT_MAP entries from gap analysis (88 DondeMatch issues)
+  // --- Cuisine/dish gaps ---
+  "boba tea": { cuisines: ["Chinese", "Taiwanese", "Coffee/Cafe"] },
+  "chicken tikka masala": { cuisines: ["Indian"] },
+  "polish": { cuisines: ["Polish"] },
+  "polish food": { cuisines: ["Polish"] },
+  "senegalese": { cuisines: ["West African"] },
+  "senegalese food": { cuisines: ["West African"] },
+  "southern": { cuisines: ["Southern/Soul Food"] },
+  "southern restaurant": { cuisines: ["Southern/Soul Food"] },
+  "uzbek food": { cuisines: ["Central Asian"] },
+  "tibetan": { cuisines: ["Nepalese/Tibetan"] },
+  "tibetan food": { cuisines: ["Nepalese/Tibetan"] },
+  "cajun": { cuisines: ["Southern/Soul Food"] },
+  "cajun restaurant": { cuisines: ["Southern/Soul Food"] },
+  "creole": { cuisines: ["Southern/Soul Food"] },
+  "creole restaurant": { cuisines: ["Southern/Soul Food"] },
+  "creole place": { cuisines: ["Southern/Soul Food"] },
+  "vegan": { tags: ["vegan friendly"] },
+  "vegan restaurant": { tags: ["vegan friendly"] },
+  "vegan food": { tags: ["vegan friendly"] },
+  // --- Reputation gaps ---
+  "rising star": { tags: ["reputation-focused", "fine dining"] },
+  "rising star chef": { tags: ["reputation-focused", "fine dining"] },
+  "chef of the year": { tags: ["reputation-focused"] },
+  "40 under 40": { tags: ["reputation-focused"] },
+  "most awarded": { tags: ["reputation-focused", "fine dining"] },
+  "outstanding chef": { tags: ["reputation-focused", "fine dining"] },
+  "magazine cover": { tags: ["reputation-focused"] },
+  "chicago magazine": { tags: ["reputation-focused"] },
+  "yelp": { tags: ["reputation-focused"] },
+  "yelp top rated": { tags: ["reputation-focused"] },
+  // --- Vibe/service gaps ---
+  "dark moody": { tags: ["craft cocktails", "romantic"], cuisines: [] },
+  "dark moody bar": { tags: ["craft cocktails", "romantic"], cuisines: [] },
+  "buzzing": { tags: ["lively atmosphere"] },
+  "buzzing restaurant": { tags: ["lively atmosphere"] },
+  "lively dinner": { tags: ["lively atmosphere"] },
+  "lively dinner spot": { tags: ["lively atmosphere"] },
+  "trendy sushi": { cuisines: ["Japanese"], tags: ["trendy"] },
+  "trendy sushi spot": { cuisines: ["Japanese"], tags: ["trendy"] },
+  "sunday morning cafe": { cuisines: ["Coffee/Cafe", "Brunch"], tags: ["brunch spot", "quiet"] },
+  "sunday morning": { cuisines: ["Brunch"], tags: ["brunch spot"] },
 };
 
 // --- Unmatched keyword extraction (for continuous learning) ---

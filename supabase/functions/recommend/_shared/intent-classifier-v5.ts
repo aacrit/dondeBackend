@@ -39,6 +39,8 @@ const VIBE_WORDS: string[] = [
   "minimalist", "relaxed", "rooftop", "bottomless", "upscale", "trendy",
   "romantic", "speakeasy", "sophisticated", "vibrant",
   "fun", "festive", "celebratory",
+  // V14: Additional vibe words from gap analysis
+  "moody", "dark", "bustling", "comfortable",
 ];
 
 /** Practical constraint trigger words mapped to constraint labels */
