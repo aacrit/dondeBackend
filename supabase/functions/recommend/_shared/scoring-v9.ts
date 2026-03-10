@@ -259,6 +259,9 @@ const REPUTATION_KEYWORDS = [
   "eater heatmap", "eater 38", "most reviewed", "most booked",
   "woman owned", "black owned", "hardest table", "food influencer",
   "top chef", "people magazine", "bib gourmand",
+  // V14: Additional reputation signals from 88-issue gap analysis
+  "outstanding chef", "most awarded", "magazine cover", "chicago magazine",
+  "rising star chef", "yelp top rated",
 ];
 
 /** Check if the query/intent signals a reputation-focused search */
@@ -387,6 +390,8 @@ export const NEIGHBORHOOD_ALIASES: Record<string, string> = {
   "near lyric opera": "The Loop",
   "second city": "Lincoln Park",
   "near second city": "Lincoln Park",
+  "thalia hall": "Pilsen",
+  "near thalia hall": "Pilsen",
   // V13: Parks & Trails
   "lincoln park zoo": "Lincoln Park",
   "near lincoln park zoo": "Lincoln Park",
@@ -625,7 +630,9 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
 
   // V13: Parking/Access concepts
   "free parking restaurant": { vibes: ["casual"] },
+  "valet parking": { vibes: ["elegant", "refined"], tags: ["fine dining"] },
   "validated parking": { vibes: ["refined"] },
+  "wheelchair accessible": { vibes: ["warm"] },
   "street parking available": { vibes: ["casual"] },
   "heated indoor parking": { vibes: ["refined"] },
   "self parking": { vibes: ["casual"] },
@@ -680,9 +687,20 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
   "neon lit bar": { vibes: ["lively", "modern", "buzzing"], tags: ["lively atmosphere", "craft cocktails"] },
   "craft beer": { tags: ["craft beer"], vibes: ["casual", "lively"] },
   "craft brewery taproom": { tags: ["craft beer"], vibes: ["casual", "lively", "industrial"] },
+  "dark moody bar": { vibes: ["intimate", "moody", "refined"], tags: ["craft cocktails", "romantic"] },
+  "dark moody": { vibes: ["intimate", "moody", "refined"], tags: ["craft cocktails"] },
 
   // V13: Timing/Holiday concepts
-  "valentine's day dinner": { vibes: ["romantic", "intimate", "elegant"], tags: ["romantic", "fine dining"] },
+  "valentine's day dinner": { vibes: ["romantic", "intimate", "elegant"], tags: ["romantic", "fine dining"], reputation_boost: true },
+  "valentines day dinner": { vibes: ["romantic", "intimate", "elegant"], tags: ["romantic", "fine dining"], reputation_boost: true },
+  "drag brunch": { vibes: ["lively", "buzzing", "fun"], tags: ["lively atmosphere", "brunch spot"] },
+  "bottomless brunch": { vibes: ["lively", "fun"], tags: ["lively atmosphere", "brunch spot"] },
+  "brunch this weekend": { vibes: ["casual", "warm"], tags: ["brunch spot"] },
+  "sunday brunch": { vibes: ["casual", "warm"], tags: ["brunch spot"] },
+  "cozy brunch": { vibes: ["cozy", "warm", "intimate"], tags: ["brunch spot"] },
+  "relaxed brunch": { vibes: ["casual", "relaxed", "warm"], tags: ["brunch spot"] },
+  "relaxed brunch spot": { vibes: ["casual", "relaxed", "warm"], tags: ["brunch spot"] },
+  "family brunch with kids": { tags: ["kid friendly", "brunch spot"], constraints: ["family_friendly"], vibes: ["warm", "casual"] },
   "teacher appreciation": { vibes: ["warm", "casual"], tags: ["great value"] },
   "open christmas day": { vibes: ["warm"] },
   "open for christmas eve": { vibes: ["warm", "elegant"] },
@@ -1107,6 +1125,22 @@ export function computeRelevance(
         (candidate.cuisine_type || "").toLowerCase().includes("coffee") ||
         (candidate.cuisine_type || "").toLowerCase().includes("cafe") ||
         (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("quiet") || tagToString(t).toLowerCase().includes("wifi") || tagToString(t).toLowerCase().includes("cafe"))
+      )) constraintHits++;
+      // V14: Halal/kosher constraint matching in relevance path
+      else if ((cl === "halal" || cl === "kosher") && Array.isArray(candidate.dietary_options) &&
+        candidate.dietary_options.some((o: string) => o.toLowerCase().includes(cl))) constraintHits++;
+      else if (cl === "accessibility") constraintHits++; // Accessibility is a soft constraint
+      else if (cl === "vegan" && (
+        (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("vegan")) ||
+        (Array.isArray(candidate.dietary_options) && candidate.dietary_options.some((o: string) => o.toLowerCase().includes("vegan")))
+      )) constraintHits++;
+      else if (cl === "vegetarian" && (
+        (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("vegetarian")) ||
+        (Array.isArray(candidate.dietary_options) && candidate.dietary_options.some((o: string) => o.toLowerCase().includes("vegetarian")))
+      )) constraintHits++;
+      else if (cl === "gluten_free" && (
+        (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("gluten")) ||
+        (Array.isArray(candidate.dietary_options) && candidate.dietary_options.some((o: string) => o.toLowerCase().includes("gluten")))
       )) constraintHits++;
     }
     if (constraintHits > 0) {
@@ -2005,8 +2039,12 @@ function computeConvenienceQuality(
           score += 0.5;
         }
       } else if (cl === "halal" || cl === "kosher") {
-        const dietaryOpts = (candidate.dietary_options || "").toLowerCase();
-        if (dietaryOpts.includes(cl)) {
+        const dietaryOpts = Array.isArray(candidate.dietary_options)
+          ? candidate.dietary_options.map((o: string) => o.toLowerCase())
+          : typeof candidate.dietary_options === "string"
+            ? [(candidate.dietary_options as string).toLowerCase()]
+            : [];
+        if (dietaryOpts.some((o: string) => o.includes(cl))) {
           constraintHits++;
           score += 0.5;
         }
