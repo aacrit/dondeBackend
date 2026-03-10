@@ -2,6 +2,7 @@
 const ALLOWED_ORIGINS = new Set([
   "https://dondeai.com",
   "https://www.dondeai.com",
+  "https://aacrit.github.io",
   "http://localhost:3000",
   "http://localhost:5500",
   "http://127.0.0.1:3000",
