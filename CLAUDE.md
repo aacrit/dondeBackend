@@ -22,6 +22,8 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 
 **`/donde-premium-advisor`** — Premium app advisor. Scans frontend and backend repos, then delivers concrete, prioritized audit report across UI/UX polish, backend optimization, marketing psychology, and Claude Code workflow mastery. See `.claude/skills/donde-premium-advisor/SKILL.md`.
 
+**`/donde-ciso`** — Chief Information Security Officer. Audits frontend and backend repos across 10 security domains (secrets, API security, injection, data protection, auth, frontend security, supply chain, infrastructure, AI-specific, compliance). Delivers severity-ranked findings with Security Scorecard. Auto-activates on security-relevant code changes. See `.claude/skills/donde-ciso/SKILL.md`.
+
 ## Tests
 
 | File | Description |
