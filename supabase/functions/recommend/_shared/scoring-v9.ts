@@ -208,6 +208,29 @@ const DISH_SYNONYMS: Record<string, string[]> = {
   "burg": ["burger", "hamburger", "smash burger"],
   "chicky": ["chicken", "fried chicken"],
   "nugs": ["chicken nuggets", "nuggets"],
+  // V13: Additional dish synonyms from gap analysis
+  "fondue": ["cheese fondue", "chocolate fondue", "raclette", "swiss fondue"],
+  "raclette": ["fondue", "cheese fondue", "swiss cheese"],
+  "hot dog": ["chicago dog", "chicago style hot dog", "vienna beef", "chicago hot dog"],
+  "chicago style hot dog": ["hot dog", "chicago dog", "vienna beef"],
+  "oxtail": ["oxtail stew", "braised oxtail", "rabo de toro"],
+  "oxtail stew": ["oxtail", "braised oxtail"],
+  "calzone": ["stromboli", "stuffed pizza"],
+  "croque monsieur": ["croque madame", "french grilled cheese"],
+  "muffuletta": ["muffaletta"],
+  "pozole": ["pozole rojo", "posole", "pozole verde"],
+  "pozole rojo": ["pozole", "posole"],
+  "wagyu": ["wagyu beef", "a5 wagyu", "japanese wagyu", "kobe beef"],
+  "wagyu beef": ["wagyu", "a5 wagyu", "kobe beef"],
+  "negroni": ["sbagliato", "boulevardier"],
+  "shabu shabu": ["hot pot", "hotpot", "sukiyaki", "japanese hot pot"],
+  "sukiyaki": ["shabu shabu", "japanese hot pot"],
+  "hibachi": ["teppanyaki", "japanese grill", "benihana"],
+  "teppanyaki": ["hibachi", "japanese grill"],
+  "afternoon tea": ["high tea", "tea service", "cream tea"],
+  "kombucha": ["fermented tea"],
+  "curry goat": ["goat curry", "jamaican curry goat"],
+  "muffuletta": ["muffaletta", "central grocery"],
 };
 
 /** Expand a dish query into canonical + synonyms */
@@ -231,6 +254,11 @@ const REPUTATION_KEYWORDS = [
   "michelin", "james beard", "critically acclaimed", "best reviewed", "most popular",
   "five star", "finest", "premier", "legendary", "world class", "world-class",
   "famous", "iconic", "celebrated", "renowned",
+  // V13: Additional reputation signals from gap analysis
+  "rising star", "chef of the year", "40 under 40", "padma lakshmi",
+  "eater heatmap", "eater 38", "most reviewed", "most booked",
+  "woman owned", "black owned", "hardest table", "food influencer",
+  "top chef", "people magazine", "bib gourmand",
 ];
 
 /** Check if the query/intent signals a reputation-focused search */
@@ -309,6 +337,120 @@ export const NEIGHBORHOOD_ALIASES: Record<string, string> = {
   "guaranteed rate": "Bridgeport",
   "fire game": "Bridgeport",
   "concert at united center": "West Loop",
+  // V13: CTA Lines — map to neighborhoods with major stops
+  "red line": "Lakeview",
+  "blue line": "Wicker Park",
+  "brown line": "Lincoln Square",
+  "green line": "West Loop",
+  "pink line": "Pilsen",
+  "orange line": "Chinatown",
+  "near red line": "Lakeview",
+  "near blue line": "Wicker Park",
+  "near brown line": "Lincoln Square",
+  "near green line": "West Loop",
+  "near pink line": "Pilsen",
+  // V13: Airports & Transit
+  "o'hare": "O'Hare",
+  "o'hare airport": "O'Hare",
+  "near o'hare": "O'Hare",
+  "near o'hare airport": "O'Hare",
+  "midway": "Midway",
+  "midway airport": "Midway",
+  "near midway": "Midway",
+  "near midway airport": "Midway",
+  "union station": "The Loop",
+  "near union station": "The Loop",
+  "union loop cta": "The Loop",
+  "near union loop cta": "The Loop",
+  // V13: Museums & Cultural Venues
+  "art institute": "The Loop",
+  "art institute chicago": "The Loop",
+  "near art institute": "The Loop",
+  "near art institute chicago": "The Loop",
+  "field museum": "South Loop",
+  "near field museum": "South Loop",
+  "shedd aquarium": "South Loop",
+  "near shedd aquarium": "South Loop",
+  "museum of science": "Hyde Park",
+  "museum of science industry": "Hyde Park",
+  "near museum of science industry": "Hyde Park",
+  "museum campus": "South Loop",
+  "near museum campus": "South Loop",
+  "adler planetarium": "South Loop",
+  "chicago cultural center": "The Loop",
+  "near chicago cultural center": "The Loop",
+  "auditorium theatre": "The Loop",
+  "near auditorium theatre": "The Loop",
+  "chicago theatre": "The Loop",
+  "near chicago theatre": "The Loop",
+  "lyric opera": "The Loop",
+  "near lyric opera": "The Loop",
+  "second city": "Lincoln Park",
+  "near second city": "Lincoln Park",
+  // V13: Parks & Trails
+  "lincoln park zoo": "Lincoln Park",
+  "near lincoln park zoo": "Lincoln Park",
+  "garfield park conservatory": "Garfield Park",
+  "near garfield park conservatory": "Garfield Park",
+  "jackson park": "Hyde Park",
+  "near jackson park": "Hyde Park",
+  "606 trail": "Wicker Park",
+  "near 606 trail": "Wicker Park",
+  "chicago marathon route": "The Loop",
+  "near chicago marathon route": "The Loop",
+  "lakefront trail": "The Loop",
+  "near lakefront trail": "Lincoln Park",
+  "lake michigan": "The Loop",
+  "steps from lake michigan": "The Loop",
+  "chicago lakefront": "Lincoln Park",
+  "chicago riverwalk": "The Loop",
+  "lake shore drive": "Lincoln Park",
+  "close to lake shore drive": "Lincoln Park",
+  // V13: Sports venues (supplementing existing)
+  "white sox": "Bridgeport",
+  "white sox nearby": "Bridgeport",
+  "mccormick place": "South Loop",
+  "near mccormick place": "South Loop",
+  "convention center": "South Loop",
+  "near convention center": "South Loop",
+  "conference center": "South Loop",
+  "near conference center": "South Loop",
+  "convention hotels": "South Loop",
+  "close to convention hotels": "South Loop",
+  // V13: Areas, Directions & Surrounding
+  "north side": "Lakeview",
+  "north side location": "Lakeview",
+  "south side": "Hyde Park",
+  "south side restaurant": "Hyde Park",
+  "west side": "West Loop",
+  "west side restaurant": "West Loop",
+  "oak park": "Oak Park",
+  "near oak park": "Oak Park",
+  "evanston": "Evanston",
+  "accessible from evanston": "Evanston",
+  "printers row": "South Loop",
+  "printers row restaurant": "South Loop",
+  "near randolph restaurant row": "West Loop",
+  "divvy": "The Loop",
+  "divvy station": "The Loop",
+  "near divvy stations": "The Loop",
+  "divvy bike nearby": "The Loop",
+  "near expressway exit": "West Loop",
+  "close to the loop financial": "The Loop",
+  "close to the loop": "The Loop",
+  // V13: Universities
+  "university of chicago": "Hyde Park",
+  "near university of chicago": "Hyde Park",
+  "loyola": "Rogers Park",
+  "loyola chicago": "Rogers Park",
+  "near loyola chicago": "Rogers Park",
+  "lincoln center": "Lincoln Square",
+  "near lincoln center": "Lincoln Square",
+  // V13: Neighborhoods (supplementing existing)
+  "near navy pier": "Streeterville",
+  "near magnificent mile": "River North",
+  "near chicago neighborhoods": "The Loop",
+  "near chicago family attractions": "The Loop",
 };
 
 // ==========================================
@@ -419,6 +561,223 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
   "hole in the wall gem": { tags: ["hidden gem", "great value"], vibes: ["casual", "no-frills"], constraints: ["budget_conscious"] },
   "people watching": { tags: ["outdoor patio"], vibes: ["lively", "buzzing"] },
   "hear yourself talk": { tags: ["quiet"], vibes: ["intimate"] },
+
+  // V13: Service/Amenity concepts — from gap analysis (191 scoring gaps)
+  "coat check": { vibes: ["elegant", "refined"], tags: ["fine dining"] },
+  "private dining room": { constraints: ["private_dining"], tags: ["private dining"] },
+  "semi private dining": { constraints: ["private_dining"], tags: ["private dining"] },
+  "communal tables": { vibes: ["lively", "casual"], tags: ["lively atmosphere"] },
+  "full bar service": { tags: ["craft cocktails"], vibes: ["lively"] },
+  "a la carte menu": { vibes: ["casual"] },
+  "fixed menu only": { tags: ["tasting menu", "fine dining"], vibes: ["elegant"] },
+  "sommelier on staff": { tags: ["wine bar", "fine dining"], vibes: ["refined"] },
+  "sommelier consultation": { tags: ["wine bar", "fine dining"], vibes: ["refined"] },
+  "water sommelier": { tags: ["fine dining"], vibes: ["refined", "elegant"] },
+  "cheese cart service": { tags: ["fine dining"], vibes: ["elegant"] },
+  "cheese pairing": { tags: ["fine dining", "wine bar"], vibes: ["refined"] },
+  "chef interaction": { tags: ["fine dining"], vibes: ["intimate"] },
+  "private chef consultation": { tags: ["fine dining", "tasting menu"], vibes: ["elegant", "intimate"] },
+  "private chef experience": { tags: ["fine dining", "tasting menu"], vibes: ["elegant", "intimate"] },
+  "recipe card takeaway": { vibes: ["warm", "casual"] },
+  "allergy alert service": { tags: ["fine dining"] },
+  "group menu planning": { constraints: ["private_dining"], vibes: ["warm"] },
+  "group reservation management": { constraints: ["private_dining"], vibes: ["warm"] },
+  "group of 10": { constraints: ["private_dining"], vibes: ["lively", "warm"] },
+  "same day reservations": { constraints: ["walk_in"] },
+  "next day reservation": { constraints: ["walk_in"] },
+  "call ahead seating": { constraints: ["walk_in"] },
+  "no reservations walk in": { constraints: ["walk_in"], vibes: ["casual"] },
+  "waitlist only restaurant": { vibes: ["buzzing"], reputation_boost: true },
+  "cancellation policy friendly": { constraints: ["walk_in"] },
+  "last minute cancellation fill": { constraints: ["walk_in"] },
+  "early access reservation": { constraints: ["walk_in"] },
+  "same week booking": { constraints: ["walk_in"] },
+  "takeout only": { vibes: ["casual"], constraints: ["walk_in"] },
+  "takeout menu available": { vibes: ["casual"] },
+  "express lunch": { constraints: ["walk_in", "budget_conscious"], vibes: ["casual"] },
+  "takeout in under 20 minutes": { constraints: ["walk_in"], vibes: ["casual"] },
+  "meal prep service": { vibes: ["casual"] },
+  "meal prep pickup": { vibes: ["casual"] },
+  "subscription meal plan": { vibes: ["casual"] },
+  "family meal bundle": { vibes: ["warm", "casual"] },
+  "order ahead app": { constraints: ["walk_in"], vibes: ["casual"] },
+  "doggy bag friendly": { vibes: ["casual", "warm"] },
+  "take out containers": { vibes: ["casual"] },
+  "lunch specials": { tags: ["great value"], constraints: ["budget_conscious"] },
+  "early bird special": { tags: ["great value"], constraints: ["budget_conscious"] },
+  "pre fixe lunch": { tags: ["prix fixe", "fine dining"], vibes: ["elegant"] },
+  "restaurant week deal": { tags: ["great value", "prix fixe"] },
+  "restaurant week participation": { tags: ["great value", "prix fixe"] },
+  "chicago restaurant week menu": { tags: ["great value", "prix fixe"] },
+  "chicago food hall anchor": { vibes: ["lively", "casual"], tags: ["great value"] },
+  "gift card available": { vibes: ["warm"] },
+  "private event buyout": { constraints: ["private_dining"], tags: ["private dining"] },
+  "patio priority seating": { constraints: ["outdoor_preferred"], tags: ["outdoor patio"] },
+  "hotel restaurant guest": { vibes: ["elegant", "refined"] },
+  "house butchery": { tags: ["farm-to-table"], vibes: ["rustic"] },
+
+  // V13: Parking/Access concepts
+  "free parking restaurant": { vibes: ["casual"] },
+  "validated parking": { vibes: ["refined"] },
+  "street parking available": { vibes: ["casual"] },
+  "heated indoor parking": { vibes: ["refined"] },
+  "self parking": { vibes: ["casual"] },
+  "drive through": { vibes: ["casual"], constraints: ["walk_in"] },
+  "stroller accessible": { constraints: ["family_friendly"], vibes: ["warm"] },
+  "accessible restrooms": { vibes: ["warm"] },
+  "plug-in accessible": { vibes: ["casual"] },
+  "family parking area": { constraints: ["family_friendly"] },
+  "close to parking garage": { vibes: ["casual"] },
+  "food pairing class": { vibes: ["refined"], tags: ["fine dining"] },
+
+  // V13: Vibe/Experience concepts
+  "biergarten": { cuisines: ["German"], tags: ["craft beer", "outdoor patio"], vibes: ["lively", "casual"] },
+  "amuse bouche": { tags: ["fine dining", "tasting menu"], vibes: ["elegant", "refined"] },
+  "bustling brasserie": { cuisines: ["French"], vibes: ["lively", "buzzing", "classic"] },
+  "nightlife hotspot": { vibes: ["lively", "buzzing", "modern"], tags: ["lively atmosphere", "late night"] },
+  "live dj restaurant": { vibes: ["lively", "buzzing"], tags: ["lively atmosphere", "late night"] },
+  "live tableside music": { vibes: ["elegant", "warm"], tags: ["live music"] },
+  "ghost kitchen": { vibes: ["casual"], constraints: ["walk_in"] },
+  "rooftop firepit": { vibes: ["cozy", "modern"], tags: ["rooftop", "outdoor patio"], constraints: ["outdoor_preferred"] },
+  "eclectic decor": { vibes: ["funky", "modern"] },
+  "greenhouse dining": { vibes: ["modern", "warm"], tags: ["outdoor patio"] },
+  "neon bar": { vibes: ["lively", "modern", "buzzing"], tags: ["lively atmosphere", "craft cocktails"] },
+  "hidden rooftop": { vibes: ["modern", "intimate"], tags: ["rooftop", "hidden gem", "outdoor patio"] },
+  "chicago institution": { reputation_boost: true, vibes: ["classic", "warm"] },
+  "hipster restaurant": { vibes: ["funky", "modern", "casual"], tags: ["trendy"] },
+  "open air market bar": { vibes: ["lively", "casual"], tags: ["outdoor patio", "craft cocktails"] },
+  "piano bar": { vibes: ["elegant", "intimate"], tags: ["live music", "craft cocktails"] },
+  "comedy club restaurant": { vibes: ["lively", "buzzing"], tags: ["lively atmosphere"] },
+  "proposal restaurant": { vibes: ["intimate", "elegant", "romantic"], tags: ["romantic", "fine dining"], reputation_boost: true },
+  "trivia night restaurant": { vibes: ["lively", "casual"], tags: ["lively atmosphere"] },
+  "pool hall bar": { vibes: ["lively", "casual"], tags: ["lively atmosphere"] },
+  "arcade bar": { vibes: ["lively", "casual", "funky"], tags: ["lively atmosphere"] },
+  "after work drinks": { tags: ["happy hour", "craft cocktails"], vibes: ["lively", "casual"] },
+  "food hall": { vibes: ["lively", "casual"], tags: ["great value"] },
+  "food truck": { vibes: ["casual"], tags: ["great value", "food truck"] },
+  "food truck location": { vibes: ["casual"], tags: ["great value", "food truck"] },
+  "comfortable chairs": { vibes: ["cozy", "warm"] },
+  "candlelit dinner": { vibes: ["romantic", "intimate", "elegant"], tags: ["romantic"] },
+  "live music restaurant": { vibes: ["lively", "warm"], tags: ["live music"] },
+  "lakeview casual": { vibes: ["casual", "warm"], neighborhoods: ["Lakeview"] },
+  "lakefront restaurant": { vibes: ["modern"], tags: ["scenic view", "waterfront"] },
+  "river view dining": { vibes: ["modern", "elegant"], tags: ["scenic view", "waterfront"] },
+  "chicago skyline view": { vibes: ["modern", "elegant"], tags: ["scenic view", "rooftop"] },
+
+  // V13: Bar/Entertainment concepts (supplementing existing)
+  "jazz bar": { vibes: ["intimate", "elegant", "warm"], tags: ["live music", "craft cocktails"] },
+  "blues bar": { vibes: ["warm", "lively"], tags: ["live music", "craft cocktails"] },
+  "tiki bar": { vibes: ["funky", "lively", "casual"], tags: ["craft cocktails"] },
+  "neighborhood bar": { vibes: ["casual", "warm"], tags: ["hidden gem", "craft cocktails"] },
+  "juice bar": { vibes: ["modern", "casual"], tags: ["vegan friendly"] },
+  "neon lit bar": { vibes: ["lively", "modern", "buzzing"], tags: ["lively atmosphere", "craft cocktails"] },
+  "craft beer": { tags: ["craft beer"], vibes: ["casual", "lively"] },
+  "craft brewery taproom": { tags: ["craft beer"], vibes: ["casual", "lively", "industrial"] },
+
+  // V13: Timing/Holiday concepts
+  "valentine's day dinner": { vibes: ["romantic", "intimate", "elegant"], tags: ["romantic", "fine dining"] },
+  "teacher appreciation": { vibes: ["warm", "casual"], tags: ["great value"] },
+  "open christmas day": { vibes: ["warm"] },
+  "open for christmas eve": { vibes: ["warm", "elegant"] },
+  "new years day open": { vibes: ["warm"] },
+  "open on holiday": { vibes: ["warm"] },
+  "extended sunday hours": { vibes: ["casual"] },
+  "extended weekend hours": { vibes: ["casual"] },
+  "long weekend hours": { vibes: ["casual"] },
+  "open for sunday dinner": { vibes: ["warm", "casual"] },
+  "open for winter dining": { vibes: ["cozy", "warm"] },
+  "open all afternoon": { vibes: ["casual"] },
+  "3pm to 5pm dining": { vibes: ["casual"] },
+  "monday lunch": { vibes: ["casual"], constraints: ["walk_in"] },
+  "lunch rush friendly": { vibes: ["casual"], constraints: ["walk_in"] },
+  "early opening restaurant": { vibes: ["casual"] },
+
+  // V13: Payment/logistics concepts
+  "accepts credit cards": { vibes: ["casual"] },
+  "cash only": { vibes: ["casual"], tags: ["hidden gem"] },
+  "big portion sizes": { vibes: ["casual"], tags: ["great value"] },
+  "multiple locations chicago": { vibes: ["casual"] },
+
+  // V13: Relevance ceiling gap concepts — vibe
+  "farm aesthetic restaurant": { vibes: ["rustic", "warm"], tags: ["farm-to-table"] },
+  "funk soul bar": { vibes: ["lively", "funky"], tags: ["live music", "lively atmosphere"] },
+  "locals only bar": { vibes: ["casual", "warm"], tags: ["hidden gem"] },
+  "lively bar": { vibes: ["lively", "buzzing"], tags: ["lively atmosphere", "craft cocktails"] },
+  "gallery walk adjacent": { vibes: ["modern", "funky"], tags: ["trendy"] },
+  "festive holiday restaurant": { vibes: ["warm", "lively"], tags: ["lively atmosphere"] },
+  "printers row quaint": { vibes: ["cozy", "classic"], neighborhoods: ["South Loop"] },
+  "natural light dining": { vibes: ["modern", "warm"] },
+  "celebrity chef restaurant": { vibes: ["elegant", "modern"], tags: ["fine dining"], reputation_boost: true },
+  "chef's counter": { vibes: ["intimate", "refined"], tags: ["fine dining", "tasting menu"] },
+  "guys night out": { vibes: ["lively", "buzzing", "casual"], tags: ["lively atmosphere", "craft cocktails"] },
+  "supper club": { vibes: ["classic", "elegant", "warm"], tags: ["fine dining"] },
+  "chef driven restaurant": { vibes: ["refined", "modern"], tags: ["fine dining"], reputation_boost: true },
+  "open kitchen restaurant": { vibes: ["lively", "modern"], tags: ["fine dining"] },
+  "bachelorette dinner": { vibes: ["lively", "buzzing", "modern"], tags: ["lively atmosphere", "craft cocktails"] },
+  "humboldt park community": { vibes: ["warm", "casual"], neighborhoods: ["Humboldt Park"] },
+  "rooftop pool bar": { vibes: ["lively", "modern"], tags: ["rooftop", "outdoor patio", "craft cocktails"], constraints: ["outdoor_preferred"] },
+  "patio dining spring": { vibes: ["warm", "casual"], tags: ["outdoor patio"], constraints: ["outdoor_preferred"] },
+  "hyde park intellectual": { vibes: ["classic", "warm"], neighborhoods: ["Hyde Park"], tags: ["quiet"] },
+  "solo dining friendly": { vibes: ["warm", "casual"], tags: ["quiet"] },
+  "working lunch": { vibes: ["casual"], tags: ["quiet"], constraints: ["work_friendly"] },
+  "counter seating": { vibes: ["casual"], tags: ["counter service"] },
+  "late night taco spot": { vibes: ["casual", "lively"], tags: ["late night"] },
+  "vintage decor restaurant": { vibes: ["classic", "rustic", "warm"] },
+  "lake walk adjacent": { vibes: ["warm", "modern"], tags: ["scenic view", "waterfront"] },
+  "birthday dinner": { vibes: ["warm", "lively"], tags: ["lively atmosphere"] },
+  "pilsen arts district": { vibes: ["funky", "modern", "casual"], neighborhoods: ["Pilsen"] },
+  "logan square buzz": { vibes: ["lively", "buzzing", "modern"], neighborhoods: ["Logan Square"] },
+  "gold coast glamour": { vibes: ["elegant", "refined", "modern"], neighborhoods: ["Gold Coast"] },
+  "literary bar event": { vibes: ["cozy", "warm", "intimate"], tags: ["craft cocktails"] },
+  "art gallery restaurant": { vibes: ["modern", "funky", "elegant"], tags: ["trendy"] },
+  "chinatown authenticity": { vibes: ["rustic", "classic", "warm"], neighborhoods: ["Chinatown"] },
+  "live cooking show": { vibes: ["lively", "modern"], tags: ["fine dining"] },
+  "neighborhood gem": { vibes: ["warm", "casual", "cozy"], tags: ["hidden gem"] },
+  "avondale local": { vibes: ["casual", "warm"], neighborhoods: ["Avondale"], tags: ["hidden gem"] },
+  "dim cozy bar": { vibes: ["intimate", "cozy", "warm"], tags: ["craft cocktails"] },
+  "river north scene": { vibes: ["lively", "modern", "buzzing"], neighborhoods: ["River North"] },
+  "old town character": { vibes: ["classic", "warm", "cozy"], neighborhoods: ["Lincoln Park"] },
+  "michelin dining room": { vibes: ["elegant", "refined"], tags: ["fine dining"], reputation_boost: true },
+  "michelin atmosphere": { vibes: ["elegant", "refined"], tags: ["fine dining"], reputation_boost: true },
+  "romantic restaurant": { vibes: ["romantic", "intimate", "elegant"], tags: ["romantic"] },
+  "cozy restaurant": { vibes: ["cozy", "warm", "intimate"] },
+  "instagram worthy restaurant": { vibes: ["modern", "trendy"], tags: ["instagrammable", "trendy"] },
+  "first date restaurant": { vibes: ["casual", "warm", "intimate"], tags: ["romantic", "craft cocktails"] },
+  "underground music venue": { vibes: ["lively", "funky", "industrial"], tags: ["live music", "late night"] },
+  "zero waste restaurant": { vibes: ["modern"], tags: ["farm-to-table"] },
+  "river walk stroll": { vibes: ["warm", "casual"], tags: ["scenic view", "waterfront"] },
+  "west loop energy": { vibes: ["lively", "buzzing", "modern"], neighborhoods: ["West Loop"] },
+
+  // V13: Relevance ceiling gap concepts — service
+  "jazz live request": { tags: ["live music"], vibes: ["intimate", "elegant"] },
+  "happy hour food": { tags: ["happy hour", "great value"], vibes: ["casual", "lively"] },
+  "private menu tasting": { tags: ["tasting menu", "fine dining", "private dining"], vibes: ["elegant", "intimate"] },
+  "dietary tasting menu": { tags: ["tasting menu", "fine dining"], vibes: ["elegant"] },
+  "prix fixe lunch chicago": { tags: ["prix fixe", "fine dining"], vibes: ["elegant"] },
+  "chef collaboration dinner": { tags: ["fine dining", "tasting menu"], vibes: ["elegant"], reputation_boost: true },
+  "business lunch": { vibes: ["refined", "elegant"], tags: ["quiet"] },
+  "birthday reservation": { vibes: ["warm", "lively"], tags: ["lively atmosphere"] },
+  "chef's tasting": { tags: ["tasting menu", "fine dining"], vibes: ["elegant", "refined"] },
+  "daily fish delivery": { tags: ["farm-to-table"], vibes: ["refined"] },
+  "vegetarian tasting menu": { tags: ["tasting menu", "vegan friendly"], vibes: ["elegant"] },
+  "split bill friendly": { vibes: ["casual"] },
+  "dairy free options": { tags: ["vegan friendly"] },
+  "outdoor private dining": { constraints: ["private_dining", "outdoor_preferred"], tags: ["private dining", "outdoor patio"] },
+  "24 hour restaurant": { tags: ["late night"], vibes: ["casual"] },
+  "24 hour diner": { tags: ["late night"], vibes: ["casual"] },
+
+  // V13: Relevance ceiling gap concepts — convenience
+  "fast casual dining": { vibes: ["casual"], constraints: ["walk_in"] },
+  "senior accessible": { vibes: ["warm", "casual"] },
+  "free wifi dining": { vibes: ["casual"], constraints: ["work_friendly"] },
+  "good for solo dining": { vibes: ["warm", "casual"], tags: ["quiet"] },
+  "power outlets available": { vibes: ["casual"], constraints: ["work_friendly"] },
+  "two for one drinks": { tags: ["happy hour", "great value"], vibes: ["lively"] },
+  "taco tuesday": { tags: ["great value"], vibes: ["casual", "lively"] },
+  "sunday supper deal": { tags: ["great value"], vibes: ["warm", "casual"] },
+  "free dessert birthday": { vibes: ["warm"], tags: ["great value"] },
+  "fast seating": { constraints: ["walk_in"], vibes: ["casual"] },
+  "neighborhood delivery": { vibes: ["casual"] },
 };
 
 /**
@@ -544,7 +903,8 @@ const QUALITY_WEIGHTS: Record<V9RelevanceType, V9QualityWeights> = {
   },
   cuisine: {
     // "I want Thai food" — food quality + reputation
-    food: 0.35, reputation: 0.30, vibe: 0.12, service: 0.12, convenience: 0.11,
+    // V13: Reduced service 0.12→0.08 (service drag on cuisine queries), redistributed to reputation
+    food: 0.35, reputation: 0.34, vibe: 0.12, service: 0.08, convenience: 0.11,
   },
   vibe: {
     // "quiet intimate anniversary" — vibe is what matters
@@ -557,15 +917,17 @@ const QUALITY_WEIGHTS: Record<V9RelevanceType, V9QualityWeights> = {
   },
   open_ended: {
     // "surprise me" — reputation is the deciding factor
-    food: 0.13, reputation: 0.50, vibe: 0.15, service: 0.12, convenience: 0.10,
+    // V13: Reduced service 0.12→0.07 (service drag on open-ended/fallback queries), redistributed to reputation
+    food: 0.13, reputation: 0.55, vibe: 0.15, service: 0.07, convenience: 0.10,
   },
 // Note: multi_signal is NOT a V9RelevanceType — it's selected dynamically
 // when a query has signals across 3+ categories
 };
 
 /** V11: Multi-signal weight profile — balanced when query spans food + vibe + constraints */
+// V13: Reduced service 0.15→0.10 (service drag on multi-signal queries), redistributed to reputation
 const MULTI_SIGNAL_WEIGHTS: V9QualityWeights = {
-  food: 0.25, reputation: 0.25, vibe: 0.25, service: 0.15, convenience: 0.10,
+  food: 0.25, reputation: 0.30, vibe: 0.25, service: 0.10, convenience: 0.10,
 };
 
 // ==========================================
@@ -667,7 +1029,8 @@ export function computeRelevance(
     const hasVibeHits = vibeRelevance > vibeFloor + 0.001;
     if ((hasVibeHits && vibeRelevance > 0.50) || vibeIsPrimary) {
       // V12: Raised minimum from 0.55 to 0.65 so vibe queries have a viable DM floor
-      return { score: Math.max(vibeRelevance, 0.65), type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
+      // V13: Raised minimum from 0.65 to 0.70 so vibe queries have a higher DM floor
+      return { score: Math.max(vibeRelevance, 0.70), type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
     }
     // Store weak vibe as fallback — check constraints below, use max
     weakVibeScore = vibeRelevance;
@@ -709,7 +1072,8 @@ export function computeRelevance(
     if (constraintHits > 0) {
       const constraintRate = constraintHits / constraintTotal;
       // V12: Raised cap 0.90→0.95 and base 0.70→0.75 so strong constraint matches reach DM≥80
-      const constraintRelevance = Math.min(0.95, 0.75 + 0.20 * constraintRate);
+      // V13: Raised base 0.75→0.80 and cap 0.95→0.97 for stronger constraint matching
+      const constraintRelevance = Math.min(0.97, 0.80 + 0.17 * constraintRate);
       return { score: constraintRelevance, type: "vibe", details: `Constraint match: ${constraintHits}/${constraintTotal} (${constraintRelevance.toFixed(2)})` };
     }
   }
@@ -728,7 +1092,8 @@ export function computeRelevance(
         if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
           // V12: Use vibe weights when tags present (e.g. "Wicker Park brunch") instead of reputation-heavy open_ended
           const matchType = hasVibe ? "vibe" as const : "open_ended" as const;
-          return { score: 0.90, type: matchType, details: `Neighborhood match: ${canonical}` };
+          // V13: Raised neighborhood match from 0.90 to 0.93
+          return { score: 0.93, type: matchType, details: `Neighborhood match: ${canonical}` };
         }
         break;
       }
@@ -741,7 +1106,8 @@ export function computeRelevance(
   }
 
   // Fallback: some intent but no clear food/vibe signal
-  const fallbackScore = weakVibeScore !== null ? Math.max(weakVibeScore, 0.70) : 0.70;
+  // V13: Raised fallback relevance from 0.70 to 0.75
+  const fallbackScore = weakVibeScore !== null ? Math.max(weakVibeScore, 0.75) : 0.75;
   return { score: fallbackScore, type: "open_ended", details: "Weak signal" };
 }
 
