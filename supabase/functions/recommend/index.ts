@@ -62,6 +62,18 @@ const RESPONSE_CACHE = new Map<string, CacheEntry>();
 const CACHE_SOFT_TTL = 15 * 60 * 1000; // 15 minutes — serve stale after this
 const CACHE_HARD_TTL = 30 * 60 * 1000; // 30 minutes — delete after this
 
+// V12: Unified slop patterns — shared between main blurb, blurb endpoint, and quality guardrail
+const BLURB_SLOP_PATTERNS = [
+  "\u2014",                // em dash — strictly prohibited
+  "nestled", "mouthwatering", "culinary journey", "hidden gem", "hidden treasure",
+  "a must-visit", "must-visit", "if you're looking for", "whether you're",
+  "look no further", "culinary", "elevated", "delectable", "exquisite",
+  "tantalizing", "impeccable", "burst of flavor", "taste buds", "every bite",
+  "something for everyone", "won't disappoint", "does not disappoint",
+  "dining experience", "unforgettable", "the perfect spot", "go-to spot",
+  "ideal for", "the ultimate",
+];
+
 function getCacheKey(occasion: string, neighborhood: string, price: string, request: string, exclude?: string[]): string {
   // V6.2: Normalize cache key — sort words so "cozy ramen" and "ramen cozy" hit the same entry
   const normalizedRequest = request.toLowerCase().trim().split(/\s+/).sort().join(" ");
@@ -267,9 +279,8 @@ Deno.serve(async (req: Request) => {
       // Determine score tier for tone modulation
       const scoreTier = context?.score_tier || "good";
 
-      // Detect culture theme for narrative voice from cuisine type and request
-      const cultureText = [restaurantData.cuisine_type, context?.special_request].filter(Boolean).join(' ');
-      const cultureTheme = detectCultureTheme(cultureText);
+      // Detect culture theme from restaurant's actual cuisine only
+      const cultureTheme = detectCultureTheme(restaurantData.cuisine_type || '');
 
       // Build minimal prompt for single restaurant blurb
       const systemPrompt = buildV5SystemPrompt(scoreTier as "exceptional" | "great" | "good" | "decent" | "weak", cultureTheme, context?.occasion || "");
@@ -282,15 +293,24 @@ Deno.serve(async (req: Request) => {
       if (parsed.recommendation) {
         parsed.recommendation = parsed.recommendation.replace(/\u2014/g, ", ").replace(/ , /g, ", ").replace(/,\s*,/g, ",");
       }
-      if (parsed.insider_tip) {
-        parsed.insider_tip = parsed.insider_tip.replace(/\u2014/g, ", ").replace(/ , /g, ", ").replace(/,\s*,/g, ",");
+
+      // Slop guardrail for blurb endpoint
+      if (parsed.recommendation) {
+        const blurbLower = parsed.recommendation.toLowerCase();
+        const slopHits = BLURB_SLOP_PATTERNS.filter(p => blurbLower.includes(p.toLowerCase()));
+        if (slopHits.length > 0) {
+          logWarn("Blurb endpoint slop detected", { patterns: slopHits, restaurant: restaurantData.name });
+        }
       }
+
+      // Validate insider tip structure (verb-start, word count)
+      parsed.insider_tip = validateInsiderTip(parsed.insider_tip) || null;
 
       return jsonResponse({
         success: true,
         recommendation: parsed.recommendation || null,
         match_headline: parsed.match_headline || null,
-        insider_tip: parsed.insider_tip || null,
+        insider_tip: parsed.insider_tip,
       });
     } catch (err) {
       logError("Blurb endpoint error", { error: err instanceof Error ? err.message : String(err) });
@@ -793,7 +813,7 @@ Deno.serve(async (req: Request) => {
     // STEP 6.5: Build Ranked Queue for instant "Try Again"
     // ================================================================
     const rankedQueue: Record<string, unknown>[] = [];
-    for (let i = 1; i < Math.min(8, rerankedScored.length); i++) {
+    for (let i = 1; i < Math.min(6, rerankedScored.length); i++) {  // Cap at 5 (scores degrade past 5)
       rankedQueue.push(buildV9RankedQueueItem(rerankedScored[i], i + 1));
     }
 
@@ -819,12 +839,11 @@ Deno.serve(async (req: Request) => {
       const topRelevance = rerankedScored[0].relevance;
       const weightContext = `${topRelevance.type} query (R=${topRelevance.score.toFixed(2)}): ${topRelevance.details}`;
 
-      // Detect culture theme for narrative voice from top candidate + user intent
-      const cultureText = [
-        rerankedScored[0].profile.cuisine_type,
-        intent?.target_cuisines?.join(' '),
-        special_request,
-      ].filter(Boolean).join(' ');
+      // Detect culture theme from winning restaurant's actual cuisine only
+      // (user request text can pollute detection when intent differs from result)
+      const cultureText = rerankedScored[0].profile.cuisine_type
+        || (rerankedScored[0].profile as any).review_intelligence?.cuisine_signals?.join(' ')
+        || '';
       const cultureTheme = detectCultureTheme(cultureText);
 
       // System prompt with Donde character voice + tone + narrative voice + occasion register
@@ -847,8 +866,10 @@ Deno.serve(async (req: Request) => {
         neighborhoodExpanded,
       );
 
-      // Single Claude API call — blurb + potential boost
-      const claudeText = await callClaude(userPrompt, systemPrompt);
+      // Single Claude API call — blurb + potential boost (Sonnet for primary, stronger voice differentiation)
+      const claudeText = await callClaude(userPrompt, systemPrompt, {
+        model: "claude-sonnet-4-6-20250514",
+      });
 
       // Parse Claude response
       let parsed: ClaudeRecommendation;
@@ -868,41 +889,10 @@ Deno.serve(async (req: Request) => {
       // ================================================================
       // STEP 7.5: Slop guardrail — retry once if banned patterns detected
       // ================================================================
-      const SLOP_PATTERNS = [
-        "\u2014",                // em dash — strictly prohibited
-        "nestled",
-        "mouthwatering",
-        "culinary journey",
-        "hidden gem",
-        "hidden treasure",
-        "a must-visit",
-        "must-visit",
-        "if you're looking for",
-        "whether you're",
-        "look no further",
-        "culinary",
-        "elevated",
-        "delectable",
-        "exquisite",
-        "tantalizing",
-        "impeccable",
-        "burst of flavor",
-        "taste buds",
-        "every bite",
-        "something for everyone",
-        "won't disappoint",
-        "does not disappoint",
-        "dining experience",
-        "unforgettable",
-        "the perfect spot",
-        "go-to spot",
-        "ideal for",
-        "the ultimate",
-      ];
       const blurbText = (parsed.recommendation || "").toLowerCase();
       const headlineText = (parsed.match_headline || "").toLowerCase();
       const combinedText = blurbText + " " + headlineText;
-      const foundSlop = SLOP_PATTERNS.filter(p => combinedText.includes(p.toLowerCase()));
+      const foundSlop = BLURB_SLOP_PATTERNS.filter(p => combinedText.includes(p.toLowerCase()));
 
       if (foundSlop.length > 0) {
         logWarn("Slop detected in Claude blurb, retrying", {
@@ -917,7 +907,7 @@ Deno.serve(async (req: Request) => {
           const retryBlurb = (retryParsed.recommendation || "").toLowerCase();
           const retryHeadline = (retryParsed.match_headline || "").toLowerCase();
           const retryCombined = retryBlurb + " " + retryHeadline;
-          const retrySlop = SLOP_PATTERNS.filter(p => retryCombined.includes(p.toLowerCase()));
+          const retrySlop = BLURB_SLOP_PATTERNS.filter(p => retryCombined.includes(p.toLowerCase()));
           if (retrySlop.length < foundSlop.length) {
             parsed = retryParsed;
             logInfo("Slop retry accepted", {
@@ -1017,8 +1007,10 @@ Deno.serve(async (req: Request) => {
           const nextGoogle = nextChosen.googleData || (nextChosen.profile.google_place_id
             ? await fetchPlaceDetails(nextChosen.profile.google_place_id) : null);
 
-          if (!parsed.insider_tip && nextChosen.profile.insider_tip) {
-            parsed.insider_tip = nextChosen.profile.insider_tip;
+          if (!validateInsiderTip(parsed.insider_tip)) {
+            parsed.insider_tip = validateInsiderTip(nextChosen.profile.insider_tip)
+              || nextChosen.profile.deep_profile?.best_seat_in_house
+              || null;
           }
 
           const v9Result: V9ScoreResult = {
@@ -1054,13 +1046,11 @@ Deno.serve(async (req: Request) => {
           );
         }
       } else {
-        // Normal path: use Claude's pick
-        if (!parsed.insider_tip && chosen.profile.insider_tip) {
-          parsed.insider_tip = chosen.profile.insider_tip;
-        }
-        if (!parsed.insider_tip && chosen.profile.deep_profile?.best_seat_in_house) {
-          parsed.insider_tip = chosen.profile.deep_profile.best_seat_in_house;
-        }
+        // Normal path: validate insider tip with verb-start + word count, then fall back
+        parsed.insider_tip = validateInsiderTip(parsed.insider_tip)
+          || validateInsiderTip(chosen.profile.insider_tip)
+          || chosen.profile.deep_profile?.best_seat_in_house
+          || null;
 
         const v9Result: V9ScoreResult = {
           dondeMatch,
@@ -1080,25 +1070,10 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Quality guardrail: detect AI slop patterns
+      // Quality guardrail: detect AI slop patterns (uses shared BLURB_SLOP_PATTERNS)
       if (parsed.recommendation) {
-        const SLOP_PATTERNS = [
-          "culinary", "gastronomic", "unforgettable", "unparalleled", "nestled",
-          "tantalizing", "mouthwatering", "delectable", "exquisite", "embark",
-          "elevate your", "a testament to", "truly remarkable", "a must-visit",
-          "from the moment you", "whether you're looking", "taste buds",
-          "culinary journey", "dining experience", "perfect harmony",
-          "burst of flavor", "a cut above", "doesn't disappoint",
-          "will not disappoint", "not to be missed", "that will leave you",
-          "perfect blend", "perfect balance", "hits all the right notes",
-          "checks all the boxes", "treat your taste buds", "palate",
-          "artisanal", "artisan", "transcend", "beckons", "invites you",
-          "symphony of", "tapestry", "crafted with care", "fusion of flavors",
-          "something for everyone", "where tradition meets", "food lovers",
-          "hidden gem", "promises", "impeccable", "masterfully", "stunningly",
-        ];
         const recLower = parsed.recommendation.toLowerCase();
-        const slopHits = SLOP_PATTERNS.filter(p => recLower.includes(p));
+        const slopHits = BLURB_SLOP_PATTERNS.filter(p => recLower.includes(p.toLowerCase()));
         if (slopHits.length >= 2) {
           logWarn("V5 slop patterns detected", { count: slopHits.length, patterns: slopHits });
         }
@@ -1255,6 +1230,27 @@ Deno.serve(async (req: Request) => {
     return jsonResponse(buildV9ErrorResponse(error), 500);
   }
 });
+
+// V12: Insider tip structural validation — must start with verb, ≤25 words
+const INSIDER_TIP_VALID_STARTERS = [
+  'ask', 'sit', 'skip', 'grab', 'try', 'order', 'get', 'come',
+  'arrive', 'book', 'request', 'save', 'start', 'go', 'bring',
+  'tell', 'pick', 'choose', 'avoid', 'make', 'take', 'check',
+  'look', 'head', 'split', 'share', 'pair', 'opt', 'swap',
+  'call', 'plan', 'show', 'snag', 'add', 'spring', 'double',
+];
+
+function validateInsiderTip(tip: string | null | undefined): string | null {
+  if (!tip) return null;
+  const trimmed = tip.trim();
+  // Word count check
+  const wordCount = trimmed.split(/\s+/).length;
+  if (wordCount > 25) return null;
+  // Verb-start check
+  const firstWord = trimmed.split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g, '');
+  if (!INSIDER_TIP_VALID_STARTERS.includes(firstWord)) return null;
+  return trimmed;
+}
 
 // V5 Regex recovery for malformed Claude JSON
 function recoverFromMalformedV5(text: string): ClaudeRecommendation | null {
