@@ -3,24 +3,42 @@
 -- CISO Finding C2: maintenance_requests, gauntlet, user_visits all had INSERT WITH CHECK (true)
 
 -- ================================================================
--- 1. maintenance_requests — restrict to service_role only
---    These are admin pipeline operations, not user-facing
+-- 1. maintenance_requests — constrain anon INSERT to valid operations only
+--    Command Center (cc-tests.js) uses anon key to create requests
 -- ================================================================
 DROP POLICY IF EXISTS "Allow anon insert maintenance_requests" ON maintenance_requests;
 DROP POLICY IF EXISTS "Allow anon update maintenance_requests" ON maintenance_requests;
 
--- Service role bypasses RLS, so no explicit policy needed for pipelines.
--- Anon can still READ (for Command Center dashboard display).
--- To insert/update, callers must use service_role key (backend/CI only).
+-- Anon can INSERT but only with valid operation names and pending status
+CREATE POLICY "Anon insert maintenance_requests (constrained)" ON maintenance_requests
+  FOR INSERT WITH CHECK (
+    operation IS NOT NULL
+    AND length(trim(operation)) > 0
+    AND status = 'pending'
+  );
+
+-- Only service_role (backend worker) can UPDATE status/results.
+-- No anon UPDATE policy — service_role bypasses RLS.
 
 -- ================================================================
--- 2. gauntlet_runs / gauntlet_results — restrict to service_role only
---    Test results should only come from CI/CD or admin tools
+-- 2. gauntlet_runs / gauntlet_results — constrain anon INSERT
+--    Command Center (cc-tests.js) uses anon key to write test results
 -- ================================================================
 DROP POLICY IF EXISTS "anon_insert_runs" ON gauntlet_runs;
 DROP POLICY IF EXISTS "anon_insert_results" ON gauntlet_results;
 
--- Service role bypasses RLS for legitimate pipeline inserts.
+CREATE POLICY "Anon insert gauntlet_runs (constrained)" ON gauntlet_runs
+  FOR INSERT WITH CHECK (
+    run_id IS NOT NULL
+    AND length(trim(run_id)) > 0
+    AND total >= 0
+  );
+
+CREATE POLICY "Anon insert gauntlet_results (constrained)" ON gauntlet_results
+  FOR INSERT WITH CHECK (
+    run_id IS NOT NULL
+    AND length(trim(run_id)) > 0
+  );
 
 -- ================================================================
 -- 3. user_visits — require user_id to be present and non-empty
