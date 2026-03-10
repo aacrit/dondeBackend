@@ -1,10 +1,18 @@
--- Fix: Command Center Live tab shows 0 queries because anon role
--- cannot SELECT from user_queries. The existing policy
--- "Service role can read all queries" may not grant anon access
--- despite USING(true), because the table may lack GRANT SELECT for anon.
---
--- Pattern follows gauntlet_tracking.sql which works correctly.
+-- Fix: user_queries table has critical schema issues:
+-- 1. id column has no DEFAULT gen_random_uuid(), so all inserts fail silently
+-- 2. user_id and dietary_restrictions columns are missing
+-- 3. anon role lacks GRANT SELECT
+-- 4. All of this means the table is always empty
 
+-- Fix id column: add DEFAULT gen_random_uuid()
+ALTER TABLE user_queries ALTER COLUMN id SET DEFAULT gen_random_uuid();
+
+-- Add missing columns that the Edge Function tries to insert
+ALTER TABLE user_queries ADD COLUMN IF NOT EXISTS user_id TEXT;
+ALTER TABLE user_queries ADD COLUMN IF NOT EXISTS dietary_restrictions TEXT[];
+ALTER TABLE user_queries ADD COLUMN IF NOT EXISTS feedback TEXT;
+
+-- Grant access to anon and authenticated roles
 GRANT SELECT ON user_queries TO anon;
 GRANT SELECT ON user_queries TO authenticated;
 
