@@ -197,8 +197,9 @@ function buildScores(chosen: RestaurantProfile): Record<string, unknown> {
 
 /**
  * Build a recommendation blurb for ranked queue items (Try Again).
- * Constructs a 2-4 sentence blurb from pre-computed match narrative +
- * deep context data. No API call needed.
+ * Enhanced with Donde voice — "we/our" mandate, attitude, concrete details.
+ * These serve as instant fallbacks; the frontend can upgrade to a full Claude
+ * blurb via /recommend/blurb on demand.
  */
 function buildQueueBlurb(
   profile: RestaurantProfile,
@@ -207,9 +208,8 @@ function buildQueueBlurb(
   const dp = profile.deep_profile;
   const parts: string[] = [];
 
-  // Lead with the unique selling point or best_for_oneliner (human-written content)
+  // Lead with attitude, not data
   if (dp?.unique_selling_point) {
-    // Ensure it ends with a period
     const usp = dp.unique_selling_point;
     parts.push(usp.endsWith(".") ? usp : usp + ".");
   } else if (profile.best_for_oneliner) {
@@ -217,22 +217,25 @@ function buildQueueBlurb(
     parts.push(oneliner.endsWith(".") ? oneliner : oneliner + ".");
   }
 
-  // Add a concrete detail — signature dish or award
+  // Concrete detail with "we" voice
   if (dp?.signature_dishes?.[0]) {
-    parts.push(`Known for the ${dp.signature_dishes[0].dish}.`);
+    parts.push(`We'd order the ${dp.signature_dishes[0].dish}.`);
+  } else if (dp?.wow_factors?.[0]) {
+    const wf = dp.wow_factors[0];
+    parts.push(wf.endsWith(".") ? wf : wf + ".");
   } else if (narrative?.key_signals?.length) {
-    // Use key signals but skip generic ones
     const useful = narrative.key_signals.find(s =>
       !s.includes("Strong relevance") && !s.includes("Recognized quality")
     );
     if (useful) parts.push(useful.endsWith(".") ? useful : useful + ".");
   }
 
-  // Add price context or caveat
+  // Close with price or honest caveat
   if (dp?.check_average_per_person) {
-    parts.push(`Around $${dp.check_average_per_person} per person.`);
+    parts.push(`Around $${dp.check_average_per_person} a head.`);
   } else if (narrative?.weak_spots?.length) {
-    parts.push(narrative.weak_spots[0].endsWith(".") ? narrative.weak_spots[0] : narrative.weak_spots[0] + ".");
+    const ws = narrative.weak_spots[0];
+    parts.push(ws.endsWith(".") ? ws : ws + ".");
   }
 
   return parts.length >= 1 ? parts.join(" ") : null;

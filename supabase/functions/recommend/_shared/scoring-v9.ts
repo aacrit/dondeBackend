@@ -2050,18 +2050,19 @@ function generateV9MatchNarrative(
   relevance: V9Relevance,
   quality: number,
   weights: V9QualityWeights,
+  factors: V9Factors,
   intent: IntentClassificationV2 | null,
   candidate: V9Candidate,
 ): MatchNarrative {
-  // Determine strongest quality factor
+  // Determine strongest quality factor by weighted contribution (weight × score)
   const factorContributions = [
-    { factor: "food", weight: weights.food },
-    { factor: "reputation", weight: weights.reputation },
-    { factor: "vibe", weight: weights.vibe },
-    { factor: "service", weight: weights.service },
-    { factor: "convenience", weight: weights.convenience },
+    { factor: "food", contribution: weights.food * factors.food },
+    { factor: "reputation", contribution: weights.reputation * factors.reputation },
+    { factor: "vibe", contribution: weights.vibe * factors.vibe },
+    { factor: "service", contribution: weights.service * factors.service },
+    { factor: "convenience", contribution: weights.convenience * factors.convenience },
   ];
-  factorContributions.sort((a, b) => b.weight - a.weight);
+  factorContributions.sort((a, b) => b.contribution - a.contribution);
   const strongestFactor = factorContributions[0].factor;
 
   const FACTOR_LABELS: Record<string, Record<string, string>> = {
@@ -2181,7 +2182,7 @@ export function computeV9Score(
 
   // Step 6: Generate match narrative
   const matchNarrative = generateV9MatchNarrative(
-    relevance, quality, weights, context.intent, candidate,
+    relevance, quality, weights, factors, context.intent, candidate,
   );
 
   return {

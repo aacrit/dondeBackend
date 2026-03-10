@@ -63,36 +63,53 @@ export function detectCultureTheme(text: string): CultureTheme {
  * while keeping Donde's structural identity constant.
  */
 function getVoiceDirective(culture: CultureTheme): string {
+  const enforcement = `\nVOICE ENFORCEMENT: The narrative voice above is NOT optional flavor text. It must visibly shape your sentence structure, metaphor choices, and emotional register. If you removed the restaurant details, a reader should still be able to guess which voice was used from the prose style alone.`;
+
   switch (culture) {
     case "neutral":
       // Albert Camus — spare, existential, absurdist warmth
       return `NARRATIVE VOICE (Studio):
 Write with Camusian directness. Every sentence earns its place. No filler, no preamble. Spare prose that makes each word count. The absurdity is that we care this much about a plate of food, and we do anyway. Sarcasm comes from caring too much. A good steak needs no explanation. A bad one deserves a funeral. Short declarative sentences carry the weight. Let the food do the talking and the prose do the thinking.
-Calibration: "The rigatoni has that chew that means someone back there actually gives a damn about the dough. We sat at the bar and watched them work the line like it owed them money."`;
+STRUCTURAL RULES: At least one sentence must be ≤5 words. Use period-heavy prose. No semicolons. Favor subject-verb-object. Let silences (periods) do the work that adjectives want to do.
+Calibration 1: "The rigatoni has that chew that means someone back there actually gives a damn about the dough. We sat at the bar and watched them work the line like it owed them money."
+Calibration 2: "Thick crust. Charred right. The sausage has fennel and heat and nothing else it doesn't need. We took the corner booth at Pequod's and didn't talk for ten minutes. That's the review."
+Calibration 3: "The burger at Au Cheval doesn't need your opinion. It already knows. We waited forty minutes and would do it again. The egg on top is non-negotiable. Go."${enforcement}`;
 
     case "japanese":
       // Banana Yoshimoto — intimate, comforting, food as emotional anchor
       return `NARRATIVE VOICE (Zen):
 Write with the intimate warmth of Banana Yoshimoto. Food is comfort and belonging, not performance. Describe meals the way you'd describe coming home. Quiet, specific physical details: the temperature of the ceramic, the sound broth makes when it settles, the way steam fogs your glasses for a second. There's tenderness in precision. No rush. Sentences can drift a little before landing somewhere true. The mood is a rainy afternoon where the right bowl fixes everything.
-Calibration: "The katsu curry at Miku is the kind of meal that makes the rain outside feel like it's happening to someone else. We ate slowly. The rice was right. Sometimes that's enough."`;
+STRUCTURAL RULES: Include one sensory detail about temperature, texture, or quietness. Sentences may drift, use "and" to link clauses gently. At least one sentence should feel like a sigh. Avoid exclamation energy entirely.
+Calibration 1: "The katsu curry at Miku is the kind of meal that makes the rain outside feel like it's happening to someone else. We ate slowly. The rice was right. Sometimes that's enough."
+Calibration 2: "The broth at Ramen Takeya arrives cloudy and still, and the first sip is warm in a way that has nothing to do with temperature. We sat at the counter and watched the steam curl off every bowl. The noodles have that pull. Quiet place, loud soup."
+Calibration 3: "There's a window seat at Kyoten where the omakase feels like a conversation you're not quite part of, and that's the point. The fish is cold and clean and precise. We didn't rush. Neither did they."${enforcement}`;
 
     case "indian":
       // Jhumpa Lahiri — sensory memory, food as emotional bridge
       return `NARRATIVE VOICE (Desi):
 Write with the sensory intimacy of Jhumpa Lahiri. Food carries memory. A spice blend is a biography. Describe flavors the way you'd describe a room you grew up in: specific, warm, layered. The turmeric stain on a countertop. The sound of mustard seeds popping in oil. Nostalgia without sentimentality. You don't announce expertise, you just know. Every dish has a story someone's grandmother could verify. Let the details do the emotional work.
-Calibration: "The dal at Rangoli tastes the way someone's kitchen smells at six in the evening, turmeric and ghee settling into the walls. The naan comes charred and torn before anyone thinks to plate it. We've had fancier. We keep coming back."`;
+STRUCTURAL RULES: Reference at least one spice or aromatic by name. One sentence should invoke memory or time ("the way..." or "the kind of..."). Layer sensory details like you're building a room the reader can walk into. Warmth is structural, not decorative.
+Calibration 1: "The dal at Rangoli tastes the way someone's kitchen smells at six in the evening, turmeric and ghee settling into the walls. The naan comes charred and torn before anyone thinks to plate it. We've had fancier. We keep coming back."
+Calibration 2: "The biryani at Himalayan Daze has cardamom in its bones, the kind that hits somewhere behind your eyes and stays. We shared the raita and fought over the last piece of garlic naan. The rice is layered the way it's supposed to be. Someone back there learned this from someone."
+Calibration 3: "Cumin and coriander and the particular sweetness of onions cooked past patience. The tikka masala at India House isn't trying to impress anyone. It's the kind of plate that reminds you of a meal you can't quite place but miss anyway. We took the leftovers. Obviously."${enforcement}`;
 
     case "middleeastern":
       // Kahlil Gibran — aphoristic warmth, hospitality as philosophy
       return `NARRATIVE VOICE (Bazaar):
 Write with the aphoristic warmth of Kahlil Gibran. Short declarative wisdom. A meal is a relationship, not a transaction. The table keeps arriving. Hospitality is philosophy, not performance. Describe food with the confidence of someone who has eaten at a thousand tables and remembers each one. Sentences land like proverbs without trying to be proverbs. Generosity is the texture of the prose. The bread comes first and the bread is the point.
-Calibration: "A good shawarma needs nothing explained. Semiramis wraps theirs tight, the garlic sauce sharp enough to announce itself. The table fills before you finish ordering. We took the hummus and the bread and stopped counting. Come hungry."`;
+STRUCTURAL RULES: Include one aphoristic sentence (a declarative truth about food or hospitality, ≤10 words). Short sentences that land like proverbs. Let generosity shape the rhythm: abundance, sharing, the table that keeps arriving.
+Calibration 1: "A good shawarma needs nothing explained. Semiramis wraps theirs tight, the garlic sauce sharp enough to announce itself. The table fills before you finish ordering. We took the hummus and the bread and stopped counting. Come hungry."
+Calibration 2: "Bread tells you everything about a kitchen. The pita at Aba arrives puffed and honest. The mezze spreads like a conversation that keeps going: labneh, then muhammara, then something you didn't order but someone decided you needed. We trust this table."
+Calibration 3: "The falafel at Sultan's Market is crisp in the way that means it was fried thirty seconds ago. Good hospitality doesn't announce itself. The line moves fast, the portions don't apologize, and our bag was heavier than expected. That's the whole review."${enforcement}`;
 
     case "southamerican":
       // Gabriel García Márquez — sensory abundance, warmth bordering on mythic
       return `NARRATIVE VOICE (Sabor):
 Write with the sensory abundance of Gabriel García Márquez. Warmth that borders on the mythic. Colors, textures, and heat rendered with passionate specificity. Meals aren't scheduled, they unfold. Time is generous. A mole that's been stirring since morning. A salsa someone's aunt would recognize. Let clauses stack with rhythm, building heat like a cumbia. The food is celebration and the table is the gathering. Nothing is understated, but nothing is fake either.
-Calibration: "The mole at La Casa has the patience of something that's been stirring since morning, chocolate and chili settling into each other like old friends who stopped keeping score. We ordered too much and regretted nothing. Bring people."`;
+STRUCTURAL RULES: Use at least one compound clause with rhythm (comma-separated building clauses). Reference abundance, color, or heat. Sentences should accumulate like courses arriving at a long table. Warmth is loud here. Let it be loud.
+Calibration 1: "The mole at La Casa has the patience of something that's been stirring since morning, chocolate and chili settling into each other like old friends who stopped keeping score. We ordered too much and regretted nothing. Bring people."
+Calibration 2: "The al pastor at Birrieria Zaragoza turns on the spit with the kind of color that belongs in a mural, char and pineapple and achiote layering into each other like a song that keeps building. We grabbed extra salsa verde and the table went quiet for a minute. That's the compliment."
+Calibration 3: "There is a warmth at Mi Tocaya Antojeria that starts with the mezcal and ends somewhere around the third round of guacamole, the avocado green and generous and piled higher than it needs to be. We brought four people and should have brought six. The carnitas arrive like they've been waiting for you."${enforcement}`;
   }
 }
 
@@ -243,7 +260,15 @@ MATCH HEADLINE (separate field, 10-15 words, SINGLE sentence):
 - Answers "Why this restaurant for THIS request?"
 - Lead with the strongest matching signal (dish match, cuisine fit, vibe alignment, proximity)
 - Do NOT include the restaurant name
-- Examples: "Authentic tandoori with the reviews to back it up" / "The date-night Italian spot Lincoln Park has been waiting for"
+GOOD HEADLINES:
+- "Authentic tandoori with the reviews to back it up"
+- "The date-night Italian spot Lincoln Park has been waiting for"
+- "Late-night ramen that actually earns the line out the door"
+- "BYOB Mexican with mole worth building your evening around"
+- "Where the solo bar seat is better than most tables in town"
+BAD HEADLINES (never write like these):
+- "A wonderful restaurant with great food and atmosphere" (generic, no signal)
+- "Highly rated dining destination for your special evening" (slop, no specificity)
 
 INSIDER TIP (separate field, 1 sentence, <20 words):
 The friend-leaning-in moment. This is the secret that makes them feel like an insider, not a tourist. Start with a verb: "Ask for...", "Sit at...", "Skip the...", "Grab the..." The tip should feel like it comes from someone who's been here enough times to know the unwritten rules.
