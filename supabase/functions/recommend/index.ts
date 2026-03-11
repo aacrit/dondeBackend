@@ -193,6 +193,7 @@ function mapRpcToProfile(row: Record<string, unknown>): RestaurantProfile {
     byob_policy: (row.dp_byob_policy as string | null) || null,
     payment_notes: (row.dp_payment_notes as string | null) || null,
     enrichment_confidence: (row.dp_enrichment_confidence as number | null) || null,
+    menu_highlights: (row.dp_menu_highlights as string[] | null) || null,
   } : null;
   return { ...row, deep_profile } as unknown as RestaurantProfile;
 }
