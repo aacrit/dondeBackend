@@ -193,6 +193,7 @@ function mapRpcToProfile(row: Record<string, unknown>): RestaurantProfile {
     byob_policy: (row.dp_byob_policy as string | null) || null,
     payment_notes: (row.dp_payment_notes as string | null) || null,
     enrichment_confidence: (row.dp_enrichment_confidence as number | null) || null,
+    menu_highlights: (row.dp_menu_highlights as string[] | null) || null,
   } : null;
   return { ...row, deep_profile } as unknown as RestaurantProfile;
 }
@@ -757,7 +758,7 @@ Deno.serve(async (req: Request) => {
       .filter(Boolean) as string[];
 
     const googlePromises = top5PlaceIds.map(pid => fetchPlaceDetails(pid));
-    const googleTimeout = new Promise<null>(resolve => setTimeout(() => resolve(null), 1500));
+    const googleTimeout = new Promise<null>(resolve => setTimeout(() => resolve(null), 2500));
     const googleRace = Promise.all(googlePromises);
     const googleResultsOrTimeout = await Promise.race([googleRace, googleTimeout]);
 
@@ -769,6 +770,19 @@ Deno.serve(async (req: Request) => {
     for (let i = 0; i < top5PlaceIds.length && i < googleResults.length; i++) {
       const gd = googleResults[i];
       if (gd) googleByPlaceId.set(top5PlaceIds[i], gd);
+    }
+
+    // Log Google Places fetch outcome for debugging
+    const googleHitCount = googleByPlaceId.size;
+    const googleTimedOut = !googleResultsOrTimeout;
+    if (googleTimedOut) {
+      logWarn("V9: Google Places batch timed out (2.5s)", { placeIds: top5PlaceIds.length });
+    } else {
+      logInfo("V9: Google Places enriched", {
+        fetched: googleHitCount,
+        total: top5PlaceIds.length,
+        hasHours: [...googleByPlaceId.values()].filter(g => g?.opening_hours).length,
+      });
     }
 
     // ================================================================
