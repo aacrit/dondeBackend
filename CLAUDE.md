@@ -27,6 +27,7 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `/donde-premium-advisor` | Premium app audit (UI polish, backend, marketing psychology, Claude Code mastery) | Manual |
 | `/donde-ciso` | Security audit across 10 domains — severity-ranked findings with remediation | Manual or auto on security changes |
 | `/update-docs` | Scans codebase and updates all MD files to reflect current state | Auto when Claude judges changes are significant |
+| `/gen-test-queries` | Generates 10 diverse, persona-driven test queries (1000-query repository) | Manual |
 
 All skills in `.claude/skills/`.
 
@@ -41,6 +42,7 @@ All skills in `.claude/skills/`.
 | `tests/compare-scores.sh` | A/B score comparison tool for query debugging |
 | `tests/TEST-FULL.md` | 170-scenario agent-driven test spec |
 | `tests/V9_E2E_100_RESULTS.md` | V9 E2E: 490 pass, 0 fail, 1 warn (99%) |
+| `tests/generated-queries.json` | Persona-driven test query repository (target: 1000 queries) |
 
 **V10 scoring baseline (2026-03-05):** 50-case benchmark: 44P/4F/2W, avg DM 70. V9 baseline was 39P/4F/7W, avg DM 68.
 
