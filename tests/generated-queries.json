@@ -1,17 +1,319 @@
 {
   "metadata": {
     "version": "1.0",
-    "total_queries": 0,
-    "last_generated": null,
+    "total_queries": 10,
+    "last_generated": "2026-03-11T12:00:00Z",
     "distribution": {
-      "by_category": {},
-      "by_time_of_day": {},
-      "by_cultural_background": {},
-      "by_age_group": {},
-      "by_gender": {},
-      "by_occasion": {},
-      "by_religion": {}
+      "by_category": {
+        "Cuisine": 1,
+        "Dish": 2,
+        "Vibe": 1,
+        "Multi": 2,
+        "Discovery": 1,
+        "Contextual": 1,
+        "Niche": 1,
+        "Complex": 1
+      },
+      "by_time_of_day": {
+        "breakfast": 1,
+        "lunch": 3,
+        "dinner": 4,
+        "late_night": 2
+      },
+      "by_cultural_background": {
+        "Filipino-American": 1,
+        "African-American": 1,
+        "Korean-American": 1,
+        "Middle-Eastern": 1,
+        "mainstream-American": 2,
+        "Polish-American": 1,
+        "mixed-multicultural": 1,
+        "Caribbean-American": 1,
+        "Vietnamese-American": 1
+      },
+      "by_age_group": {
+        "college_student": 2,
+        "young_professional": 3,
+        "mid_career": 2,
+        "family_parent": 1,
+        "empty_nester": 1,
+        "retiree": 1
+      },
+      "by_gender": {
+        "female": 4,
+        "male": 4,
+        "non_binary": 2
+      },
+      "by_occasion": {
+        "Chill Hangout": 2,
+        "Date Night": 1,
+        "Solo Dining": 2,
+        "Group Hangout": 1,
+        "Family Dinner": 1,
+        "Adventure": 1,
+        "Special Occasion": 1,
+        "Treat Myself": 1
+      },
+      "by_religion": {
+        "none": 4,
+        "Catholic": 2,
+        "Muslim": 1,
+        "Christian": 1,
+        "Buddhist": 1,
+        "Hindu": 1
+      }
     }
   },
-  "queries": []
+  "queries": [
+    {
+      "id": "TQ-0001",
+      "generated_at": "2026-03-11T12:00:00Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "non_binary",
+        "cultural_background": "Filipino-American",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "anywhere that has lumpia or pancit? craving comfort food from home rn",
+        "occasion": "Solo Dining",
+        "neighborhood": "Lincoln Square",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Dish",
+        "expected_cuisines": "Filipino",
+        "min_score": 55,
+        "natural_language_notes": "Specific Filipino dishes, casual emotional tone, college student homesick vibe"
+      }
+    },
+    {
+      "id": "TQ-0002",
+      "generated_at": "2026-03-11T12:00:00Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "male",
+        "cultural_background": "African-American",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "lowkey seafood spot, somewhere I can get catfish and maybe shrimp, not tryna spend crazy money",
+        "occasion": "Chill Hangout",
+        "neighborhood": "Hyde Park",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Multi",
+        "expected_cuisines": "Southern|Seafood|Soul Food",
+        "min_score": 45,
+        "natural_language_notes": "Slang-heavy, specific dish + budget constraint, casual Black vernacular"
+      }
+    },
+    {
+      "id": "TQ-0003",
+      "generated_at": "2026-03-11T12:00:00Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "female",
+        "cultural_background": "Korean-American",
+        "religion": "Buddhist",
+        "dietary_influence": "sometimes vegetarian"
+      },
+      "request": {
+        "special_request": "sundubu jjigae for lunch, somewhere quick that won't take forever",
+        "occasion": "Solo Dining",
+        "neighborhood": "Albany Park",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Dish",
+        "expected_cuisines": "Korean",
+        "min_score": 55,
+        "natural_language_notes": "Native dish name, time-constrained lunch, specific Korean stew"
+      }
+    },
+    {
+      "id": "TQ-0004",
+      "generated_at": "2026-03-11T12:00:00Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "male",
+        "cultural_background": "Middle-Eastern",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "proper shawarma and fattoush, halal of course, somewhere my wife and I can sit and enjoy",
+        "occasion": "Date Night",
+        "neighborhood": "Albany Park",
+        "price_level": "$$",
+        "dietary_restrictions": ["halal"],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Multi",
+        "expected_cuisines": "Middle Eastern|Lebanese",
+        "min_score": 45,
+        "natural_language_notes": "Specific dishes + dietary requirement + couple dining context, polite formal tone"
+      }
+    },
+    {
+      "id": "TQ-0005",
+      "generated_at": "2026-03-11T12:00:00Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "female",
+        "cultural_background": "mainstream-American",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "something open after 2am near depaul, literally starving",
+        "occasion": "Chill Hangout",
+        "neighborhood": "Lincoln Park",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Contextual",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Late night constraint, college landmark reference, emotional urgency"
+      }
+    },
+    {
+      "id": "TQ-0006",
+      "generated_at": "2026-03-11T12:00:00Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "non_binary",
+        "cultural_background": "mixed-multicultural",
+        "religion": "Hindu",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "take me somewhere I wouldn't find on my own, vegetarian friendly, I want to be wowed",
+        "occasion": "Adventure",
+        "neighborhood": "Anywhere",
+        "price_level": "$$$",
+        "dietary_restrictions": ["vegetarian"],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Discovery",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Open-ended discovery with dietary constraint, emotionally driven, non-binary Hindu persona"
+      }
+    },
+    {
+      "id": "TQ-0007",
+      "generated_at": "2026-03-11T12:00:00Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "male",
+        "cultural_background": "Polish-American",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "quiet place for lunch with good soup, nothing too fancy, maybe a nice sandwich too",
+        "occasion": "Group Hangout",
+        "neighborhood": "Irving Park",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Vibe",
+        "expected_cuisines": "American|Polish|European",
+        "min_score": 50,
+        "natural_language_notes": "Retiree pacing, quiet atmosphere need, simple comfort food, hedging tone"
+      }
+    },
+    {
+      "id": "TQ-0008",
+      "generated_at": "2026-03-11T12:00:00Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "female",
+        "cultural_background": "Vietnamese-American",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "bun bo hue, not pho, actual bun bo hue with the thick noodles and blood cubes",
+        "occasion": "Treat Myself",
+        "neighborhood": "Uptown",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Niche",
+        "expected_cuisines": "Vietnamese",
+        "min_score": 35,
+        "natural_language_notes": "Very specific niche dish, distinguishing from more common pho, insider food knowledge"
+      }
+    },
+    {
+      "id": "TQ-0009",
+      "generated_at": "2026-03-11T12:00:00Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "male",
+        "cultural_background": "Caribbean-American",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "where can I get oxtail that actually falls off the bone, rice and peas on the side, the whole spread",
+        "occasion": "Special Occasion",
+        "neighborhood": "Anywhere",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Complex",
+        "expected_cuisines": "Caribbean|Jamaican",
+        "min_score": 40,
+        "natural_language_notes": "Specific dish quality standard, side dish specification, natural conversational phrasing"
+      }
+    },
+    {
+      "id": "TQ-0010",
+      "generated_at": "2026-03-11T12:00:00Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "female",
+        "cultural_background": "mainstream-American",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "pancakes and eggs for the kids, decent coffee for me, somewhere they won't judge us for being loud",
+        "occasion": "Family Dinner",
+        "neighborhood": "North Center",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Cuisine",
+        "expected_cuisines": "American|Brunch",
+        "min_score": 55,
+        "natural_language_notes": "Parent perspective, dual needs (kids + self), noise tolerance concern, breakfast with family"
+      }
+    }
+  ]
 }
