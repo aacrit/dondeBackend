@@ -190,6 +190,10 @@ All use `SUPAB_` prefix (`SUPABASE_` is reserved in Edge Functions).
 
 Haiku 4.5: $0.80/M input, $4.00/M output. Full enrichment-v2 (~1000 restaurants) ~ $2-2.50.
 
+## Git Workflow
+
+Commit and push to the feature branch. **CI auto-merges `claude/**` branches to `main`** via `.github/workflows/auto-merge-claude.yml` — no manual merge needed.
+
 ## Coding Standards
 
 | Context | Rules |
