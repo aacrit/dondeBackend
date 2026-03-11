@@ -1,6 +1,6 @@
 # Database Schema
 
-Last updated: 2026-02-26
+Last updated: 2026-03-11
 
 ## Overview
 
@@ -15,7 +15,12 @@ Last updated: 2026-02-26
 | `user_profiles` | — | 1:1 with auth.users | Authenticated user preferences |
 | `user_searches` | — | N:1 → user_profiles | Server-side search history |
 | `user_favorites` | — | N:1 → user_profiles, restaurants | Saved bookmarks |
-| `user_queries` | — | N:1 → restaurants | Query logging + feedback |
+| `user_queries` | — | N:1 → restaurants | Query logging + feedback + blurb audit |
+| `user_visits` | — | N:1 → restaurants | Restaurant visit tracking |
+| `user_app_feedback` | — | — | User feedback messages |
+| `gauntlet_runs` | — | — | Command Center test run summaries |
+| `gauntlet_results` | — | N:1 → gauntlet_runs | Individual test results per run |
+| `maintenance_requests` | — | — | Pipeline operation queue |
 
 ## Entity Relationships
 
@@ -165,7 +170,17 @@ user_profiles
 
 **user_favorites:** `id`, `user_id` (FK), `restaurant_id` (FK), `created_at`, `removed_at`.
 
-**user_queries:** `id`, `user_id`, `auth_user_id`, `recommended_restaurant_id` (FK), `occasion`, `price_level`, `special_request`, `neighborhood_id`, `donde_match`, `exclude_count`, `was_fallback`, `response_time_ms`, `unmatched_keywords`, `dietary_restrictions`, `feedback`, `created_at`.
+**user_queries:** `id`, `user_id`, `auth_user_id`, `recommended_restaurant_id` (FK), `occasion`, `price_level`, `special_request`, `neighborhood_id`, `donde_match`, `exclude_count`, `was_fallback`, `response_time_ms`, `unmatched_keywords`, `dietary_restrictions`, `feedback`, `created_at`, `source` (text, default 'website' — distinguishes 'command-center' test traffic), `recommendation_text` (text — persisted blurb for quality auditing).
+
+**user_visits:** `id`, `user_id`, `auth_user_id`, `restaurant_id`, `visited_at`, `created_at`. RLS: insert requires non-empty user_id; select limited to own visits.
+
+**user_app_feedback:** `id`, `user_id`, `message`, `created_at`. RLS: insert requires non-empty user_id and message (max 2000 chars).
+
+**gauntlet_runs:** `run_id` (text PK), `mode`, `total`, `passed_60`, `passed_80`, `avg_dm`, `gap_count`, `delta_avg_dm`, `avg_response_ms`, `dataset_hash`, `created_at`. Stores Command Center test run summaries.
+
+**gauntlet_results:** `id`, `run_id` (FK → gauntlet_runs), `query`, `category`, `donde_match`, `gap_type`, `gap_severity`, `restaurant_name`, `food`, `vibe`, `service`, `reputation`, `convenience`, `relevance_type`, `prev_dm`, `delta_dm`, `query_id`, `created_at`. Individual test results per run.
+
+**maintenance_requests:** `id`, `operation` (text), `status` (text, default 'pending'), `params` (jsonb), `result` (jsonb), `created_at`, `updated_at`. RLS: anon insert constrained to valid operations + pending status; only service_role can update.
 
 ## RPC: get_ranked_restaurants
 
@@ -203,4 +218,4 @@ get_ranked_restaurants(
 
 ## Migrations
 
-27 SQL files in `supabase/migrations/` (2026-02-18 to 2026-02-26). Applied via `supabase db push` or Dashboard SQL Editor.
+42 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-11). Applied via `supabase db push` or Dashboard SQL Editor. Recent additions: gauntlet tracking tables, maintenance requests, RLS hardening, source column on user_queries, recommendation_text persistence.
