@@ -72,6 +72,7 @@ function buildRestaurantObject(
     neighborhood_name: chosen.neighborhood_name || "Chicago",
     photo_urls: googleData?.photo_urls || [],
     opening_hours: googleData?.opening_hours || null,
+    best_times: chosen.best_times || null,
     review_snippets: buildReviewSnippets(googleData),
   };
 }

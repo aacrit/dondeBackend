@@ -59,6 +59,10 @@ export async function fetchPlaceDetails(
     }
 
     const data = await res.json();
+    if (data.status && data.status !== "OK") {
+      console.error(`Google Places API status: ${data.status}`, data.error_message || '');
+      return null;
+    }
     const result = data.result;
     if (!result) return null;
 
