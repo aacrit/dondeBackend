@@ -22,6 +22,8 @@ FAIL_COUNT=0
 WARN_COUNT=0
 TOTAL_DONDE_MATCH=0
 TOTAL_TESTS=0
+TOTAL_FIT_SCORE=0
+TOTAL_BLURB_SCORE=0
 TEST_LOG=""
 LAST_RESPONSE=""
 HTTP_CODE=""
@@ -139,11 +141,165 @@ run_bench_test() {
     return
   fi
 
-  local relevance_score relevance_type
+  local relevance_score relevance_type food_score vibe_score service_score blurb_text
   relevance_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.relevance_score // "n/a"' 2>/dev/null)
   relevance_type=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.relevance_type // "n/a"' 2>/dev/null)
+  food_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.food // 0' 2>/dev/null)
+  vibe_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.vibe // 0' 2>/dev/null)
+  service_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.service // 0' 2>/dev/null)
+  blurb_text=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""' 2>/dev/null)
 
-  echo "  → $restaurant_name ($cuisine_type) | DM: $donde_match | Rel: $relevance_score ($relevance_type)"
+  # ── Compute Fit Score (0-100) ──
+  local fit_score=0
+
+  # Relevance alignment (30 pts)
+  local rel_align=20
+  case "$category" in
+    Cuisine|Dish|Niche)
+      if [[ "$relevance_type" == "food_category" || "$relevance_type" == "dish" || "$relevance_type" == "cuisine" ]]; then
+        rel_align=30
+      else
+        rel_align=10
+      fi
+      ;;
+    Vibe)
+      if [[ "$relevance_type" == "vibe" ]]; then
+        rel_align=30
+      else
+        rel_align=10
+      fi
+      ;;
+    *)
+      rel_align=20
+      ;;
+  esac
+  fit_score=$((fit_score + rel_align))
+
+  # Cuisine match (25 pts) — food categories check cuisine, others auto-pass
+  local cuisine_pts=25
+  case "$category" in
+    Cuisine|Dish|Niche)
+      local q_lower cuisine_lower_fit
+      q_lower=$(echo "$query" | tr '[:upper:]' '[:lower:]')
+      cuisine_lower_fit=$(echo "$cuisine_type" | tr '[:upper:]' '[:lower:]')
+      if [[ "$cuisine_lower_fit" == *"$q_lower"* || "$q_lower" == *"$cuisine_lower_fit"* ]]; then
+        cuisine_pts=25
+      else
+        cuisine_pts=10
+      fi
+      ;;
+    *)
+      cuisine_pts=25
+      ;;
+  esac
+  fit_score=$((fit_score + cuisine_pts))
+
+  # Factor alignment (25 pts)
+  local factor_pts=15
+  case "$category" in
+    Cuisine|Dish|Niche)
+      local fs_int=${food_score%.*}
+      if (( fs_int >= 6 )); then factor_pts=25; else factor_pts=5; fi
+      ;;
+    Vibe)
+      local vs_int=${vibe_score%.*}
+      if (( vs_int >= 6 )); then factor_pts=25; else factor_pts=5; fi
+      ;;
+    Service|Constraints)
+      local ss_int=${service_score%.*}
+      if (( ss_int >= 6 )); then factor_pts=25; else factor_pts=5; fi
+      ;;
+    *)
+      factor_pts=15
+      ;;
+  esac
+  fit_score=$((fit_score + factor_pts))
+
+  # Compression (10 pts)
+  local comp_pts=5
+  if [[ "$relevance_score" != "n/a" ]]; then
+    local rel_100
+    rel_100=$(echo "$relevance_score" | awk '{printf "%d", $1 * 100}')
+    if (( rel_100 >= 80 )); then comp_pts=10; else comp_pts=5; fi
+  fi
+  fit_score=$((fit_score + comp_pts))
+
+  # Weak spots (10 pts)
+  local weak_pts=10
+  local weak_spots
+  weak_spots=$(echo "$LAST_RESPONSE" | jq -r '.match_narrative.weak_spots // empty' 2>/dev/null)
+  if [[ -n "$weak_spots" && "$weak_spots" != "null" && "$weak_spots" != "[]" ]]; then
+    weak_pts=5
+  fi
+  fit_score=$((fit_score + weak_pts))
+
+  # ── Compute Blurb Quality Score (0-100) ──
+  local blurb_score=0
+
+  # Slop check (25 pts)
+  local slop_count=0
+  local blurb_lower
+  blurb_lower=$(echo "$blurb_text" | tr '[:upper:]' '[:lower:]')
+  for slop_word in "culinary" "gastronomic" "mouthwatering" "nestled" "hidden gem" "elevated" "must-visit" "dining experience" "every bite" "beckons"; do
+    if [[ "$blurb_lower" == *"$slop_word"* ]]; then
+      ((slop_count++))
+    fi
+  done
+  if (( slop_count == 0 )); then
+    blurb_score=$((blurb_score + 25))
+  elif (( slop_count == 1 )); then
+    blurb_score=$((blurb_score + 15))
+  else
+    blurb_score=$((blurb_score + 5))
+  fi
+
+  # Voice (15 pts) — contains "we" or "our"
+  if echo "$blurb_lower" | grep -qwE '(we|our)'; then
+    blurb_score=$((blurb_score + 15))
+  fi
+
+  # Word count (15 pts)
+  local word_count
+  word_count=$(echo "$blurb_text" | wc -w | tr -d ' ')
+  if (( word_count >= 100 && word_count <= 120 )); then
+    blurb_score=$((blurb_score + 15))
+  elif (( word_count >= 80 && word_count <= 130 )); then
+    blurb_score=$((blurb_score + 10))
+  else
+    blurb_score=$((blurb_score + 5))
+  fi
+
+  # Relevance (15 pts baseline)
+  blurb_score=$((blurb_score + 15))
+
+  # Specificity (10 pts) — descriptive adjectives
+  if echo "$blurb_lower" | grep -qwE '(crispy|tender|smoky|tangy|rich|creamy|savory|fresh|bright|bold|spicy|buttery|silky|flaky|charred|aromatic)'; then
+    blurb_score=$((blurb_score + 10))
+  else
+    blurb_score=$((blurb_score + 5))
+  fi
+
+  # Letter grades
+  local fit_grade blurb_grade
+  if (( fit_score >= 93 )); then fit_grade="A"
+  elif (( fit_score >= 87 )); then fit_grade="B+"
+  elif (( fit_score >= 80 )); then fit_grade="B-"
+  elif (( fit_score >= 70 )); then fit_grade="C"
+  else fit_grade="D"
+  fi
+
+  if (( blurb_score >= 93 )); then blurb_grade="A"
+  elif (( blurb_score >= 87 )); then blurb_grade="B+"
+  elif (( blurb_score >= 80 )); then blurb_grade="B-"
+  elif (( blurb_score >= 70 )); then blurb_grade="C"
+  else blurb_grade="D"
+  fi
+
+  # Track totals for averages
+  TOTAL_FIT_SCORE=$((TOTAL_FIT_SCORE + fit_score))
+  TOTAL_BLURB_SCORE=$((TOTAL_BLURB_SCORE + blurb_score))
+
+  echo "  → $restaurant_name ($cuisine_type) | DM: $donde_match | Rel: $relevance_score ($relevance_type) | Fit: $fit_score ($fit_grade) | Blurb: $blurb_score ($blurb_grade)"
 
   # Track donde_match for category averages
   ((TOTAL_TESTS++))
@@ -162,6 +318,24 @@ run_bench_test() {
   else
     check_fail "$test_id" "donde_match >= $min_score" "got $donde_match"
     CAT_FAIL[$category]=$(( ${CAT_FAIL[$category]} + 1 ))
+  fi
+
+  # Grade checks: Fit
+  if (( fit_score >= 80 )); then
+    check_pass "$test_id" "Fit grade $fit_grade ($fit_score)"
+  elif (( fit_score >= 70 )); then
+    check_warn "$test_id" "Fit grade $fit_grade" "score $fit_score"
+  else
+    check_fail "$test_id" "Fit grade $fit_grade" "score $fit_score"
+  fi
+
+  # Grade checks: Blurb
+  if (( blurb_score >= 80 )); then
+    check_pass "$test_id" "Blurb grade $blurb_grade ($blurb_score)"
+  elif (( blurb_score >= 70 )); then
+    check_warn "$test_id" "Blurb grade $blurb_grade" "score $blurb_score"
+  else
+    check_fail "$test_id" "Blurb grade $blurb_grade" "score $blurb_score"
   fi
 
   # Small delay to respect rate limits

@@ -41,6 +41,8 @@ VIBE_PASS=0; VIBE_FAIL=0; VIBE_WARN=0; VIBE_MATCH_SUM=0; VIBE_COUNT=0
 SERVICE_PASS=0; SERVICE_FAIL=0; SERVICE_WARN=0; SERVICE_MATCH_SUM=0; SERVICE_COUNT=0
 REPUTATION_PASS=0; REPUTATION_FAIL=0; REPUTATION_WARN=0; REPUTATION_MATCH_SUM=0; REPUTATION_COUNT=0
 CONVENIENCE_PASS=0; CONVENIENCE_FAIL=0; CONVENIENCE_WARN=0; CONVENIENCE_MATCH_SUM=0; CONVENIENCE_COUNT=0
+TOTAL_FIT_SCORE=0
+TOTAL_BLURB_SCORE=0
 
 ###############################################################################
 # HELPER FUNCTIONS
@@ -121,15 +123,54 @@ run_golden_test() {
   restaurant_name=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.name // "unknown"' 2>/dev/null)
   cuisine_type=$(echo "$LAST_RESPONSE" | jq -r '.restaurant.cuisine_type // "unknown"' 2>/dev/null)
 
-  local food_score vibe_score
+  local food_score vibe_score service_score relevance_score relevance_type blurb_text
   food_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.food // 0' 2>/dev/null)
   vibe_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.vibe // 0' 2>/dev/null)
+  service_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.service // 0' 2>/dev/null)
+  relevance_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.relevance_score // 0' 2>/dev/null)
+  relevance_type=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.relevance_type // "unknown"' 2>/dev/null)
+  blurb_text=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""' 2>/dev/null)
 
-  echo "  → $restaurant_name ($cuisine_type) | DM: $donde_match | Food: $food_score | Vibe: $vibe_score"
+  # Score Fit Grade (simplified)
+  local fit_score=0
+  case "$category" in
+    Food) case "$relevance_type" in dish*|cuisine*) fit_score=$((fit_score+30));; *) fit_score=$((fit_score+10));; esac;;
+    Vibe) case "$relevance_type" in *vibe*) fit_score=$((fit_score+30));; *) fit_score=$((fit_score+10));; esac;;
+    *) fit_score=$((fit_score+20));;
+  esac
+  if [[ "$category" == "Food" && "$expected_cuisines" != "any" && -n "$expected_cuisines" ]]; then
+    local clf; clf=$(echo "$cuisine_type" | tr '[:upper:]' '[:lower:]'); local cfok=false
+    IFS='|' read -ra GCF <<< "$expected_cuisines"
+    for gec in "${GCF[@]}"; do local gel; gel=$(echo "$gec" | tr '[:upper:]' '[:lower:]'); [[ "$clf" == *"$gel"* || "$gel" == *"$clf"* ]] && { cfok=true; break; }; done
+    $cfok && fit_score=$((fit_score+25))
+  else fit_score=$((fit_score+25)); fi
+  local gfs=${food_score%.*} gvs=${vibe_score%.*} gss=${service_score%.*}
+  case "$category" in Food) ((gfs>=6)) && fit_score=$((fit_score+25)) || fit_score=$((fit_score+5));; Vibe) ((gvs>=6)) && fit_score=$((fit_score+25)) || fit_score=$((fit_score+5));; Service) ((gss>=6)) && fit_score=$((fit_score+25)) || fit_score=$((fit_score+5));; *) fit_score=$((fit_score+15));; esac
+  local grp; grp=$(echo "$relevance_score" | awk '{printf "%d",$1*100}'); ((grp>=80)) && fit_score=$((fit_score+10)) || fit_score=$((fit_score+5))
+  local ghw; ghw=$(echo "$LAST_RESPONSE" | jq -r 'if .match_narrative.weak_spots and (.match_narrative.weak_spots|length)>0 then "y" else "n" end' 2>/dev/null)
+  [[ "$ghw" == "n" ]] && fit_score=$((fit_score+10)) || fit_score=$((fit_score+5))
+
+  # Blurb Quality Grade (simplified)
+  local blurb_score=0 gbl; gbl=$(echo "$blurb_text" | tr '[:upper:]' '[:lower:]')
+  local gsc=0; for gsp in "culinary" "gastronomic" "mouthwatering" "nestled" "hidden gem" "elevated" "must-visit" "dining experience" "every bite" "beckons"; do [[ "$gbl" == *"$gsp"* ]] && ((gsc++)); done
+  ((gsc==0)) && blurb_score=$((blurb_score+25)) || { ((gsc==1)) && blurb_score=$((blurb_score+15)) || blurb_score=$((blurb_score+5)); }
+  echo "$gbl" | grep -qP '\bwe\b|\bour\b' && blurb_score=$((blurb_score+15))
+  local gwc; gwc=$(echo "$blurb_text" | wc -w | tr -d ' ')
+  ((gwc>=100&&gwc<=120)) && blurb_score=$((blurb_score+15)) || { ((gwc>=80&&gwc<=130)) && blurb_score=$((blurb_score+10)) || blurb_score=$((blurb_score+5)); }
+  blurb_score=$((blurb_score+15))
+  echo "$gbl" | grep -qP 'crispy|smoky|tangy|spicy|creamy|buttery|tender|bright|bold' && blurb_score=$((blurb_score+10)) || blurb_score=$((blurb_score+5))
+
+  local fit_grade blurb_grade
+  ((fit_score>=93)) && fit_grade="A" || { ((fit_score>=87)) && fit_grade="B+" || { ((fit_score>=80)) && fit_grade="B-" || { ((fit_score>=70)) && fit_grade="C" || fit_grade="D"; }; }; }
+  ((blurb_score>=93)) && blurb_grade="A" || { ((blurb_score>=87)) && blurb_grade="B+" || { ((blurb_score>=80)) && blurb_grade="B-" || { ((blurb_score>=70)) && blurb_grade="C" || blurb_grade="D"; }; }; }
+
+  echo "  → $restaurant_name ($cuisine_type) | DM: $donde_match | Food: $food_score | Vibe: $vibe_score | Fit: $fit_grade ($fit_score) | Blurb: $blurb_grade ($blurb_score)"
 
   # Track donde_match for category averages
   ((TOTAL_TESTS++))
   TOTAL_DONDE_MATCH=$((TOTAL_DONDE_MATCH + ${donde_match%.*}))
+  TOTAL_FIT_SCORE=$((TOTAL_FIT_SCORE + fit_score))
+  TOTAL_BLURB_SCORE=$((TOTAL_BLURB_SCORE + blurb_score))
 
   case "$category" in
     Food) FOOD_MATCH_SUM=$((FOOD_MATCH_SUM + ${donde_match%.*})); ((FOOD_COUNT++)) ;;
@@ -147,6 +188,24 @@ run_golden_test() {
     check_warn "$test_id" "donde_match near threshold" "got $donde_match, want >= $min_score"
   else
     check_fail "$test_id" "donde_match >= $min_score" "got $donde_match"
+  fi
+
+  # Check: Score Fit Grade >= B- (80)
+  if (( fit_score >= 80 )); then
+    check_pass "$test_id" "score_fit >= B- (got $fit_grade/$fit_score)"
+  elif (( fit_score >= 70 )); then
+    check_warn "$test_id" "score_fit near threshold" "got $fit_grade/$fit_score, want >= B-/80"
+  else
+    check_fail "$test_id" "score_fit >= B-" "got $fit_grade/$fit_score"
+  fi
+
+  # Check: Blurb Quality Grade >= B- (80)
+  if (( blurb_score >= 80 )); then
+    check_pass "$test_id" "blurb_quality >= B- (got $blurb_grade/$blurb_score)"
+  elif (( blurb_score >= 70 )); then
+    check_warn "$test_id" "blurb_quality near threshold" "got $blurb_grade/$blurb_score, want >= B-/80"
+  else
+    check_fail "$test_id" "blurb_quality >= B-" "got $blurb_grade/$blurb_score"
   fi
 
   # Check 2: Cuisine match (for Food category)
@@ -330,6 +389,10 @@ fi
 if (( TOTAL_TESTS > 0 )); then
   echo ""
   echo "  Overall:     avg DM = $((TOTAL_DONDE_MATCH / TOTAL_TESTS)) ($TOTAL_TESTS tests)"
+  echo ""
+  echo "  ── Grade Averages ──"
+  echo "  Avg Score Fit:     $((TOTAL_FIT_SCORE / TOTAL_TESTS))"
+  echo "  Avg Blurb Quality: $((TOTAL_BLURB_SCORE / TOTAL_TESTS))"
 fi
 
 # Generate markdown report
