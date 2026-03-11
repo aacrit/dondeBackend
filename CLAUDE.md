@@ -36,8 +36,8 @@ All skills in `.claude/skills/`.
 | File | Description |
 |------|-------------|
 | `tests/test_catalog.sh` | 65-scenario bash API test suite |
-| `tests/golden-dataset-test.sh` | 50-query golden dataset (88 checks) — primary scoring benchmark |
-| `tests/benchmark-200.sh` | 200-case V11 benchmark (10 categories × 20 queries) |
+| `tests/golden-dataset-test.sh` | 50-query golden dataset with score fit + blurb quality grading — primary scoring benchmark |
+| `tests/benchmark-200.sh` | 200-case V11 benchmark with score fit + blurb quality grading (10 categories × 20 queries) |
 | `tests/regression-guard.sh` | Scoring regression guard — compares against V10 baseline |
 | `tests/compare-scores.sh` | A/B score comparison tool for query debugging |
 | `tests/TEST-FULL.md` | 170-scenario agent-driven test spec |
@@ -82,6 +82,12 @@ All skills in `.claude/skills/`.
 **V11 RPC** (`get_candidates_v11`): Composite scoring with `p_semantic_tags`. Falls back to V10 → V9 RPC if migration not applied.
 
 **Score tiers:** 90+ Outstanding | 80-89 Strong Pick | 70-79 Solid Option | 60-69 Worth a Try | <60 Best Available
+
+**Score Validation Grading:**
+- Score Fit Grade (0-100): Relevance alignment (30pts) + Cuisine match (25pts) + Factor alignment (25pts) + Compression check (10pts) + Weak spots coherence (10pts)
+- Blurb Quality Grade (0-100): Slop-free (25pts) + Query relevance (25pts) + Specificity (20pts) + Voice compliance (15pts) + Word count (15pts)
+- Pass criteria: DM >= 70 AND Score Fit >= B- (80) AND Blurb Quality >= B- (80)
+- Grade scale: A+ (97+), A (93-96), B+ (87-89), B (83-86), B- (80-82), C (73-79), D (60-69), F (<60)
 
 ## API Contract (Immutable)
 
