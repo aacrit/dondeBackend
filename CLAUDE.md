@@ -1,6 +1,6 @@
 # DondeAI Backend
 
-Last updated: 2026-03-10
+Last updated: 2026-03-11
 
 > **Read this file first, then `docs/*.md` only as needed. Only open source files when modifying code.**
 
@@ -117,7 +117,8 @@ Timeout: 15s (AbortController on frontend)
     "noise_level", "cuisine_type", "lighting_ambiance", "dress_code",
     "outdoor_seating", "live_music", "pet_friendly", "parking_availability",
     "dietary_options", "sentiment_breakdown", "sentiment_score", "sentiment_summary",
-    "neighborhood_name", "photo_urls", "opening_hours", "review_snippets"
+    "neighborhood_name", "photo_urls", "opening_hours", "review_snippets",
+    "best_times"
   },
   "recommendation": "string (100-120 words)",
   "insider_tip": "string|null",
