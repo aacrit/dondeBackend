@@ -176,9 +176,9 @@ user_profiles
 
 **user_app_feedback:** `id`, `user_id`, `message`, `created_at`. RLS: insert requires non-empty user_id and message (max 2000 chars).
 
-**gauntlet_runs:** `run_id` (text PK), `mode`, `total`, `passed_60`, `passed_80`, `avg_dm`, `gap_count`, `delta_avg_dm`, `avg_response_ms`, `dataset_hash`, `created_at`. Stores Command Center test run summaries.
+**gauntlet_runs:** `run_id` (text PK), `mode`, `total`, `passed_60`, `passed_80`, `avg_dm`, `gap_count`, `delta_avg_dm`, `avg_response_ms`, `dataset_hash`, `avg_score_fit` (NUMERIC(5,1) — Average score fit across run), `avg_blurb_quality` (NUMERIC(5,1) — Average blurb quality across run), `grade_pass_count` (INT — Number passing all 3 criteria), `grade_distribution` (JSONB — Distribution of letter grades), `created_at`. Stores Command Center test run summaries.
 
-**gauntlet_results:** `id`, `run_id` (FK → gauntlet_runs), `query`, `category`, `donde_match`, `gap_type`, `gap_severity`, `restaurant_name`, `food`, `vibe`, `service`, `reputation`, `convenience`, `relevance_type`, `prev_dm`, `delta_dm`, `query_id`, `created_at`. Individual test results per run.
+**gauntlet_results:** `id`, `run_id` (FK → gauntlet_runs), `query`, `category`, `donde_match`, `gap_type`, `gap_severity`, `restaurant_name`, `food`, `vibe`, `service`, `reputation`, `convenience`, `relevance_type`, `prev_dm`, `delta_dm`, `query_id`, `score_fit_score` (INT — Score fit grade numeric 0-100), `score_fit_grade` (TEXT — Score fit letter grade e.g. A+, A, B+), `blurb_quality_score` (INT — Blurb quality grade numeric 0-100), `blurb_quality_grade` (TEXT — Blurb quality letter grade), `created_at`. Individual test results per run.
 
 **maintenance_requests:** `id`, `operation` (text), `status` (text, default 'pending'), `params` (jsonb), `result` (jsonb), `created_at`, `updated_at`. RLS: anon insert constrained to valid operations + pending status; only service_role can update.
 
