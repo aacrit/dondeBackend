@@ -331,6 +331,32 @@ function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Variation modifiers applied to template text on 2nd+ use to avoid dedup collisions
+const PREFIXES = [
+  "", "yo ", "hey ", "need ", "craving ", "looking for ", "find me ", "want ", "gimme ",
+  "show me ", "where's ", "rec me ", "hook me up with ", "dying for ", "in the mood for ",
+  "help me find ", "any good ", "know any ", "tryna find ", "lowkey want ",
+];
+const SUFFIXES = [
+  "", ", thanks", ", any recs?", " please", " near me", ", what do you got", " rn", " asap", ", help",
+  " tonight", ", seriously", " tho", ", not picky", " lol", ", thoughts?", " fr", " maybe?",
+  ", down for anything", ", open to suggestions", " ideally",
+];
+
+function varyText(base: string, cycle: number): string {
+  if (cycle === 0) return base;
+  // Use both cycle and a hash of the base text to spread across the variation grid
+  const baseHash = base.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  const prefixIdx = (cycle + baseHash) % PREFIXES.length;
+  const suffixIdx = (Math.floor(cycle / PREFIXES.length) + baseHash) % SUFFIXES.length;
+  const prefix = PREFIXES[prefixIdx];
+  const suffix = SUFFIXES[suffixIdx];
+  // Don't double-prefix if base already starts casually
+  const startsWithCasual = /^(yo |hey |need |looking |find |want |gimme |craving |show |where|rec |hook |dying |in the mood|help |any |know |tryna |lowkey )/.test(base);
+  const finalPrefix = startsWithCasual ? "" : prefix;
+  return `${finalPrefix}${base}${suffix}`.trim();
+}
+
 function weightedPick<T>(arr: readonly T[], weights: number[]): T {
   const r = Math.random();
   let cum = 0;
@@ -451,9 +477,13 @@ for (const q of data.queries) {
   dist.by_religion[q.persona.religion] = (dist.by_religion[q.persona.religion] ?? 0) + 1;
 }
 
-// Track which templates have been used per category to avoid repeats
+// Track template cycle counts per category (how many times we've gone through all templates)
+const templateCycleCount: Record<string, number> = {};
 const usedTemplateIdx: Record<string, Set<number>> = {};
-for (const cat of CATEGORIES) usedTemplateIdx[cat] = new Set();
+for (const cat of CATEGORIES) {
+  usedTemplateIdx[cat] = new Set();
+  templateCycleCount[cat] = 0;
+}
 
 // Check existing queries against templates to pre-mark used ones
 for (const q of data.queries) {
@@ -472,8 +502,10 @@ for (const q of data.queries) {
 const startId = data.queries.length + 1;
 const now = new Date().toISOString();
 const newQueries: QueryEntry[] = [];
+let retries = 0;
+const MAX_RETRIES = cap * 3; // safety valve
 
-for (let i = 0; i < cap; i++) {
+for (let i = 0; i < cap && retries < MAX_RETRIES; i++) {
   // Pick least-represented category
   const category = pickLeast(dist.by_category, CATEGORIES);
 
@@ -483,9 +515,10 @@ for (let i = 0; i < cap; i++) {
   for (let t = 0; t < templates.length; t++) {
     if (!usedTemplateIdx[category].has(t)) availableIdx.push(t);
   }
-  // If all used, reset (allows cycling)
+  // If all used, reset and bump cycle count (enables text variation)
   if (availableIdx.length === 0) {
     usedTemplateIdx[category].clear();
+    templateCycleCount[category] = (templateCycleCount[category] ?? 0) + 1;
     for (let t = 0; t < templates.length; t++) availableIdx.push(t);
   }
   const tIdx = pick(availableIdx);
@@ -500,13 +533,18 @@ for (let i = 0; i < cap; i++) {
   const persona: Persona = { age_group, gender, cultural_background, religion };
   const result = templates[tIdx](persona);
 
+  // Apply text variation based on cycle count to produce unique queries on re-use
+  const cycle = templateCycleCount[category] ?? 0;
+  const variedSR = varyText(result.sr, cycle);
+
   // Dedup check
-  if (existingSRs.has(result.sr.toLowerCase())) {
-    // Try another template
+  if (existingSRs.has(variedSR.toLowerCase())) {
     i--;
-    usedTemplateIdx[category].add(tIdx);
+    retries++;
     continue;
   }
+  // Use the varied text
+  result.sr = variedSR;
 
   const religionDietary = dietaryForReligion(religion);
   const templateDietary = result.dietary ?? [];
