@@ -1,66 +1,80 @@
 {
   "metadata": {
     "version": "1.0",
-    "total_queries": 10,
-    "last_generated": "2026-03-11T12:00:00Z",
+    "total_queries": 110,
+    "last_generated": "2026-03-11T06:30:46.839Z",
     "distribution": {
       "by_category": {
-        "Cuisine": 1,
-        "Dish": 2,
-        "Vibe": 1,
-        "Multi": 2,
-        "Discovery": 1,
-        "Contextual": 1,
-        "Niche": 1,
-        "Complex": 1
+        "Dish": 11,
+        "Multi": 11,
+        "Contextual": 11,
+        "Discovery": 11,
+        "Vibe": 11,
+        "Niche": 11,
+        "Complex": 11,
+        "Cuisine": 11,
+        "Constraints": 11,
+        "Reputation": 11
       },
       "by_time_of_day": {
-        "breakfast": 1,
-        "lunch": 3,
-        "dinner": 4,
-        "late_night": 2
+        "late_night": 27,
+        "dinner": 28,
+        "lunch": 27,
+        "breakfast": 28
       },
       "by_cultural_background": {
-        "Filipino-American": 1,
-        "African-American": 1,
-        "Korean-American": 1,
-        "Middle-Eastern": 1,
-        "mainstream-American": 2,
-        "Polish-American": 1,
-        "mixed-multicultural": 1,
-        "Caribbean-American": 1,
-        "Vietnamese-American": 1
+        "Filipino-American": 6,
+        "African-American": 7,
+        "Korean-American": 7,
+        "Middle-Eastern": 6,
+        "mainstream-American": 6,
+        "mixed-multicultural": 6,
+        "Polish-American": 7,
+        "Vietnamese-American": 7,
+        "Caribbean-American": 6,
+        "Eastern-European": 7,
+        "Mexican-American": 7,
+        "Irish-American": 6,
+        "Japanese-American": 7,
+        "Italian-American": 6,
+        "Indian-American": 7,
+        "Puerto-Rican": 6,
+        "Chinese-American": 6
       },
       "by_age_group": {
-        "college_student": 2,
-        "young_professional": 3,
-        "mid_career": 2,
-        "family_parent": 1,
-        "empty_nester": 1,
-        "retiree": 1
+        "college_student": 19,
+        "young_professional": 18,
+        "mid_career": 18,
+        "empty_nester": 18,
+        "retiree": 18,
+        "family_parent": 19
       },
       "by_gender": {
-        "female": 4,
-        "male": 4,
-        "non_binary": 2
+        "non_binary": 36,
+        "male": 37,
+        "female": 37
       },
       "by_occasion": {
-        "Chill Hangout": 2,
-        "Date Night": 1,
-        "Solo Dining": 2,
-        "Group Hangout": 1,
-        "Family Dinner": 1,
-        "Adventure": 1,
-        "Special Occasion": 1,
-        "Treat Myself": 1
+        "Solo Dining": 11,
+        "Chill Hangout": 10,
+        "Date Night": 10,
+        "Adventure": 11,
+        "Group Hangout": 12,
+        "Treat Myself": 11,
+        "Special Occasion": 12,
+        "Family Dinner": 11,
+        "Business Lunch": 11,
+        "Any": 11
       },
       "by_religion": {
-        "none": 4,
-        "Catholic": 2,
-        "Muslim": 1,
-        "Christian": 1,
-        "Buddhist": 1,
-        "Hindu": 1
+        "Catholic": 13,
+        "none": 13,
+        "Buddhist": 14,
+        "Muslim": 14,
+        "Hindu": 14,
+        "Christian": 14,
+        "Sikh": 14,
+        "Jewish": 14
       }
     }
   },
@@ -155,7 +169,9 @@
         "occasion": "Date Night",
         "neighborhood": "Albany Park",
         "price_level": "$$",
-        "dietary_restrictions": ["halal"],
+        "dietary_restrictions": [
+          "halal"
+        ],
         "time_of_day": "dinner"
       },
       "test_metadata": {
@@ -205,7 +221,9 @@
         "occasion": "Adventure",
         "neighborhood": "Anywhere",
         "price_level": "$$$",
-        "dietary_restrictions": ["vegetarian"],
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
         "time_of_day": "dinner"
       },
       "test_metadata": {
@@ -313,6 +331,2596 @@
         "expected_cuisines": "American|Brunch",
         "min_score": 55,
         "natural_language_notes": "Parent perspective, dual needs (kids + self), noise tolerance concern, breakfast with family"
+      }
+    },
+    {
+      "id": "TQ-0011",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "non_binary",
+        "cultural_background": "Eastern-European",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "delivery available, too cold to go out",
+        "occasion": "Business Lunch",
+        "neighborhood": "Little Village",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Constraints",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Service mode + weather"
+      }
+    },
+    {
+      "id": "TQ-0012",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "non_binary",
+        "cultural_background": "Mexican-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "most instagrammed restaurant in chicago",
+        "occasion": "Any",
+        "neighborhood": "Edgewater",
+        "price_level": "$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Reputation",
+        "expected_cuisines": "any",
+        "min_score": 55,
+        "natural_language_notes": "Social media reputation"
+      }
+    },
+    {
+      "id": "TQ-0013",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "female",
+        "cultural_background": "Irish-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "cuban restaurant",
+        "occasion": "Date Night",
+        "neighborhood": "Lincoln Square",
+        "price_level": "$$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Cuisine",
+        "expected_cuisines": "Cuban|Caribbean",
+        "min_score": 55,
+        "natural_language_notes": "Clean cuisine search"
+      }
+    },
+    {
+      "id": "TQ-0014",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "male",
+        "cultural_background": "Japanese-American",
+        "religion": "Sikh",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "counter seating, I like watching the chefs",
+        "occasion": "Solo Dining",
+        "neighborhood": "Humboldt Park",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Constraints",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Seating preference + reason"
+      }
+    },
+    {
+      "id": "TQ-0015",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "non_binary",
+        "cultural_background": "Italian-American",
+        "religion": "Hindu",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "picking up food for the office, like 10 people",
+        "occasion": "Business Lunch",
+        "neighborhood": "Portage Park",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Contextual",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Takeout + group size"
+      }
+    },
+    {
+      "id": "TQ-0016",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "male",
+        "cultural_background": "Indian-American",
+        "religion": "Buddhist",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "that place that was on chef's table netflix",
+        "occasion": "Family Dinner",
+        "neighborhood": "Andersonville",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Reputation",
+        "expected_cuisines": "any",
+        "min_score": 55,
+        "natural_language_notes": "Media reference"
+      }
+    },
+    {
+      "id": "TQ-0017",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "non_binary",
+        "cultural_background": "Puerto-Rican",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "dive bar with surprisingly good food",
+        "occasion": "Treat Myself",
+        "neighborhood": "Edgewater",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Vibe",
+        "expected_cuisines": "any",
+        "min_score": 50,
+        "natural_language_notes": "Contrasting expectations"
+      }
+    },
+    {
+      "id": "TQ-0018",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "female",
+        "cultural_background": "Chinese-American",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "take me somewhere new, tired of the same spots",
+        "occasion": "Special Occasion",
+        "neighborhood": "Rogers Park",
+        "price_level": "$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Discovery",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Novelty-seeking with frustration"
+      }
+    },
+    {
+      "id": "TQ-0019",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "non_binary",
+        "cultural_background": "Mexican-American",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "uyghur food, laghman noodles",
+        "occasion": "Group Hangout",
+        "neighborhood": "South Loop",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Niche",
+        "expected_cuisines": "Uyghur|Chinese",
+        "min_score": 35,
+        "natural_language_notes": "Very niche Central Asian"
+      }
+    },
+    {
+      "id": "TQ-0020",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "male",
+        "cultural_background": "Eastern-European",
+        "religion": "Hindu",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "grandma is visiting from korea, need somewhere she'd feel comfortable but my kids are picky",
+        "occasion": "Family Dinner",
+        "neighborhood": "Hyde Park",
+        "price_level": "$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Complex",
+        "expected_cuisines": "Korean|American",
+        "min_score": 40,
+        "natural_language_notes": "Multi-generational compromise"
+      }
+    },
+    {
+      "id": "TQ-0021",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "female",
+        "cultural_background": "African-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "dinner before the Bulls game at United Center",
+        "occasion": "Adventure",
+        "neighborhood": "West Loop",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Contextual",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Sports event + venue reference"
+      }
+    },
+    {
+      "id": "TQ-0022",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "non_binary",
+        "cultural_background": "Vietnamese-American",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "elote and street corn",
+        "occasion": "Any",
+        "neighborhood": "Streeterville",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Dish",
+        "expected_cuisines": "Mexican",
+        "min_score": 55,
+        "natural_language_notes": "Street food dish, native name"
+      }
+    },
+    {
+      "id": "TQ-0023",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "male",
+        "cultural_background": "Korean-American",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "something I can't get anywhere else in the city",
+        "occasion": "Business Lunch",
+        "neighborhood": "Rogers Park",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Discovery",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Uniqueness-driven discovery"
+      }
+    },
+    {
+      "id": "TQ-0024",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "female",
+        "cultural_background": "Middle-Eastern",
+        "religion": "Buddhist",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "private dining room for a proposal",
+        "occasion": "Special Occasion",
+        "neighborhood": "Little Village",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Constraints",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Space type + occasion"
+      }
+    },
+    {
+      "id": "TQ-0025",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "non_binary",
+        "cultural_background": "Filipino-American",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "somewhere my Nigerian mom would approve of, she's picky about spice levels",
+        "occasion": "Date Night",
+        "neighborhood": "Edgewater",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Complex",
+        "expected_cuisines": "African|Nigerian",
+        "min_score": 40,
+        "natural_language_notes": "Family approval + cultural specificity"
+      }
+    },
+    {
+      "id": "TQ-0026",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "female",
+        "cultural_background": "Caribbean-American",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "romantic candelit dinner",
+        "occasion": "Date Night",
+        "neighborhood": "Albany Park",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Vibe",
+        "expected_cuisines": "any",
+        "min_score": 50,
+        "natural_language_notes": "Classic romance vibe, slight misspelling"
+      }
+    },
+    {
+      "id": "TQ-0027",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "male",
+        "cultural_background": "Puerto-Rican",
+        "religion": "Hindu",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "most talked about place right now",
+        "occasion": "Treat Myself",
+        "neighborhood": "Humboldt Park",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Reputation",
+        "expected_cuisines": "any",
+        "min_score": 55,
+        "natural_language_notes": "Trend-seeking current buzz"
+      }
+    },
+    {
+      "id": "TQ-0028",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "female",
+        "cultural_background": "Indian-American",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "good greek food around here",
+        "occasion": "Adventure",
+        "neighborhood": "North Center",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Cuisine",
+        "expected_cuisines": "Greek",
+        "min_score": 55,
+        "natural_language_notes": "Casual tone, no specific dish"
+      }
+    },
+    {
+      "id": "TQ-0029",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "male",
+        "cultural_background": "Polish-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "cozy ramen spot for a cold night",
+        "occasion": "Group Hangout",
+        "neighborhood": "Lakeview",
+        "price_level": "$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Multi",
+        "expected_cuisines": "Japanese",
+        "min_score": 45,
+        "natural_language_notes": "Vibe + dish + weather context"
+      }
+    },
+    {
+      "id": "TQ-0030",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "non_binary",
+        "cultural_background": "Chinese-American",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "oaxacan mole, not just regular mole",
+        "occasion": "Chill Hangout",
+        "neighborhood": "Rogers Park",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Niche",
+        "expected_cuisines": "Mexican|Oaxacan",
+        "min_score": 35,
+        "natural_language_notes": "Regional Mexican sub-cuisine"
+      }
+    },
+    {
+      "id": "TQ-0031",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "female",
+        "cultural_background": "Italian-American",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "birria tacos with the consome",
+        "occasion": "Any",
+        "neighborhood": "Andersonville",
+        "price_level": "$$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Dish",
+        "expected_cuisines": "Mexican",
+        "min_score": 55,
+        "natural_language_notes": "Trending dish + specific component"
+      }
+    },
+    {
+      "id": "TQ-0032",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "non_binary",
+        "cultural_background": "mixed-multicultural",
+        "religion": "Buddhist",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "I just moved to chicago from LA, where do I eat first",
+        "occasion": "Adventure",
+        "neighborhood": "Chinatown",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Complex",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Newcomer context + open discovery"
+      }
+    },
+    {
+      "id": "TQ-0033",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "male",
+        "cultural_background": "Irish-American",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "french bistro vibes",
+        "occasion": "Special Occasion",
+        "neighborhood": "Lincoln Park",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Cuisine",
+        "expected_cuisines": "French",
+        "min_score": 55,
+        "natural_language_notes": "Cuisine + vibe crossover"
+      }
+    },
+    {
+      "id": "TQ-0034",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "non_binary",
+        "cultural_background": "Japanese-American",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "tibetan momos",
+        "occasion": "Chill Hangout",
+        "neighborhood": "Gold Coast",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Niche",
+        "expected_cuisines": "Tibetan|Himalayan",
+        "min_score": 35,
+        "natural_language_notes": "Ultra-niche dumpling variety"
+      }
+    },
+    {
+      "id": "TQ-0035",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "female",
+        "cultural_background": "Korean-American",
+        "religion": "Buddhist",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "hipster coffee shop vibes but for dinner",
+        "occasion": "Family Dinner",
+        "neighborhood": "Ukrainian Village",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Vibe",
+        "expected_cuisines": "any",
+        "min_score": 50,
+        "natural_language_notes": "Cross-meal vibe reference"
+      }
+    },
+    {
+      "id": "TQ-0036",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "male",
+        "cultural_background": "mainstream-American",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "feed me something weird, I'm adventurous",
+        "occasion": "Business Lunch",
+        "neighborhood": "Ukrainian Village",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Discovery",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Adventure-seeking open query"
+      }
+    },
+    {
+      "id": "TQ-0037",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "non_binary",
+        "cultural_background": "Polish-American",
+        "religion": "Hindu",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "family friendly mexican with outdoor seating",
+        "occasion": "Family Dinner",
+        "neighborhood": "The Loop",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Multi",
+        "expected_cuisines": "Mexican",
+        "min_score": 45,
+        "natural_language_notes": "Occasion + cuisine + constraint"
+      }
+    },
+    {
+      "id": "TQ-0038",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "male",
+        "cultural_background": "mixed-multicultural",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "dinner before a show at the Chicago Theatre",
+        "occasion": "Treat Myself",
+        "neighborhood": "The Loop",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Contextual",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Pre-event + venue"
+      }
+    },
+    {
+      "id": "TQ-0039",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "female",
+        "cultural_background": "Irish-American",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "the one restaurant everyone says you have to try in chicago",
+        "occasion": "Solo Dining",
+        "neighborhood": "Bridgeport",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Reputation",
+        "expected_cuisines": "any",
+        "min_score": 55,
+        "natural_language_notes": "Consensus-seeking"
+      }
+    },
+    {
+      "id": "TQ-0040",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "non_binary",
+        "cultural_background": "Mexican-American",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "walk-in only, no reservation needed",
+        "occasion": "Group Hangout",
+        "neighborhood": "North Center",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Constraints",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Booking style preference"
+      }
+    },
+    {
+      "id": "TQ-0041",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "female",
+        "cultural_background": "Chinese-American",
+        "religion": "Buddhist",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "open for breakfast at 7am",
+        "occasion": "Any",
+        "neighborhood": "Bridgeport",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Constraints",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Specific early hours"
+      }
+    },
+    {
+      "id": "TQ-0042",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "male",
+        "cultural_background": "Italian-American",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "greek food with a view, maybe seafood",
+        "occasion": "Date Night",
+        "neighborhood": "Andersonville",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Multi",
+        "expected_cuisines": "Greek|Seafood",
+        "min_score": 45,
+        "natural_language_notes": "Cuisine + location pref + hedging"
+      }
+    },
+    {
+      "id": "TQ-0043",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "female",
+        "cultural_background": "Indian-American",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "good sushi place",
+        "occasion": "Any",
+        "neighborhood": "The Loop",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Cuisine",
+        "expected_cuisines": "Japanese",
+        "min_score": 55,
+        "natural_language_notes": "Dish-implied cuisine search"
+      }
+    },
+    {
+      "id": "TQ-0044",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "male",
+        "cultural_background": "Caribbean-American",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "sri lankan food, hoppers and kottu",
+        "occasion": "Business Lunch",
+        "neighborhood": "Edgewater",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Niche",
+        "expected_cuisines": "Sri Lankan",
+        "min_score": 35,
+        "natural_language_notes": "Niche South Asian + specific dishes"
+      }
+    },
+    {
+      "id": "TQ-0045",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "non_binary",
+        "cultural_background": "Eastern-European",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "not sure what I want but I had amazing pad kee mao last week and want something in that lane",
+        "occasion": "Chill Hangout",
+        "neighborhood": "Little Village",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Complex",
+        "expected_cuisines": "Thai|Asian",
+        "min_score": 40,
+        "natural_language_notes": "Reference-based indecisive query"
+      }
+    },
+    {
+      "id": "TQ-0046",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "female",
+        "cultural_background": "Filipino-American",
+        "religion": "Hindu",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "feeding 6 hungry dudes after softball",
+        "occasion": "Group Hangout",
+        "neighborhood": "Portage Park",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Contextual",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Group + appetite + activity context"
+      }
+    },
+    {
+      "id": "TQ-0047",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "male",
+        "cultural_background": "Vietnamese-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "hole in the wall gem, the kind locals know about",
+        "occasion": "Adventure",
+        "neighborhood": "Logan Square",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Discovery",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Insider knowledge seeking"
+      }
+    },
+    {
+      "id": "TQ-0048",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "non_binary",
+        "cultural_background": "Middle-Eastern",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "best steak in chicago, period",
+        "occasion": "Special Occasion",
+        "neighborhood": "Logan Square",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Reputation",
+        "expected_cuisines": "American|Steakhouse",
+        "min_score": 55,
+        "natural_language_notes": "Superlative + emphatic"
+      }
+    },
+    {
+      "id": "TQ-0049",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "male",
+        "cultural_background": "Puerto-Rican",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "Nashville hot chicken sandwich",
+        "occasion": "Solo Dining",
+        "neighborhood": "Irving Park",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Dish",
+        "expected_cuisines": "American|Southern",
+        "min_score": 55,
+        "natural_language_notes": "Specific regional dish"
+      }
+    },
+    {
+      "id": "TQ-0050",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "female",
+        "cultural_background": "African-American",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "cozy rainy day restaurant",
+        "occasion": "Treat Myself",
+        "neighborhood": "Bucktown",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Vibe",
+        "expected_cuisines": "any",
+        "min_score": 50,
+        "natural_language_notes": "Weather-driven mood search"
+      }
+    },
+    {
+      "id": "TQ-0051",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "non_binary",
+        "cultural_background": "Japanese-American",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "healthy lunch, salads or bowls, fast service near the loop",
+        "occasion": "Business Lunch",
+        "neighborhood": "The Loop",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Multi",
+        "expected_cuisines": "American|Health",
+        "min_score": 45,
+        "natural_language_notes": "Diet + format + speed + location"
+      }
+    },
+    {
+      "id": "TQ-0052",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "male",
+        "cultural_background": "Puerto-Rican",
+        "religion": "Hindu",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "prix fixe under $60 per person",
+        "occasion": "Chill Hangout",
+        "neighborhood": "Edgewater",
+        "price_level": "$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Constraints",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Format + specific budget"
+      }
+    },
+    {
+      "id": "TQ-0053",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "non_binary",
+        "cultural_background": "Japanese-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "shakshuka for brunch",
+        "occasion": "Special Occasion",
+        "neighborhood": "The Loop",
+        "price_level": "$$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Dish",
+        "expected_cuisines": "Middle Eastern|Mediterranean",
+        "min_score": 55,
+        "natural_language_notes": "Dish + meal context"
+      }
+    },
+    {
+      "id": "TQ-0054",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "female",
+        "cultural_background": "Polish-American",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "ethiopian food",
+        "occasion": "Treat Myself",
+        "neighborhood": "Humboldt Park",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Cuisine",
+        "expected_cuisines": "Ethiopian",
+        "min_score": 55,
+        "natural_language_notes": "Clean direct cuisine search"
+      }
+    },
+    {
+      "id": "TQ-0055",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "non_binary",
+        "cultural_background": "Irish-American",
+        "religion": "Buddhist",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "rainy day comfort food, don't want to walk far from the L",
+        "occasion": "Date Night",
+        "neighborhood": "Rogers Park",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Contextual",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Weather + transit proximity"
+      }
+    },
+    {
+      "id": "TQ-0056",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "male",
+        "cultural_background": "mixed-multicultural",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "real neapolitan pizza, VPN certified",
+        "occasion": "Any",
+        "neighborhood": "Rogers Park",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Niche",
+        "expected_cuisines": "Italian|Pizza",
+        "min_score": 35,
+        "natural_language_notes": "Certification-level authenticity"
+      }
+    },
+    {
+      "id": "TQ-0057",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "female",
+        "cultural_background": "mainstream-American",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "fine dining worth the splurge",
+        "occasion": "Solo Dining",
+        "neighborhood": "Bridgeport",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Reputation",
+        "expected_cuisines": "any",
+        "min_score": 55,
+        "natural_language_notes": "Value judgment on luxury"
+      }
+    },
+    {
+      "id": "TQ-0058",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "female",
+        "cultural_background": "Korean-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "bougie dinner, wanna feel fancy",
+        "occasion": "Family Dinner",
+        "neighborhood": "Wicker Park",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Vibe",
+        "expected_cuisines": "any",
+        "min_score": 50,
+        "natural_language_notes": "Slang + emotional motivation"
+      }
+    },
+    {
+      "id": "TQ-0059",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "male",
+        "cultural_background": "Mexican-American",
+        "religion": "Buddhist",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "food that pairs well with a first date where you're both nervous",
+        "occasion": "Date Night",
+        "neighborhood": "Anywhere",
+        "price_level": "$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Complex",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Emotional situation + food pairing"
+      }
+    },
+    {
+      "id": "TQ-0060",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "non_binary",
+        "cultural_background": "Middle-Eastern",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "a place that'll change my life ngl",
+        "occasion": "Group Hangout",
+        "neighborhood": "South Loop",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Discovery",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Hyperbolic emotional discovery"
+      }
+    },
+    {
+      "id": "TQ-0061",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "non_binary",
+        "cultural_background": "Italian-American",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "indian restaurant, not a buffet",
+        "occasion": "Adventure",
+        "neighborhood": "Edgewater",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Cuisine",
+        "expected_cuisines": "Indian",
+        "min_score": 55,
+        "natural_language_notes": "Cuisine + negative constraint"
+      }
+    },
+    {
+      "id": "TQ-0062",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "female",
+        "cultural_background": "Eastern-European",
+        "religion": "Hindu",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "dealer's choice, just make it good",
+        "occasion": "Business Lunch",
+        "neighborhood": "Little Village",
+        "price_level": "$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Discovery",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Trust-based open query"
+      }
+    },
+    {
+      "id": "TQ-0063",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "male",
+        "cultural_background": "Chinese-American",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "tonkotsu ramen, rich broth",
+        "occasion": "Solo Dining",
+        "neighborhood": "Lincoln Square",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Dish",
+        "expected_cuisines": "Japanese",
+        "min_score": 55,
+        "natural_language_notes": "Ramen sub-type specification"
+      }
+    },
+    {
+      "id": "TQ-0064",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "male",
+        "cultural_background": "African-American",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "colombian bandeja paisa",
+        "occasion": "Special Occasion",
+        "neighborhood": "River North",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Niche",
+        "expected_cuisines": "Colombian|South American",
+        "min_score": 35,
+        "natural_language_notes": "Specific national dish"
+      }
+    },
+    {
+      "id": "TQ-0065",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "non_binary",
+        "cultural_background": "Vietnamese-American",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "award winning pizza",
+        "occasion": "Group Hangout",
+        "neighborhood": "The Loop",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Reputation",
+        "expected_cuisines": "Italian|Pizza",
+        "min_score": 55,
+        "natural_language_notes": "Award + dish category"
+      }
+    },
+    {
+      "id": "TQ-0066",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "female",
+        "cultural_background": "Filipino-American",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "upscale but chill, not stuffy",
+        "occasion": "Chill Hangout",
+        "neighborhood": "Edgewater",
+        "price_level": "$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Vibe",
+        "expected_cuisines": "any",
+        "min_score": 50,
+        "natural_language_notes": "Contradictory vibe balancing"
+      }
+    },
+    {
+      "id": "TQ-0067",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "male",
+        "cultural_background": "Caribbean-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "romantic italian near the west loop, good wine list",
+        "occasion": "Any",
+        "neighborhood": "Logan Square",
+        "price_level": "$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Multi",
+        "expected_cuisines": "Italian",
+        "min_score": 45,
+        "natural_language_notes": "Vibe + cuisine + neighborhood + drink"
+      }
+    },
+    {
+      "id": "TQ-0068",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "female",
+        "cultural_background": "Indian-American",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "lunch meeting in 30 min, need something fast near river north",
+        "occasion": "Family Dinner",
+        "neighborhood": "River North",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Contextual",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Urgent time constraint"
+      }
+    },
+    {
+      "id": "TQ-0069",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "non_binary",
+        "cultural_background": "Korean-American",
+        "religion": "Sikh",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "I've eaten at every restaurant in west loop, prove me wrong",
+        "occasion": "Treat Myself",
+        "neighborhood": "West Loop",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Complex",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Challenge-based discovery"
+      }
+    },
+    {
+      "id": "TQ-0070",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "non_binary",
+        "cultural_background": "Irish-American",
+        "religion": "Hindu",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "byob, bringing a nice bottle tonight",
+        "occasion": "Adventure",
+        "neighborhood": "South Loop",
+        "price_level": "$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Constraints",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "BYOB constraint + context"
+      }
+    },
+    {
+      "id": "TQ-0071",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "female",
+        "cultural_background": "Polish-American",
+        "religion": "Buddhist",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "scandinavian restaurant, like new nordic style",
+        "occasion": "Business Lunch",
+        "neighborhood": "Portage Park",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Niche",
+        "expected_cuisines": "Scandinavian|Nordic",
+        "min_score": 35,
+        "natural_language_notes": "Food movement reference"
+      }
+    },
+    {
+      "id": "TQ-0072",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "male",
+        "cultural_background": "Eastern-European",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "xiaolongbao, soup dumplings",
+        "occasion": "Adventure",
+        "neighborhood": "Andersonville",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Dish",
+        "expected_cuisines": "Chinese",
+        "min_score": 55,
+        "natural_language_notes": "Native name + English translation"
+      }
+    },
+    {
+      "id": "TQ-0073",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "non_binary",
+        "cultural_background": "Middle-Eastern",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "japanese food tonight",
+        "occasion": "Group Hangout",
+        "neighborhood": "Little Village",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Cuisine",
+        "expected_cuisines": "Japanese",
+        "min_score": 55,
+        "natural_language_notes": "Cuisine + time context"
+      }
+    },
+    {
+      "id": "TQ-0074",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "male",
+        "cultural_background": "Caribbean-American",
+        "religion": "Hindu",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "cheap thai food, spicy, open late",
+        "occasion": "Chill Hangout",
+        "neighborhood": "Portage Park",
+        "price_level": "$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Multi",
+        "expected_cuisines": "Thai",
+        "min_score": 45,
+        "natural_language_notes": "Price + cuisine + flavor + time"
+      }
+    },
+    {
+      "id": "TQ-0075",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "female",
+        "cultural_background": "African-American",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "michelin star restuarant, special occasion",
+        "occasion": "Special Occasion",
+        "neighborhood": "Uptown",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Reputation",
+        "expected_cuisines": "any",
+        "min_score": 55,
+        "natural_language_notes": "Prestige + misspelling + occasion"
+      }
+    },
+    {
+      "id": "TQ-0076",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "non_binary",
+        "cultural_background": "Japanese-American",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "where would Anthony Bourdain eat in Chicago",
+        "occasion": "Family Dinner",
+        "neighborhood": "North Center",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Complex",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Celebrity chef reference"
+      }
+    },
+    {
+      "id": "TQ-0077",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "male",
+        "cultural_background": "Chinese-American",
+        "religion": "Buddhist",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "vegan options for my gf and regular food for me",
+        "occasion": "Solo Dining",
+        "neighborhood": "Anywhere",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "vegan"
+        ],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Constraints",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Split dietary needs"
+      }
+    },
+    {
+      "id": "TQ-0078",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "female",
+        "cultural_background": "Vietnamese-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "garden patio fairy lights kinda place",
+        "occasion": "Date Night",
+        "neighborhood": "Lakeview",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Vibe",
+        "expected_cuisines": "any",
+        "min_score": 50,
+        "natural_language_notes": "Specific aesthetic visual"
+      }
+    },
+    {
+      "id": "TQ-0079",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "non_binary",
+        "cultural_background": "mixed-multicultural",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "show me what Chicago does best",
+        "occasion": "Any",
+        "neighborhood": "North Center",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Discovery",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "City pride discovery"
+      }
+    },
+    {
+      "id": "TQ-0080",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "male",
+        "cultural_background": "Italian-American",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "rehearsal dinner for 20, somewhere with a private area",
+        "occasion": "Special Occasion",
+        "neighborhood": "West Loop",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Contextual",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Event type + group size + constraint"
+      }
+    },
+    {
+      "id": "TQ-0081",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "female",
+        "cultural_background": "Puerto-Rican",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "want to feel like I'm in Tokyo for one night",
+        "occasion": "Treat Myself",
+        "neighborhood": "Ukrainian Village",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Complex",
+        "expected_cuisines": "Japanese",
+        "min_score": 40,
+        "natural_language_notes": "Immersive cultural experience"
+      }
+    },
+    {
+      "id": "TQ-0082",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "male",
+        "cultural_background": "mainstream-American",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "chicago's best deep dish, the real answer",
+        "occasion": "Business Lunch",
+        "neighborhood": "Chinatown",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Reputation",
+        "expected_cuisines": "Italian|Pizza",
+        "min_score": 55,
+        "natural_language_notes": "City icon + definitive answer seeking"
+      }
+    },
+    {
+      "id": "TQ-0083",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "non_binary",
+        "cultural_background": "Mexican-American",
+        "religion": "Buddhist",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "surprise me, I'll eat anything",
+        "occasion": "Chill Hangout",
+        "neighborhood": "Lincoln Square",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Discovery",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Fully open discovery"
+      }
+    },
+    {
+      "id": "TQ-0084",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "female",
+        "cultural_background": "Indian-American",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "wood fired pizza, craft beer, kid friendly",
+        "occasion": "Family Dinner",
+        "neighborhood": "Bucktown",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Multi",
+        "expected_cuisines": "Italian|Pizza",
+        "min_score": 45,
+        "natural_language_notes": "Dish + drink + family constraint"
+      }
+    },
+    {
+      "id": "TQ-0085",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "female",
+        "cultural_background": "Filipino-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "post-concert food near metro chicago",
+        "occasion": "Adventure",
+        "neighborhood": "Pilsen",
+        "price_level": "$$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Contextual",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Event afterparty dining"
+      }
+    },
+    {
+      "id": "TQ-0086",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "male",
+        "cultural_background": "Puerto-Rican",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "turkish food, kebabs and stuff",
+        "occasion": "Any",
+        "neighborhood": "South Loop",
+        "price_level": "$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Cuisine",
+        "expected_cuisines": "Turkish|Middle Eastern",
+        "min_score": 55,
+        "natural_language_notes": "Cuisine + vague dish reference"
+      }
+    },
+    {
+      "id": "TQ-0087",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "non_binary",
+        "cultural_background": "Japanese-American",
+        "religion": "Hindu",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "old school diner feel, checkered floors",
+        "occasion": "Group Hangout",
+        "neighborhood": "Streeterville",
+        "price_level": "$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Vibe",
+        "expected_cuisines": "American",
+        "min_score": 50,
+        "natural_language_notes": "Nostalgic aesthetic specificity"
+      }
+    },
+    {
+      "id": "TQ-0088",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "female",
+        "cultural_background": "Irish-American",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "georgian food, khachapuri specifically",
+        "occasion": "Treat Myself",
+        "neighborhood": "Little Village",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Niche",
+        "expected_cuisines": "Georgian",
+        "min_score": 35,
+        "natural_language_notes": "Rare cuisine + specific dish"
+      }
+    },
+    {
+      "id": "TQ-0089",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "male",
+        "cultural_background": "Indian-American",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "banh mi, the crispy kind with pate",
+        "occasion": "Solo Dining",
+        "neighborhood": "Uptown",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Dish",
+        "expected_cuisines": "Vietnamese",
+        "min_score": 55,
+        "natural_language_notes": "Dish + texture + component preference"
+      }
+    },
+    {
+      "id": "TQ-0090",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "non_binary",
+        "cultural_background": "mixed-multicultural",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "open past 11pm on a tuesday",
+        "occasion": "Date Night",
+        "neighborhood": "North Center",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Constraints",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Specific hours + day"
+      }
+    },
+    {
+      "id": "TQ-0091",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "non_binary",
+        "cultural_background": "Middle-Eastern",
+        "religion": "Buddhist",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "my ex took me to this place in river north, it had the blue lighting and great cocktails, what was it",
+        "occasion": "Any",
+        "neighborhood": "River North",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Complex",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Memory reconstruction search"
+      }
+    },
+    {
+      "id": "TQ-0092",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "female",
+        "cultural_background": "Chinese-American",
+        "religion": "Hindu",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "first date, somewhere impressive but not trying too hard",
+        "occasion": "Date Night",
+        "neighborhood": "Little Village",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Contextual",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Social situation balancing"
+      }
+    },
+    {
+      "id": "TQ-0093",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "male",
+        "cultural_background": "Caribbean-American",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "cacio e pepe, the real deal",
+        "occasion": "Family Dinner",
+        "neighborhood": "Streeterville",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Dish",
+        "expected_cuisines": "Italian",
+        "min_score": 55,
+        "natural_language_notes": "Specific Italian pasta dish"
+      }
+    },
+    {
+      "id": "TQ-0094",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "female",
+        "cultural_background": "mainstream-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "bib gourmand spots, affordable excellence",
+        "occasion": "Business Lunch",
+        "neighborhood": "Little Village",
+        "price_level": "$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Reputation",
+        "expected_cuisines": "any",
+        "min_score": 55,
+        "natural_language_notes": "Specific Michelin tier"
+      }
+    },
+    {
+      "id": "TQ-0095",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "male",
+        "cultural_background": "Vietnamese-American",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "free parking or valet, hate looking for street parking",
+        "occasion": "Group Hangout",
+        "neighborhood": "Rogers Park",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Constraints",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Parking constraint + frustration"
+      }
+    },
+    {
+      "id": "TQ-0096",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "non_binary",
+        "cultural_background": "Mexican-American",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "brunch with live jazz, somewhere classy",
+        "occasion": "Treat Myself",
+        "neighborhood": "Streeterville",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Multi",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Meal + entertainment + vibe"
+      }
+    },
+    {
+      "id": "TQ-0097",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "non_binary",
+        "cultural_background": "African-American",
+        "religion": "Catholic",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "szechuan chinese, the spicier the better",
+        "occasion": "Solo Dining",
+        "neighborhood": "Bridgeport",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Cuisine",
+        "expected_cuisines": "Chinese|Szechuan",
+        "min_score": 55,
+        "natural_language_notes": "Sub-cuisine specificity + preference"
+      }
+    },
+    {
+      "id": "TQ-0098",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "female",
+        "cultural_background": "Polish-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "haitian food in chicago, griot or tasso",
+        "occasion": "Special Occasion",
+        "neighborhood": "Rogers Park",
+        "price_level": "$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Niche",
+        "expected_cuisines": "Haitian|Caribbean",
+        "min_score": 35,
+        "natural_language_notes": "Niche Caribbean + specific dishes"
+      }
+    },
+    {
+      "id": "TQ-0099",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "male",
+        "cultural_background": "Filipino-American",
+        "religion": "Buddhist",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "best kept secret in logan square",
+        "occasion": "Adventure",
+        "neighborhood": "Logan Square",
+        "price_level": "$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Discovery",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Neighborhood-specific discovery"
+      }
+    },
+    {
+      "id": "TQ-0100",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "male",
+        "cultural_background": "Korean-American",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "exposed brick, industrial vibes, good cocktails",
+        "occasion": "Chill Hangout",
+        "neighborhood": "Little Village",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Vibe",
+        "expected_cuisines": "any",
+        "min_score": 50,
+        "natural_language_notes": "Decor-specific + drink pairing"
+      }
+    },
+    {
+      "id": "TQ-0101",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "non_binary",
+        "cultural_background": "Eastern-European",
+        "religion": "Hindu",
+        "dietary_influence": "vegetarian"
+      },
+      "request": {
+        "special_request": "smth good idk",
+        "occasion": "Special Occasion",
+        "neighborhood": "Gold Coast",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "vegetarian"
+        ],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Discovery",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Ultra-minimal slang query"
+      }
+    },
+    {
+      "id": "TQ-0102",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "female",
+        "cultural_background": "Italian-American",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "moroccan tagine, somewhere with the clay pots",
+        "occasion": "Treat Myself",
+        "neighborhood": "River North",
+        "price_level": "$$$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Niche",
+        "expected_cuisines": "Moroccan|North African",
+        "min_score": 35,
+        "natural_language_notes": "Dish + cookware authenticity"
+      }
+    },
+    {
+      "id": "TQ-0103",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "retiree",
+        "gender": "non_binary",
+        "cultural_background": "Japanese-American",
+        "religion": "none",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "place that makes you forget you're in a midwest city",
+        "occasion": "Family Dinner",
+        "neighborhood": "Rogers Park",
+        "price_level": "$",
+        "dietary_restrictions": [],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Complex",
+        "expected_cuisines": "any",
+        "min_score": 40,
+        "natural_language_notes": "Escapist vibe query"
+      }
+    },
+    {
+      "id": "TQ-0104",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "mid_career",
+        "gender": "male",
+        "cultural_background": "Korean-American",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "upscale steakhouse for client dinner, private room if possible",
+        "occasion": "Business Lunch",
+        "neighborhood": "Andersonville",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Multi",
+        "expected_cuisines": "American|Steakhouse",
+        "min_score": 45,
+        "natural_language_notes": "Cuisine + occasion + constraint"
+      }
+    },
+    {
+      "id": "TQ-0105",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "female",
+        "cultural_background": "Eastern-European",
+        "religion": "Hindu",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "lobster roll, new england style",
+        "occasion": "Solo Dining",
+        "neighborhood": "North Center",
+        "price_level": "$$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Dish",
+        "expected_cuisines": "Seafood|American",
+        "min_score": 55,
+        "natural_language_notes": "Regional style specification"
+      }
+    },
+    {
+      "id": "TQ-0106",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "non_binary",
+        "cultural_background": "Polish-American",
+        "religion": "Buddhist",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "somewhere loud and fun for a birthday",
+        "occasion": "Special Occasion",
+        "neighborhood": "Humboldt Park",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Vibe",
+        "expected_cuisines": "any",
+        "min_score": 50,
+        "natural_language_notes": "Energy level + occasion"
+      }
+    },
+    {
+      "id": "TQ-0107",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "young_professional",
+        "gender": "male",
+        "cultural_background": "Vietnamese-American",
+        "religion": "Sikh",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "hungover brunch, nothing too heavy",
+        "occasion": "Any",
+        "neighborhood": "Gold Coast",
+        "price_level": "$$$",
+        "dietary_restrictions": [],
+        "time_of_day": "breakfast"
+      },
+      "test_metadata": {
+        "category": "Contextual",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Physical state + negative constraint"
+      }
+    },
+    {
+      "id": "TQ-0108",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "empty_nester",
+        "gender": "female",
+        "cultural_background": "Mexican-American",
+        "religion": "Muslim",
+        "dietary_influence": "halal"
+      },
+      "request": {
+        "special_request": "james beard award winner",
+        "occasion": "Adventure",
+        "neighborhood": "Avondale",
+        "price_level": "$$",
+        "dietary_restrictions": [
+          "halal"
+        ],
+        "time_of_day": "lunch"
+      },
+      "test_metadata": {
+        "category": "Reputation",
+        "expected_cuisines": "any",
+        "min_score": 55,
+        "natural_language_notes": "Specific award reference"
+      }
+    },
+    {
+      "id": "TQ-0109",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "college_student",
+        "gender": "female",
+        "cultural_background": "Indian-American",
+        "religion": "Jewish",
+        "dietary_influence": "kosher"
+      },
+      "request": {
+        "special_request": "southern comfort food",
+        "occasion": "Group Hangout",
+        "neighborhood": "Anywhere",
+        "price_level": "$$$$",
+        "dietary_restrictions": [
+          "kosher"
+        ],
+        "time_of_day": "late_night"
+      },
+      "test_metadata": {
+        "category": "Cuisine",
+        "expected_cuisines": "Southern|Soul Food",
+        "min_score": 55,
+        "natural_language_notes": "Regional cuisine style"
+      }
+    },
+    {
+      "id": "TQ-0110",
+      "generated_at": "2026-03-11T06:30:46.839Z",
+      "persona": {
+        "age_group": "family_parent",
+        "gender": "male",
+        "cultural_background": "African-American",
+        "religion": "Christian",
+        "dietary_influence": "none"
+      },
+      "request": {
+        "special_request": "takes reservations for large party, 12 people",
+        "occasion": "Group Hangout",
+        "neighborhood": "West Loop",
+        "price_level": "$$",
+        "dietary_restrictions": [],
+        "time_of_day": "dinner"
+      },
+      "test_metadata": {
+        "category": "Constraints",
+        "expected_cuisines": "any",
+        "min_score": 45,
+        "natural_language_notes": "Booking + group size"
       }
     }
   ]

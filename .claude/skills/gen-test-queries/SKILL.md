@@ -1,13 +1,13 @@
 ---
 name: gen-test-queries
-description: "Generates 10 diverse, persona-driven test queries simulating real Chicago users. Maintains a 1000-query repository at tests/generated-queries.json. Covers demographics: time of day, gender, age, religion, cultural background, occasion. Invoke with: /gen-test-queries"
+description: "Generates 100 diverse, persona-driven test queries simulating real Chicago users. Maintains a 1000-query repository at tests/generated-queries.json. Covers demographics: time of day, gender, age, religion, cultural background, occasion. Invoke with: /gen-test-queries"
 user-invocable: true
 allowed-tools: [Read, Write, Edit, Bash]
 ---
 
 # DondeAI Test Query Generator
 
-You are a test query generation agent for DondeAI, the AI restaurant recommendation engine for Chicago. Your job is to generate **10 realistic, diverse test queries** per invocation that simulate how real people search for restaurants, and append them to `tests/generated-queries.json`.
+You are a test query generation agent for DondeAI, the AI restaurant recommendation engine for Chicago. Your job is to generate **100 realistic, diverse test queries** per invocation by running the generator script, which appends them to `tests/generated-queries.json`.
 
 ## Why This Skill Exists
 
@@ -15,64 +15,40 @@ Static test suites (golden-50, benchmark-200) are hand-crafted and limited. Real
 
 ## Execution Protocol
 
-### Step 1: Read Current State
+### Step 1: Run the Generator Script
 
-```
-1. Read tests/generated-queries.json (if it doesn't exist, create the seed structure)
-2. Use bash/jq to extract distribution summary:
-   - Total query count
-   - Count per category
-   - Count per time_of_day
-   - Count per cultural_background
-   - Count per age_group
-   - Count per occasion
-3. Read tests/golden-dataset-test.sh to note the 50 existing golden queries (avoid duplicating)
-4. Read tests/benchmark-200.sh to note the 200 existing benchmark queries (avoid duplicating)
+```bash
+cd /home/user/dondeBackend/scripts && npx tsx generate-test-queries.ts
 ```
 
-If `total_queries >= 1000`, report "Repository full (1000/1000). No new queries generated." and stop.
+The script (`scripts/generate-test-queries.ts`) handles everything automatically:
+- Reads current `tests/generated-queries.json` state
+- Computes gap analysis across all dimensions
+- Generates 100 queries using 150+ templates across 10 categories
+- Prioritizes underrepresented dimensions (least-count-first selection)
+- Deduplicates against existing queries
+- Merges religion-based dietary restrictions automatically
+- Updates metadata and distribution counts
+- Writes validated JSON output
+- Prints a generation report
 
-### Step 2: Distribution Audit
+**Override count:** `COUNT=50 npx tsx generate-test-queries.ts` (generates 50 instead of 100)
 
-Compute gap analysis across all dimensions. Identify the most underrepresented values:
+If `total_queries >= 1000`, the script reports "Repository full" and exits.
 
+### Step 2: Validate Output
+
+```bash
+cat tests/generated-queries.json | jq . > /dev/null && echo "JSON valid"
+cat tests/generated-queries.json | jq '.metadata.total_queries'
 ```
-Target per 1000 queries:
-  - Category: 100 each × 10 categories
-  - Time of day: 250 each × 4 slots
-  - Age group: ~167 each × 6 groups
-  - Gender: ~450/450/100 (male/female/non_binary)
-  - Cultural background: ~59 each × 17 backgrounds
-  - Occasion: 100 each × 10 occasions
-  - Queries with dietary restrictions: ~200 (20%)
-  - Queries with misspellings/slang: ~300 (30%)
-```
 
-Identify the 3 most underrepresented values in each dimension. The 10 new queries should prioritize filling these gaps.
+### Step 3: Display Report
 
-### Step 3: Generate 10 Personas
-
-For each of the 10 queries, construct a unique persona by selecting one value from each dimension. Prioritize underrepresented combinations from Step 2.
-
-### Step 4: Generate Queries
-
-For each persona, think deeply: "What would this specific person actually type into a restaurant search app?" Write the `special_request` in their authentic voice. Fill in all API request fields based on what's natural for this persona.
-
-### Step 5: Deduplication Check
-
-Before finalizing, verify:
-1. No exact `special_request` match (case-insensitive) with existing queries
-2. No close paraphrase of golden dataset or benchmark-200 queries
-3. If a duplicate is found, regenerate that query with a different angle
-
-### Step 6: Write Output
-
-1. Append the 10 new query objects to the `queries` array in `tests/generated-queries.json`
-2. Update `metadata.total_queries` to the new count
-3. Update `metadata.last_generated` to the current ISO timestamp
-4. Recompute all `metadata.distribution` counts
-5. Validate JSON with: `cat tests/generated-queries.json | jq . > /dev/null`
-6. Display the generation report (see Output Format below)
+The script prints a full report. Share it with the user including:
+- Number of queries generated and ID range
+- Distribution summary across all dimensions
+- Table of all generated queries
 
 ## Persona Dimensions
 
@@ -312,27 +288,25 @@ Not every query needs modifiers. ~40% should be clean, direct searches. The perc
 
 ## Output Format
 
-After generating, display this report:
+The script prints a full report automatically. Example output:
 
 ```
 ## Test Query Generation Report
 
-Generated: 10 new queries (TQ-NNNN to TQ-NNNN)
-Total queries: X / 1000
+Generated: 100 new queries (TQ-0011 to TQ-0110)
+Total queries: 110 / 1000
 
-### Gap Analysis (before generation)
-| Dimension | Most Underrepresented | Count | Target |
-|-----------|----------------------|-------|--------|
-| Category  | ...                  | ...   | 100    |
-| Time      | ...                  | ...   | 250    |
-| Culture   | ...                  | ...   | 59     |
-| Age       | ...                  | ...   | 167    |
-| Occasion  | ...                  | ...   | 100    |
+### Distribution After Generation
+| Dimension | Values |
+|-----------|--------|
+| category  | Cuisine:12, Dish:11, Vibe:11, ... |
+| time_of_day | dinner:30, lunch:28, breakfast:22, late_night:20 |
+| ...       | ... |
 
 ### Generated Queries
 | # | ID | Query | Persona | Category |
-|---|-----|-------|---------|----------|
-| 1 | TQ-NNNN | "special_request text" | age/gender/culture | Category |
+|---|------|-------|---------|----------|
+| 1 | TQ-0011 | "special_request text" | age/gender/culture | Category |
 | ... | ... | ... | ... | ... |
 ```
 
