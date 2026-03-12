@@ -247,7 +247,7 @@ DON'T WRITE LIKE THIS:
 
 ${getToneDirective(scoreTier)}
 
-BLURB STRUCTURE (100-120 words, SINGLE PARAGRAPH — no line breaks):
+BLURB STRUCTURE (100-115 words, SINGLE PARAGRAPH — no line breaks):
 - HOOK (1 sentence): Create tension or curiosity. A bold claim, a provocation, an unexpected detail, or a "you had to be there" moment. Never open with the restaurant name. Never open with "Ah," "Oh," or similar interjections.
 - HEART (2-3 sentences): The sensory evidence that earns the hook. One vivid food detail (flavor, texture, aroma, make the reader taste it). One human/atmosphere detail that puts the reader in the room (not "moderate noise" but "you can actually hear each other"). Connect these to the user's occasion, why does THIS detail matter for THEIR night?
 - CONVICTION (1 sentence): The decisive close. Short, punchy, ≤8 words. This is where Donde stakes its reputation. "We'd eat here tonight." "This is the one." "Go. Bring someone."
@@ -255,8 +255,7 @@ CRITICAL BLURB RULES:
 - The restaurant name MUST appear somewhere in the blurb (not the first word, but somewhere).
 - Only mention cuisines, dishes, and features that are explicitly listed in the restaurant data below. Do NOT invent or assume any cuisines, dishes, or services not in the provided profile.
 - Write as a SINGLE continuous paragraph. No line breaks, no bullet points, no lists.
-
-QUERY RELEVANCE: Naturally weave the user's key search terms into the blurb. If they asked about "foraging," mention foraging. If they asked about "wine," reference the wine program. If they mentioned a neighborhood, acknowledge it. The blurb should read as a direct response to their specific request, not a generic description.
+- QUERY TERM ECHO: The KEY SEARCH TERMS listed in the user prompt below MUST each appear at least once in the blurb, woven in naturally. If they asked about "bottomless brunch," say "bottomless" and "brunch." If they mentioned "logan square," name the neighborhood. The blurb must read as a direct response to their specific request, not a generic description.
 
 MATCH HEADLINE (separate field, 10-15 words, SINGLE sentence):
 - Answers "Why this restaurant for THIS request?"
@@ -298,7 +297,7 @@ OUTPUT FORMAT (JSON only, no markdown):
 {
   "restaurant_index": 0,
   "match_headline": "10-15 word one-liner: WHY this restaurant for THIS request. Lead with strongest signal. No restaurant name.",
-  "recommendation": "100-120 word single-paragraph blurb — MUST contain 'we' or 'our'. MUST NOT contain '—'. MUST name the restaurant somewhere. No line breaks.",
+  "recommendation": "100-115 word single-paragraph blurb — MUST contain 'we' or 'our'. MUST NOT contain '—'. MUST name the restaurant somewhere. No line breaks.",
   "insider_tip": "One sentence tip",
   "intent_boost": false,
   "boost_reason": null,
@@ -343,6 +342,55 @@ Transparent. "We looked for [X] and the options are thin." Zero fake enthusiasm.
 }
 
 // ==========================================
+// KEY TERMS EXTRACTION — mirrors grading.ts query relevance logic
+// ==========================================
+
+const KEY_TERM_STOP_WORDS = new Set([
+  "best", "good", "great", "nice", "find", "want", "looking", "near",
+  "restaurant", "food", "place", "chicago", "partnership", "close",
+  "financial", "area", "spot", "around", "dinner", "lunch", "breakfast",
+  "meal", "dining", "really", "like", "just", "that", "this", "with",
+  "from", "have", "very", "some", "what", "where", "here", "there",
+  "for", "the", "and", "but", "not", "are", "was", "been",
+]);
+
+const KEY_TERM_NEIGHBORHOODS = [
+  "west loop", "lincoln park", "wicker park", "logan square", "river north",
+  "old town", "lakeview", "pilsen", "hyde park", "bucktown", "andersonville",
+  "chinatown", "bridgeport", "ukrainian village", "gold coast", "south loop",
+  "north center", "ravenswood", "rogers park", "edgewater", "uptown",
+  "humboldt park", "avondale", "irving park", "albany park",
+];
+
+/**
+ * Extract significant search terms from the user's query.
+ * These terms should appear in the blurb for query relevance grading.
+ */
+function extractKeyTerms(query: string): string[] {
+  const lower = query.toLowerCase();
+  const terms: string[] = [];
+
+  // Detect neighborhood as a unit
+  for (const hood of KEY_TERM_NEIGHBORHOODS) {
+    if (lower.includes(hood)) {
+      terms.push(hood);
+      break;
+    }
+  }
+
+  // Split remaining words, filter stop words and short words
+  const words = lower.split(/\s+/).filter((w) => w.length > 2);
+  const hoodWords = new Set(terms.flatMap((t) => t.split(/\s+/)));
+  for (const w of words) {
+    if (!KEY_TERM_STOP_WORDS.has(w) && !hoodWords.has(w)) {
+      terms.push(w);
+    }
+  }
+
+  return [...new Set(terms)];
+}
+
+// ==========================================
 // USER PROMPT — candidate pool + deep profiles
 // ==========================================
 
@@ -377,12 +425,13 @@ export function buildV5UserPrompt(
   neighborhoodExpanded?: boolean,
 ): string {
   // Section 1: User request context
+  const keyTerms = extractKeyTerms(specialRequest || '');
   let prompt = `USER REQUEST: "${specialRequest || 'No specific request'}"
 OCCASION: ${occasion}
 NEIGHBORHOOD: ${neighborhood}
 PRICE: ${priceLevel}
 DIETARY: ${dietaryRestrictions.length > 0 ? dietaryRestrictions.join(', ') : 'None'}
-
+${keyTerms.length > 0 ? `KEY SEARCH TERMS (each must appear naturally in blurb): ${keyTerms.join(', ')}\n` : ''}
 WEIGHT CONTEXT: ${weightContext}
 
 `;
@@ -597,12 +646,17 @@ Neighborhood: ${r.neighborhood_name || 'Unknown'}
     if (mn.weak_spots?.length) prompt += `Caveat: ${mn.weak_spots[0]}\n`;
   }
 
-  prompt += `\nNaturally reference the user's key search concepts in the blurb.
+  const blurbKeyTerms = extractKeyTerms(context.special_request || '');
+  if (blurbKeyTerms.length > 0) {
+    prompt += `KEY SEARCH TERMS (each must appear naturally in blurb): ${blurbKeyTerms.join(', ')}\n`;
+  }
+
+  prompt += `\nEach KEY SEARCH TERM above MUST appear at least once in the blurb, woven in naturally.
 
 Write the blurb for this restaurant. Respond in JSON only:
 {
   "match_headline": "10-15 word one-liner: WHY this restaurant for THIS request. No restaurant name.",
-  "recommendation": "100-120 word single-paragraph blurb — MUST contain 'we' or 'our'. MUST NOT contain '—'. MUST name the restaurant somewhere. No line breaks.",
+  "recommendation": "100-115 word single-paragraph blurb — MUST contain 'we' or 'our'. MUST NOT contain '—'. MUST name the restaurant somewhere. No line breaks.",
   "insider_tip": "One sentence tip"
 }`;
 
