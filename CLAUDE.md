@@ -4,7 +4,7 @@ Last updated: 2026-03-12
 
 > **Read this file first, then `docs/*.md` only as needed. Only open source files when modifying code.**
 
-AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines. 2,719 restaurants (all active), 2,719 with deep profiles, 2,712 with review intelligence. 33 neighborhoods, 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification. 56 migrations, 14 CI/CD workflows, 25 pipeline scripts.
+AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines. ~2,720 restaurants (active, including 7 newly added iconic Chicago institutions), 2,719+ with deep profiles, 2,712 with review intelligence. 33 neighborhoods, 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification. 57 migrations (including comprehensive data quality audit fixes), 14 CI/CD workflows, 25 pipeline scripts.
 
 ## Documentation Index
 
