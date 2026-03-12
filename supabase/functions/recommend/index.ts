@@ -17,6 +17,7 @@ import {
   ensureDiversity,
   extractUnmatchedKeywords,
 } from "./_shared/scoring.ts";
+import { computeScoreFitGrade, computeBlurbQualityGrade } from "./_shared/grading.ts";
 import type { UserFeedbackSignals } from "./_shared/scoring.ts";
 // V9 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
@@ -1187,6 +1188,9 @@ Deno.serve(async (req: Request) => {
     // Use service client for reliable logging (anon key lacks RLS INSERT permission)
     // Generate UUID client-side since table lacks DEFAULT gen_random_uuid()
     const serviceForLog = createServiceClient();
+    // Compute score validation grades for live monitoring
+    const scoreFitResult = computeScoreFitGrade(special_request, responseBody as Record<string, unknown>);
+    const blurbQualityResult = computeBlurbQualityGrade(special_request, responseBody as Record<string, unknown>);
     // Only insert columns that exist in the current schema
     // user_id, dietary_restrictions, feedback columns may not exist yet
     const queryLogRow: Record<string, unknown> = {
@@ -1204,6 +1208,10 @@ Deno.serve(async (req: Request) => {
       auth_user_id: authUserId || null,
       source: requestSource,
       recommendation_text: (responseBody as Record<string, unknown>).recommendation || null,
+      score_fit_score: scoreFitResult.score,
+      score_fit_grade: scoreFitResult.grade,
+      blurb_quality_score: blurbQualityResult.score,
+      blurb_quality_grade: blurbQualityResult.grade,
     };
     serviceForLog
       .from("user_queries")
