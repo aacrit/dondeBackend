@@ -13,8 +13,8 @@
  *   npx tsx scripts/pipelines/enrich-full-dataset.ts --live --resume    # Resume from checkpoint
  *   npx tsx scripts/pipelines/enrich-full-dataset.ts --realtime         # Use real-time API (no batch)
  *
- * Cost estimate (913 restaurants):
- *   Batch API (default): ~$29     Real-time API: ~$58
+ * Cost estimate (2,719 restaurants):
+ *   Batch API (default): ~$86     Real-time API: ~$172
  *   Wall-clock time:     ~30-60 min
  */
 
