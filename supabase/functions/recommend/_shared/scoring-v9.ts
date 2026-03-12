@@ -987,6 +987,7 @@ export function computeRelevance(
   candidate: V9Candidate,
   intent: IntentClassificationV2 | null,
   specialRequest: string,
+  googleData?: GooglePlaceData | null,
 ): V9Relevance {
   let weakVibeScore: number | null = null;
 
@@ -996,7 +997,7 @@ export function computeRelevance(
   // Without this, Claude sometimes returns target_cuisines (e.g. "French" for "michelin star"),
   // which blocks the reputation path and produces low relevance scores.
   if (isReputationQuery(intent, specialRequest)) {
-    return computeReputationRelevance(candidate);
+    return computeReputationRelevance(candidate, googleData);
   }
 
   // No intent → everything is equally relevant (open-ended query)
@@ -1347,7 +1348,7 @@ function computeCuisineRelevance(
 
 // ---- Reputation Relevance (0-1.0) — V10: Awards, Critics, Recognition ----
 
-function computeReputationRelevance(candidate: V9Candidate): V9Relevance {
+function computeReputationRelevance(candidate: V9Candidate, googleData?: GooglePlaceData | null): V9Relevance {
   const dp = candidate.deep_profile;
   const ri = candidate.review_intelligence;
   let score = 0.50; // Base: generous floor — reputation queries should still show good restaurants
@@ -1373,6 +1374,23 @@ function computeReputationRelevance(candidate: V9Candidate): V9Relevance {
   // High review intelligence food quality (8+/10) — strong indirect reputation signal
   if (ri?.review_food_quality != null && ri.review_food_quality >= 8) {
     score += 0.10;
+  }
+
+  // Analytics Expert rec #6: Google rating as reputation signal
+  // High Google rating with substantial review volume is a strong reputation proxy.
+  // This helps restaurants without explicit awards_recognition but with strong public reputation.
+  const gRating = googleData?.google_rating;
+  const gCount = googleData?.google_review_count;
+  if (gRating != null && gCount != null) {
+    if (gRating >= 4.7 && gCount >= 500) {
+      score += 0.15;
+      signals.push(`Google ${gRating}★ (${gCount} reviews)`);
+    } else if (gRating >= 4.5 && gCount >= 200) {
+      score += 0.10;
+      signals.push(`Google ${gRating}★ (${gCount} reviews)`);
+    } else if (gRating >= 4.3 && gCount >= 100) {
+      score += 0.05;
+    }
   }
 
   // Neighborhood institution/destination — local reputation
@@ -2280,7 +2298,7 @@ export function computeV9Score(
 ): V9ScoreResult {
 
   // Step 1: Compute Relevance (the GATE)
-  const relevance = computeRelevance(candidate, context.intent, context.specialRequest);
+  const relevance = computeRelevance(candidate, context.intent, context.specialRequest, context.googleData);
 
   // Step 2: Compute Quality (the RANK)
   const { quality, weights, factors, factorDetails, factorConfidence } = computeQuality(candidate, relevance.type, context);

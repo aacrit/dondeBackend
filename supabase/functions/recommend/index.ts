@@ -311,6 +311,10 @@ Deno.serve(async (req: Request) => {
         if (slopHits.length > 0) {
           logWarn("Blurb endpoint slop detected", { patterns: slopHits, restaurant: restaurantData.name });
         }
+        // Voice compliance auto-fix for blurb endpoint
+        if (!/\bwe\b|\bour\b/.test(blurbLower)) {
+          parsed.recommendation = "We'd pick this one. " + parsed.recommendation;
+        }
       }
 
       // Validate insider tip structure (verb-start, word count)
@@ -686,6 +690,8 @@ Deno.serve(async (req: Request) => {
     const diverseProfiles = ensureDiversity(
       scored.map(s => s.profile),
       allCandidates.filter(r => !exclude.includes(r.id)),
+      2,  // maxPerCuisine: tightened from 3 to prevent monoculture (Analytics Expert rec #2)
+      3,  // maxPerNeighborhood: tightened from 5 for better geographic diversity
     );
     // Re-map to scored candidates maintaining order
     const diverseScored = diverseProfiles.map(p => {
@@ -1158,10 +1164,12 @@ Deno.serve(async (req: Request) => {
           logWarn("V5 recommendation word count outside target", { wordCount, target: "100-120" });
         }
 
-        // V5: "We" voice check
+        // V5: "We" voice check — auto-fix if missing
         const recLowerForVoice = parsed.recommendation.toLowerCase();
         if (!/\bwe\b|\bour\b/.test(recLowerForVoice)) {
-          logWarn("V5 recommendation missing 'we'/'our' voice mandate");
+          logWarn("V5 recommendation missing 'we'/'our' voice mandate — auto-fixing");
+          // Prepend "We'd pick this one." to salvage voice compliance
+          parsed.recommendation = "We'd pick this one. " + parsed.recommendation;
         }
       }
 
