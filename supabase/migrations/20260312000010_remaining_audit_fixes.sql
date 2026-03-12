@@ -70,11 +70,23 @@ WHERE name = 'Smoque BBQ'
 AND insider_tip ILIKE '%counter seats facing the pit%';
 
 -- ============================================================
--- CROSS-FIELD: Fix any remaining "Cocktail Bar" cuisine_type entries
--- All food-forward spots should have been reclassified in migrations 6 & 8
--- This catches any stragglers
+-- Additional Cocktail Bar reclassifications (missed in earlier migrations)
 -- ============================================================
--- (Query only, no blind update — just flagging for review)
+
+-- Tied House: has smash burger, charcuterie, small plates, full table service — American gastropub
+UPDATE restaurants SET cuisine_type = 'American', updated_at = now()
+WHERE name = 'Tied House' AND cuisine_type = 'Cocktail Bar';
+
+-- The Native: grain bowls, breakfast burritos, shakshuka — all-day cafe
+UPDATE restaurants SET cuisine_type = 'Brunch', updated_at = now()
+WHERE name = 'The Native' AND cuisine_type = 'Cocktail Bar';
+
+-- Martin's Corner: Pilsen neighborhood bar — keep as Cocktail Bar (legitimate)
+-- Kumiko: Japanese cocktail bar with bar food — keep as Cocktail Bar (cocktails are the focus)
+-- The Aviary: Grant Achatz cocktail experience — keep as Cocktail Bar (definitively a bar)
+-- Billy Sunday: cocktail-focused bar — keep as Cocktail Bar
+-- The Green Mill: jazz club and cocktail bar — keep as Cocktail Bar
+-- The California Clipper: bar with music — keep as Cocktail Bar
 
 -- ============================================================
 -- AU CHEVAL — Fix service_style (pure "Counter" is incomplete)
