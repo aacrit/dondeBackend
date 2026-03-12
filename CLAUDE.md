@@ -89,9 +89,16 @@ All skills in `.claude/skills/`.
 
 **Score Validation Grading:**
 - Score Fit Grade (0-100): Relevance alignment (30pts) + Cuisine match (25pts) + Factor alignment (25pts) + Compression check (10pts) + Weak spots coherence (10pts)
-- Blurb Quality Grade (0-100): Slop-free (25pts) + Query relevance (25pts) + Specificity (20pts) + Voice compliance (15pts) + Word count (15pts)
+- Blurb Quality Grade (0-100): Slop-free (25pts) + Query relevance (25pts, includes compound neighborhood detection + 30 stop words) + Specificity (20pts) + Voice compliance (15pts) + Word count (15pts)
 - Pass criteria: DM >= 70 AND Score Fit >= B- (80) AND Blurb Quality >= B- (80)
 - Grade scale: A+ (97+), A (93-96), B+ (87-89), B (83-86), B- (80-82), C (73-79), D (60-69), F (<60)
+- Grading code: `_shared/grading.ts` (backend) + `dondeAI/js/cc-grading.js` (frontend) — must stay in sync
+
+**CEO Dashboard Data (Supabase queries for debugging issues):**
+- `gauntlet_runs` table: `run_id, avg_dm, avg_score_fit, avg_blurb_quality, grade_pass_count, grade_distribution, total, gap_count, mode, delta_avg_dm, created_at`
+- `gauntlet_results` table: `query, donde_match, restaurant_name, score_fit_score, score_fit_grade, blurb_quality_score, blurb_quality_grade, gap_type, category, run_id`
+- `user_queries` table: `special_request, donde_match, score_fit_score, score_fit_grade, blurb_quality_score, blurb_quality_grade, recommendation_text, source, created_at`
+- Quick issue lookup: `curl -s "$SUPAB_URL/rest/v1/gauntlet_results?run_id=eq.<RUN_ID>&blurb_quality_score=lt.80&select=query,restaurant_name,blurb_quality_score,blurb_quality_grade" -H "apikey: $SUPAB_ANON_KEY" -H "Authorization: Bearer $SUPAB_SERVICE_ROLE_KEY"`
 
 ## API Contract (Immutable)
 

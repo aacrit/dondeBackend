@@ -226,6 +226,10 @@ Every recommendation blurb follows a three-part structure:
 
 Opening rotation by restaurant name hash: 50% food/dish lead, 25% provocation/opinion, 25% neighborhood/context.
 
+### Query Relevance Directive
+
+The system prompt instructs Claude to naturally weave the user's key search terms into the blurb. If the user asked about "foraging," mention foraging. If they asked about "wine," reference the wine program. If they mentioned a neighborhood, acknowledge it. This ensures blurbs read as direct responses to the specific request, not generic descriptions. Scored as part of Blurb Quality Grade Check 2 (25pts).
+
 ### Intent Boost
 
 Claude can override the engine's #1 pick if a lower-ranked candidate uniquely matches the user's specific request. Boost calibration:
