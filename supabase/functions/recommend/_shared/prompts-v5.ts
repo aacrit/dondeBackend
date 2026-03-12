@@ -255,7 +255,7 @@ CRITICAL BLURB RULES:
 - The restaurant name MUST appear somewhere in the blurb (not the first word, but somewhere).
 - Only mention cuisines, dishes, and features that are explicitly listed in the restaurant data below. Do NOT invent or assume any cuisines, dishes, or services not in the provided profile.
 - Write as a SINGLE continuous paragraph. No line breaks, no bullet points, no lists.
-- QUERY TERM ECHO: The KEY SEARCH TERMS listed in the user prompt below MUST each appear at least once in the blurb, woven in naturally. If they asked about "bottomless brunch," say "bottomless" and "brunch." If they mentioned "logan square," name the neighborhood. The blurb must read as a direct response to their specific request, not a generic description.
+- QUERY TERM ECHO: The KEY SEARCH TERMS listed in the user prompt below should each appear in the blurb where relevant. If the restaurant matches the term (e.g., they asked "bottomless brunch" and it serves brunch), use the exact term. If the restaurant doesn't match a feature term (e.g., they asked "rooftop" but this isn't a rooftop), acknowledge the search context naturally without claiming the restaurant has that feature. The blurb must read as a direct response to their specific request, not a generic description.
 
 MATCH HEADLINE (separate field, 10-15 words, SINGLE sentence):
 - Answers "Why this restaurant for THIS request?"
@@ -431,7 +431,7 @@ OCCASION: ${occasion}
 NEIGHBORHOOD: ${neighborhood}
 PRICE: ${priceLevel}
 DIETARY: ${dietaryRestrictions.length > 0 ? dietaryRestrictions.join(', ') : 'None'}
-${keyTerms.length > 0 ? `KEY SEARCH TERMS (each must appear naturally in blurb): ${keyTerms.join(', ')}\n` : ''}
+${keyTerms.length > 0 ? `KEY SEARCH TERMS (weave naturally into blurb where relevant): ${keyTerms.join(', ')}\n` : ''}
 WEIGHT CONTEXT: ${weightContext}
 
 `;
@@ -651,7 +651,7 @@ Neighborhood: ${r.neighborhood_name || 'Unknown'}
     prompt += `KEY SEARCH TERMS (each must appear naturally in blurb): ${blurbKeyTerms.join(', ')}\n`;
   }
 
-  prompt += `\nEach KEY SEARCH TERM above MUST appear at least once in the blurb, woven in naturally.
+  prompt += `\nWeave each KEY SEARCH TERM naturally into the blurb where relevant to the restaurant.
 
 Write the blurb for this restaurant. Respond in JSON only:
 {
