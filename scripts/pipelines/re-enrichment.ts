@@ -21,7 +21,10 @@ import { processBatches } from "../lib/batch.js";
 const DRY_RUN = process.env.DRY_RUN === "true";
 
 // Tier 1: Direct Google type → cuisine mapping
+// NOTE: Google types use underscored names like "mexican_restaurant".
+// "bar" is intentionally excluded — falls through to Claude Tier 2.
 const GOOGLE_TYPE_TO_CUISINE: Record<string, string> = {
+  // Core cuisine types
   mexican_restaurant: "Mexican",
   italian_restaurant: "Italian",
   japanese_restaurant: "Japanese",
@@ -45,9 +48,9 @@ const GOOGLE_TYPE_TO_CUISINE: Record<string, string> = {
   cafe: "Coffee/Cafe",
   coffee_shop: "Coffee/Cafe",
   // bar: removed — "bar" Google type alone is not enough to classify cuisine.
-  // Restaurants with only "bar" type fall through to Claude Tier 2 for proper classification.
+  // Restaurants with only "bar" type fall through to Claude Tier 2.
   night_club: "Cocktail Bar",
-  // Additional common Google types
+  // Additional Google types
   pizza_restaurant: "Italian",
   sushi_restaurant: "Japanese",
   ramen_restaurant: "Japanese",
@@ -57,7 +60,10 @@ const GOOGLE_TYPE_TO_CUISINE: Record<string, string> = {
   spanish_restaurant: "Mediterranean",
   ethiopian_restaurant: "Ethiopian",
   peruvian_restaurant: "Peruvian",
-  brewery: "Brewery/Beer Bar",
+  caribbean_restaurant: "Caribbean",
+  colombian_restaurant: "Colombian",
+  cuban_restaurant: "Cuban",
+  brewery: "American",
 };
 
 interface RestaurantRow {
