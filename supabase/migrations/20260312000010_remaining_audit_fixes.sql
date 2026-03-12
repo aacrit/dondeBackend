@@ -81,9 +81,9 @@ AND insider_tip ILIKE '%counter seats facing the pit%';
 -- Au Cheval has counter, booths, and tables with full service
 -- ============================================================
 UPDATE restaurant_deep_profiles
-SET service_style = 'full_service'
+SET service_style = 'Full Table Service'
 WHERE restaurant_id = (SELECT id FROM restaurants WHERE name = 'Au Cheval' LIMIT 1)
-AND service_style = 'counter';
+AND service_style = 'Counter';
 
 -- ============================================================
 -- FRONTERA GRILL — Bump date_friendly_score from 6 to 7
