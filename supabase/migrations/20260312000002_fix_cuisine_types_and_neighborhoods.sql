@@ -119,30 +119,42 @@ WHERE r.id = ri.restaurant_id
 -- ============================================================
 -- FIX #3: Merge 5 duplicate neighborhoods
 -- ============================================================
--- Keep the first (alphabetically by ID) UUID for each name, reassign restaurants.
+-- Keep the first (alphabetically by ID) UUID for each name.
+-- Reassign BOTH restaurants AND user_queries before deleting the duplicate.
+-- (user_queries also has a FK to neighborhoods.id)
 
 -- Pilsen: keep fee79b01, merge ff99dac1
 UPDATE restaurants SET neighborhood_id = 'fee79b01-ceff-4755-8291-3a08190da0cd'
+WHERE neighborhood_id = 'ff99dac1-716d-47a8-af0b-300c0c0be410';
+UPDATE user_queries SET neighborhood_id = 'fee79b01-ceff-4755-8291-3a08190da0cd'
 WHERE neighborhood_id = 'ff99dac1-716d-47a8-af0b-300c0c0be410';
 DELETE FROM neighborhoods WHERE id = 'ff99dac1-716d-47a8-af0b-300c0c0be410';
 
 -- Wicker Park: keep 462906ef, merge 731e0bb2
 UPDATE restaurants SET neighborhood_id = '462906ef-c5c1-4376-b439-474756b38698'
 WHERE neighborhood_id = '731e0bb2-7903-4526-adc3-cce45a3d0677';
+UPDATE user_queries SET neighborhood_id = '462906ef-c5c1-4376-b439-474756b38698'
+WHERE neighborhood_id = '731e0bb2-7903-4526-adc3-cce45a3d0677';
 DELETE FROM neighborhoods WHERE id = '731e0bb2-7903-4526-adc3-cce45a3d0677';
 
 -- Lincoln Park: keep acbcd031, merge af702230
 UPDATE restaurants SET neighborhood_id = 'acbcd031-160f-406c-978b-18ac932d1471'
+WHERE neighborhood_id = 'af702230-ab6d-4370-ab5e-b7d395beefa6';
+UPDATE user_queries SET neighborhood_id = 'acbcd031-160f-406c-978b-18ac932d1471'
 WHERE neighborhood_id = 'af702230-ab6d-4370-ab5e-b7d395beefa6';
 DELETE FROM neighborhoods WHERE id = 'af702230-ab6d-4370-ab5e-b7d395beefa6';
 
 -- West Loop: keep 8100f6c7, merge a0ea4cdd
 UPDATE restaurants SET neighborhood_id = '8100f6c7-c4f7-46ce-b4c3-dedbfdd680fb'
 WHERE neighborhood_id = 'a0ea4cdd-9a1f-41d9-b6cb-ba8f760199f5';
+UPDATE user_queries SET neighborhood_id = '8100f6c7-c4f7-46ce-b4c3-dedbfdd680fb'
+WHERE neighborhood_id = 'a0ea4cdd-9a1f-41d9-b6cb-ba8f760199f5';
 DELETE FROM neighborhoods WHERE id = 'a0ea4cdd-9a1f-41d9-b6cb-ba8f760199f5';
 
 -- River North: keep e4f2562f, merge f3c9df16
 UPDATE restaurants SET neighborhood_id = 'e4f2562f-6e8d-4df6-9803-1a95e20a58ae'
+WHERE neighborhood_id = 'f3c9df16-adfb-4e66-b2ee-e980607c640c';
+UPDATE user_queries SET neighborhood_id = 'e4f2562f-6e8d-4df6-9803-1a95e20a58ae'
 WHERE neighborhood_id = 'f3c9df16-adfb-4e66-b2ee-e980607c640c';
 DELETE FROM neighborhoods WHERE id = 'f3c9df16-adfb-4e66-b2ee-e980607c640c';
 
