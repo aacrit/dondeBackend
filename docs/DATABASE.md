@@ -1,6 +1,6 @@
 # Database Schema
 
-Last updated: 2026-03-11
+Last updated: 2026-03-12
 
 ## Overview
 
@@ -218,4 +218,4 @@ get_ranked_restaurants(
 
 ## Migrations
 
-42 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-11). Applied via `supabase db push` or Dashboard SQL Editor. Recent additions: gauntlet tracking tables, maintenance requests, RLS hardening, source column on user_queries, recommendation_text persistence.
+43 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-11). Applied via `supabase db push` or Dashboard SQL Editor. Recent additions: gauntlet tracking tables, maintenance requests, RLS hardening, source column on user_queries, recommendation_text persistence, score fit + blurb quality grading columns.

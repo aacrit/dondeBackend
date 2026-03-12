@@ -1,6 +1,6 @@
 # API & Workflows
 
-Last updated: 2026-03-10
+Last updated: 2026-03-12
 
 ## Edge Function Request Flow (V11)
 
@@ -64,7 +64,7 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | V9.0 | 95 | 95/95 | Relevance × Quality, review intelligence, self-healing |
 | V7.3b (archived) | 88 | 67/88 | Geometric mean, V5 weights |
 
-## Pipeline Inventory (18 scripts in `scripts/pipelines/`)
+## Pipeline Inventory (25 scripts in `scripts/pipelines/`)
 
 ### Scheduled (GitHub Actions cron)
 
@@ -78,13 +78,12 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | `generate-occasion-scores.ts` | Monthly 1st, 7:00 UTC | Claude scores 7 occasion dimensions (0-10) |
 | `generate-tags.ts` | Monthly 1st, 7:00 UTC | Claude generates 3-6 tags per restaurant |
 | `enrichment-review-intelligence.ts` | Monthly 1st | V11 semantic descriptors, scenarios, wow_factors |
+| `maintenance-worker.ts` | Every 5 min (GH Actions) | Cron worker for CEO Command Center pipeline triggers |
 
 ### Manual Dispatch
 
 | Script | Purpose |
 |--------|---------|
-| `regenerate-occasion-scores.ts` | Full scores regeneration |
-| `regenerate-tags.ts` | Full tags regeneration |
 | `audit-enrichment-gaps.ts` | Read-only gap report (missing tips, stories, profiles) |
 | `audit-full-dataset.ts` | Comprehensive data quality audit |
 | `enrich-full-dataset.ts` | Full dataset enrichment (use `--live` flag) |
@@ -92,7 +91,16 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | `intent-gap-analysis.ts` | Intent classification gap analysis |
 | `re-enrichment.ts` | Re-enrichment of existing data |
 | `populate-all.ts` | Orchestrator: discovery → enrichment → scores → tags |
-| `maintenance-worker.ts` | Cron worker for CEO Command Center pipeline triggers |
+| `gauntlet-runner.ts` | Command Center gauntlet test execution |
+| `gauntlet-dashboard.ts` | Gauntlet markdown + JSON report generation |
+| `gauntlet-backfill.ts` | Backfill gauntlet results from historical data |
+| `agent-orchestrator.ts` | Multi-agent pipeline orchestration |
+| `gap-analyzer.ts` | Scoring gap analysis and detection |
+| `generate-search-atlas.ts` | Search atlas generation for discovery |
+| `backfill-new-fields.ts` | Backfill newly added DB fields |
+| `backfill-tips-stories.ts` | Tips/stories backfill (Claude Sonnet 4) |
+| `clean-unenriched.ts` | Clean up unenriched restaurant records |
+| `convert-v8-to-atlas.ts` | V8 → Atlas data conversion utility |
 
 **Rate limits:** All Claude pipelines use 6s between batches (10 req/min). Batch size: 5-10 restaurants per call.
 

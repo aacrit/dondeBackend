@@ -1,10 +1,10 @@
 # DondeAI Backend
 
-Last updated: 2026-03-11
+Last updated: 2026-03-12
 
 > **Read this file first, then `docs/*.md` only as needed. Only open source files when modifying code.**
 
-AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines. 2,719 restaurants total, 913 active, 912 with deep profiles. 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification.
+AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines. 2,719 restaurants total, 913 active, 912 with deep profiles. 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification. 43 migrations, 14 CI/CD workflows, 25 pipeline scripts.
 
 ## Documentation Index
 
@@ -40,6 +40,9 @@ All skills in `.claude/skills/`.
 | `tests/benchmark-200.sh` | 200-case V11 benchmark with score fit + blurb quality grading (10 categories × 20 queries) |
 | `tests/regression-guard.sh` | Scoring regression guard — compares against V10 baseline |
 | `tests/compare-scores.sh` | A/B score comparison tool for query debugging |
+| `tests/gauntlet.sh` | Command Center gauntlet test runner |
+| `tests/focused-retest-gaps.sh` | Targeted retest of known gap queries |
+| `tests/v10-scoring-benchmark.sh` | V10 scoring baseline benchmark |
 | `tests/TEST-FULL.md` | 170-scenario agent-driven test spec |
 | `tests/V9_E2E_100_RESULTS.md` | V9 E2E: 490 pass, 0 fail, 1 warn (99%) |
 | `tests/generated-queries.json` | Persona-driven test query repository (target: 1000 queries) |

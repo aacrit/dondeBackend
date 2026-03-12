@@ -1,6 +1,6 @@
 # Backend Features
 
-Last updated: 2026-03-10
+Last updated: 2026-03-12
 
 ## Edge Function (V11 — active, files retain V9 naming)
 
@@ -75,7 +75,7 @@ Last updated: 2026-03-10
 
 ## Database
 
-- [x] 10 tables, 27+ migrations
+- [x] 10 tables, 43 migrations
 - [x] RPC `get_candidates_v11` (composite scoring with semantic tags, fallback V10 → V9)
 - [x] RPC `get_candidates_v9` (full-text search + review intelligence)
 - [x] RPC `get_ranked_restaurants` (legacy, 49 return columns)

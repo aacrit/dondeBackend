@@ -1,6 +1,6 @@
 # Backend Architecture
 
-Last updated: 2026-03-10
+Last updated: 2026-03-12
 
 ## System Overview
 
@@ -8,10 +8,10 @@ Last updated: 2026-03-10
 |-------|-----------|
 | API | Supabase Edge Function (Deno/TS), V11 scoring engine |
 | AI | Claude Haiku 4.5 (recommendations, enrichment, intent classification) |
-| DB | Supabase PostgreSQL (10 tables, 27+ migrations) |
+| DB | Supabase PostgreSQL (10 tables, 43 migrations) |
 | Data | Google Places API (live fetch per request; only `google_place_id` stored per ToS §3.2.3) |
 | Pipelines | Node.js 20 + tsx scripts, GitHub Actions cron |
-| CI/CD | 8+ GitHub Actions workflows |
+| CI/CD | 14 GitHub Actions workflows |
 
 ## File Tree
 
@@ -38,7 +38,7 @@ supabase/
 scripts/
   lib/                            # 6 shared pipeline libraries
     config.ts, claude.ts, google-places.ts, supabase.ts, batch.ts, types.ts
-  pipelines/                      # 18 pipeline scripts (see API-WORKFLOWS.md)
+  pipelines/                      # 25 pipeline scripts (see API-WORKFLOWS.md)
   package.json
 
 tests/
@@ -50,7 +50,7 @@ tests/
   TEST-FULL.md                    # 170-scenario agent-driven test spec
   GOLDEN_DATASET_RESULTS.md       # Latest golden dataset results
 
-.github/workflows/                # 8+ CI/CD workflows
+.github/workflows/                # 14 CI/CD workflows
 ```
 
 ## V11 Scoring Engine Modules
@@ -81,9 +81,14 @@ tests/
 | `validate-status.yml` | Monthly 1st, 4:00 UTC | Active status validation |
 | `enrichment.yml` | Monthly 1st, 5:00 UTC | Claude enrichment (ambiance, dietary, insider tips) |
 | `enrichment-v2.yml` | Monthly 1st, 6:00 UTC | Deep profile enrichment (35 fields) |
+| `enrichment-semantic.yml` | Manual dispatch | Semantic enrichment pipeline |
 | `scores-and-tags.yml` | Monthly 1st, 7:00 UTC | Occasion scores (7 dims) + tag generation |
 | `regenerate-scores-tags.yml` | Manual dispatch | Full scores + tags regeneration |
+| `run-review-intelligence.yml` | Manual dispatch | Review intelligence extraction |
 | `deploy-edge-function.yml` | Push to any branch + manual dispatch | Edge Function deployment |
+| `apply-migration.yml` | Manual dispatch | Apply SQL migration to Supabase |
+| `migrate.yml` | Manual dispatch | Database migration runner |
+| `auto-merge-claude.yml` | On push to `claude/**` | Auto-merges claude branches to main |
 | `maintenance-worker.yml` | Every 5 min | Polls `maintenance_requests` table, executes pipeline operations |
 
 ## Google API Compliance

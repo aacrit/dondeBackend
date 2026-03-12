@@ -1,6 +1,6 @@
 # Recommendation Blurb Generation
 
-Last updated: 2026-03-10
+Last updated: 2026-03-12
 
 How DondeAI generates the recommendation text, match headlines, insider tips, and queue blurbs that users see in the app.
 
