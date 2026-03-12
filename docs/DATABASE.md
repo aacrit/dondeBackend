@@ -218,4 +218,4 @@ get_ranked_restaurants(
 
 ## Migrations
 
-48 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-12). Applied via `supabase db push` or Dashboard SQL Editor. Recent additions: cuisine taxonomy fixes (4 migrations), auto-merge CI/CD, gauntlet tracking tables, maintenance requests, RLS hardening, source column on user_queries, recommendation_text persistence, score fit + blurb quality grading columns.
+53 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-12). Applied via `supabase db push` or Dashboard SQL Editor. Recent additions: cuisine taxonomy fixes (4 migrations), deep audit fixes (5 migrations — cuisine reclassifications, hallucinated data removal, pricing/logistics corrections, cross-field consistency), auto-merge CI/CD, gauntlet tracking tables, maintenance requests, RLS hardening, source column on user_queries, recommendation_text persistence, score fit + blurb quality grading columns.
