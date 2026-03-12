@@ -916,8 +916,10 @@ Deno.serve(async (req: Request) => {
       );
 
       // Single Claude API call — blurb + potential boost (Sonnet for primary, stronger voice differentiation)
+      // Sonnet gets 10s timeout (heavier model), default Haiku gets 8s
       const claudeText = await callClaude(userPrompt, systemPrompt, {
         model: "claude-sonnet-4-6",
+        timeoutMs: 10000,
       });
 
       // Parse Claude response
@@ -942,14 +944,16 @@ Deno.serve(async (req: Request) => {
       const combinedText = blurbText + " " + headlineText;
       const foundSlop = BLURB_SLOP_PATTERNS.filter(p => combinedText.includes(p.toLowerCase()));
 
-      if (foundSlop.length > 0) {
+      const elapsedBeforeSlop = Date.now() - startTime;
+      if (foundSlop.length > 0 && elapsedBeforeSlop < 10000) {
         logWarn("Slop detected in Claude blurb, retrying", {
           patterns: foundSlop,
           restaurant: rerankedScored[parsed.restaurant_index || 0]?.profile.name,
+          elapsedMs: elapsedBeforeSlop,
         });
         try {
           const retryPrompt = userPrompt + `\n\nCRITICAL RETRY: Your previous response contained banned patterns: ${foundSlop.map(p => `"${p}"`).join(", ")}. Rewrite WITHOUT these patterns. Same JSON format.`;
-          const retryText = await callClaude(retryPrompt, systemPrompt);
+          const retryText = await callClaude(retryPrompt, systemPrompt, { timeoutMs: 5000 });
           const retryParsed = parseClaudeJson<ClaudeRecommendation>(retryText);
           // Only accept retry if it's cleaner
           const retryBlurb = (retryParsed.recommendation || "").toLowerCase();
@@ -973,6 +977,11 @@ Deno.serve(async (req: Request) => {
             error: retryErr instanceof Error ? retryErr.message : String(retryErr),
           });
         }
+      } else if (foundSlop.length > 0) {
+        logWarn("Slop detected but skipping retry (time budget exceeded)", {
+          patterns: foundSlop,
+          elapsedMs: elapsedBeforeSlop,
+        });
       }
       } // end else (Claude path)
 
@@ -1041,9 +1050,9 @@ Deno.serve(async (req: Request) => {
       const chosen = rerankedScored[chosenIdx];
       const dondeMatch = chosen.dondeMatch;
 
-      // Get Google data for chosen
+      // Get Google data for chosen (skip if time budget exceeded)
       let chosenGoogleData = chosen.googleData || null;
-      if (!chosenGoogleData && chosen.profile.google_place_id) {
+      if (!chosenGoogleData && chosen.profile.google_place_id && (Date.now() - startTime) < 12000) {
         chosenGoogleData = await fetchPlaceDetails(chosen.profile.google_place_id);
       }
 
@@ -1053,7 +1062,7 @@ Deno.serve(async (req: Request) => {
         const nextIdx = rerankedScored.findIndex((_s, i) => i !== chosenIdx);
         if (nextIdx !== -1) {
           const nextChosen = rerankedScored[nextIdx];
-          const nextGoogle = nextChosen.googleData || (nextChosen.profile.google_place_id
+          const nextGoogle = nextChosen.googleData || (nextChosen.profile.google_place_id && (Date.now() - startTime) < 12000
             ? await fetchPlaceDetails(nextChosen.profile.google_place_id) : null);
 
           if (!validateInsiderTip(parsed.insider_tip)) {

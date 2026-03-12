@@ -49,9 +49,17 @@ export async function fetchPlaceDetails(
       key: apiKey,
     });
 
-    const res = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?${params}`
-    );
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    let res: Response;
+    try {
+      res = await fetch(
+        `https://maps.googleapis.com/maps/api/place/details/json?${params}`,
+        { signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!res.ok) {
       console.error(`Google Places API error: ${res.status}`);
