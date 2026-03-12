@@ -30,6 +30,7 @@ import {
   buildV9NoResultsResponse,
   buildV9ErrorResponse,
   buildV9RankedQueueItem,
+  buildQueueBlurb,
 } from "./_shared/response-builder-v9.ts";
 import {
   fetchPlaceDetails,
@@ -341,6 +342,7 @@ Deno.serve(async (req: Request) => {
     const neighborhood = NEIGHBORHOOD_ALIASES[rawNeighborhood.toLowerCase()] || rawNeighborhood;
     const price_level = body.price_level || "Any";
     const open_now = body.open_now === true; // V5: Open Now toggle
+    const skip_claude = body.skip_claude === true; // Zero-cost testing: skip Claude API calls
 
     const VALID_TIME_PERIODS = ["breakfast", "lunch", "dinner", "late_night"];
     const time_of_day = (typeof body.time_of_day === "string" && VALID_TIME_PERIODS.includes(body.time_of_day))
@@ -488,7 +490,7 @@ Deno.serve(async (req: Request) => {
 
     // V10: Intent classification FIRST so we can pass signals to RPC
     const [intentResult, userFeedback, userPreferences] = await Promise.all([
-      classifyIntentV5(special_request, occasion),
+      classifyIntentV5(special_request, occasion, { skipClaude: skip_claude }),
       feedbackPromise,
       preferencesPromise,
     ]);
@@ -857,6 +859,24 @@ Deno.serve(async (req: Request) => {
         return { candidate: sc, googleData: gd, reviews };
       });
 
+      // ================================================================
+      // STEP 7: Generate recommendation (Claude or deterministic fallback)
+      // ================================================================
+      let parsed: ClaudeRecommendation;
+
+      if (skip_claude) {
+        // Zero-cost mode: deterministic blurb from restaurant profile data
+        const chosen = rerankedScored[0];
+        const fallbackBlurb = buildQueueBlurb(chosen.profile, chosen.matchNarrative);
+        parsed = {
+          recommendation: fallbackBlurb || chosen.profile.best_for_oneliner || "A top pick based on our match engine.",
+          match_headline: chosen.matchNarrative?.summary || null,
+          insider_tip: chosen.profile.insider_tip || chosen.profile.deep_profile?.best_seat_in_house || null,
+          restaurant_index: 0,
+          intent_boost: false,
+        } as ClaudeRecommendation;
+        logInfo("skip_claude: using deterministic blurb", { restaurant: chosen.profile.name });
+      } else {
       // Determine score tier for tone modulation
       const topScore = rerankedScored[0].dondeMatch;
       const scoreTier = getScoreTier(topScore);
@@ -898,7 +918,6 @@ Deno.serve(async (req: Request) => {
       });
 
       // Parse Claude response
-      let parsed: ClaudeRecommendation;
       try {
         parsed = parseClaudeJson<ClaudeRecommendation>(claudeText);
       } catch (_parseError) {
@@ -952,6 +971,7 @@ Deno.serve(async (req: Request) => {
           });
         }
       }
+      } // end else (Claude path)
 
       // ================================================================
       // STEP 8: Process Intent Boost
@@ -1097,7 +1117,8 @@ Deno.serve(async (req: Request) => {
       }
 
       // Quality guardrail: detect AI slop patterns (uses shared BLURB_SLOP_PATTERNS)
-      if (parsed.recommendation) {
+      // Skip for deterministic blurbs — they don't have AI slop
+      if (parsed.recommendation && !skip_claude) {
         const recLower = parsed.recommendation.toLowerCase();
         const slopHits = BLURB_SLOP_PATTERNS.filter(p => recLower.includes(p.toLowerCase()));
         if (slopHits.length >= 2) {

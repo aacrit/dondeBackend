@@ -26,6 +26,11 @@ HTTP_CODE=""
 REPORT_FILE="tests/GOLDEN_DATASET_RESULTS.md"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPORT_PATH="$(dirname "$SCRIPT_DIR")/$REPORT_FILE"
+RUN_ID="${GOLDEN_RUN_ID:-cli-golden-$(date -u '+%Y-%m-%dT%H-%M-%S')}"
+RUN_MODE="${GOLDEN_RUN_MODE:-golden}"
+RUN_SOURCE="${GOLDEN_RUN_SOURCE:-cli}"
+JSONL_FILE="/tmp/golden-results-${RUN_ID}.jsonl"
+> "$JSONL_FILE"  # Create/truncate JSONL output file
 
 # Color codes
 RED='\033[0;31m'
@@ -249,6 +254,29 @@ run_golden_test() {
     fi
   fi
 
+  # Append per-query result to JSONL for Supabase write-back
+  local rep_score=${vibe_score%.*}; local conv_score=0
+  conv_score=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.convenience // 0' 2>/dev/null)
+  local rep_factor=0; rep_factor=$(echo "$LAST_RESPONSE" | jq -r '.scoring_v9.reputation // 0' 2>/dev/null)
+  local resp_ms=0; resp_ms=$(echo "$LAST_RESPONSE" | jq -r '.response_time_ms // 0' 2>/dev/null)
+  local gap_type="null"
+  (( dm_int < min_score )) && gap_type="\"scoring\""
+  jq -n -c \
+    --arg qid "$test_id" --arg q "$query" --arg cat "$category" \
+    --argjson dm "${dm_int:-0}" --arg rt "$relevance_type" \
+    --argjson food "${gfs:-0}" --argjson vibe "${gvs:-0}" --argjson svc "${gss:-0}" \
+    --argjson rep "${rep_factor%.*}" --argjson conv "${conv_score%.*}" \
+    --argjson sp "$(( dm_int >= min_score ))" \
+    --argjson sfs "$fit_score" --arg sfg "$fit_grade" \
+    --argjson bqs "$blurb_score" --arg bqg "$blurb_grade" \
+    --arg rn "$restaurant_name" \
+    '{query_id:$qid,query:$q,category:$cat,donde_match:$dm,relevance_type:$rt,
+      food:$food,vibe:$vibe,service:$svc,reputation:$rep,convenience:$conv,
+      score_pass:(if $sp == 1 then true else false end),
+      score_fit_score:$sfs,score_fit_grade:$sfg,
+      blurb_quality_score:$bqs,blurb_quality_grade:$bqg,
+      restaurant_name:$rn}' >> "$JSONL_FILE"
+
   # Small delay to respect rate limits
   sleep 1
 }
@@ -440,6 +468,84 @@ REPORT_EOF
 
 echo "Done!"
 echo "============================================================"
+
+###############################################################################
+# SUPABASE WRITE-BACK — Persist results to gauntlet_runs + gauntlet_results
+###############################################################################
+persist_to_supabase() {
+  if [[ -z "${SUPAB_URL:-}" || -z "${SUPAB_ANON_KEY:-}" ]]; then
+    echo -e "${YELLOW}Skipping Supabase write-back (no SUPAB_URL/SUPAB_ANON_KEY)${NC}"
+    return 0
+  fi
+
+  local auth_key="${SUPAB_SERVICE_ROLE_KEY:-$SUPAB_ANON_KEY}"
+  local avg_dm=0 avg_fit=0 avg_blurb=0
+  (( TOTAL_TESTS > 0 )) && {
+    avg_dm=$((TOTAL_DONDE_MATCH / TOTAL_TESTS))
+    avg_fit=$((TOTAL_FIT_SCORE / TOTAL_TESTS))
+    avg_blurb=$((TOTAL_BLURB_SCORE / TOTAL_TESTS))
+  }
+
+  # Compute dataset_hash (deterministic from query IDs)
+  local ds_hash
+  ds_hash=$(jq -r '.query_id' "$JSONL_FILE" | sort | sha256sum | cut -c1-16)
+
+  echo -e "\n${CYAN}Writing results to Supabase...${NC}"
+
+  # 1. Insert gauntlet_runs summary
+  local run_body
+  run_body=$(jq -n \
+    --arg rid "$RUN_ID" --arg dsh "$ds_hash" --argjson ds "$TOTAL_TESTS" \
+    --argjson total "$TOTAL_TESTS" --argjson succ "$TOTAL_TESTS" \
+    --argjson p60 "$PASS_COUNT" --argjson p80 "$PASS_COUNT" --argjson p90 "0" \
+    --argjson adm "$avg_dm" --argjson gc "$FAIL_COUNT" \
+    --argjson asf "$avg_fit" --argjson abq "$avg_blurb" \
+    --arg mode "$RUN_MODE" --arg src "$RUN_SOURCE" \
+    '{run_id:$rid,dataset_hash:$dsh,dataset_size:$ds,mode:$mode,source:$src,
+      total:$total,successful:$succ,passed_60:$p60,passed_80:$p80,passed_90:$p90,
+      avg_dm:$adm,gap_count:$gc,avg_score_fit:$asf,avg_blurb_quality:$abq}')
+
+  local run_http
+  run_http=$(curl -s -o /dev/null -w "%{http_code}" \
+    -X POST "${SUPAB_URL}/rest/v1/gauntlet_runs" \
+    -H "Content-Type: application/json" \
+    -H "apikey: ${SUPAB_ANON_KEY}" \
+    -H "Authorization: Bearer ${auth_key}" \
+    -H "Prefer: return=minimal" \
+    -d "$run_body" --max-time 10 2>/dev/null)
+
+  if [[ "$run_http" == "201" || "$run_http" == "200" ]]; then
+    echo -e "  ${GREEN}PASS${NC} gauntlet_runs insert ($RUN_ID)"
+  else
+    echo -e "  ${RED}FAIL${NC} gauntlet_runs insert (HTTP $run_http)"
+    return 1
+  fi
+
+  # 2. Insert gauntlet_results (batch)
+  local results_body
+  results_body=$(jq -s --arg rid "$RUN_ID" '[.[] | . + {run_id: $rid}]' "$JSONL_FILE")
+
+  local res_http
+  res_http=$(curl -s -o /dev/null -w "%{http_code}" \
+    -X POST "${SUPAB_URL}/rest/v1/gauntlet_results" \
+    -H "Content-Type: application/json" \
+    -H "apikey: ${SUPAB_ANON_KEY}" \
+    -H "Authorization: Bearer ${auth_key}" \
+    -H "Prefer: return=minimal" \
+    -d "$results_body" --max-time 15 2>/dev/null)
+
+  if [[ "$res_http" == "201" || "$res_http" == "200" ]]; then
+    echo -e "  ${GREEN}PASS${NC} gauntlet_results insert ($TOTAL_TESTS rows)"
+  else
+    echo -e "  ${RED}FAIL${NC} gauntlet_results insert (HTTP $res_http)"
+    return 1
+  fi
+
+  echo -e "  ${GREEN}Results persisted to CEO Dashboard${NC}"
+}
+
+# Try write-back (non-fatal — test exit code based on FAIL_COUNT only)
+persist_to_supabase || true
 
 # Exit with failure if any hard failures
 if (( FAIL_COUNT > 0 )); then

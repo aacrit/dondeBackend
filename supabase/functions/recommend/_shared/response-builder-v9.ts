@@ -202,7 +202,7 @@ function buildScores(chosen: RestaurantProfile): Record<string, unknown> {
  * These serve as instant fallbacks; the frontend can upgrade to a full Claude
  * blurb via /recommend/blurb on demand.
  */
-function buildQueueBlurb(
+export function buildQueueBlurb(
   profile: RestaurantProfile,
   narrative: MatchNarrative | undefined,
 ): string | null {
