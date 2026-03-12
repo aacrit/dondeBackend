@@ -174,6 +174,7 @@ function tokenize(input: string): string[] {
 async function classifyWithClaude(
   specialRequest: string,
   occasion: string,
+  timeoutMs?: number,
 ): Promise<IntentClassificationV2 | null> {
   try {
     const userPrompt = occasion && occasion !== "Any"
@@ -183,6 +184,7 @@ async function classifyWithClaude(
     const response = await callClaude(userPrompt, INTENT_SYSTEM_PROMPT_V2, {
       maxTokens: 350,
       temperature: 0.1,
+      timeoutMs: timeoutMs,
     });
 
     const parsed = parseClaudeJson<IntentClassificationV2>(response);
@@ -390,7 +392,7 @@ function generateDeterministicSemanticTags(
 export async function classifyIntentV5(
   specialRequest: string,
   occasion: string,
-  options?: { skipClaude?: boolean },
+  options?: { skipClaude?: boolean; claudeTimeoutMs?: number },
 ): Promise<{
   intent: IntentClassificationV2 | null;
   classificationPath: "deterministic" | "claude" | "skip";
@@ -751,7 +753,7 @@ export async function classifyIntentV5(
       `[V5 Intent] Low confidence for "${specialRequest}" (${words.length} words, ${signalCount} signals) — routing to Claude`,
     );
 
-    const claudeResult = await classifyWithClaude(specialRequest, occasion);
+    const claudeResult = await classifyWithClaude(specialRequest, occasion, options?.claudeTimeoutMs);
     if (claudeResult) {
       return { intent: claudeResult, classificationPath: "claude" };
     }

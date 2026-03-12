@@ -155,6 +155,17 @@ function sanitizeInput(input: string): string {
     .trim();
 }
 
+/** Race an RPC promise chain against a deadline. Returns { data: null, error } on timeout. */
+function rpcWithTimeout<T>(
+  rpcPromise: PromiseLike<{ data: T; error: unknown }>,
+  timeoutMs: number,
+): Promise<{ data: T | null; error: unknown }> {
+  const timer = new Promise<{ data: null; error: Error }>(resolve =>
+    setTimeout(() => resolve({ data: null, error: new Error(`RPC timed out after ${timeoutMs}ms`) }), timeoutMs)
+  );
+  return Promise.race([rpcPromise, timer]);
+}
+
 // Extract RPC row → V9Candidate mapping (RestaurantProfile + review intelligence)
 function mapRpcToProfile(row: Record<string, unknown>): RestaurantProfile {
   const hasDeepProfile = row.dp_service_style != null || row.dp_flavor_profiles != null;
@@ -490,7 +501,7 @@ Deno.serve(async (req: Request) => {
 
     // V10: Intent classification FIRST so we can pass signals to RPC
     const [intentResult, userFeedback, userPreferences] = await Promise.all([
-      classifyIntentV5(special_request, occasion, { skipClaude: skip_claude }),
+      classifyIntentV5(special_request, occasion, { skipClaude: skip_claude, claudeTimeoutMs: 6000 }),
       feedbackPromise,
       preferencesPromise,
     ]);
@@ -541,43 +552,48 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const { data: rpcData, error: rpcError } = await supabase.rpc("get_candidates_v11", {
-      p_query: special_request || null,
-      p_neighborhood: neighborhood,
-      p_occasion: occasion,
-      p_limit: rpcLimit,
-      p_exclude: exclude,
-      p_target_cuisines: targetCuisines,
-      p_target_tags: targetTags,
-      p_semantic_tags: semanticTags,
-    }).then(result => {
-      // Fallback chain: v11 → v10 → v9
-      if (result.error?.message?.includes("get_candidates_v11")) {
-        logWarn("V11 RPC not found, falling back to V10");
-        return supabase.rpc("get_candidates_v10", {
-          p_query: special_request || null,
-          p_neighborhood: neighborhood,
-          p_occasion: occasion,
-          p_limit: rpcLimit,
-          p_exclude: exclude,
-          p_target_cuisines: targetCuisines,
-          p_target_tags: targetTags,
-        }).then(r => {
-          if (r.error?.message?.includes("get_candidates_v10")) {
-            logWarn("V10 RPC not found, falling back to V9");
-            return supabase.rpc("get_candidates_v9", {
-              p_query: special_request || null,
-              p_neighborhood: neighborhood,
-              p_occasion: occasion,
-              p_limit: rpcLimit,
-              p_exclude: exclude,
-            });
-          }
-          return r;
-        });
-      }
-      return result;
-    });
+    // Deadline-propagated RPC timeout: min(5s, remaining budget - 9s for scoring+Google+Claude)
+    const rpcDeadline = Math.max(3000, Math.min(5000, 15000 - (Date.now() - startTime) - 9000));
+    const { data: rpcData, error: rpcError } = await rpcWithTimeout(
+      supabase.rpc("get_candidates_v11", {
+        p_query: special_request || null,
+        p_neighborhood: neighborhood,
+        p_occasion: occasion,
+        p_limit: rpcLimit,
+        p_exclude: exclude,
+        p_target_cuisines: targetCuisines,
+        p_target_tags: targetTags,
+        p_semantic_tags: semanticTags,
+      }).then(result => {
+        // Fallback chain: v11 → v10 → v9
+        if (result.error?.message?.includes("get_candidates_v11")) {
+          logWarn("V11 RPC not found, falling back to V10");
+          return supabase.rpc("get_candidates_v10", {
+            p_query: special_request || null,
+            p_neighborhood: neighborhood,
+            p_occasion: occasion,
+            p_limit: rpcLimit,
+            p_exclude: exclude,
+            p_target_cuisines: targetCuisines,
+            p_target_tags: targetTags,
+          }).then(r => {
+            if (r.error?.message?.includes("get_candidates_v10")) {
+              logWarn("V10 RPC not found, falling back to V9");
+              return supabase.rpc("get_candidates_v9", {
+                p_query: special_request || null,
+                p_neighborhood: neighborhood,
+                p_occasion: occasion,
+                p_limit: rpcLimit,
+                p_exclude: exclude,
+              });
+            }
+            return r;
+          });
+        }
+        return result;
+      }),
+      rpcDeadline,
+    );
 
     let finalRpcData = rpcData;
     let finalRpcError = rpcError;
@@ -585,20 +601,24 @@ Deno.serve(async (req: Request) => {
     // If neighborhood filter returned nothing, retry broader
     if ((!finalRpcData || finalRpcData.length === 0) && !finalRpcError && neighborhood !== "Anywhere") {
       logInfo("V11: Broadening RPC to Anywhere", { neighborhood });
-      const { data: broadData, error: broadError } = await supabase.rpc(
-        "get_candidates_v11",
-        { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags, p_semantic_tags: semanticTags }
-      ).then(result => {
-        if (result.error?.message?.includes("get_candidates_v11")) {
-          return supabase.rpc("get_candidates_v10", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags }).then(r => {
-            if (r.error?.message?.includes("get_candidates_v10")) {
-              return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
-            }
-            return r;
-          });
-        }
-        return result;
-      });
+      const broadDeadline1 = Math.max(2000, Math.min(4000, 15000 - (Date.now() - startTime) - 9000));
+      const { data: broadData, error: broadError } = await rpcWithTimeout(
+        supabase.rpc(
+          "get_candidates_v11",
+          { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags, p_semantic_tags: semanticTags }
+        ).then(result => {
+          if (result.error?.message?.includes("get_candidates_v11")) {
+            return supabase.rpc("get_candidates_v10", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags }).then(r => {
+              if (r.error?.message?.includes("get_candidates_v10")) {
+                return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
+              }
+              return r;
+            });
+          }
+          return result;
+        }),
+        broadDeadline1,
+      );
       if (!broadError && broadData && broadData.length > 0) {
         finalRpcData = broadData;
         finalRpcError = null;
@@ -609,20 +629,24 @@ Deno.serve(async (req: Request) => {
     // This handles rare cuisines (Ecuadorian, etc.) where no restaurants have that cuisine_type
     if ((!finalRpcData || finalRpcData.length === 0) && !finalRpcError && targetCuisines.length > 0) {
       logInfo("V12: Broadening RPC by removing cuisine filter", { cuisines: targetCuisines });
-      const { data: broadData2, error: broadError2 } = await supabase.rpc(
-        "get_candidates_v11",
-        { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: [], p_target_tags: targetTags, p_semantic_tags: semanticTags }
-      ).then(result => {
-        if (result.error?.message?.includes("get_candidates_v11")) {
-          return supabase.rpc("get_candidates_v10", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: [], p_target_tags: targetTags }).then(r => {
-            if (r.error?.message?.includes("get_candidates_v10")) {
-              return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
-            }
-            return r;
-          });
-        }
-        return result;
-      });
+      const broadDeadline2 = Math.max(2000, Math.min(4000, 15000 - (Date.now() - startTime) - 9000));
+      const { data: broadData2, error: broadError2 } = await rpcWithTimeout(
+        supabase.rpc(
+          "get_candidates_v11",
+          { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: [], p_target_tags: targetTags, p_semantic_tags: semanticTags }
+        ).then(result => {
+          if (result.error?.message?.includes("get_candidates_v11")) {
+            return supabase.rpc("get_candidates_v10", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: [], p_target_tags: targetTags }).then(r => {
+              if (r.error?.message?.includes("get_candidates_v10")) {
+                return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
+              }
+              return r;
+            });
+          }
+          return result;
+        }),
+        broadDeadline2,
+      );
       if (!broadError2 && broadData2 && broadData2.length > 0) {
         finalRpcData = broadData2;
         finalRpcError = null;
@@ -712,26 +736,30 @@ Deno.serve(async (req: Request) => {
         threshold: NEIGHBORHOOD_QUALITY_THRESHOLD,
       });
 
-      const { data: broadData } = await supabase.rpc("get_candidates_v11", {
-        p_query: special_request || null,
-        p_neighborhood: "Anywhere",
-        p_occasion: occasion,
-        p_limit: rpcLimit,
-        p_exclude: exclude,
-        p_target_cuisines: targetCuisines,
-        p_target_tags: targetTags,
-        p_semantic_tags: semanticTags,
-      }).then(result => {
-        if (result.error?.message?.includes("get_candidates_v11")) {
-          return supabase.rpc("get_candidates_v10", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags }).then(r => {
-            if (r.error?.message?.includes("get_candidates_v10")) {
-              return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
-            }
-            return r;
-          });
-        }
-        return result;
-      });
+      const nqgDeadline = Math.max(2000, Math.min(3000, 15000 - (Date.now() - startTime) - 8000));
+      const { data: broadData } = await rpcWithTimeout(
+        supabase.rpc("get_candidates_v11", {
+          p_query: special_request || null,
+          p_neighborhood: "Anywhere",
+          p_occasion: occasion,
+          p_limit: rpcLimit,
+          p_exclude: exclude,
+          p_target_cuisines: targetCuisines,
+          p_target_tags: targetTags,
+          p_semantic_tags: semanticTags,
+        }).then(result => {
+          if (result.error?.message?.includes("get_candidates_v11")) {
+            return supabase.rpc("get_candidates_v10", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags }).then(r => {
+              if (r.error?.message?.includes("get_candidates_v10")) {
+                return supabase.rpc("get_candidates_v9", { p_query: special_request || null, p_neighborhood: "Anywhere", p_occasion: occasion, p_limit: rpcLimit, p_exclude: exclude });
+              }
+              return r;
+            });
+          }
+          return result;
+        }),
+        nqgDeadline,
+      );
 
       if (broadData?.length) {
         const existingIds = new Set(diverseScored.map(s => s.profile.id));
