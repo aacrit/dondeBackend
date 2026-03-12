@@ -527,7 +527,10 @@ Deno.serve(async (req: Request) => {
     const semanticTags = intent?.semantic_tags || [];
     // V11: Expand semantic concepts into structured signals for RPC enrichment
     const conceptExpansion = expandQueryConcepts(semanticTags, special_request);
-    const targetCuisines = [...(intent?.target_cuisines || []), ...(conceptExpansion.cuisines || [])];
+    // V15: Include implicit_cuisines from Claude fallback for better cuisine matching
+    // e.g., "dumplings" → implicit_cuisines: ["Chinese", "Japanese", "Nepalese/Tibetan", "Polish"]
+    const implicitCuisines = intent?.implicit_cuisines || [];
+    const targetCuisines = [...new Set([...(intent?.target_cuisines || []), ...(conceptExpansion.cuisines || []), ...implicitCuisines])];
     const targetTags = [...(intent?.target_tags || []), ...(conceptExpansion.tags || []), ...(conceptExpansion.vibes || [])];
     // V12: Merge concept vibes into intent for vibe relevance scoring
     if (conceptExpansion.vibes?.length && intent) {

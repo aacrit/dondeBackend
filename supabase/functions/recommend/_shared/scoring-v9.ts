@@ -559,6 +559,16 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
   "kid friendly brunch": { tags: ["kid friendly", "brunch spot"], constraints: ["family_friendly"], vibes: ["warm", "casual"] },
   "family brunch": { tags: ["kid friendly", "brunch spot"], constraints: ["family_friendly"], vibes: ["warm", "casual"] },
 
+  // V15: Chicago-specific neighborhood food concepts
+  "argyle street food": { neighborhoods: ["Uptown"], cuisines: ["Vietnamese", "Thai", "Chinese"], vibes: ["casual", "authentic"] },
+  "argyle street": { neighborhoods: ["Uptown"], cuisines: ["Vietnamese", "Thai", "Chinese"] },
+  "devon avenue food": { neighborhoods: ["Rogers Park"], cuisines: ["Indian", "Pakistani"], vibes: ["casual", "authentic"] },
+  "little saigon": { neighborhoods: ["Uptown"], cuisines: ["Vietnamese"] },
+  "chinatown food": { neighborhoods: ["Chinatown"], cuisines: ["Chinese", "Sichuan", "Taiwanese"] },
+  "greektown food": { neighborhoods: ["West Loop"], cuisines: ["Greek", "Mediterranean"] },
+  "little italy food": { neighborhoods: ["University Village"], cuisines: ["Italian"] },
+  "pilsen food": { neighborhoods: ["Pilsen"], cuisines: ["Mexican"] },
+
   // Meta concepts
   "grandmother's cooking": { vibes: ["cozy", "warm", "rustic"], tags: ["great value"] },
   "underground food scene": { tags: ["hidden gem"], vibes: ["funky", "industrial"] },
@@ -1074,9 +1084,11 @@ export function computeRelevance(
         return { score: Math.min(1.0, (vibeRelevance + semanticResult.score) / 2 + 0.10), type: "vibe", details: `Vibe+Semantic: ${((vibeRelevance + semanticResult.score) / 2).toFixed(2)}` };
       }
     }
-    // V12: If vibe is the primary signal (2+ vibe keywords with no cuisine), always use vibe path.
+    // V12: If vibe is the primary signal (vibe keywords with no cuisine), always use vibe path.
+    // V15: Lowered threshold from 2 to 1 — single-vibe queries like "somewhere upscale"
+    // or "upscale bar" are clearly vibe-driven and should NOT fall through to weak fallback.
     // Only defer to constraints/neighborhood when vibe is weak AND secondary.
-    const vibeIsPrimary = (intent.vibe_keywords?.length ?? 0) >= 2 && !hasCuisine;
+    const vibeIsPrimary = (intent.vibe_keywords?.length ?? 0) >= 1 && !hasCuisine;
     // V12: Compute the no-hit floor to detect zero-hit vibe results.
     // When vibeRelevance equals floor (no actual tag matches), defer to constraint path
     // so constraint-driven queries (BYOB, budget, quiet+work) aren't trapped in vibe.
@@ -1313,7 +1325,10 @@ function computeCuisineRelevance(
     if (isSubOfTarget) return 0.85; // Sub-cuisine IS the target family
     if (isRelatedCuisine(candidate.cuisine_type, targets)) return 0.50;  // Same family
     if (isAdjacentCuisine(candidate.cuisine_type, targets)) return 0.30; // Adjacent
-    return 0.05; // Different cuisine entirely
+    // V15: For very different cuisines, give a slightly higher floor (0.10 vs 0.05)
+    // so that when broadening kicks in, the wrong-cuisine penalty isn't quite as brutal.
+    // The DondeScore of 0.05 * 85 = 4.25 (DM=4) creates impossibly low scores.
+    return 0.10; // Different cuisine entirely
   }
 
   // No cuisine_type → check review intelligence
@@ -1418,6 +1433,13 @@ function computeVibeRelevance(
     if (ri?.cuisine_signals?.some(s => s.toLowerCase().includes(sl))) { hits++; continue; }
     // V10: Stemmed matching on tags for "romantic" → "romance", "intimate" → "intimacy" etc
     if (tags.some(t => stem(t).includes(slStemmed) || slStemmed.includes(stem(t)))) { hits++; continue; }
+    // V15: Match vibe signals against RI semantic descriptors and best_for_scenarios
+    // This catches "upscale" matching "upscale dining", "romantic" matching "romantic dinner", etc.
+    if (ri?.semantic_descriptors?.some((d: string) => d.toLowerCase().includes(sl) || sl.includes(d.toLowerCase()))) { hits++; continue; }
+    if (ri?.best_for_scenarios?.some((s: string) => s.toLowerCase().includes(sl) || sl.includes(s.toLowerCase()))) { hits++; continue; }
+    // V15: Match against price_level for budget/upscale signals
+    if (sl === "upscale" && (candidate.price_level === "$$$$" || candidate.price_level === "$$$")) { hits++; continue; }
+    if ((sl === "casual" || sl === "chill" || sl === "relaxed") && (candidate.price_level === "$" || candidate.price_level === "$$")) { hits++; continue; }
   }
 
   const hitRate = hits / signals.length;
@@ -2275,8 +2297,17 @@ export function computeV9Score(
   const confidenceFactor = 0.80 + 0.20 * dataCompleteness; // 0.80 to 1.0 (gentler penalty)
   const adjustedQuality = CONFIDENCE_MEAN + (quality - CONFIDENCE_MEAN) * confidenceFactor;
 
+  // V15: Quality floor for high-relevance cuisine matches.
+  // When a restaurant IS the requested cuisine (relevance ≥ 0.80 and type is cuisine/dish),
+  // quality shouldn't be crushed below 60 by sparse data penalty.
+  // "Somali place" → Safari Somali Cuisine (rel=1.0) should score DM≥60 even with sparse data.
+  let finalQuality = adjustedQuality;
+  if (relevance.score >= 0.80 && (relevance.type === "cuisine" || relevance.type === "dish")) {
+    finalQuality = Math.max(adjustedQuality, 60);
+  }
+
   // Step 3b: V9 Score = Relevance × Quality (now confidence-adjusted)
-  const v9Score = Math.round(relevance.score * adjustedQuality);
+  const v9Score = Math.round(relevance.score * finalQuality);
 
   // Step 4: Occasion adjustment (±5 max, tiebreaker only)
   const occasionBonus = computeOccasionBonus(candidate, context.occasion, context.intent);
