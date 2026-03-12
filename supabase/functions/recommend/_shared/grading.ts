@@ -264,6 +264,7 @@ export function computeBlurbQualityGrade(
   const blurb = (responseBody.recommendation as string) || "";
   const blurbLower = blurb.toLowerCase();
   const intent = classifyQueryIntent(query);
+  const restaurant = (responseBody.restaurant || {}) as Record<string, unknown>;
 
   // Check 1: Slop-free (25 pts)
   const slopHits = BANNED_PATTERNS.filter((p) => blurbLower.includes(p.toLowerCase()));
@@ -276,11 +277,43 @@ export function computeBlurbQualityGrade(
 
   // Check 2: Query relevance (25 pts)
   const queryWords = intent.keywords || query.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
-  const stopWords = ["best", "good", "great", "nice", "find", "want", "looking", "near", "restaurant", "food", "place", "chicago"];
-  const significantWords = queryWords.filter((w) => !stopWords.includes(w));
+  const stopWords = [
+    "best", "good", "great", "nice", "find", "want", "looking", "near",
+    "restaurant", "food", "place", "chicago", "partnership", "close",
+    "financial", "area", "spot", "around", "dinner", "lunch", "breakfast",
+    "meal", "dining", "really", "like", "just", "that", "this", "with",
+    "from", "have", "very", "some", "what", "where", "here", "there",
+  ];
+  let significantWords = queryWords.filter((w) => !stopWords.includes(w));
+
+  // Compound neighborhood detection — if query mentions a known neighborhood,
+  // give relevance credit if blurb or restaurant matches that neighborhood
+  const queryLower = query.toLowerCase();
+  const restNeighborhood = ((restaurant.neighborhood_name as string) || "").toLowerCase();
+  let neighborhoodRelevanceBonus = 0;
+  const knownNeighborhoods = [
+    "west loop", "lincoln park", "wicker park", "logan square", "river north",
+    "old town", "lakeview", "pilsen", "hyde park", "bucktown", "andersonville",
+    "chinatown", "bridgeport", "ukrainian village", "gold coast", "south loop",
+    "north center", "ravenswood", "rogers park", "edgewater", "uptown",
+    "humboldt park", "avondale", "irving park", "albany park",
+  ];
+  for (const hood of knownNeighborhoods) {
+    if (queryLower.includes(hood)) {
+      const hoodWords = hood.split(/\s+/);
+      significantWords = significantWords.filter((w) => !hoodWords.includes(w));
+      if (blurbLower.includes(hood) || restNeighborhood.includes(hood) ||
+          (restNeighborhood && blurbLower.includes(restNeighborhood))) {
+        neighborhoodRelevanceBonus = 15;
+      }
+      break;
+    }
+  }
 
   let relevancePoints = 0;
-  if (significantWords.length === 0) {
+  if (significantWords.length === 0 && neighborhoodRelevanceBonus > 0) {
+    relevancePoints = 25; // Neighborhood-only query with matching neighborhood
+  } else if (significantWords.length === 0) {
     relevancePoints = 15;
   } else {
     const matchCount = significantWords.filter((w) => blurbLower.includes(w.toLowerCase())).length;
@@ -289,12 +322,12 @@ export function computeBlurbQualityGrade(
     else if (matchRatio >= 0.5) relevancePoints = 15;
     else if (matchRatio >= 0.2) relevancePoints = 5;
     else relevancePoints = 0;
+    relevancePoints = Math.min(25, relevancePoints + neighborhoodRelevanceBonus);
   }
   total += relevancePoints;
 
   // Check 3: Restaurant specificity (20 pts)
   const specificitySignals: string[] = [];
-  const restaurant = (responseBody.restaurant || {}) as Record<string, unknown>;
   const restName = ((restaurant.name as string) || "").toLowerCase();
   if (restName && blurbLower.includes(restName.split(/\s+/)[0])) specificitySignals.push("name");
   if (/\$\d+|\d{4}|rated \d|\d\.\d/.test(blurb)) specificitySignals.push("specifics");

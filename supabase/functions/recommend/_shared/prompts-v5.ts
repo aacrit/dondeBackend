@@ -256,6 +256,8 @@ CRITICAL BLURB RULES:
 - Only mention cuisines, dishes, and features that are explicitly listed in the restaurant data below. Do NOT invent or assume any cuisines, dishes, or services not in the provided profile.
 - Write as a SINGLE continuous paragraph. No line breaks, no bullet points, no lists.
 
+QUERY RELEVANCE: Naturally weave the user's key search terms into the blurb. If they asked about "foraging," mention foraging. If they asked about "wine," reference the wine program. If they mentioned a neighborhood, acknowledge it. The blurb should read as a direct response to their specific request, not a generic description.
+
 MATCH HEADLINE (separate field, 10-15 words, SINGLE sentence):
 - Answers "Why this restaurant for THIS request?"
 - Lead with the strongest matching signal (dish match, cuisine fit, vibe alignment, proximity)
@@ -595,7 +597,9 @@ Neighborhood: ${r.neighborhood_name || 'Unknown'}
     if (mn.weak_spots?.length) prompt += `Caveat: ${mn.weak_spots[0]}\n`;
   }
 
-  prompt += `\nWrite the blurb for this restaurant. Respond in JSON only:
+  prompt += `\nNaturally reference the user's key search concepts in the blurb.
+
+Write the blurb for this restaurant. Respond in JSON only:
 {
   "match_headline": "10-15 word one-liner: WHY this restaurant for THIS request. No restaurant name.",
   "recommendation": "100-120 word single-paragraph blurb — MUST contain 'we' or 'our'. MUST NOT contain '—'. MUST name the restaurant somewhere. No line breaks.",
