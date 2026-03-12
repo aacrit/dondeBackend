@@ -50,7 +50,7 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | Reputation | Stretched Google rating (3.5→0, 5.0→10), review count confidence, awards, chef_notable |
 | Convenience | Timing, reservation accessibility, wait time, parking, practical constraints |
 
-**Self-healing:** When `cuisine_type` is NULL (1806/2719 restaurants), V11 falls back to `cuisine_signals` from review intelligence.
+**Self-healing:** When `cuisine_type` is NULL (29/2,719 restaurants — down from 1,806 after cuisine taxonomy fixes), V11 falls back to `cuisine_signals` from review intelligence.
 
 **Score tiers:** 90+ Outstanding | 80-89 Strong Pick | 70-79 Solid Option | 60-69 Worth a Try | <60 Best Available
 

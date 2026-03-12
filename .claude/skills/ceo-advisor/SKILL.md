@@ -49,7 +49,7 @@ Before giving advice, **always read the latest state of the product**:
 
 **Frontend (V10 "Ink & Momentum"):** 2-view sliding cockpit (Canvas ↔ Result). 5 cultural themes × 2 modes. Design philosophy: every interaction feels like writing a wish and watching it come to life. Ink Rule (accent color is earned), 3 type voices (Playfair, Inter, JetBrains Mono), motion grammar (spring for user, ease for system).
 
-**Data:** 913 active restaurants, 912 with deep profiles (38 fields each), 7-dimension occasion scores, ~4,500 tags, 18 data pipelines, 8 CI/CD workflows.
+**Data:** 2,719 restaurants (all active), 2,719 with deep profiles (38 fields each), 7-dimension occasion scores, ~15,500 tags, 2,712 with review intelligence, 33 neighborhoods, 18 data pipelines, 8 CI/CD workflows.
 
 **What's working:** Scoring engine is strong (44/50 pass on golden dataset). Backend architecture is mature. Design system is well-defined and enforced via custom Claude Code skill. Cultural theming is distinctive.
 
