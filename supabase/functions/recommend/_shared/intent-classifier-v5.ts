@@ -390,6 +390,7 @@ function generateDeterministicSemanticTags(
 export async function classifyIntentV5(
   specialRequest: string,
   occasion: string,
+  options?: { skipClaude?: boolean },
 ): Promise<{
   intent: IntentClassificationV2 | null;
   classificationPath: "deterministic" | "claude" | "skip";
@@ -745,7 +746,7 @@ export async function classifyIntentV5(
   // -----------------------------------------------------------------------
   // Tier 2 — Claude Fallback: route ambiguous inputs to Claude
   // -----------------------------------------------------------------------
-  if (overallConfidence === "low") {
+  if (overallConfidence === "low" && !options?.skipClaude) {
     console.log(
       `[V5 Intent] Low confidence for "${specialRequest}" (${words.length} words, ${signalCount} signals) — routing to Claude`,
     );

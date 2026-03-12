@@ -148,16 +148,33 @@ All pipeline scripts support `DRY_RUN` mode and use the `SUPAB_SERVICE_ROLE_KEY`
 
 ---
 
+## Zero-Cost Testing
+
+**Live API Toggle** (header, default OFF):
+- **OFF ("Scoring Only"):** All tests send `skip_claude: true` → engine scores deterministically, returns fallback blurbs. $0 API cost.
+- **ON ("LIVE API"):** Full Claude pipeline — Sonnet for blurbs, Haiku for intent fallback. ~$0.28/query.
+
+**Standalone Live Tests** (always call Claude, red cards):
+- **Blurb Quality Check:** 1 query ("romantic Italian dinner in Lincoln Park"), ~$0.30
+- **Intent Classification:** 1 query ("somewhere fancy but not pretentious"), ~$0.05
+
+## CLI Test Write-Back
+
+CLI test scripts (`golden-dataset-test.sh`, `regression-guard.sh`) persist results to `gauntlet_runs` + `gauntlet_results` tables when `SUPAB_URL` and `SUPAB_ANON_KEY` env vars are set. Run IDs: `cli-golden-*`, `cli-regression-*`. Source field: `cli`.
+
 ## Data Flow: Test Run Lifecycle
 
 ```
-CEO clicks "Run Tests"
+CEO clicks "Run Tests" (Scoring Only mode — default)
   → cc-agents.js builds query pool (golden + edge probes)
-  → Per query: POST /recommend → score + gap analysis
-  → Results streamed to Activity Log + Agent XP updates
-  → On complete: summary written to gauntlet_runs / gauntlet_results
+  → Per query: POST /recommend with skip_claude=true → deterministic scoring
+  → Results streamed to Activity Log
+  → On complete: summary written to gauntlet_runs / gauntlet_results (mode: scoring_only)
   → cc-analytics.js reloads Pulse Cards with new avg_dm, gap count
-  → Session overlay shows pass rate, top agent, budget used
+
+CEO clicks "Blurb Quality Check" (Live test — always calls Claude)
+  → 1 query with skip_claude=false → full Claude blurb generation
+  → Blurb quality graded, result shown with [LIVE] badge
 ```
 
 ## Data Flow: Pipeline Trigger

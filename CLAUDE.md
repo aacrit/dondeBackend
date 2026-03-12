@@ -38,9 +38,9 @@ All skills in `.claude/skills/`.
 | File | Description |
 |------|-------------|
 | `tests/test_catalog.sh` | 65-scenario bash API test suite |
-| `tests/golden-dataset-test.sh` | 50-query golden dataset with score fit + blurb quality grading — primary scoring benchmark |
+| `tests/golden-dataset-test.sh` | 50-query golden dataset with score fit + blurb quality grading — writes results to Supabase `gauntlet_runs`/`gauntlet_results` |
 | `tests/benchmark-200.sh` | 200-case V11 benchmark with score fit + blurb quality grading (10 categories × 20 queries) |
-| `tests/regression-guard.sh` | Scoring regression guard — compares against V10 baseline |
+| `tests/regression-guard.sh` | Scoring regression guard — compares against V10 baseline, writes to Supabase |
 | `tests/compare-scores.sh` | A/B score comparison tool for query debugging |
 | `tests/gauntlet.sh` | Command Center gauntlet test runner |
 | `tests/focused-retest-gaps.sh` | Targeted retest of known gap queries |
@@ -52,6 +52,10 @@ All skills in `.claude/skills/`.
 **V10 scoring baseline (2026-03-05):** 50-case benchmark: 44P/4F/2W, avg DM 70. V9 baseline was 39P/4F/7W, avg DM 68.
 
 **V11 current (2026-03-12):** 50-case golden dataset (188 checks): 142P/2F/44W, avg DM 76, avg score fit 86, avg blurb quality 75. Regression guard: NO REGRESSION vs V10 baseline.
+
+**CLI test write-back:** `golden-dataset-test.sh` and `regression-guard.sh` persist results to `gauntlet_runs` + `gauntlet_results` Supabase tables when `SUPAB_URL` and `SUPAB_ANON_KEY` env vars are set. Run ID format: `cli-golden-*` / `cli-regression-*`. Source field: `cli`.
+
+**Zero-cost testing (`skip_claude`):** Pass `"skip_claude": true` in request body to skip all Claude API calls. Engine returns deterministic scores + fallback blurbs from restaurant profiles. Intent classification uses deterministic Tier 1 only. Used by CEO Command Center "Scoring Only" mode (default).
 
 ## Scoring Engine — V11 (Active)
 
@@ -123,7 +127,8 @@ Timeout: 15s (AbortController on frontend)
   "dietary_restrictions": ["string (max 5, 30 chars each)"],
   "user_id": "uuid",
   "feedback": {"restaurant_id": "uuid", "feedback": "like|dislike"},
-  "time_of_day": "breakfast|lunch|dinner|late_night"
+  "time_of_day": "breakfast|lunch|dinner|late_night",
+  "skip_claude": "boolean (internal: skip Claude API calls, use deterministic blurbs — $0 cost)"
 }
 ```
 

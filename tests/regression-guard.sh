@@ -62,6 +62,10 @@ echo -e "${CYAN}Running golden-dataset-test.sh ...${NC}"
 echo ""
 
 # Capture output while also printing it
+# Pass mode/source env vars so golden-dataset-test.sh writes with regression metadata
+export GOLDEN_RUN_MODE="regression"
+export GOLDEN_RUN_SOURCE="cli"
+export GOLDEN_RUN_ID="cli-regression-$(date -u '+%Y-%m-%dT%H-%M-%S')"
 OUTPUT=$("$GOLDEN_TEST" 2>&1) || true
 GOLDEN_EXIT=$?
 
