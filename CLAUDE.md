@@ -28,6 +28,7 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `/donde-ciso` | Security audit across 10 domains — severity-ranked findings with remediation | Manual or auto on security changes |
 | `/update-docs` | Scans codebase and updates all MD files to reflect current state | Auto when Claude judges changes are significant |
 | `/gen-test-queries` | Generates 10 diverse, persona-driven test queries (1000-query repository) | Manual |
+| `/analytics-expert` | Recommendation engine optimizer — benchmarks against Netflix/YouTube/TikTok, implements quick-wins, CEO report | Manual or auto on scoring changes |
 | `/db-reviewer` | Database quality audit — accuracy, freshness, completeness, cross-field consistency | Manual or auto after enrichment runs |
 
 All skills in `.claude/skills/`.
