@@ -18,5 +18,6 @@ GRANT SELECT ON user_queries TO authenticated;
 
 -- Drop the ambiguously-named policy and recreate with clear naming
 DROP POLICY IF EXISTS "Service role can read all queries" ON user_queries;
+DROP POLICY IF EXISTS "anon_read_user_queries" ON user_queries;
 CREATE POLICY "anon_read_user_queries" ON user_queries
   FOR SELECT USING (true);
