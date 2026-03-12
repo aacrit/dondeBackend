@@ -30,6 +30,7 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `/gen-test-queries` | Generates 10 diverse, persona-driven test queries (1000-query repository) | Manual |
 | `/analytics-expert` | Recommendation engine optimizer — benchmarks against Netflix/YouTube/TikTok, implements quick-wins, CEO report | Manual or auto on scoring changes |
 | `/db-reviewer` | Database quality audit — accuracy, freshness, completeness, cross-field consistency | Manual or auto after enrichment runs |
+| `/perf-optimizer` | Response time optimizer — profiles latency waterfall, audits timeouts, implements safe optimizations | Manual or auto on timeout/latency issues |
 
 All skills in `.claude/skills/`.
 
