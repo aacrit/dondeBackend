@@ -704,7 +704,8 @@ Deno.serve(async (req: Request) => {
     let neighborhoodExpanded = false;
     const topNeighborhoodScore = diverseScored[0]?.dondeMatch ?? 0;
 
-    if (topNeighborhoodScore < NEIGHBORHOOD_QUALITY_THRESHOLD && neighborhood !== "Anywhere") {
+    const neighborhoodGateElapsed = Date.now() - startTime;
+    if (topNeighborhoodScore < NEIGHBORHOOD_QUALITY_THRESHOLD && neighborhood !== "Anywhere" && neighborhoodGateElapsed < 8000) {
       logInfo("V9: Neighborhood quality gate triggered", {
         neighborhood,
         topScore: topNeighborhoodScore,
@@ -916,10 +917,12 @@ Deno.serve(async (req: Request) => {
       );
 
       // Single Claude API call — blurb + potential boost (Sonnet for primary, stronger voice differentiation)
-      // Sonnet gets 10s timeout (heavier model), default Haiku gets 8s
+      // Deadline propagation: Claude timeout = min(10s, remaining budget - 1.5s buffer)
+      // This ensures Claude never pushes us past the 15s frontend AbortController deadline.
+      const claudeDeadline = Math.max(3000, Math.min(10000, 15000 - (Date.now() - startTime) - 1500));
       const claudeText = await callClaude(userPrompt, systemPrompt, {
         model: "claude-sonnet-4-6",
-        timeoutMs: 10000,
+        timeoutMs: claudeDeadline,
       });
 
       // Parse Claude response
@@ -945,7 +948,7 @@ Deno.serve(async (req: Request) => {
       const foundSlop = BLURB_SLOP_PATTERNS.filter(p => combinedText.includes(p.toLowerCase()));
 
       const elapsedBeforeSlop = Date.now() - startTime;
-      if (foundSlop.length > 0 && elapsedBeforeSlop < 10000) {
+      if (foundSlop.length > 0 && elapsedBeforeSlop < 8000) {
         logWarn("Slop detected in Claude blurb, retrying", {
           patterns: foundSlop,
           restaurant: rerankedScored[parsed.restaurant_index || 0]?.profile.name,
@@ -953,7 +956,8 @@ Deno.serve(async (req: Request) => {
         });
         try {
           const retryPrompt = userPrompt + `\n\nCRITICAL RETRY: Your previous response contained banned patterns: ${foundSlop.map(p => `"${p}"`).join(", ")}. Rewrite WITHOUT these patterns. Same JSON format.`;
-          const retryText = await callClaude(retryPrompt, systemPrompt, { timeoutMs: 5000 });
+          const slopRetryDeadline = Math.max(2000, Math.min(5000, 15000 - (Date.now() - startTime) - 1000));
+          const retryText = await callClaude(retryPrompt, systemPrompt, { timeoutMs: slopRetryDeadline });
           const retryParsed = parseClaudeJson<ClaudeRecommendation>(retryText);
           // Only accept retry if it's cleaner
           const retryBlurb = (retryParsed.recommendation || "").toLowerCase();
