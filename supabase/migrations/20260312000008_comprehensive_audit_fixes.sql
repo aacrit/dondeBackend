@@ -45,7 +45,7 @@ UPDATE restaurants SET price_level = '$', updated_at = now()
 WHERE name = 'Smoque BBQ' AND price_level = '$$';
 
 -- Fix BYOB (Smoque is BYOB with no corkage fee — well-known feature)
-UPDATE restaurant_deep_profiles SET byob_policy = 'byob_allowed'
+UPDATE restaurant_deep_profiles SET byob_policy = 'full_byob'
 WHERE restaurant_id = (SELECT id FROM restaurants WHERE name = 'Smoque BBQ' LIMIT 1)
 AND byob_policy = 'no_byob';
 
