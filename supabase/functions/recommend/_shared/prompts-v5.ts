@@ -256,6 +256,7 @@ CRITICAL BLURB RULES:
 - Only mention cuisines, dishes, and features that are explicitly listed in the restaurant data below. Do NOT invent or assume any cuisines, dishes, or services not in the provided profile.
 - Write as a SINGLE continuous paragraph. No line breaks, no bullet points, no lists.
 - QUERY TERM ECHO: The KEY SEARCH TERMS listed in the user prompt below should each appear in the blurb where relevant. If the restaurant matches the term (e.g., they asked "bottomless brunch" and it serves brunch), use the exact term. If the restaurant doesn't match a feature term (e.g., they asked "rooftop" but this isn't a rooftop), acknowledge the search context naturally without claiming the restaurant has that feature. The blurb must read as a direct response to their specific request, not a generic description.
+- SPECIFICITY CHECKLIST: Every blurb must include at least 3 of these: (1) the restaurant name, (2) a specific number (price, year, rating), (3) the neighborhood name, (4) a sensory texture word (charred, crispy, smoky, tangy, spicy, creamy, buttery, flaky, tender).
 
 MATCH HEADLINE (separate field, 10-15 words, SINGLE sentence):
 - Answers "Why this restaurant for THIS request?"
