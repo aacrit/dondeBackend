@@ -93,7 +93,7 @@ How DondeAI generates the recommendation text, match headlines, insider tips, an
 
 | Field | Method | Source File | Notes |
 |-------|--------|-------------|-------|
-| `recommendation` (main) | LLM (Claude Haiku 4.5) | `prompts-v5.ts` → `claude.ts` | 100–120 word blurb, single API call |
+| `recommendation` (main) | LLM (Claude Haiku 4.5) | `prompts-v5.ts` → `claude.ts` | 100–115 word blurb, single API call |
 | `match_headline` | LLM (Claude Haiku 4.5) | `prompts-v5.ts` → `claude.ts` | 10–15 words, no restaurant name |
 | `insider_tip` | LLM + DB fallback | `prompts-v5.ts` → `claude.ts` | Falls back to `insider_tip` or `best_seat_in_house` from DB |
 | `match_narrative.*` | Template (TypeScript) | `scoring-v9.ts` | Computed from scoring factors, no LLM |
@@ -218,7 +218,7 @@ Built by `buildV5UserPrompt()`. Sections:
 
 ### Blurb Structure Mandate
 
-Every recommendation blurb follows a three-part structure:
+Every recommendation blurb follows a three-part structure (100–115 words total):
 
 1. **Hook** (1 sentence): Tension, curiosity, bold claim, or provocation. Never open with the restaurant name.
 2. **Heart** (2–3 sentences): Sensory food detail + atmosphere detail, connected to the user's occasion.
@@ -226,9 +226,15 @@ Every recommendation blurb follows a three-part structure:
 
 Opening rotation by restaurant name hash: 50% food/dish lead, 25% provocation/opinion, 25% neighborhood/context.
 
-### Query Relevance Directive
+### Query Term Echo (Key Terms Extraction)
 
-The system prompt instructs Claude to naturally weave the user's key search terms into the blurb. If the user asked about "foraging," mention foraging. If they asked about "wine," reference the wine program. If they mentioned a neighborhood, acknowledge it. This ensures blurbs read as direct responses to the specific request, not generic descriptions. Scored as part of Blurb Quality Grade Check 2 (25pts).
+The prompt includes an `extractKeyTerms()` function that mirrors the grading.ts query relevance logic. It extracts significant words from the user's query (filtering 40+ stop words and detecting compound neighborhood names like "logan square") and injects them as `KEY SEARCH TERMS` into both the full user prompt and the blurb-only prompt.
+
+The system prompt's QUERY TERM ECHO rule instructs Claude to weave each key term naturally into the blurb where the restaurant matches the term. For feature-mismatch cases (e.g., user asked "rooftop" but restaurant isn't a rooftop), Claude acknowledges the search context without falsely claiming the feature. This ensures blurbs read as direct responses to the specific request. Scored as part of Blurb Quality Grade Check 2 (25pts).
+
+### Specificity Checklist
+
+Every blurb must include at least 3 of: (1) the restaurant name, (2) a specific number (price, year, rating), (3) the neighborhood name, (4) a sensory texture word (charred, crispy, smoky, tangy, spicy, creamy, buttery, flaky, tender). Scored as part of Blurb Quality Grade Check 3 (20pts).
 
 ### Intent Boost
 
@@ -345,7 +351,7 @@ All U+2014 characters in `recommendation` and `insider_tip` are replaced with `,
 
 ### Word Count Check
 
-Target: 100–120 words. Warns if <80 or >150. Does not reject.
+Target: 100–115 words. Warns if <80 or >150. Does not reject.
 
 ### Voice Mandate Check
 

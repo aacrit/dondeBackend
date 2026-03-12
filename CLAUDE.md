@@ -51,6 +51,8 @@ All skills in `.claude/skills/`.
 
 **V10 scoring baseline (2026-03-05):** 50-case benchmark: 44P/4F/2W, avg DM 70. V9 baseline was 39P/4F/7W, avg DM 68.
 
+**V11 current (2026-03-12):** 50-case golden dataset (188 checks): 142P/2F/44W, avg DM 76, avg score fit 86, avg blurb quality 75. Regression guard: NO REGRESSION vs V10 baseline.
+
 ## Scoring Engine — V11 (Active)
 
 **Active files:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts` (filenames retained from V9, logic is V11)
@@ -138,7 +140,7 @@ Timeout: 15s (AbortController on frontend)
     "neighborhood_name", "photo_urls", "opening_hours", "review_snippets",
     "best_times"
   },
-  "recommendation": "string (100-120 words)",
+  "recommendation": "string (100-115 words)",
   "insider_tip": "string|null",
   "donde_match": "integer 0-99",
   "scores": { "date_friendly_score", "group_friendly_score", "family_friendly_score",

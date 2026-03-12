@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-03-12T12:34:54Z",
+  "pass": 142,
+  "fail": 2,
+  "warn": 44,
+  "avg_dm": 76,
+  "baseline_pass": 44,
+  "baseline_dm": 70,
+  "pass_delta": 98,
+  "dm_delta": 6,
+  "regression": false,
+  "golden_exit": 0
+}
