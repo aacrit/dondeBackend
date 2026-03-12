@@ -161,7 +161,7 @@ Read the Supabase schema and evaluate:
 - Are all RLS policy columns indexed?
 - Are frequently-joined columns using proper foreign keys?
 - Are `created_at`/`updated_at` columns present with DEFAULT NOW()?
-- Is the restaurant table (~913 rows) structured for efficient scoring queries?
+- Is the restaurant table (~2,719 rows) structured for efficient scoring queries?
 - Are there composite indexes for the scoring engine's multi-column lookups?
 
 **Security:**
@@ -199,7 +199,7 @@ Check for:
 Audit the enrichment pipeline:
 - Is model tiering optimal (Haiku for structured, Opus for user-facing)?
 - Are there fallback chains if an API call fails?
-- Is there deduplication logic for the ~913 restaurant dataset?
+- Is there deduplication logic for the ~2,719 restaurant dataset?
 - Are Chicago-specific data points (neighborhood boundaries, transit access) accurate?
 
 ---

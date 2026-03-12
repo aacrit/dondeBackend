@@ -14,7 +14,7 @@ Last updated: 2026-03-12
 - [x] Dynamic vibe relevance floor (0.45 for 3+ signals)
 - [x] Composite RPC scoring (V11) — all signals scored simultaneously
 - [x] Dynamic candidate pool: 100 for complex/semantic queries (was 50/80)
-- [x] Self-healing: NULL cuisine_type → fallback to cuisine_signals (1806/2719 restaurants)
+- [x] Self-healing: NULL cuisine_type → fallback to cuisine_signals (29/2,719 restaurants — down from 1,806)
 - [x] Match Narrative: structured "why this match" data (strongest_factor, key_signals, summary)
 - [x] Ranked Queue: pre-computed top 5 results → instant Try Again on frontend
 - [x] Post-Google re-score: all candidates re-scored with real Google data

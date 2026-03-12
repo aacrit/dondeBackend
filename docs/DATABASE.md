@@ -6,11 +6,11 @@ Last updated: 2026-03-12
 
 | Table | Rows | Relationship | Purpose |
 |-------|------|-------------|---------|
-| `restaurants` | 913 active | — | Core restaurant data (28 cols) |
-| `restaurant_deep_profiles` | 912 | 1:1 with restaurants | V2 enrichment data (38 cols) |
-| `occasion_scores` | 913 | 1:1 with restaurants | 7-dimension occasion scoring |
-| `neighborhoods` | 14 | 1:N → restaurants | Chicago neighborhood lookup |
-| `tags` | ~4,500 | N:1 → restaurants | Restaurant tags (3-6 per restaurant) |
+| `restaurants` | 2,719 (all active) | — | Core restaurant data (28 cols) |
+| `restaurant_deep_profiles` | 2,719 | 1:1 with restaurants | V2 enrichment data (38 cols) |
+| `occasion_scores` | 2,719 | 1:1 with restaurants | 7-dimension occasion scoring |
+| `neighborhoods` | 33 | 1:N → restaurants | Chicago neighborhood lookup |
+| `tags` | ~15,500 | N:1 → restaurants | Restaurant tags (~5.7 per restaurant) |
 | `restaurant_popularity` | — | 1:1 with restaurants | Trending/recommendation counts |
 | `user_profiles` | — | 1:1 with auth.users | Authenticated user preferences |
 | `user_searches` | — | N:1 → user_profiles | Server-side search history |
@@ -25,15 +25,15 @@ Last updated: 2026-03-12
 ## Entity Relationships
 
 ```
-neighborhoods (14)
+neighborhoods (33)
   |
   | 1:N (neighborhood_id)
   v
-restaurants (913)
-  |--- 1:1 ---> restaurant_deep_profiles (912)
-  |--- 1:1 ---> occasion_scores (913)
+restaurants (2,719 — all active)
+  |--- 1:1 ---> restaurant_deep_profiles (2,719)
+  |--- 1:1 ---> occasion_scores (2,719)
   |--- 1:1 ---> restaurant_popularity
-  |--- 1:N ---> tags (~4,500)
+  |--- 1:N ---> tags (~15,500)
   |--- 1:N ---> user_favorites
   |--- 1:N ---> user_queries
 
@@ -144,7 +144,7 @@ user_profiles
 | `tag_text` | text | e.g., "handmade pasta", "date night" |
 | `tag_category` | text | feature, vibe, cuisine, dietary |
 
-## neighborhoods (14 Chicago areas)
+## neighborhoods (33 Chicago areas)
 
 | Column | Type | Notes |
 |--------|------|-------|
@@ -218,4 +218,4 @@ get_ranked_restaurants(
 
 ## Migrations
 
-43 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-11). Applied via `supabase db push` or Dashboard SQL Editor. Recent additions: gauntlet tracking tables, maintenance requests, RLS hardening, source column on user_queries, recommendation_text persistence, score fit + blurb quality grading columns.
+48 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-12). Applied via `supabase db push` or Dashboard SQL Editor. Recent additions: cuisine taxonomy fixes (4 migrations), auto-merge CI/CD, gauntlet tracking tables, maintenance requests, RLS hardening, source column on user_queries, recommendation_text persistence, score fit + blurb quality grading columns.
