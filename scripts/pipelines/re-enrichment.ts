@@ -44,7 +44,9 @@ const GOOGLE_TYPE_TO_CUISINE: Record<string, string> = {
   vegetarian_restaurant: "Vegan",
   cafe: "Coffee/Cafe",
   coffee_shop: "Coffee/Cafe",
-  bar: "Cocktail Bar",
+  // bar: removed — "bar" Google type alone is not enough to classify cuisine.
+  // Restaurants with only "bar" type fall through to Claude Tier 2 for proper classification.
+  night_club: "Cocktail Bar",
   // Additional common Google types
   pizza_restaurant: "Italian",
   sushi_restaurant: "Japanese",
