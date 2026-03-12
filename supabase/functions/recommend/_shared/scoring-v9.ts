@@ -1324,8 +1324,8 @@ function computeCuisineRelevance(
       return family && family.toLowerCase() === tLower;
     });
     if (isSubOfTarget) return 0.85; // Sub-cuisine IS the target family
-    if (isRelatedCuisine(candidate.cuisine_type, targets)) return 0.50;  // Same family
-    if (isAdjacentCuisine(candidate.cuisine_type, targets)) return 0.30; // Adjacent
+    if (isRelatedCuisine(candidate.cuisine_type, targets)) return 0.60;  // Same family (raised from 0.50 — Analytics Expert: Peruvian→Mexican DM 41→~49)
+    if (isAdjacentCuisine(candidate.cuisine_type, targets)) return 0.40; // Adjacent (raised from 0.30 — Analytics Expert: cross-family floor too punitive)
     // V15: For very different cuisines, give a slightly higher floor (0.10 vs 0.05)
     // so that when broadening kicks in, the wrong-cuisine penalty isn't quite as brutal.
     // The DondeScore of 0.05 * 85 = 4.25 (DM=4) creates impossibly low scores.
@@ -1351,7 +1351,7 @@ function computeCuisineRelevance(
 function computeReputationRelevance(candidate: V9Candidate, googleData?: GooglePlaceData | null): V9Relevance {
   const dp = candidate.deep_profile;
   const ri = candidate.review_intelligence;
-  let score = 0.50; // Base: generous floor — reputation queries should still show good restaurants
+  let score = 0.55; // Base: generous floor — raised from 0.50 (Analytics Expert: reputation queries R03 DM 54→~58)
   const signals: string[] = [];
 
   // Awards recognition (strongest signal)

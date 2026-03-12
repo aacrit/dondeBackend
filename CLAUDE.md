@@ -54,7 +54,7 @@ All skills in `.claude/skills/`.
 
 **V11 current (2026-03-12):** 50-case golden dataset (188 checks): 142P/2F/44W, avg DM 76, avg score fit 86, avg blurb quality 75. Regression guard: NO REGRESSION vs V10 baseline.
 
-**V11 analytics fixes (2026-03-12):** Voice compliance auto-fix (blurb quality), cuisine_type reclassification (18 restaurants), diversity caps tightened (maxPerCuisine 3→2, maxPerNeighborhood 5→3), Google rating signal for reputation relevance. Expected: blurb WARNs 44→~15, pass rate 75%→~88%.
+**V11 analytics fixes (2026-03-12):** Voice compliance auto-fix (blurb quality), cuisine_type reclassification (18 restaurants), diversity caps tightened (maxPerCuisine 3→2, maxPerNeighborhood 5→3), Google rating signal for reputation relevance, same-family cuisine relevance 0.50→0.60 (Peruvian→Mexican fix), adjacent cuisine relevance 0.30→0.40, reputation base floor 0.50→0.55. Expected: blurb WARNs 44→~15, pass rate 75%→~88%.
 
 **CLI test write-back:** `golden-dataset-test.sh` and `regression-guard.sh` persist results to `gauntlet_runs` + `gauntlet_results` Supabase tables when `SUPAB_URL` and `SUPAB_ANON_KEY` env vars are set. Run ID format: `cli-golden-*` / `cli-regression-*`. Source field: `cli`.
 
