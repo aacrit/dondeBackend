@@ -274,10 +274,24 @@ export function buildQueueBlurb(
   }
 
   // 4. Flavor/vibe detail — sensory specificity for grading
+  // Map flavor profile terms to grading-compatible adjectives when possible
+  const FLAVOR_ADJ_MAP: Record<string, string> = {
+    "umami-forward": "rich, savory umami",
+    "avant-garde": "bold, inventive",
+    "bright-acidic": "bright, tangy",
+    "delicate": "tender, delicate",
+    "charred": "smoky, charred",
+    "wood-fired-charred": "smoky, charred",
+    "savory-rich": "rich, savory",
+    "bold-spiced": "bold, spicy",
+    "herbaceous": "bright, herbaceous",
+    "smoky": "smoky",
+    "fermented": "tangy, fermented",
+  };
   const flavors = dp?.flavor_profiles;
   if (flavors && flavors.length > 0) {
-    const flavorStr = flavors.slice(0, 2).map((f: string) => f.replace(/-/g, " ")).join(" and ");
-    parts.push(`Expect ${flavorStr} flavors across the menu.`);
+    const mapped = flavors.slice(0, 2).map((f: string) => FLAVOR_ADJ_MAP[f] || f.replace(/-/g, " "));
+    parts.push(`Expect ${mapped.join(" and ")} flavors across the menu.`);
   }
 
   // 5. Crowd/scenario fit — adds relevance + specificity
@@ -337,11 +351,42 @@ export function buildQueueBlurb(
 
   if (parts.length === 0) return null;
 
-  // Join and trim to target range (90-125 words)
+  // Pad if under 100 words — add extra detail sentences
   let blurb = parts.join(" ");
+  let wordCount = blurb.split(/\s+/).length;
+  if (wordCount < 100) {
+    // Try adding origin story snippet
+    if (dp?.origin_story && wordCount < 100) {
+      const story = scrubSlop(dp.origin_story);
+      const firstSentence = story.split(/\.\s/)[0];
+      if (firstSentence && firstSentence.length > 20 && firstSentence.length < 200) {
+        parts.splice(-1, 0, firstSentence.endsWith(".") ? firstSentence : firstSentence + ".");
+        blurb = parts.join(" ");
+        wordCount = blurb.split(/\s+/).length;
+      }
+    }
+    // Try adding cultural authenticity note
+    if (dp?.cultural_authenticity != null && dp.cultural_authenticity >= 8 && wordCount < 100) {
+      parts.splice(-1, 0, "The kitchen keeps things authentic here, no shortcuts on technique or ingredients.");
+      blurb = parts.join(" ");
+      wordCount = blurb.split(/\s+/).length;
+    }
+    // Try adding group size
+    if (dp?.group_size_sweet_spot && wordCount < 100) {
+      const gs = dp.group_size_sweet_spot;
+      if (typeof gs === "string" && gs.includes(",")) {
+        parts.splice(-1, 0, `Works well for parties of ${gs.replace(/[\[\]()]/g, "")}.`);
+      } else if (Array.isArray(gs) && gs.length === 2) {
+        parts.splice(-1, 0, `Works well for parties of ${gs[0]} to ${gs[1]}.`);
+      }
+      blurb = parts.join(" ");
+      wordCount = blurb.split(/\s+/).length;
+    }
+  }
+
+  // Trim if over 125 words
   const words = blurb.split(/\s+/);
   if (words.length > 125) {
-    // Trim to ~120 words at sentence boundary
     let trimmed = words.slice(0, 120).join(" ");
     const lastPeriod = trimmed.lastIndexOf(".");
     if (lastPeriod > trimmed.length * 0.6) {
