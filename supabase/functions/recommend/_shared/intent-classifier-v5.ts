@@ -477,6 +477,15 @@ export async function classifyIntentV5(
     "wine", "wine bar", "sake", "sake bar",
     // Venue-type words
     "cafe", "coffee", "diner", "bistro", "pub",
+    // Cuisine sub-type / regional aliases that map to a parent cuisine
+    // These denote a cuisine category, not a specific dish.
+    "somali", "eritrean", "nigerian", "ghanaian", "senegalese", "ugandan", "liberian",
+    "szechuan", "sichuan", "cantonese", "hunan", "shanghainese",
+    "nepalese", "nepali", "tibetan",
+    "oaxacan", "yucatecan", "poblano",
+    "calabrese", "sicilian", "neapolitan", "tuscan",
+    "peruvian", "colombian", "argentinian", "venezuelan", "chilean",
+    "vegan", "plant-based", "plant based", "meatless",
   ]);
   const matchedFoodItems = matchedKeywordStrings.filter(
     (kw) => !cuisineNamesLower.has(kw) && !NON_DISH_WORDS.has(kw),

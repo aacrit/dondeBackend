@@ -1081,7 +1081,17 @@ export function computeRelevance(
       // Cap cuisine-only relevance — right cuisine but wrong dish.
       // Multi-word dish queries (e.g. "soup dumplings", "hot chicken") are more
       // specific, so apply a stricter cap to avoid false-positive high scores.
-      const dishIsSpecific = intent.dish_level_intent!.split(/\s+/).length >= 2;
+      // Filter out common modifiers to avoid false multi-word detection
+      // (e.g. "authentic Szechuan" → "szechuan" = 1 word, not a specific dish).
+      const QUERY_MODIFIERS = new Set([
+        "best", "good", "great", "top", "authentic", "real", "traditional",
+        "nice", "fancy", "cheap", "affordable", "nearby", "local", "new",
+        "popular", "famous", "classic", "true", "genuine", "proper",
+        "food", "place", "restaurant", "spot", "joint", "near", "me",
+      ]);
+      const dishWords = intent.dish_level_intent!.toLowerCase().split(/\s+/)
+        .filter(w => !QUERY_MODIFIERS.has(w));
+      const dishIsSpecific = dishWords.length >= 2;
       const cap = dishIsSpecific ? 0.65 : 0.80;
       return {
         score: Math.min(cap, cuisineRelevance * 0.80),
