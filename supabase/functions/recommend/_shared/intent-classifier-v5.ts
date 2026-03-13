@@ -41,6 +41,8 @@ const VIBE_WORDS: string[] = [
   "fun", "festive", "celebratory",
   // V14: Additional vibe words from gap analysis
   "moody", "dark", "bustling", "comfortable",
+  // V16: Additional vibe words from 31-issue gap analysis
+  "garden",
 ];
 
 /** Practical constraint trigger words mapped to constraint labels */
@@ -49,6 +51,7 @@ const CONSTRAINT_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
   { pattern: /walk.?in|no reservat/, label: "walk_in" },
   { pattern: /byob/, label: "byob" },
   { pattern: /cash only|cash/, label: "cash_only" },
+  { pattern: /valet/, label: "valet_parking" },
   { pattern: /parking|drive/, label: "parking_needed" },
   { pattern: /outdoor|patio|outside|terrace|al fresco/, label: "outdoor_preferred" },
   { pattern: /pet|dog/, label: "pet_friendly" },

@@ -101,7 +101,7 @@ export const CUISINE_KEYWORDS: Record<string, string[]> = {
   Taiwanese: ["taiwanese", "boba", "bubble tea", "gua bao", "beef noodle soup", "lu rou fan", "oyster omelette", "scallion pancake", "taiwanese fried chicken", "shaved ice", "night market", "popcorn chicken", "dan bing", "milk tea", "tapioca"],
   Persian: ["persian", "iranian", "tahdig", "koobideh", "ghormeh sabzi", "zereshk polo", "joojeh kebab", "ash reshteh", "fesenjan", "dizi", "sangak", "lavash", "kashk", "saffron rice", "baghali polo"],
   German: ["german", "schnitzel", "bratwurst", "pretzel", "sauerkraut", "strudel", "currywurst", "spätzle", "schweinshaxe", "kartoffelpuffer", "weisswurst", "bier", "biergarten", "beer hall", "rouladen"],
-  Hawaiian: ["hawaiian", "poke bowl", "spam musubi", "loco moco", "kalua pork", "manapua", "plate lunch", "poi", "lau lau", "shave ice", "acai bowl", "tiki"],
+  Hawaiian: ["hawaiian", "poke bowl", "spam musubi", "loco moco", "kalua pork", "manapua", "plate lunch", "poi", "lau lau", "shave ice", "acai bowl"],
   Venezuelan: ["venezuelan", "arepa", "cachapa", "tequeño", "pabellón", "hallaca", "mandoca", "empanada venezolana", "patacón"],
   Ukrainian: ["ukrainian", "borscht", "varenyky", "holubtsi", "salo", "kovbasa", "deruny", "pampushky", "banosh"],
   Ecuadorian: ["ecuadorian", "encebollado", "llapingacho", "hornado", "ceviche ecuatoriano", "fanesca", "bolon de verde", "guatita"],
@@ -1096,6 +1096,25 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "trendy sushi spot": { cuisines: ["Japanese"], tags: ["trendy"] },
   "sunday morning cafe": { cuisines: ["Coffee/Cafe", "Brunch"], tags: ["brunch spot", "quiet"] },
   "sunday morning": { cuisines: ["Brunch"], tags: ["brunch spot"] },
+
+  // V16: Additional entries from 31-issue gap analysis
+  "garden restaurant": { tags: ["outdoor patio"], features: ["outdoor_seating"] },
+  "garden dining": { tags: ["outdoor patio"], features: ["outdoor_seating"] },
+  "family style dinner": { tags: ["kid friendly"] },
+  "family style": { tags: ["kid friendly"] },
+  "valet": { tags: ["fine dining"] },
+  "breakfast burrito": { cuisines: ["Mexican", "Brunch"], tags: ["brunch spot"] },
+  "breakfast burritos": { cuisines: ["Mexican", "Brunch"], tags: ["brunch spot"] },
+  "craft cocktail bar": { tags: ["craft cocktails", "hidden gem"] },
+  "best craft cocktail bar": { tags: ["craft cocktails", "reputation-focused"] },
+  "best craft cocktail": { tags: ["craft cocktails", "reputation-focused"] },
+  "best rooftop": { tags: ["rooftop", "scenic view", "reputation-focused"] },
+  "best rooftop dining": { tags: ["rooftop", "scenic view", "reputation-focused"] },
+  "best tasting menu": { tags: ["tasting menu", "fine dining", "reputation-focused"] },
+  "best tasting menu in chicago": { tags: ["tasting menu", "fine dining", "reputation-focused"] },
+  "tiki": { tags: ["craft cocktails", "lively atmosphere"] },
+  "tiki bar": { tags: ["craft cocktails", "lively atmosphere"] },
+  "speakeasy bar": { tags: ["craft cocktails", "hidden gem"] },
 };
 
 // --- Unmatched keyword extraction (for continuous learning) ---

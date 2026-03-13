@@ -653,10 +653,10 @@ Neighborhood: ${r.neighborhood_name || 'Unknown'}
 
   const blurbKeyTerms = extractKeyTerms(context.special_request || '');
   if (blurbKeyTerms.length > 0) {
-    prompt += `KEY SEARCH TERMS (each must appear naturally in blurb): ${blurbKeyTerms.join(', ')}\n`;
+    prompt += `KEY SEARCH TERMS (MANDATORY — every term MUST appear in the blurb): ${blurbKeyTerms.join(', ')}\n`;
   }
 
-  prompt += `\nWeave each KEY SEARCH TERM naturally into the blurb where relevant to the restaurant.
+  prompt += `\nCRITICAL: Every KEY SEARCH TERM listed above MUST appear naturally in the blurb. If the restaurant is known for that term, lead with it. If not, acknowledge it honestly (e.g., "We looked for outdoor seating and found Leña Brava's patio..."). Never omit a key search term.
 
 Write the blurb for this restaurant. Respond in JSON only:
 {

@@ -810,6 +810,19 @@ export const CONCEPT_MAP: Record<string, ConceptSignal> = {
   "free dessert birthday": { vibes: ["warm"], tags: ["great value"] },
   "fast seating": { constraints: ["walk_in"], vibes: ["casual"] },
   "neighborhood delivery": { vibes: ["casual"] },
+
+  // V16: Additional concepts from 31-issue gap analysis
+  "garden restaurant": { constraints: ["outdoor_preferred"], tags: ["outdoor patio", "farm-to-table"], vibes: ["warm", "rustic"] },
+  "garden dining": { constraints: ["outdoor_preferred"], tags: ["outdoor patio"], vibes: ["warm"] },
+  "family style dinner": { tags: ["kid friendly"], vibes: ["warm", "casual"], constraints: ["family_friendly"] },
+  "family style": { tags: ["kid friendly"], vibes: ["warm", "casual"], constraints: ["family_friendly"] },
+  "speakeasy bar": { tags: ["hidden gem", "craft cocktails"], vibes: ["intimate", "moody", "refined"] },
+  "best rooftop": { tags: ["rooftop", "outdoor patio"], vibes: ["modern", "lively"], constraints: ["outdoor_preferred"], reputation_boost: true },
+  "best rooftop dining": { tags: ["rooftop", "outdoor patio", "scenic view"], vibes: ["modern", "elegant"], constraints: ["outdoor_preferred"], reputation_boost: true },
+  "best craft cocktail": { tags: ["craft cocktails"], vibes: ["refined", "intimate"], reputation_boost: true },
+  "best craft cocktail bar": { tags: ["craft cocktails", "hidden gem"], vibes: ["refined", "intimate", "moody"], reputation_boost: true },
+  "best tasting menu": { tags: ["tasting menu", "fine dining"], vibes: ["elegant", "refined"], reputation_boost: true },
+  "best tasting menu in chicago": { tags: ["tasting menu", "fine dining"], vibes: ["elegant", "refined"], reputation_boost: true },
 };
 
 /**
@@ -996,8 +1009,50 @@ export function computeRelevance(
   // that should override any cuisine/dish classification from Claude.
   // Without this, Claude sometimes returns target_cuisines (e.g. "French" for "michelin star"),
   // which blocks the reputation path and produces low relevance scores.
+  // V16: When query has BOTH reputation AND vibe/constraint signals (e.g., "best rooftop dining",
+  // "best craft cocktail bar"), blend reputation with vibe/constraint relevance so that
+  // vibe-mismatched restaurants (e.g., non-rooftop) get penalized.
   if (isReputationQuery(intent, specialRequest)) {
-    return computeReputationRelevance(candidate, googleData);
+    const repRelevance = computeReputationRelevance(candidate, googleData);
+    if (intent) {
+      const hasVibeSignals = (intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0;
+      const hasConstraintSignals = (intent.practical_constraints?.length ?? 0) > 0;
+      if (hasVibeSignals) {
+        const vibeRel = computeVibeRelevance(candidate, intent);
+        const vibeFloor = ([...new Set([...(intent.vibe_keywords || []), ...(intent.target_tags || [])])]).length >= 3 ? 0.55 : 0.60;
+        const vibeHasHits = vibeRel > vibeFloor + 0.001;
+        if (vibeHasHits) {
+          // Blend: 60% reputation + 40% vibe — rewards restaurants matching both
+          const blended = Math.min(1.0, repRelevance.score * 0.60 + vibeRel * 0.40);
+          return { score: blended, type: "reputation", details: `Reputation+Vibe: ${repRelevance.score.toFixed(2)}/${vibeRel.toFixed(2)}` };
+        } else {
+          // Vibe signals present but no hits — penalize (e.g., "best rooftop" on non-rooftop)
+          const penalized = Math.min(1.0, repRelevance.score * 0.70);
+          return { score: penalized, type: "reputation", details: `Reputation (vibe mismatch penalty): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+      if (hasConstraintSignals) {
+        const dp = candidate.deep_profile;
+        let cHits = 0;
+        const cTotal = intent.practical_constraints!.length;
+        for (const c of intent.practical_constraints!) {
+          const cl = c.toLowerCase();
+          if (cl === "byob" && dp?.byob_policy && dp.byob_policy !== "not_allowed" && dp.byob_policy !== "no") cHits++;
+          else if (cl === "outdoor_preferred" && candidate.outdoor_seating) cHits++;
+          else if (cl === "tasting_menu" && (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("tasting"))) cHits++;
+          else if (cl === "walk_in" && dp?.reservation_difficulty === "walk_in_friendly") cHits++;
+          else if (cl === "quiet_environment" && candidate.noise_level === "Quiet") cHits++;
+          else if (cl === "family_friendly" && dp?.kid_friendliness != null && dp.kid_friendliness >= 6) cHits++;
+          else if (cl === "valet_parking" && dp?.parking_details?.toLowerCase().includes("valet")) cHits++;
+        }
+        if (cHits > 0) {
+          const constraintRate = cHits / cTotal;
+          const blended = Math.min(1.0, repRelevance.score * 0.65 + 0.35 * (0.80 + 0.20 * constraintRate));
+          return { score: blended, type: "reputation", details: `Reputation+Constraint: ${repRelevance.score.toFixed(2)} (${cHits}/${cTotal})` };
+        }
+      }
+    }
+    return repRelevance;
   }
 
   // No intent → everything is equally relevant (open-ended query)
@@ -1098,7 +1153,10 @@ export function computeRelevance(
     if ((hasVibeHits && vibeRelevance > 0.50) || vibeIsPrimary) {
       // V12: Raised minimum from 0.55 to 0.65 so vibe queries have a viable DM floor
       // V13: Raised minimum from 0.65 to 0.70 so vibe queries have a higher DM floor
-      return { score: Math.max(vibeRelevance, 0.70), type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
+      // V16: Raised minimum from 0.70 to 0.75 for vibe-primary queries (happy hour, sports bar, speakeasy)
+      // so DM floor is ~75*0.75=56 minimum instead of ~75*0.70=52
+      const vibeMin = vibeIsPrimary ? 0.75 : 0.70;
+      return { score: Math.max(vibeRelevance, vibeMin), type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
     }
     // Store weak vibe as fallback — check constraints below, use max
     weakVibeScore = vibeRelevance;
@@ -1152,12 +1210,29 @@ export function computeRelevance(
         (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("gluten")) ||
         (Array.isArray(candidate.dietary_options) && candidate.dietary_options.some((o: string) => o.toLowerCase().includes("gluten")))
       )) constraintHits++;
+      // V16: Valet parking constraint
+      else if (cl === "valet_parking" && (
+        dp?.parking_details?.toLowerCase().includes("valet") ||
+        (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("valet"))
+      )) constraintHits++;
     }
+
+    // V16: BYOB enforcement — when BYOB is the primary constraint and restaurant
+    // has no BYOB data at all, apply a penalty so non-BYOB restaurants don't rank high
+    const hasByobConstraint = intent.practical_constraints.some(c => c.toLowerCase() === "byob");
+    if (hasByobConstraint && constraintHits === 0) {
+      // Restaurant didn't match BYOB — if BYOB was the main signal, penalize
+      if (constraintTotal <= 2) {
+        return { score: 0.40, type: "vibe", details: "BYOB mismatch — restaurant is not BYOB" };
+      }
+    }
+
     if (constraintHits > 0) {
       const constraintRate = constraintHits / constraintTotal;
       // V12: Raised cap 0.90→0.95 and base 0.70→0.75 so strong constraint matches reach DM≥80
       // V13: Raised base 0.75→0.80 and cap 0.95→0.97 for stronger constraint matching
-      const constraintRelevance = Math.min(0.97, 0.80 + 0.17 * constraintRate);
+      // V16: Raised base 0.80→0.85 and cap 0.97→0.98 for primary constraint queries
+      const constraintRelevance = Math.min(0.98, 0.85 + 0.13 * constraintRate);
       return { score: constraintRelevance, type: "vibe", details: `Constraint match: ${constraintHits}/${constraintTotal} (${constraintRelevance.toFixed(2)})` };
     }
   }
@@ -1208,6 +1283,21 @@ function computeDishRelevance(
   // V10: Expand dish query with synonyms
   const dishVariants = expandDishQuery(dish);
 
+  // V16: Cross-cuisine synonym guard — when intent has target cuisines,
+  // check if the restaurant's cuisine is compatible. If not, cap dish relevance
+  // to prevent "soup dumplings" (Chinese) matching "gyoza" at Japanese restaurants
+  // or "hot chicken" (Southern) matching burger joints.
+  const targetCuisines = intent.target_cuisines || [];
+  const restaurantCuisine = candidate.cuisine_type || "";
+  let crossCuisinePenalty = false;
+  if (targetCuisines.length > 0 && restaurantCuisine) {
+    const cuisineMatch = targetCuisines.some(t => t.toLowerCase() === restaurantCuisine.toLowerCase());
+    const familyMatch = isRelatedCuisine(restaurantCuisine, targetCuisines);
+    if (!cuisineMatch && !familyMatch) {
+      crossCuisinePenalty = true;
+    }
+  }
+
   // Level 1: Review intelligence dish catalog — now with synonyms + fuzzy matching
   if (ri?.dish_catalog?.length) {
     // Exact/substring match against any variant
@@ -1219,6 +1309,14 @@ function computeDishRelevance(
         const isPopular = ri.popular_dishes?.some(d =>
           dishVariants.some(v => d.toLowerCase().includes(v) || v.includes(d.toLowerCase()))
         );
+        // V16: If dish found but cuisine doesn't match, cap at 0.50 (synonym leakage)
+        // Unless the dish itself (not a synonym) is in the catalog
+        const directMatch = ri.dish_catalog.some(d =>
+          d.toLowerCase().includes(dish) || dish.includes(d.toLowerCase())
+        );
+        if (crossCuisinePenalty && !directMatch) {
+          return 0.50; // Synonym matched but wrong cuisine
+        }
         return isPopular ? 1.0 : 0.90;
       }
     }
@@ -1231,12 +1329,18 @@ function computeDishRelevance(
         if (score > bestFuzzy) bestFuzzy = score;
       }
     }
-    if (bestFuzzy >= 0.5) return Math.min(0.85, 0.60 + bestFuzzy * 0.25);
+    if (bestFuzzy >= 0.5) {
+      const fuzzyScore = Math.min(0.85, 0.60 + bestFuzzy * 0.25);
+      // V16: Cap fuzzy matches at 0.45 for cross-cuisine synonym leakage
+      return crossCuisinePenalty ? Math.min(0.45, fuzzyScore) : fuzzyScore;
+    }
   }
 
   // Level 2: Full-text search rank from SQL (already computed in RPC)
   if (candidate.ri_text_rank > 0.1) {
-    return Math.min(0.85, 0.50 + candidate.ri_text_rank);
+    const textScore = Math.min(0.85, 0.50 + candidate.ri_text_rank);
+    // V16: Cap text rank at 0.40 for cross-cuisine matches
+    return crossCuisinePenalty ? Math.min(0.40, textScore) : textScore;
   }
 
   // Level 3: Structured data — signature_dishes, menu_highlights (with synonyms)
@@ -2059,6 +2163,12 @@ function computeConvenienceQuality(
                  !/none|no /i.test(candidate.parking_availability)) {
         constraintHits++;
         score += 0.3;
+      } else if (cl === "valet_parking" && (
+        dp?.parking_details?.toLowerCase().includes("valet") ||
+        (candidate.parking_availability || "").toLowerCase().includes("valet")
+      )) {
+        constraintHits++;
+        score += 0.5;
       } else if (cl === "budget_conscious") {
         if (dp?.check_average_per_person != null && dp.check_average_per_person <= 25) {
           constraintHits++;
@@ -2319,9 +2429,22 @@ export function computeV9Score(
   // When a restaurant IS the requested cuisine (relevance ≥ 0.80 and type is cuisine/dish),
   // quality shouldn't be crushed below 60 by sparse data penalty.
   // "Somali place" → Safari Somali Cuisine (rel=1.0) should score DM≥60 even with sparse data.
+  // V16: Extended to cover more cases:
+  //   - Lowered relevance threshold from 0.80 to 0.70 for quality floor
+  //   - Raised quality floor from 60 to 65 for exact cuisine/dish matches
+  //   - Added quality floor for neighborhood matches (type "open_ended" with neighborhood detail)
+  //   - Added quality floor for vibe matches with high relevance
   let finalQuality = adjustedQuality;
-  if (relevance.score >= 0.80 && (relevance.type === "cuisine" || relevance.type === "dish")) {
-    finalQuality = Math.max(adjustedQuality, 60);
+  if (relevance.score >= 0.70 && (relevance.type === "cuisine" || relevance.type === "dish")) {
+    finalQuality = Math.max(adjustedQuality, 65);
+  } else if (relevance.score >= 0.90 && relevance.details?.includes("Neighborhood match")) {
+    finalQuality = Math.max(adjustedQuality, 65);
+  } else if (relevance.score >= 0.75 && relevance.type === "vibe") {
+    // V16: Raised vibe quality floor from 62 to 68 — vibe-matched restaurants (happy hour,
+    // sports bar, speakeasy) shouldn't drop below DM ~51 (0.75*68=51)
+    finalQuality = Math.max(adjustedQuality, 68);
+  } else if (relevance.score >= 0.80 && relevance.type === "reputation") {
+    finalQuality = Math.max(adjustedQuality, 65);
   }
 
   // Step 3b: V9 Score = Relevance × Quality (now confidence-adjusted)
