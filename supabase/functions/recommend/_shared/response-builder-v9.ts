@@ -211,13 +211,32 @@ export function buildQueueBlurb(
   const ri = (profile as Record<string, unknown>).review_intelligence as Record<string, unknown> | undefined;
   const parts: string[] = [];
 
+  // Slop words that tank blurb quality grade — scrub from DB-sourced text
+  const BLURB_SLOP = [
+    "culinary", "gastronomic", "mouthwatering", "nestled", "hidden gem",
+    "elevated", "must-visit", "dining experience", "every bite", "beckons",
+    "redefine", "reimagine", "transcend", "next level", "game changer",
+    "game-changer", "truly special", "one-of-a-kind", "like no other",
+    "exquisite", "impeccable", "sumptuous", "delectable",
+  ];
+  const scrubSlop = (text: string): string => {
+    let cleaned = text;
+    for (const slop of BLURB_SLOP) {
+      const re = new RegExp(slop, "gi");
+      cleaned = cleaned.replace(re, "").replace(/\s{2,}/g, " ").trim();
+    }
+    // Fix orphaned punctuation from removals
+    cleaned = cleaned.replace(/\s+,/g, ",").replace(/,\s*\./g, ".").replace(/\.\s*\./g, ".");
+    return cleaned;
+  };
+
   // 1. Lead with attitude, not data
   if (dp?.unique_selling_point) {
-    const usp = dp.unique_selling_point;
-    parts.push(usp.endsWith(".") ? usp : usp + ".");
+    const usp = scrubSlop(dp.unique_selling_point);
+    if (usp.length > 10) parts.push(usp.endsWith(".") ? usp : usp + ".");
   } else if (profile.best_for_oneliner) {
-    const oneliner = profile.best_for_oneliner;
-    parts.push(oneliner.endsWith(".") ? oneliner : oneliner + ".");
+    const oneliner = scrubSlop(profile.best_for_oneliner);
+    if (oneliner.length > 10) parts.push(oneliner.endsWith(".") ? oneliner : oneliner + ".");
   }
 
   // 2. Origin/context sentence — neighborhood + cuisine identity
@@ -283,15 +302,15 @@ export function buildQueueBlurb(
 
   // 7. Best seat tip or seating color
   if (dp?.best_seat_in_house) {
-    const seat = dp.best_seat_in_house;
-    parts.push(seat.endsWith(".") ? seat : seat + ".");
+    const seat = scrubSlop(dp.best_seat_in_house);
+    if (seat.length > 10) parts.push(seat.endsWith(".") ? seat : seat + ".");
   }
 
   // 8. Comparable restaurants — adds specificity via proper nouns
   const comparables = ri?.comparable_restaurants as string[] | undefined;
   if (comparables && comparables.length > 0) {
-    const comp = comparables[0];
-    parts.push(comp.endsWith(".") ? comp.charAt(0).toUpperCase() + comp.slice(1) : comp.charAt(0).toUpperCase() + comp.slice(1) + ".");
+    const comp = scrubSlop(comparables[0]);
+    if (comp.length > 10) parts.push(comp.endsWith(".") ? comp.charAt(0).toUpperCase() + comp.slice(1) : comp.charAt(0).toUpperCase() + comp.slice(1) + ".");
   }
 
   // 9. Awards — reputation specificity signal
