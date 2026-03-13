@@ -472,6 +472,7 @@ export async function classifyIntentV5(
     "cocktail", "cocktails", "cocktail bar", "cocktail lounge",
     "speakeasy", "mixology", "whiskey", "bourbon", "mezcal",
     "martini", "mojito", "old fashioned", "aperol", "absinthe",
+    "tiki", "tiki bar", "negroni",
     "beer", "craft beer", "brewery",
     "wine", "wine bar", "sake", "sake bar",
     // Venue-type words
