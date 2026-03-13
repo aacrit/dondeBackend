@@ -19,20 +19,20 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `docs/OPTIMIZATION-RECOMMENDATIONS.md` | Backend optimization priorities (learning flywheel, caching, match narrative) |
 | `_archive/VERSION-HISTORY.md` | Pre-V9 scoring evolution, V8 optimization, historical test results, case studies |
 
-## Skills
+## Agents
 
-| Skill | Purpose | Trigger |
+| Agent | Purpose | Trigger |
 |-------|---------|---------|
-| `/ceo-advisor` | Strategic product advisor — Top 10 prioritized recommendations | Manual |
-| `/donde-premium-advisor` | Premium app audit (UI polish, backend, marketing psychology, Claude Code mastery) | Manual |
-| `/donde-ciso` | Security audit across 10 domains — severity-ranked findings with remediation | Manual or auto on security changes |
-| `/update-docs` | Scans codebase and updates all MD files to reflect current state | Auto when Claude judges changes are significant |
-| `/gen-test-queries` | Generates 10 diverse, persona-driven test queries (1000-query repository) | Manual |
-| `/analytics-expert` | Chief Analytics Officer — board-level ranking expertise (Google Search, Netflix, Stripe, Cloudflare, TikTok), benchmarks engine, implements quick-wins, CEO report | Manual or auto on scoring changes |
-| `/db-reviewer` | Database quality audit — accuracy, freshness, completeness, cross-field consistency | Manual or auto after enrichment runs |
-| `/perf-optimizer` | Response time optimizer — profiles latency waterfall, audits timeouts, implements safe optimizations | Manual or auto on timeout/latency issues |
+| `ceo-advisor` | Strategic product advisor — Top 10 prioritized recommendations | Manual |
+| `donde-premium-advisor` | Premium app audit (UI polish, backend, marketing psychology, Claude Code mastery) | Manual |
+| `donde-ciso` | Security audit across 10 domains — severity-ranked findings with remediation | Manual or auto on security changes |
+| `update-docs` | Scans codebase and updates all MD files to reflect current state | Auto when Claude judges changes are significant |
+| `gen-test-queries` | Generates 10 diverse, persona-driven test queries (1000-query repository) | Manual |
+| `analytics-expert` | Chief Analytics Officer — benchmarks engine, implements quick-wins, CEO report | Manual or auto on scoring changes |
+| `db-reviewer` | Database quality audit — accuracy, freshness, completeness, cross-field consistency | Manual or auto after enrichment runs |
+| `perf-optimizer` | Response time optimizer — profiles latency waterfall, audits timeouts, implements safe optimizations | Manual or auto on timeout/latency issues |
 
-All skills in `.claude/skills/`.
+All agents in `.claude/agents/`. Spawn via the Agent tool or `/agents` dialog. Reference files for premium-advisor in `docs/references/premium-advisor/`.
 
 ## Tests
 
@@ -243,7 +243,17 @@ Haiku 4.5: $0.80/M input, $4.00/M output. Full enrichment-v2 (~1000 restaurants)
 
 ## Git Workflow
 
-Commit and push to the feature branch. **CI auto-merges `claude/**` branches to `main`** via `.github/workflows/auto-merge-claude.yml` — no manual merge needed.
+For every task that modifies code:
+1. Create a new branch from main (naming: `feature/`, `fix/`, or `chore/` prefix)
+2. Make all changes on that branch
+3. Commit with a clear, descriptive message
+4. Push the branch to origin
+5. Open a pull request with a summary of changes
+6. Do NOT merge — leave PR open for my review
+
+**Never commit directly to main.**
+
+CI auto-merges `claude/**` branches to `main` via `.github/workflows/auto-merge-claude.yml` — no manual merge needed.
 
 ## Coding Standards
 
