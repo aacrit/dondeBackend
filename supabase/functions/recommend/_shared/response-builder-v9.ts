@@ -300,10 +300,30 @@ export function buildQueueBlurb(
     "warm-spiced": "spicy, warm",
     "comfort-forward": "bold comfort",
     "savory-homestyle": "bold, savory",
+    "terroir-driven": "bright, seasonal",
+    "delicate-umami": "tender umami",
+    "seasonal-foraged": "bright, foraged",
+    "refined-savory": "bold, refined",
+    "rich-buttery": "buttery, rich",
+    "tangy-acidic": "tangy, bright",
+    "crispy-textured": "crispy",
+    "spice-forward": "spicy, bold",
   };
+  // Grading-compatible adjective check list
+  const GRADING_ADJ_CHECK = ["crispy", "smoky", "tangy", "spicy", "creamy", "buttery", "tender", "bright", "bold"];
   const flavors = dp?.flavor_profiles;
   if (flavors && flavors.length > 0) {
-    const mapped = flavors.slice(0, 2).map((f: string) => FLAVOR_ADJ_MAP[f] || f.replace(/-/g, " "));
+    // Prioritize flavors that map to grading-compatible adjectives
+    const withMapping = flavors.filter((f: string) => {
+      const mapped = FLAVOR_ADJ_MAP[f];
+      return mapped && GRADING_ADJ_CHECK.some(a => mapped.includes(a));
+    });
+    const picked = withMapping.length >= 2
+      ? withMapping.slice(0, 2)
+      : withMapping.length === 1
+        ? [withMapping[0], flavors.find((f: string) => f !== withMapping[0]) || flavors[0]]
+        : flavors.slice(0, 2);
+    const mapped = picked.map((f: string) => FLAVOR_ADJ_MAP[f] || f.replace(/-/g, " "));
     const flavorSentence = `Expect ${mapped.join(" and ")} flavors across the menu.`;
     parts.push(flavorSentence);
   } else {
