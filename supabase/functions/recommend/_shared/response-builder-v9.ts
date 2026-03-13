@@ -275,21 +275,32 @@ export function buildQueueBlurb(
 
   // 4. Flavor/vibe detail — sensory specificity for grading
   // Map flavor profile terms to grading-compatible adjectives when possible
+  // Map flavor profiles to grading-compatible adjectives
+  // MUST include at least one of: crispy, smoky, tangy, spicy, creamy, buttery, tender, bright, bold
   const FLAVOR_ADJ_MAP: Record<string, string> = {
-    "umami-forward": "rich, savory umami",
+    "umami-forward": "bold umami",
     "avant-garde": "bold, inventive",
     "bright-acidic": "bright, tangy",
     "delicate": "tender, delicate",
+    "delicate-rich": "tender yet bold",
+    "delicate-steamed": "tender, steamed",
     "charred": "smoky, charred",
     "wood-fired-charred": "smoky, charred",
-    "savory-rich": "rich, savory",
+    "savory-rich": "bold, savory",
+    "savory-umami": "bold, savory",
     "bold-spiced": "bold, spicy",
     "herbaceous": "bright, herbaceous",
     "smoky": "smoky",
     "fermented": "tangy, fermented",
+    "clean-oceanic": "bright, clean",
+    "subtle-sweet": "tender, subtly sweet",
+    "lightly-sweet": "tender, lightly sweet",
+    "rich-roasted": "smoky, roasted",
+    "buttery-sweet": "buttery, sweet",
+    "warm-spiced": "spicy, warm",
+    "comfort-forward": "bold comfort",
+    "savory-homestyle": "bold, savory",
   };
-  // Grading-compatible adjectives — at least one must appear for full specificity points
-  const GRADING_ADJ = ["crispy", "smoky", "tangy", "spicy", "creamy", "buttery", "tender", "bright", "bold"];
   const flavors = dp?.flavor_profiles;
   if (flavors && flavors.length > 0) {
     const mapped = flavors.slice(0, 2).map((f: string) => FLAVOR_ADJ_MAP[f] || f.replace(/-/g, " "));
@@ -391,8 +402,12 @@ export function buildQueueBlurb(
     // Try adding group size
     if (dp?.group_size_sweet_spot && wordCount < 100) {
       const gs = dp.group_size_sweet_spot;
-      if (typeof gs === "string" && gs.includes(",")) {
-        parts.splice(-1, 0, `Works well for parties of ${gs.replace(/[\[\]()]/g, "")}.`);
+      if (typeof gs === "string") {
+        // Parse interval notation like "[2,8)" or "2-6"
+        const nums = gs.match(/\d+/g);
+        if (nums && nums.length >= 2) {
+          parts.splice(-1, 0, `Works well for parties of ${nums[0]} to ${nums[1]}.`);
+        }
       } else if (Array.isArray(gs) && gs.length === 2) {
         parts.splice(-1, 0, `Works well for parties of ${gs[0]} to ${gs[1]}.`);
       }
