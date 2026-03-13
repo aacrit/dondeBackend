@@ -284,8 +284,8 @@ export function buildQueueBlurb(
   const scenarios = ri?.best_for_scenarios as string[] | undefined;
   const crowd = dp?.crowd_profile as string[] | undefined;
   if (scenarios && scenarios.length > 0) {
-    const top = scenarios.slice(0, 2).join(" or ").toLowerCase();
-    parts.push(`Best for ${top}.`);
+    const top = scrubSlop(scenarios.slice(0, 2).join(" or ").toLowerCase());
+    if (top.length > 5) parts.push(`Best for ${top}.`);
   } else if (crowd && crowd.length > 0) {
     const crowdStr = crowd.slice(0, 2).map((c: string) => c.replace(/_/g, " ")).join(" and ");
     parts.push(`Draws a ${crowdStr} crowd.`);
@@ -319,7 +319,15 @@ export function buildQueueBlurb(
     parts.push(`${awards[0]} recognized.`);
   }
 
-  // 10. Close with price or honest caveat
+  // 10. Dress/service color — helps push word count over 100
+  if (dp?.service_style && dp.service_style !== "Full Table Service") {
+    parts.push(`Service is ${dp.service_style.toLowerCase().replace(/_/g, " ")}.`);
+  }
+  if (profile.dress_code && profile.dress_code !== "Casual") {
+    parts.push(`Dress code runs ${profile.dress_code.toLowerCase()}.`);
+  }
+
+  // 11. Close with price or honest caveat
   if (dp?.check_average_per_person) {
     parts.push(`Around $${dp.check_average_per_person} a head.`);
   } else if (narrative?.weak_spots?.length) {
