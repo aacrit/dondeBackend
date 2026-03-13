@@ -56,7 +56,9 @@ All skills in `.claude/skills/`.
 
 **V11 analytics fixes (2026-03-12):** Voice compliance auto-fix (blurb quality), cuisine_type reclassification (18 restaurants), diversity caps tightened (maxPerCuisine 3→2, maxPerNeighborhood 5→3), Google rating signal for reputation relevance, same-family cuisine relevance 0.50→0.60 (Peruvian→Mexican fix), adjacent cuisine relevance 0.30→0.40, reputation base floor 0.50→0.55. Expected: blurb WARNs 44→~15, pass rate 75%→~88%.
 
-**V16 scoring fixes (2026-03-13):** 31-issue gap fix. Reputation+vibe blending (best rooftop/cocktail/tasting menu queries now check vibe fit). Cross-cuisine dish synonym guard (soup dumplings no longer matches gyoza at Japanese restaurants). "tiki" removed from Hawaiian CUISINE_KEYWORDS. BYOB constraint enforcement (non-BYOB restaurants penalized). Quality floors raised: cuisine 65, neighborhood 65, vibe 68, reputation 65. Valet parking constraint added. Vibe relevance floor raised 0.70→0.75 for primary vibe queries. Constraint relevance base raised 0.80→0.85. New CONCEPT_MAP/INTENT_MAP entries for garden restaurant, family style, best rooftop/cocktail/tasting. Blurb key-term mandate strengthened.
+**V16 scoring fixes (2026-03-13):** 31-issue gap fix. Reputation+vibe blending (best rooftop/cocktail/tasting menu queries now check vibe fit). Cross-cuisine dish synonym guard (soup dumplings no longer matches gyoza at Japanese restaurants). "tiki" moved from Hawaiian to Cocktail Bar CUISINE_KEYWORDS. BYOB constraint enforcement (non-BYOB restaurants penalized). Quality floors raised: cuisine 65, neighborhood 65, vibe 68, reputation 65. Valet parking constraint added. Vibe relevance floor raised 0.70→0.75 for primary vibe queries. Constraint relevance base raised 0.80→0.85. New CONCEPT_MAP/INTENT_MAP entries for garden restaurant, family style, best rooftop/cocktail/tasting. Blurb key-term mandate strengthened. Cuisine sub-type aliases (somali, nigerian, szechuan, nepalese, etc.) added to NON_DISH_WORDS to prevent false dish_level_intent. Multi-word dish cap (0.65) with query modifier filtering.
+
+**V16 retest results (2026-03-13):** Golden dataset (182 checks): 144P/4F/34W, avg DM 76, avg score fit 85, avg blurb quality 76. Regression guard: 100P/18F/32W, avg DM 77 — NO REGRESSION vs V10 baseline (44P/4F/2W, avg DM 70). Pass count improved +56, avg DM improved +7. Key improvements: tiki bar 60→78, authentic Szechuan 53→76, Senegalese 48→70, Nigerian 48→70, Eritrean 49→75, near wrigley field 45→82.
 
 **CLI test write-back:** `golden-dataset-test.sh` and `regression-guard.sh` persist results to `gauntlet_runs` + `gauntlet_results` Supabase tables when `SUPAB_URL` and `SUPAB_ANON_KEY` env vars are set. Run ID format: `cli-golden-*` / `cli-regression-*`. Source field: `cli`.
 
@@ -93,6 +95,9 @@ All skills in `.claude/skills/`.
 - Valet parking constraint pattern and matching in both relevance and convenience quality
 - Vibe relevance floor raised 0.70→0.75 for vibe-primary queries
 - Constraint relevance formula: base 0.85, cap 0.98 (was 0.80/0.97)
+- Cuisine sub-type NON_DISH_WORDS: 30+ aliases (somali, nigerian, szechuan, nepalese, sicilian, etc.) prevent false dish_level_intent
+- Multi-word dish cap: specific dishes (2+ non-modifier words) capped at 0.65 relevance when cuisine matches but dish doesn't
+- "tiki"/"tiki bar" in Cocktail Bar CUISINE_KEYWORDS + NON_DISH_WORDS (not Hawaiian, not a dish)
 
 **Self-healing**: When `cuisine_type` is NULL, falls back to `cuisine_signals` (29/2,719 restaurants — down from 1,806 after cuisine taxonomy fixes).
 
