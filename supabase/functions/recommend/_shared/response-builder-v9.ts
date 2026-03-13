@@ -281,13 +281,26 @@ export function buildQueueBlurb(
     parts.push("Walk-ins are welcome, no reservation needed.");
   }
 
-  // 7. Awards — reputation specificity signal
+  // 7. Best seat tip or seating color
+  if (dp?.best_seat_in_house) {
+    const seat = dp.best_seat_in_house;
+    parts.push(seat.endsWith(".") ? seat : seat + ".");
+  }
+
+  // 8. Comparable restaurants — adds specificity via proper nouns
+  const comparables = ri?.comparable_restaurants as string[] | undefined;
+  if (comparables && comparables.length > 0) {
+    const comp = comparables[0];
+    parts.push(comp.endsWith(".") ? comp.charAt(0).toUpperCase() + comp.slice(1) : comp.charAt(0).toUpperCase() + comp.slice(1) + ".");
+  }
+
+  // 9. Awards — reputation specificity signal
   const awards = dp?.awards_recognition;
   if (awards && awards.length > 0 && !parts.some(p => p.includes(awards[0]))) {
     parts.push(`${awards[0]} recognized.`);
   }
 
-  // 8. Close with price or honest caveat
+  // 10. Close with price or honest caveat
   if (dp?.check_average_per_person) {
     parts.push(`Around $${dp.check_average_per_person} a head.`);
   } else if (narrative?.weak_spots?.length) {
