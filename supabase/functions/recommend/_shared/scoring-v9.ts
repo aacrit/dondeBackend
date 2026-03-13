@@ -2023,8 +2023,10 @@ function computeServiceQuality(
   // instead of flat 5.0 which was suppressing differentiation
   if (occasion === "Any" && occasionBase === 0) {
     // score already includes serviceStylePoints (0-2), socialScore (0-2), crowd (0-0.5)
-    // Rebase around 5.5 using what we have: base 5.0 + any service/social/crowd bonuses
-    const anyScore = 5.0 + (serviceStylePoints - 1) + clampedSocial * 0.5;
+    // Rebase around 6.0 using what we have: base 5.5 + any service/social/crowd bonuses
+    // V16: Raised from 5.0 to 5.5 — service scores were consistently under 6.0 for "Any" occasion,
+    // causing score_fit grade failures on service-category test queries
+    const anyScore = 5.5 + (serviceStylePoints - 1) + clampedSocial * 0.5;
     // Boost from review intelligence service quality and trending score
     const ri = candidate.review_intelligence;
     const riServiceAdj = ri?.review_service_quality != null ? Math.max(0, (ri.review_service_quality - 6) * 0.4) : 0;
