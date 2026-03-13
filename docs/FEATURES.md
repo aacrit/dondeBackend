@@ -1,6 +1,6 @@
 # Backend Features
 
-Last updated: 2026-03-12
+Last updated: 2026-03-13
 
 ## Edge Function (V11 — active, files retain V9 naming)
 
@@ -45,6 +45,8 @@ Last updated: 2026-03-12
 - [x] Closed restaurant auto-substitution
 - [x] Fire-and-forget query logging
 - [x] Parallel execution: intent + RPC + feedback fetch; Google top-5
+- [x] RPC timeout protection + deadline propagation for timeout prevention
+- [x] Time budget guards across Claude and Google API calls
 
 ## Data Pipelines
 
@@ -75,7 +77,7 @@ Last updated: 2026-03-12
 
 ## Database
 
-- [x] 10 tables, 43 migrations
+- [x] 15 tables, 61 migrations
 - [x] RPC `get_candidates_v11` (composite scoring with semantic tags, fallback V10 → V9)
 - [x] RPC `get_candidates_v9` (full-text search + review intelligence)
 - [x] RPC `get_ranked_restaurants` (legacy, 49 return columns)

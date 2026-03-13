@@ -1,6 +1,6 @@
 # API & Workflows
 
-Last updated: 2026-03-12
+Last updated: 2026-03-13
 
 ## Edge Function Request Flow (V11)
 
@@ -64,7 +64,7 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | V9.0 | 95 | 95/95 | Relevance × Quality, review intelligence, self-healing |
 | V7.3b (archived) | 88 | 67/88 | Geometric mean, V5 weights |
 
-## Pipeline Inventory (25 scripts in `scripts/pipelines/`)
+## Pipeline Inventory (28 scripts in `scripts/pipelines/`)
 
 ### Scheduled (GitHub Actions cron)
 
@@ -101,6 +101,8 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | `backfill-tips-stories.ts` | Tips/stories backfill (Claude Sonnet 4) |
 | `clean-unenriched.ts` | Clean up unenriched restaurant records |
 | `convert-v8-to-atlas.ts` | V8 → Atlas data conversion utility |
+| `regenerate-occasion-scores.ts` | Full regeneration of all occasion scores |
+| `regenerate-tags.ts` | Full regeneration of all restaurant tags |
 
 **Rate limits:** All Claude pipelines use 6s between batches (10 req/min). Batch size: 5-10 restaurants per call.
 

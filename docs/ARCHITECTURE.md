@@ -1,6 +1,6 @@
 # Backend Architecture
 
-Last updated: 2026-03-12
+Last updated: 2026-03-13
 
 ## System Overview
 
@@ -8,10 +8,10 @@ Last updated: 2026-03-12
 |-------|-----------|
 | API | Supabase Edge Function (Deno/TS), V11 scoring engine |
 | AI | Claude Haiku 4.5 (recommendations, enrichment, intent classification) |
-| DB | Supabase PostgreSQL (10 tables, 43 migrations) |
+| DB | Supabase PostgreSQL (15 tables, 61 migrations) |
 | Data | Google Places API (live fetch per request; only `google_place_id` stored per ToS §3.2.3) |
 | Pipelines | Node.js 20 + tsx scripts, GitHub Actions cron |
-| CI/CD | 14 GitHub Actions workflows |
+| CI/CD | 15 GitHub Actions workflows |
 
 ## File Tree
 
@@ -38,7 +38,7 @@ supabase/
 scripts/
   lib/                            # 6 shared pipeline libraries
     config.ts, claude.ts, google-places.ts, supabase.ts, batch.ts, types.ts
-  pipelines/                      # 25 pipeline scripts (see API-WORKFLOWS.md)
+  pipelines/                      # 28 pipeline scripts (see API-WORKFLOWS.md)
   package.json
 
 tests/
@@ -50,7 +50,11 @@ tests/
   TEST-FULL.md                    # 170-scenario agent-driven test spec
   GOLDEN_DATASET_RESULTS.md       # Latest golden dataset results
 
-.github/workflows/                # 14 CI/CD workflows
+.github/workflows/                # 15 CI/CD workflows
+
+.devcontainer/
+  devcontainer.json               # Codespace config (Node 20, port forwarding)
+  setup.sh                        # Installs Claude Code CLI + Supabase CLI
 ```
 
 ## V11 Scoring Engine Modules
@@ -89,6 +93,7 @@ tests/
 | `apply-migration.yml` | Manual dispatch | Apply SQL migration to Supabase |
 | `migrate.yml` | Manual dispatch | Database migration runner |
 | `auto-merge-claude.yml` | On push to `claude/**` | Auto-merges claude branches to main |
+| `auto-migrate.yml` | On push (when `supabase/migrations/**` changes) | Auto-applies new migrations to Supabase |
 | `maintenance-worker.yml` | Every 5 min | Polls `maintenance_requests` table, executes pipeline operations |
 
 ## Google API Compliance
