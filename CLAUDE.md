@@ -56,6 +56,8 @@ All skills in `.claude/skills/`.
 
 **V11 analytics fixes (2026-03-12):** Voice compliance auto-fix (blurb quality), cuisine_type reclassification (18 restaurants), diversity caps tightened (maxPerCuisine 3→2, maxPerNeighborhood 5→3), Google rating signal for reputation relevance, same-family cuisine relevance 0.50→0.60 (Peruvian→Mexican fix), adjacent cuisine relevance 0.30→0.40, reputation base floor 0.50→0.55. Expected: blurb WARNs 44→~15, pass rate 75%→~88%.
 
+**V16 scoring fixes (2026-03-13):** 31-issue gap fix. Reputation+vibe blending (best rooftop/cocktail/tasting menu queries now check vibe fit). Cross-cuisine dish synonym guard (soup dumplings no longer matches gyoza at Japanese restaurants). "tiki" removed from Hawaiian CUISINE_KEYWORDS. BYOB constraint enforcement (non-BYOB restaurants penalized). Quality floors raised: cuisine 65, neighborhood 65, vibe 68, reputation 65. Valet parking constraint added. Vibe relevance floor raised 0.70→0.75 for primary vibe queries. Constraint relevance base raised 0.80→0.85. New CONCEPT_MAP/INTENT_MAP entries for garden restaurant, family style, best rooftop/cocktail/tasting. Blurb key-term mandate strengthened.
+
 **CLI test write-back:** `golden-dataset-test.sh` and `regression-guard.sh` persist results to `gauntlet_runs` + `gauntlet_results` Supabase tables when `SUPAB_URL` and `SUPAB_ANON_KEY` env vars are set. Run ID format: `cli-golden-*` / `cli-regression-*`. Source field: `cli`.
 
 **Zero-cost testing (`skip_claude`):** Pass `"skip_claude": true` in request body to skip all Claude API calls. Engine returns deterministic scores + fallback blurbs from restaurant profiles. Intent classification uses deterministic Tier 1 only. Used by CEO Command Center "Scoring Only" mode (default).
@@ -82,6 +84,15 @@ All skills in `.claude/skills/`.
 - Dynamic candidate pool: 100 candidates for complex/semantic queries (was 50/80)
 
 **V10 features retained:** Reputation relevance type, dish synonyms, word stemming, neighborhood aliases, confidence-weighted quality, practical constraint scoring.
+
+**V16 enhancements (over V11):**
+- Reputation+vibe blending: reputation queries with vibe/constraint signals blend both relevance paths (60/40 rep/vibe)
+- Cross-cuisine dish synonym guard: dish synonyms capped at 0.50 relevance when restaurant cuisine doesn't match target
+- BYOB enforcement: restaurants without BYOB data get 0.40 relevance penalty when BYOB is primary constraint
+- Quality floor hierarchy: cuisine/dish ≥65, neighborhood ≥65, vibe ≥68, reputation ≥65
+- Valet parking constraint pattern and matching in both relevance and convenience quality
+- Vibe relevance floor raised 0.70→0.75 for vibe-primary queries
+- Constraint relevance formula: base 0.85, cap 0.98 (was 0.80/0.97)
 
 **Self-healing**: When `cuisine_type` is NULL, falls back to `cuisine_signals` (29/2,719 restaurants — down from 1,806 after cuisine taxonomy fixes).
 
