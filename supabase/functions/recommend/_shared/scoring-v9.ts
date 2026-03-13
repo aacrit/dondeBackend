@@ -1078,13 +1078,15 @@ export function computeRelevance(
     // Dish requested but not found → fall through to cuisine (penalized but not crushed)
     if (hasCuisine) {
       const cuisineRelevance = computeCuisineRelevance(candidate, intent);
-      // Cap at 0.80 — right cuisine but wrong dish. The cuisine match still
-      // carries significant weight (user wanted Italian → got Italian).
-      // 0.75 still left fondue/romantic Italian at DM=57.
+      // Cap cuisine-only relevance — right cuisine but wrong dish.
+      // Multi-word dish queries (e.g. "soup dumplings", "hot chicken") are more
+      // specific, so apply a stricter cap to avoid false-positive high scores.
+      const dishIsSpecific = intent.dish_level_intent!.split(/\s+/).length >= 2;
+      const cap = dishIsSpecific ? 0.65 : 0.80;
       return {
-        score: Math.min(0.80, cuisineRelevance * 0.80),
+        score: Math.min(cap, cuisineRelevance * 0.80),
         type: "cuisine",
-        details: `Cuisine match but no dish (capped 0.80)`,
+        details: `Cuisine match but no dish (capped ${cap.toFixed(2)})`,
       };
     }
     // Dish requested, no cuisine match either → very low relevance

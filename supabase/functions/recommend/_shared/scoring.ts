@@ -82,7 +82,7 @@ export const CUISINE_KEYWORDS: Record<string, string[]> = {
   Peruvian: ["peruvian", "ceviche", "lomo saltado", "anticucho", "causa", "aji de gallina", "tiradito", "huancaina"],
   Brazilian: ["brazilian", "churrasco", "feijoada", "picanha", "rodizio", "caipirinha", "coxinha", "pao de queijo", "acai"],
   Vegan: ["vegan", "plant-based", "plant based", "meatless"],
-  "Cocktail Bar": ["cocktail bar", "speakeasy", "mixology", "cocktail lounge", "cocktail", "mojito", "martini", "whiskey", "bourbon", "mezcal", "old fashioned", "aperol", "absinthe", "negroni"],
+  "Cocktail Bar": ["cocktail bar", "speakeasy", "mixology", "cocktail lounge", "cocktail", "mojito", "martini", "whiskey", "bourbon", "mezcal", "old fashioned", "aperol", "absinthe", "negroni", "tiki", "tiki bar"],
   "Coffee/Cafe": ["coffee shop", "cafe", "espresso", "latte", "cappuccino", "cortado", "chai latte", "cold brew", "pour over", "drip coffee", "matcha latte", "americano", "mocha", "flat white", "nitro cold brew", "juice bar", "kombucha", "afternoon tea"],
   "Caribbean/Jamaican": ["caribbean", "jamaican", "jamaican food", "jerk chicken", "jerk", "oxtail", "oxtail stew", "curry goat", "cuban", "ropa vieja", "cubano", "plantain", "rice and peas", "ackee", "saltfish", "patties"],
   Polish: ["polish", "pierogi", "kielbasa", "bigos", "golabki", "potato pancake"],
