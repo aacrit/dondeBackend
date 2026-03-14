@@ -362,7 +362,21 @@ Deno.serve(async (req: Request) => {
     const occasion = body.occasion || "Any";
     // V10: Resolve neighborhood aliases (landmarks, alternate names)
     const rawNeighborhood = body.neighborhood || "Anywhere";
-    const neighborhood = NEIGHBORHOOD_ALIASES[rawNeighborhood.toLowerCase()] || rawNeighborhood;
+    let neighborhood = NEIGHBORHOOD_ALIASES[rawNeighborhood.toLowerCase()] || rawNeighborhood;
+    // V18: Detect neighborhood from special_request when body.neighborhood is "Anywhere".
+    // This ensures "near wrigley field" filters RPC candidates to Lakeview.
+    if (neighborhood === "Anywhere" && special_request) {
+      const reqLower = special_request.toLowerCase();
+      // Check longer aliases first to avoid partial matches (e.g., "wrigley field" before "wrigley")
+      const sortedAliases = Object.entries(NEIGHBORHOOD_ALIASES)
+        .sort((a, b) => b[0].length - a[0].length);
+      for (const [alias, canonical] of sortedAliases) {
+        if (reqLower.includes(alias)) {
+          neighborhood = canonical;
+          break;
+        }
+      }
+    }
     const price_level = body.price_level || "Any";
     const open_now = body.open_now === true; // V5: Open Now toggle
     const skip_claude = body.skip_claude === true; // Zero-cost testing: skip Claude API calls

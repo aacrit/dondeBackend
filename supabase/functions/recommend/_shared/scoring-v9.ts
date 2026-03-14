@@ -1089,9 +1089,8 @@ export function computeRelevance(
           // that's a perfect location match regardless of other intent signals.
           return { score: 1.0, type: matchType, details: `Neighborhood match: ${canonical}` };
         }
-        // V18: Neighborhood mentioned but restaurant isn't there — penalize harder (0.55→0.35)
-        // to create sharper differentiation between in-neighborhood and out-of-neighborhood
-        return { score: 0.35, type: "open_ended", details: "Neighborhood mismatch penalty" };
+        // V18: Neighborhood mentioned but restaurant isn't there — penalize
+        return { score: 0.50, type: "open_ended", details: "Neighborhood mismatch penalty" };
       }
     }
   }
