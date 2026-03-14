@@ -774,7 +774,7 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "charcuterie": { cuisines: ["French", "Italian"], tags: ["romantic"] },
   "charcuterie board": { cuisines: ["French", "Italian"], tags: ["romantic"] },
   "steak tartare": { cuisines: ["French", "Steak"] },
-  "grain bowl": { tags: ["vegan friendly", "farm-to-table"] },
+  "grain bowl": { cuisines: ["American", "Fusion"], tags: ["vegan friendly", "farm-to-table"] },
   "acai bowl": { cuisines: ["Brazilian"], tags: ["vegan friendly"] },
   "acai": { cuisines: ["Brazilian"], tags: ["vegan friendly"] },
   "sub sandwich": { cuisines: ["American"], tags: ["great value"] },

@@ -196,6 +196,7 @@ const DISH_SYNONYMS: Record<string, string[]> = {
   "salad": ["caesar", "chopped salad", "greek salad", "fattoush", "tabbouleh", "cobb salad"],
   "soup": ["pho", "ramen", "tom yum", "miso soup", "french onion", "clam chowder", "pozole", "borscht"],
   "rice bowl": ["bibimbap", "poke bowl", "donburi", "chirashi", "burrito bowl"],
+  "grain bowl": ["buddha bowl", "harvest bowl", "power bowl", "quinoa bowl", "nourish bowl"],
   "flatbread": ["naan", "pita", "lavash", "focaccia", "roti"],
   "wrap": ["burrito", "shawarma wrap", "gyro wrap", "spring rolls", "lumpia"],
   "tasting menu": ["prix fixe", "omakase", "chef's table", "multi-course", "degustazione"],
@@ -1056,6 +1057,16 @@ export function computeRelevance(
           return { score: blended, type: "reputation", details: `Reputation+Constraint: ${repRelevance.score.toFixed(2)} (${cHits}/${cTotal})` };
         }
       }
+      // V18: When query has BOTH reputation AND cuisine signals (e.g., "best cocktail bar",
+      // "best craft cocktail bar"), check if restaurant's cuisine_type matches the target.
+      // An exact cuisine match (1.0) is stronger than a generic reputation score (~0.90).
+      if (intent.target_cuisines?.length && intent.cuisine_importance === "high") {
+        const cuisineRel = computeCuisineRelevance(candidate, intent);
+        if (cuisineRel >= 0.95) {
+          const finalScore = Math.max(repRelevance.score, cuisineRel);
+          return { score: finalScore, type: "reputation", details: `Reputation+Cuisine: ${repRelevance.score.toFixed(2)}/${cuisineRel.toFixed(2)}` };
+        }
+      }
     }
     return repRelevance;
   }
@@ -1072,10 +1083,14 @@ export function computeRelevance(
         const canonicalLower = canonical.toLowerCase();
         if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
           const matchType = (intent && ((intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0)) ? "vibe" as const : "open_ended" as const;
-          return { score: 0.93, type: matchType, details: `Neighborhood match: ${canonical}` };
+          // V18: Raised from 0.93 to 1.0 for location-only queries ("near wrigley field").
+          // Restaurant IS in the right neighborhood — that's a perfect location match.
+          const isLocationOnly = !intent || isOpenEnded(intent);
+          return { score: isLocationOnly ? 1.0 : 0.93, type: matchType, details: `Neighborhood match: ${canonical}` };
         }
-        // Neighborhood mentioned but restaurant isn't there — penalize
-        return { score: 0.55, type: "open_ended", details: "Neighborhood mismatch penalty" };
+        // Neighborhood mentioned but restaurant isn't there — penalize harder for location-only
+        const isLocationOnly2 = !intent || isOpenEnded(intent);
+        return { score: isLocationOnly2 ? 0.35 : 0.55, type: "open_ended", details: "Neighborhood mismatch penalty" };
       }
     }
   }
@@ -1417,7 +1432,15 @@ function computeCuisineRelevance(
   if (targets.length === 0) return 0.5;
   const ri = candidate.review_intelligence;
 
-  // V18: Restaurant name contains target cuisine — check FIRST, before RI family matching.
+  // V18: Structured cuisine_type EXACT match — check first, most definitive signal.
+  // When cuisine_type directly matches a target cuisine, this is a 1.0 (perfect) match.
+  // Must run BEFORE RI checks (0.95) so exact matches aren't capped.
+  if (candidate.cuisine_type) {
+    const cl = candidate.cuisine_type.toLowerCase();
+    if (targets.some(t => t.toLowerCase() === cl)) return 1.0;           // Exact
+  }
+
+  // V18: Restaurant name contains target cuisine — check before RI family matching.
   // This ensures "Nepal House" gets high relevance for "Nepalese" even when cuisine_type
   // is "Indian" and RI only provides a family match (0.88 instead of 0.95).
   const restName = (candidate.name || "").toLowerCase();
@@ -1457,10 +1480,9 @@ function computeCuisineRelevance(
     if (riFamily) return 0.88; // Strong family match via RI evidence
   }
 
-  // Structured cuisine_type (same as V8 6-level taxonomy)
+  // Structured cuisine_type — partial/family matches (exact already handled above)
   if (candidate.cuisine_type) {
     const cl = candidate.cuisine_type.toLowerCase();
-    if (targets.some(t => t.toLowerCase() === cl)) return 1.0;           // Exact
     if (targets.some(t => cl.includes(t.toLowerCase()) || t.toLowerCase().includes(cl))) return 0.80; // Contains
     // V14: Sub-cuisine → family match (e.g., cuisine_type="Somali", target="East African")
     // This is stronger than a generic family match since the restaurant IS the requested cuisine
