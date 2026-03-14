@@ -542,6 +542,13 @@ Deno.serve(async (req: Request) => {
     const semanticTags = intent?.semantic_tags || [];
     // V11: Expand semantic concepts into structured signals for RPC enrichment
     const conceptExpansion = expandQueryConcepts(semanticTags, special_request);
+    // V18: Store original vibe/tag count BEFORE concept expansion merges.
+    // This lets the reputation path distinguish user-intended vibes from
+    // concept-expanded ones (e.g., "best restaurant Chicago" has no user vibes).
+    if (intent) {
+      (intent as Record<string, unknown>)._originalVibeCount =
+        (intent.vibe_keywords || []).length + (intent.target_tags || []).length;
+    }
     // V15: Include implicit_cuisines from Claude fallback for better cuisine matching
     // e.g., "dumplings" → implicit_cuisines: ["Chinese", "Japanese", "Nepalese/Tibetan", "Polish"]
     const implicitCuisines = intent?.implicit_cuisines || [];
