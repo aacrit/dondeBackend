@@ -612,6 +612,31 @@ export async function classifyIntentV5(
     }
   }
 
+  // V18: When a multi-word INTENT_MAP phrase with explicit cuisines matches,
+  // it supersedes the broader CUISINE_KEYWORDS matches from its sub-tokens.
+  // e.g., "korean fried chicken" → Korean ONLY, not Korean + American + Southern.
+  if (matchedPhrases.size > 0) {
+    const phraseCuisines = new Set<string>();
+    for (const phrase of matchedPhrases) {
+      const signal = INTENT_MAP[phrase];
+      if (signal?.cuisines?.length) {
+        for (const c of signal.cuisines) phraseCuisines.add(c);
+        const phraseWords = phrase.split(/\s+/);
+        for (const word of phraseWords) {
+          for (const [cuisine, kwList] of Object.entries(CUISINE_KEYWORDS)) {
+            if (matchedCuisines.has(cuisine) && !phraseCuisines.has(cuisine)) {
+              if (kwList.some(kw => kw.toLowerCase() === word || kw.toLowerCase() === phrase)) {
+                matchedCuisines.delete(cuisine);
+                const idx = targetCuisines.indexOf(cuisine);
+                if (idx >= 0) targetCuisines.splice(idx, 1);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   // Merge intent map finds into primary arrays
   for (const c of intentMapCuisines) targetCuisines.push(c);
   for (const t of intentMapTags) matchedTags.add(t);

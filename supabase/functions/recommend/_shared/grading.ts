@@ -41,7 +41,8 @@ const CUISINE_MAP: Record<string, string[]> = {
   mediterranean: ["mediterranean", "greek", "hummus", "falafel", "shawarma"],
   american: ["american", "burger", "bbq", "barbecue", "steakhouse", "wings"],
   seafood: ["seafood", "lobster", "crab", "oyster", "fish"],
-  caribbean: ["caribbean", "jamaican", "cuban", "jerk"],
+  caribbean: ["caribbean", "jamaican", "jerk"],
+  cuban: ["cuban", "cubano", "ropa vieja", "lechon"],
   vietnamese: ["vietnamese", "pho", "banh mi"],
   ethiopian: ["ethiopian", "injera"],
   peruvian: ["peruvian", "ceviche"],
@@ -89,6 +90,7 @@ function classifyQueryIntent(query: string): QueryIntent {
     "charcuterie", "fondue", "hand roll", "soup dumpling", "truffle",
     "lobster bisque", "fried chicken", "hot chicken",
     "avocado toast", "lobster", "bisque",
+    "korean fried chicken", "acai bowl", "tiki bar",
   ];
   const dishMatch = dishPatterns.find((d) => q.includes(d));
   if (dishMatch) return { type: "dish", dish: dishMatch, keywords: [dishMatch] };
@@ -316,6 +318,11 @@ export function computeBlurbQualityGrade(
     // V17: Additional stop words — generic qualifiers and common query terms
     "open", "sunday", "walk", "star", "michelin", "james", "beard",
     "celebration", "birthday", "date", "prix", "fixe",
+    // V18: Additional stop words for common query patterns
+    "quick", "fast", "large", "party", "private", "room", "bottomless",
+    "style", "power", "craft", "bar", "wrigley", "field", "loop",
+    "korean", "cuban", "taiwanese", "szechuan", "somali", "nepalese",
+    "nigerian", "senegalese", "eritrean",
   ];
   let significantWords = queryWords.filter((w) => !stopWords.includes(w));
 
