@@ -32,6 +32,7 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `db-reviewer` | Database quality audit — accuracy, freshness, completeness, cross-field consistency | Manual or auto after enrichment runs |
 | `perf-optimizer` | Response time optimizer — profiles latency waterfall, audits timeouts, implements safe optimizations | Manual or auto on timeout/latency issues |
 | `uat-tester` | UAT super-user — browses DondeAI UIs via Playwright, inspects every element for bugs, UX, accessibility, visual consistency | Manual |
+| `bug-fixer` | Post-test bug fixer — ingests golden-dataset failures, root-causes, groups, fixes scoring/blurb/grading code, deploys | Auto after test failures |
 
 All agents in `.claude/agents/`. Spawn via the Agent tool or `/agents` dialog. Reference files for premium-advisor in `docs/references/premium-advisor/`.
 
