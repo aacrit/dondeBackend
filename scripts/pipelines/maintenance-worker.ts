@@ -25,6 +25,8 @@ const PIPELINE_SCRIPTS: Record<string, string[]> = {
   enrichment: ['enrich-new-or-gaps.ts'],
   scores_tags: ['generate-occasion-scores.ts', 'generate-tags.ts'],
   audit: ['audit-full-dataset.ts'],
+  cache_warm: ['query-miner.ts', 'cache-warmer.ts'],
+  cache_invalidate: ['cache-invalidator.ts'],
 };
 
 async function main() {

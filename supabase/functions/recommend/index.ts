@@ -18,6 +18,14 @@ import {
   extractUnmatchedKeywords,
 } from "./_shared/scoring.ts";
 import { computeScoreFitGrade, computeBlurbQualityGrade } from "./_shared/grading.ts";
+import {
+  buildExactCacheKey,
+  computeIntentFingerprint,
+  computeCanonicalForm,
+  lookupPersistentCache,
+  populateCache,
+  getNextFromCachedQueue,
+} from "./_shared/query-cache.ts";
 import type { UserFeedbackSignals } from "./_shared/scoring.ts";
 // V9 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
@@ -424,6 +432,72 @@ Deno.serve(async (req: Request) => {
     const supabase = createSupabaseClient();
 
     // ================================================================
+    // STEP 0.5: Persistent cache lookup — exact key (L1)
+    // ================================================================
+    const persistentCacheKey = buildExactCacheKey(occasion, neighborhood, price_level, special_request);
+    let cacheHit = false;
+    let cacheHitLevel: number | null = null;
+
+    if (exclude.length === 0) {
+      try {
+        const pcHit = await lookupPersistentCache(supabase, persistentCacheKey, "", "");
+        if (pcHit && pcHit.level === 1) {
+          cacheHit = true;
+          cacheHitLevel = 1;
+          setCacheResponse(cacheKey, pcHit.responseBody);
+          const serviceForLog = createServiceClient();
+          serviceForLog
+            .from("user_queries")
+            .insert({
+              id: crypto.randomUUID(),
+              occasion, price_level, special_request,
+              recommended_restaurant_id: (pcHit.responseBody.restaurant as Record<string, unknown>)?.id || null,
+              donde_match: pcHit.responseBody.donde_match || null,
+              exclude_count: 0, was_fallback: false,
+              response_time_ms: Date.now() - startTime,
+              auth_user_id: authUserId || null,
+              source: requestSource,
+              cache_hit: true, cache_hit_level: 1,
+            })
+            .then(() => {}).catch(() => {});
+          logInfo("Persistent cache HIT (L1 exact)", { responseTimeMs: Date.now() - startTime });
+          return jsonResponse(pcHit.responseBody, 200, requestOrigin);
+        }
+      } catch (err) {
+        logWarn("Persistent cache L1 lookup failed", { error: String(err) });
+      }
+    } else {
+      // "Try Another" — check cached ranked_queue for alternatives
+      try {
+        const pcHit = await lookupPersistentCache(supabase, persistentCacheKey, "", "");
+        if (pcHit?.rankedQueue) {
+          const nextItem = getNextFromCachedQueue(pcHit.rankedQueue, exclude);
+          if (nextItem) {
+            const serviceForLog = createServiceClient();
+            serviceForLog
+              .from("user_queries")
+              .insert({
+                id: crypto.randomUUID(),
+                occasion, price_level, special_request,
+                recommended_restaurant_id: (nextItem.restaurant as Record<string, unknown>)?.id || null,
+                donde_match: nextItem.donde_match || null,
+                exclude_count: exclude.length, was_fallback: false,
+                response_time_ms: Date.now() - startTime,
+                auth_user_id: authUserId || null,
+                source: requestSource,
+                cache_hit: true, cache_hit_level: 1,
+              })
+              .then(() => {}).catch(() => {});
+            logInfo("Persistent cache HIT (ranked_queue fallback)", { responseTimeMs: Date.now() - startTime, excludeCount: exclude.length });
+            return jsonResponse(nextItem, 200, requestOrigin);
+          }
+        }
+      } catch (err) {
+        logWarn("Persistent cache ranked_queue lookup failed", { error: String(err) });
+      }
+    }
+
+    // ================================================================
     // STEP 1: Intent classification + User feedback + RPC (parallel)
     // ================================================================
     // Use auth_user_id for feedback lookup (user_id column doesn't exist in schema)
@@ -520,6 +594,43 @@ Deno.serve(async (req: Request) => {
       emotional: intent?.emotional_intent || "none",
     });
 
+    // ================================================================
+    // STEP 1.5: Persistent cache lookup — fingerprint/canonical (L2/L3)
+    // ================================================================
+    if (exclude.length === 0 && !cacheHit) {
+      try {
+        const intentFingerprint = computeIntentFingerprint(intent, occasion, neighborhood, price_level);
+        const canonicalForm = computeCanonicalForm(special_request, intent);
+        const pcHit = await lookupPersistentCache(supabase, persistentCacheKey, intentFingerprint, canonicalForm);
+        if (pcHit) {
+          cacheHit = true;
+          cacheHitLevel = pcHit.level;
+          setCacheResponse(cacheKey, pcHit.responseBody);
+          const serviceForLog = createServiceClient();
+          serviceForLog
+            .from("user_queries")
+            .insert({
+              id: crypto.randomUUID(),
+              occasion, price_level, special_request,
+              recommended_restaurant_id: (pcHit.responseBody.restaurant as Record<string, unknown>)?.id || null,
+              donde_match: pcHit.responseBody.donde_match || null,
+              exclude_count: 0, was_fallback: false,
+              response_time_ms: Date.now() - startTime,
+              auth_user_id: authUserId || null,
+              source: requestSource,
+              cache_hit: true, cache_hit_level: pcHit.level,
+            })
+            .then(() => {}).catch(() => {});
+          logInfo(`Persistent cache HIT (L${pcHit.level} ${pcHit.level === 2 ? "fingerprint" : "canonical"})`, {
+            responseTimeMs: Date.now() - startTime,
+          });
+          return jsonResponse(pcHit.responseBody, 200, requestOrigin);
+        }
+      } catch (err) {
+        logWarn("Persistent cache L2/L3 lookup failed", { error: String(err) });
+      }
+    }
+
     // V11: Dynamic candidate pool — complex/vibe/open-ended queries get more candidates
     const hasVibeOnly = (intent?.vibe_keywords?.length ?? 0) > 0 && (intent?.target_cuisines?.length ?? 0) === 0;
     const isOpenEndedQuery = !intent || (
@@ -542,6 +653,13 @@ Deno.serve(async (req: Request) => {
     const semanticTags = intent?.semantic_tags || [];
     // V11: Expand semantic concepts into structured signals for RPC enrichment
     const conceptExpansion = expandQueryConcepts(semanticTags, special_request);
+    // V18: Store original vibe/tag count BEFORE concept expansion merges.
+    // This lets the reputation path distinguish user-intended vibes from
+    // concept-expanded ones (e.g., "best restaurant Chicago" has no user vibes).
+    if (intent) {
+      (intent as Record<string, unknown>)._originalVibeCount =
+        (intent.vibe_keywords || []).length + (intent.target_tags || []).length;
+    }
     // V15: Include implicit_cuisines from Claude fallback for better cuisine matching
     // e.g., "dumplings" → implicit_cuisines: ["Chinese", "Japanese", "Nepalese/Tibetan", "Polish"]
     const implicitCuisines = intent?.implicit_cuisines || [];
@@ -1303,12 +1421,27 @@ Deno.serve(async (req: Request) => {
       score_fit_grade: scoreFitResult.grade,
       blurb_quality_score: blurbQualityResult.score,
       blurb_quality_grade: blurbQualityResult.grade,
+      cache_hit: false,
+      cache_hit_level: null,
     };
     serviceForLog
       .from("user_queries")
       .insert(queryLogRow)
       .then(() => {})
       .catch((err: unknown) => logError("Failed to log query", { error: String(err) }));
+
+    // ================================================================
+    // STEP 9.5: Persistent cache write-through (quality-gated)
+    // ================================================================
+    if (scoreFitResult.score >= 80 && blurbQualityResult.score >= 80 && exclude.length === 0) {
+      const intentFingerprint = computeIntentFingerprint(intent, occasion, neighborhood, price_level);
+      const canonicalForm = computeCanonicalForm(special_request, intent);
+      populateCache(
+        serviceForLog, persistentCacheKey, intentFingerprint, canonicalForm,
+        special_request, occasion, neighborhood, price_level,
+        responseBody, scoreFitResult.score, blurbQualityResult.score, "organic",
+      ).catch((err) => logWarn("Cache write-through failed", { error: String(err) }));
+    }
 
     // SSO: Auto-save search for authenticated users
     if (authUserId && chosenId) {

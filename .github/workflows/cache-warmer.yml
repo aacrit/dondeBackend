@@ -1,0 +1,63 @@
+name: Cache Warmer
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # Daily at midnight Chicago time (UTC-6)
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Query source: popular, golden, or manual'
+        required: false
+        default: 'popular'
+        type: choice
+        options:
+          - popular
+          - golden
+          - manual
+      budget:
+        description: 'Max budget in dollars'
+        required: false
+        default: '5.00'
+        type: string
+
+jobs:
+  warm-cache:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: scripts
+
+      - name: Mine popular queries
+        if: ${{ github.event.inputs.source != 'golden' }}
+        run: npx tsx pipelines/query-miner.ts
+        working-directory: scripts
+        env:
+          SUPAB_URL: ${{ secrets.SUPAB_URL }}
+          SUPAB_SERVICE_ROLE_KEY: ${{ secrets.SUPAB_SERVICE_ROLE_KEY }}
+
+      - name: Run cache invalidation
+        run: npx tsx pipelines/cache-invalidator.ts
+        working-directory: scripts
+        env:
+          SUPAB_URL: ${{ secrets.SUPAB_URL }}
+          SUPAB_SERVICE_ROLE_KEY: ${{ secrets.SUPAB_SERVICE_ROLE_KEY }}
+
+      - name: Warm cache
+        run: |
+          npx tsx pipelines/cache-warmer.ts \
+            --source ${{ github.event.inputs.source || 'popular' }} \
+            --budget ${{ github.event.inputs.budget || '5.00' }}
+        working-directory: scripts
+        env:
+          SUPAB_URL: ${{ secrets.SUPAB_URL }}
+          SUPAB_ANON_KEY: ${{ secrets.SUPAB_ANON_KEY }}
+          SUPAB_SERVICE_ROLE_KEY: ${{ secrets.SUPAB_SERVICE_ROLE_KEY }}
