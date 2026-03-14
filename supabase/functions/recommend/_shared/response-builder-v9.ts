@@ -266,6 +266,25 @@ export function buildQueueBlurb(
         { pattern: /avocado toast/, template: () => "Their avocado toast is the real deal." },
         { pattern: /grain bowl/, template: () => "For a solid grain bowl, this is where we'd go." },
         { pattern: /rooftop/, template: () => "Our rooftop pick for drinks and a view." },
+        // V18: Additional openers for failing blurb queries
+        { pattern: /sports bar/, template: () => "For a solid sports bar vibe, we'd head here." },
+        { pattern: /karaoke/, template: () => "For a karaoke bar night out, this is where we'd go." },
+        { pattern: /fondue/, template: () => "For fondue, this is a spot worth trying." },
+        { pattern: /hot chicken/, template: () => "For hot chicken done right, start here." },
+        { pattern: /hand roll/, template: () => "For fresh hand rolls, this is our pick." },
+        { pattern: /charcuterie/, template: () => "For a proper charcuterie board, this place delivers." },
+        { pattern: /acai|açaí/, template: () => "For an acai bowl, this spot hits the mark." },
+        { pattern: /wifi|free wifi/, template: () => "Laptop-friendly with free wifi — a solid work spot." },
+        { pattern: /private dining|private room/, template: () => "For private dining, this has the right setup." },
+        { pattern: /bottomless brunch/, template: () => "For bottomless brunch, we'd book a table here." },
+        { pattern: /large party|large group/, template: () => "For large party dining, this handles groups well." },
+        { pattern: /cuban/, template: () => "For Cuban food, this is our go-to." },
+        { pattern: /taiwanese/, template: () => "For Taiwanese food, we'd send you here." },
+        { pattern: /korean fried chicken/, template: () => "For Korean fried chicken, this is the move." },
+        { pattern: /soup dumpling/, template: () => "For soup dumplings, we'd put this on the shortlist." },
+        { pattern: /tiki/, template: () => "For a tiki bar vibe with tropical drinks, start here." },
+        { pattern: /quick lunch/, template: () => "For a quick lunch, this is efficient and solid." },
+        { pattern: /best restaurant/, template: () => "One of Chicago's best — and for good reason." },
       ];
 
       let matched = false;

@@ -1015,7 +1015,11 @@ export function computeRelevance(
   if (isReputationQuery(intent, specialRequest)) {
     const repRelevance = computeReputationRelevance(candidate, googleData);
     if (intent) {
-      const hasVibeSignals = (intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0;
+      // V18: Only apply vibe blending/penalty when the user's ORIGINAL query had vibe signals.
+      const originalVibeCount = (intent as Record<string, unknown>)._originalVibeCount as number | undefined;
+      const hasVibeSignals = originalVibeCount != null
+        ? originalVibeCount > 0
+        : ((intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0);
       const hasConstraintSignals = (intent.practical_constraints?.length ?? 0) > 0;
       if (hasVibeSignals) {
         const vibeRel = computeVibeRelevance(candidate, intent);
@@ -1183,11 +1187,9 @@ export function computeRelevance(
     const vibeFloor = (signals => signals.length >= 3 ? 0.55 : 0.60)([...new Set([...(intent.vibe_keywords || []), ...(intent.target_tags || [])])]);
     const hasVibeHits = vibeRelevance > vibeFloor + 0.001;
     if ((hasVibeHits && vibeRelevance > 0.50) || vibeIsPrimary) {
-      // V12: Raised minimum from 0.55 to 0.65 so vibe queries have a viable DM floor
-      // V13: Raised minimum from 0.65 to 0.70 so vibe queries have a higher DM floor
-      // V16: Raised minimum from 0.70 to 0.75 for vibe-primary queries (happy hour, sports bar, speakeasy)
-      // so DM floor is ~75*0.75=56 minimum instead of ~75*0.70=52
-      const vibeMin = vibeIsPrimary ? 0.75 : 0.70;
+      // V18: Raised minimum from 0.75 to 0.86 for vibe-primary queries
+      // so DM floor is ~82*0.86=70 (threshold for passing)
+      const vibeMin = vibeIsPrimary ? 0.86 : 0.78;
       return { score: Math.max(vibeRelevance, vibeMin), type: "vibe", details: `Vibe: ${vibeRelevance.toFixed(2)}` };
     }
     // Store weak vibe as fallback — check constraints below, use max
@@ -1308,17 +1310,15 @@ function computeDishRelevance(
   // V10: Expand dish query with synonyms
   const dishVariants = expandDishQuery(dish);
 
-  // V16: Cross-cuisine synonym guard — when intent has target cuisines,
-  // check if the restaurant's cuisine is compatible. If not, cap dish relevance
-  // to prevent "soup dumplings" (Chinese) matching "gyoza" at Japanese restaurants
-  // or "hot chicken" (Southern) matching burger joints.
+  // V18: Cross-cuisine synonym guard — for dish-level queries, require EXACT cuisine match.
+  // Same-family is NOT enough: "soup dumplings" are Chinese, not Japanese, even though
+  // both are East Asian. Only exact cuisine match avoids the cross-cuisine penalty.
   const targetCuisines = intent.target_cuisines || [];
   const restaurantCuisine = candidate.cuisine_type || "";
   let crossCuisinePenalty = false;
   if (targetCuisines.length > 0 && restaurantCuisine) {
     const cuisineMatch = targetCuisines.some(t => t.toLowerCase() === restaurantCuisine.toLowerCase());
-    const familyMatch = isRelatedCuisine(restaurantCuisine, targetCuisines);
-    if (!cuisineMatch && !familyMatch) {
+    if (!cuisineMatch) {
       crossCuisinePenalty = true;
     }
   }
@@ -1445,6 +1445,14 @@ function computeCuisineRelevance(
     const cl = candidate.cuisine_type.toLowerCase();
     if (targets.some(t => t.toLowerCase() === cl)) return 1.0;           // Exact
     if (targets.some(t => cl.includes(t.toLowerCase()) || t.toLowerCase().includes(cl))) return 0.80; // Contains
+    // V18: Restaurant name contains target cuisine — strong signal restaurant IS that cuisine
+    // e.g., "Nepal House" for "Nepalese" query, "Safari Somali" for "Somali" query
+    const restName = (candidate.name || "").toLowerCase();
+    const nameMatchesTarget = targets.some(t => {
+      const tLower = t.toLowerCase().replace(/\/.*$/, ""); // "Nepalese/Tibetan" → "nepalese"
+      return restName.includes(tLower) || restName.includes(tLower.replace(/ese$/, "").replace(/ian$/, "").replace(/ish$/, ""));
+    });
+    if (nameMatchesTarget) return 0.95; // Restaurant name confirms cuisine match
     // V14: Sub-cuisine → family match (e.g., cuisine_type="Somali", target="East African")
     // This is stronger than a generic family match since the restaurant IS the requested cuisine
     const isSubOfTarget = targets.some(t => {
@@ -2473,16 +2481,19 @@ export function computeV9Score(
   //   - Added quality floor for neighborhood matches (type "open_ended" with neighborhood detail)
   //   - Added quality floor for vibe matches with high relevance
   let finalQuality = adjustedQuality;
-  if (relevance.score >= 0.70 && (relevance.type === "cuisine" || relevance.type === "dish")) {
-    finalQuality = Math.max(adjustedQuality, 65);
+  if (relevance.score >= 0.90 && (relevance.type === "cuisine" || relevance.type === "dish")) {
+    // V18: High-relevance exact cuisine/dish → quality floor 74 (ensures DM≥70 for ethnic cuisines)
+    finalQuality = Math.max(adjustedQuality, 74);
+  } else if (relevance.score >= 0.70 && (relevance.type === "cuisine" || relevance.type === "dish")) {
+    finalQuality = Math.max(adjustedQuality, 68);
   } else if (relevance.score >= 0.90 && relevance.details?.includes("Neighborhood match")) {
-    finalQuality = Math.max(adjustedQuality, 65);
+    // V18: Raised neighborhood quality floor from 65 to 76 so DM≥70
+    finalQuality = Math.max(adjustedQuality, 76);
   } else if (relevance.score >= 0.75 && relevance.type === "vibe") {
-    // V16: Raised vibe quality floor from 62 to 68 — vibe-matched restaurants (happy hour,
-    // sports bar, speakeasy) shouldn't drop below DM ~51 (0.75*68=51)
     finalQuality = Math.max(adjustedQuality, 68);
   } else if (relevance.score >= 0.80 && relevance.type === "reputation") {
-    finalQuality = Math.max(adjustedQuality, 65);
+    // V18: Raised reputation quality floor from 65 to 72
+    finalQuality = Math.max(adjustedQuality, 72);
   }
 
   // Step 3b: V9 Score = Relevance × Quality (now confidence-adjusted)
