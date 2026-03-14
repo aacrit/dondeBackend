@@ -555,6 +555,24 @@ Deno.serve(async (req: Request) => {
         intent.vibe_keywords = [...(intent.vibe_keywords || []), ...newVibes];
       }
     }
+    // V17: Merge concept constraints into intent for constraint relevance scoring.
+    // Without this, CONCEPT_MAP constraints (e.g., "happy hour" → walk_in,
+    // "byob" → byob, "valet parking" → valet_parking) don't flow into scoring.
+    if (conceptExpansion.constraints?.length && intent) {
+      const existingConstraints = new Set((intent.practical_constraints || []).map((c: string) => c.toLowerCase()));
+      const newConstraints = conceptExpansion.constraints.filter(c => !existingConstraints.has(c.toLowerCase()));
+      if (newConstraints.length > 0) {
+        intent.practical_constraints = [...(intent.practical_constraints || []), ...newConstraints];
+      }
+    }
+    // V17: Merge concept tags into intent target_tags for vibe relevance scoring
+    if (conceptExpansion.tags?.length && intent) {
+      const existingTags = new Set((intent.target_tags || []).map((t: string) => t.toLowerCase()));
+      const newTags = conceptExpansion.tags.filter(t => !existingTags.has(t.toLowerCase()));
+      if (newTags.length > 0) {
+        intent.target_tags = [...(intent.target_tags || []), ...newTags];
+      }
+    }
 
     // Deadline-propagated RPC timeout: min(5s, remaining budget - 9s for scoring+Google+Claude)
     const rpcDeadline = Math.max(3000, Math.min(5000, 15000 - (Date.now() - startTime) - 9000));
@@ -880,7 +898,7 @@ Deno.serve(async (req: Request) => {
     // ================================================================
     const rankedQueue: Record<string, unknown>[] = [];
     for (let i = 1; i < Math.min(6, rerankedScored.length); i++) {  // Cap at 5 (scores degrade past 5)
-      rankedQueue.push(buildV9RankedQueueItem(rerankedScored[i], i + 1));
+      rankedQueue.push(buildV9RankedQueueItem(rerankedScored[i], i + 1, special_request));
     }
 
     // ================================================================
@@ -905,7 +923,7 @@ Deno.serve(async (req: Request) => {
       if (skip_claude) {
         // Zero-cost mode: deterministic blurb from restaurant profile data
         const chosen = rerankedScored[0];
-        const fallbackBlurb = buildQueueBlurb(chosen.profile, chosen.matchNarrative);
+        const fallbackBlurb = buildQueueBlurb(chosen.profile, chosen.matchNarrative, special_request);
         parsed = {
           recommendation: fallbackBlurb || chosen.profile.best_for_oneliner || "A top pick based on our match engine.",
           match_headline: chosen.matchNarrative?.summary || null,
@@ -1138,7 +1156,7 @@ Deno.serve(async (req: Request) => {
           };
           responseBody = buildV9FallbackResponse(
             chosen.profile, chosenGoogleData, 55,
-            v9Result, rankedQueue,
+            v9Result, rankedQueue, special_request,
           );
         }
       } else {
@@ -1228,7 +1246,7 @@ Deno.serve(async (req: Request) => {
           dataCompleteness: nextChosen.dataCompleteness,
         };
         responseBody = buildV9FallbackResponse(
-          nextChosen.profile, nextGoogle, nextChosen.dondeMatch, v9Result, rankedQueue,
+          nextChosen.profile, nextGoogle, nextChosen.dondeMatch, v9Result, rankedQueue, special_request,
         );
       } else {
         const v9Result: V9ScoreResult = {
@@ -1242,7 +1260,7 @@ Deno.serve(async (req: Request) => {
           dataCompleteness: chosen.dataCompleteness,
         };
         responseBody = buildV9FallbackResponse(
-          chosen.profile, chosenGoogleData, chosen.dondeMatch, v9Result, rankedQueue,
+          chosen.profile, chosenGoogleData, chosen.dondeMatch, v9Result, rankedQueue, special_request,
         );
       }
     }

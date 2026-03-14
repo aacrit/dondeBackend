@@ -1055,6 +1055,26 @@ export function computeRelevance(
     return repRelevance;
   }
 
+  // V17: Neighborhood check BEFORE open-ended return.
+  // For queries like "near wrigley field", the intent has no cuisine/vibe/tag signals
+  // so isOpenEnded() returns true, giving all restaurants equal 1.0 relevance.
+  // The neighborhood signal must differentiate restaurants by location.
+  if (specialRequest) {
+    const reqLower = specialRequest.toLowerCase();
+    for (const [alias, canonical] of Object.entries(NEIGHBORHOOD_ALIASES)) {
+      if (reqLower.includes(alias)) {
+        const restNeighborhood = (candidate.neighborhood_name || "").toLowerCase();
+        const canonicalLower = canonical.toLowerCase();
+        if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
+          const matchType = (intent && ((intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0)) ? "vibe" as const : "open_ended" as const;
+          return { score: 0.93, type: matchType, details: `Neighborhood match: ${canonical}` };
+        }
+        // Neighborhood mentioned but restaurant isn't there — penalize
+        return { score: 0.55, type: "open_ended", details: "Neighborhood mismatch penalty" };
+      }
+    }
+  }
+
   // No intent → everything is equally relevant (open-ended query)
   if (!intent || isOpenEnded(intent)) {
     return { score: 1.0, type: "open_ended", details: "No specific request — all restaurants relevant" };
@@ -1249,30 +1269,23 @@ export function computeRelevance(
     }
   }
 
-  // Neighborhood relevance: if query mentions a neighborhood and restaurant is there, boost
-  // V12: Increased neighborhood match to 0.90 (was 0.80) and added mismatch penalty (0.55)
-  // to ensure "food near Wrigley Field" strongly prefers Lakeview restaurants
+  // V17: Neighborhood check moved to top of function (before isOpenEnded).
+  // This block is kept as a secondary fallback for queries with intent signals
+  // (cuisine/vibe/constraint) AND a neighborhood mention that wasn't caught earlier
+  // because the intent had signals that prevented the isOpenEnded path.
   if (specialRequest) {
     const reqLower = specialRequest.toLowerCase();
-    let neighborhoodMentioned = false;
     for (const [alias, canonical] of Object.entries(NEIGHBORHOOD_ALIASES)) {
       if (reqLower.includes(alias)) {
-        neighborhoodMentioned = true;
         const restNeighborhood = (candidate.neighborhood_name || "").toLowerCase();
         const canonicalLower = canonical.toLowerCase();
         if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
-          // V12: Use vibe weights when tags present (e.g. "Wicker Park brunch") instead of reputation-heavy open_ended
           const matchType = hasVibe ? "vibe" as const : "open_ended" as const;
-          // V13: Raised neighborhood match from 0.90 to 0.93
           return { score: 0.93, type: matchType, details: `Neighborhood match: ${canonical}` };
         }
-        break;
+        const penaltyScore = weakVibeScore !== null ? Math.max(weakVibeScore, 0.55) : 0.55;
+        return { score: penaltyScore, type: "open_ended", details: "Neighborhood mismatch penalty" };
       }
-    }
-    // If neighborhood was mentioned but restaurant isn't there, penalize
-    if (neighborhoodMentioned) {
-      const penaltyScore = weakVibeScore !== null ? Math.max(weakVibeScore, 0.55) : 0.55;
-      return { score: penaltyScore, type: "open_ended", details: "Neighborhood mismatch penalty" };
     }
   }
 
@@ -1439,7 +1452,10 @@ function computeCuisineRelevance(
       const family = getCuisineFamily(candidate.cuisine_type!);
       return family && family.toLowerCase() === tLower;
     });
-    if (isSubOfTarget) return 0.85; // Sub-cuisine IS the target family
+    // V17: Raised from 0.85 to 0.95 — when restaurant cuisine_type IS a sub-cuisine
+    // of the target family (e.g., "Somali" within "East African"), this is essentially
+    // a direct match, not a partial one. Fixes DM for ethnic cuisine queries.
+    if (isSubOfTarget) return 0.95;
     if (isRelatedCuisine(candidate.cuisine_type, targets)) return 0.60;  // Same family (raised from 0.50 — Analytics Expert: Peruvian→Mexican DM 41→~49)
     if (isAdjacentCuisine(candidate.cuisine_type, targets)) return 0.40; // Adjacent (raised from 0.30 — Analytics Expert: cross-family floor too punitive)
     // V15: For very different cuisines, give a slightly higher floor (0.10 vs 0.05)
@@ -1467,7 +1483,8 @@ function computeCuisineRelevance(
 function computeReputationRelevance(candidate: V9Candidate, googleData?: GooglePlaceData | null): V9Relevance {
   const dp = candidate.deep_profile;
   const ri = candidate.review_intelligence;
-  let score = 0.55; // Base: generous floor — raised from 0.50 (Analytics Expert: reputation queries R03 DM 54→~58)
+  // V17: Raised base from 0.55 to 0.60 — "best restaurant Chicago" should produce DM≥65
+  let score = 0.60;
   const signals: string[] = [];
 
   // Awards recognition (strongest signal)

@@ -451,6 +451,29 @@ export async function classifyIntentV5(
 
   const targetCuisines = Array.from(matchedCuisines);
 
+  // V17: Add specific sub-cuisine to target_cuisines alongside the umbrella category.
+  // When a user searches "Somali place", the CUISINE_KEYWORDS match produces ["East African"].
+  // But the restaurant's cuisine_type is "Somali", so it only matches via isSubOfTarget (0.95).
+  // Adding "Somali" as a direct target enables the exact-match path (relevance 1.0).
+  const SUBCUISINE_SPECIFIC: Record<string, string> = {
+    "somali": "Somali", "eritrean": "Eritrean", "nigerian": "Nigerian",
+    "ghanaian": "Ghanaian", "senegalese": "Senegalese", "ugandan": "Ugandan",
+    "szechuan": "Sichuan", "sichuan": "Sichuan", "cantonese": "Cantonese",
+    "hunan": "Hunan", "shanghainese": "Shanghainese",
+    "nepalese": "Nepalese/Tibetan", "nepali": "Nepalese/Tibetan", "tibetan": "Nepalese/Tibetan",
+    "oaxacan": "Mexican", "yucatecan": "Mexican",
+    "calabrese": "Italian", "sicilian": "Italian", "neapolitan": "Italian", "tuscan": "Italian",
+    "colombian": "Colombian", "argentinian": "Argentine", "venezuelan": "Venezuelan",
+    "peruvian": "Peruvian", "chilean": "Chilean",
+    "liberian": "Liberian",
+  };
+  for (const kw of matchedKeywordStrings) {
+    const specific = SUBCUISINE_SPECIFIC[kw];
+    if (specific && !targetCuisines.includes(specific)) {
+      targetCuisines.push(specific);
+    }
+  }
+
   // V6: Detect dish-level intent.
   // If the matched keyword is a food item (not the exact cuisine name), the user is asking
   // for a specific dish/food, not just a cuisine category.
