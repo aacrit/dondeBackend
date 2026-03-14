@@ -1015,11 +1015,12 @@ export function computeRelevance(
   if (isReputationQuery(intent, specialRequest)) {
     const repRelevance = computeReputationRelevance(candidate, googleData);
     if (intent) {
-      // V18: Only apply vibe blending/penalty when the user's ORIGINAL query had vibe signals.
-      const originalVibeCount = (intent as Record<string, unknown>)._originalVibeCount as number | undefined;
-      const hasVibeSignals = originalVibeCount != null
-        ? originalVibeCount > 0
-        : ((intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0);
+      // V18: Only apply vibe blending/penalty when the QUERY itself contains vibe-specific words.
+      // Concept-expanded vibes from CONCEPT_MAP shouldn't trigger the penalty for generic
+      // reputation queries like "best restaurant Chicago".
+      const REPUTATION_VIBE_TRIGGERS = /rooftop|cocktail|speakeasy|tiki|dive|jazz|karaoke|sports|outdoor|patio|romantic|cozy|upscale|lounge|wine bar|craft beer|happy hour|late night|bottomless/i;
+      const queryHasVibeWords = REPUTATION_VIBE_TRIGGERS.test(specialRequest);
+      const hasVibeSignals = queryHasVibeWords && ((intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0);
       const hasConstraintSignals = (intent.practical_constraints?.length ?? 0) > 0;
       if (hasVibeSignals) {
         const vibeRel = computeVibeRelevance(candidate, intent);
