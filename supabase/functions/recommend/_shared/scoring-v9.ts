@@ -1131,6 +1131,12 @@ export function computeRelevance(
   // === CUISINE-LEVEL RELEVANCE ===
   if (hasCuisine) {
     const cuisineRelevance = computeCuisineRelevance(candidate, intent);
+    // V18: When cuisine relevance is very high (≥0.93), skip vibe blending.
+    // The cuisine match is strong enough (exact/name match) that vibe blending
+    // would only dilute the score (e.g., "authentic Nepalese" → Nepal House).
+    if (cuisineRelevance >= 0.93) {
+      return { score: cuisineRelevance, type: "cuisine", details: `Cuisine: ${cuisineRelevance.toFixed(2)}` };
+    }
     // V14: When both cuisine and vibe signals exist (e.g., "rooftop brunch"),
     // boost cuisine relevance for restaurants that also match the vibe signals.
     // This ensures "rooftop brunch" prefers brunch spots WITH rooftop tags.
