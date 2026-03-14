@@ -2519,8 +2519,8 @@ export function computeV9Score(
   } else if (relevance.score >= 0.70 && (relevance.type === "cuisine" || relevance.type === "dish")) {
     finalQuality = Math.max(adjustedQuality, 68);
   } else if (relevance.score >= 0.90 && relevance.details?.includes("Neighborhood match")) {
-    // V18: Raised neighborhood quality floor from 65 to 76 so DM≥70
-    finalQuality = Math.max(adjustedQuality, 76);
+    // V18: Raised neighborhood quality floor from 65 to 80 so DM≥80 for location queries
+    finalQuality = Math.max(adjustedQuality, 80);
   } else if (relevance.score >= 0.75 && relevance.type === "vibe") {
     finalQuality = Math.max(adjustedQuality, 68);
   } else if (relevance.score >= 0.80 && relevance.type === "reputation") {
