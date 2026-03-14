@@ -245,16 +245,13 @@ Haiku 4.5: $0.80/M input, $4.00/M output. Full enrichment-v2 (~1000 restaurants)
 ## Git Workflow
 
 For every task that modifies code:
-1. Create a new branch from main (naming: `feature/`, `fix/`, or `chore/` prefix)
+1. Create a new branch from main with `claude/` prefix (e.g., `claude/add-cache`, `claude/fix-scoring`)
 2. Make all changes on that branch
 3. Commit with a clear, descriptive message
-4. Push the branch to origin
-5. Open a pull request with a summary of changes
-6. Do NOT merge — leave PR open for my review
+4. Push the branch to origin — CI auto-merges `claude/**` branches to `main` via `.github/workflows/auto-merge-claude.yml`
+5. No PR needed for `claude/` branches — auto-merge handles it
 
-**Never commit directly to main.**
-
-CI auto-merges `claude/**` branches to `main` via `.github/workflows/auto-merge-claude.yml` — no manual merge needed.
+**Never commit directly to main. Always use `claude/` branch prefix so CI auto-merges.**
 
 ## Coding Standards
 
