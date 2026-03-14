@@ -1016,6 +1016,18 @@ export function computeRelevance(
   if (isReputationQuery(intent, specialRequest)) {
     const repRelevance = computeReputationRelevance(candidate, googleData);
     if (intent) {
+      // V18: Cuisine check FIRST — when query has BOTH reputation AND cuisine signals
+      // (e.g., "best cocktail bar", "best craft cocktail bar"), check if restaurant's
+      // cuisine_type matches the target. An exact cuisine match (1.0) is stronger than
+      // a generic reputation score (~0.90). Must run BEFORE vibe blending since
+      // "cocktail" triggers REPUTATION_VIBE_TRIGGERS and would short-circuit to vibe path.
+      if (intent.target_cuisines?.length && intent.cuisine_importance === "high") {
+        const cuisineRel = computeCuisineRelevance(candidate, intent);
+        if (cuisineRel >= 0.95) {
+          const finalScore = Math.max(repRelevance.score, cuisineRel);
+          return { score: finalScore, type: "reputation", details: `Reputation+Cuisine: ${repRelevance.score.toFixed(2)}/${cuisineRel.toFixed(2)}` };
+        }
+      }
       // V18: Only apply vibe blending/penalty when the QUERY itself contains vibe-specific words.
       // Concept-expanded vibes from CONCEPT_MAP shouldn't trigger the penalty for generic
       // reputation queries like "best restaurant Chicago".
@@ -1057,16 +1069,6 @@ export function computeRelevance(
           return { score: blended, type: "reputation", details: `Reputation+Constraint: ${repRelevance.score.toFixed(2)} (${cHits}/${cTotal})` };
         }
       }
-      // V18: When query has BOTH reputation AND cuisine signals (e.g., "best cocktail bar",
-      // "best craft cocktail bar"), check if restaurant's cuisine_type matches the target.
-      // An exact cuisine match (1.0) is stronger than a generic reputation score (~0.90).
-      if (intent.target_cuisines?.length && intent.cuisine_importance === "high") {
-        const cuisineRel = computeCuisineRelevance(candidate, intent);
-        if (cuisineRel >= 0.95) {
-          const finalScore = Math.max(repRelevance.score, cuisineRel);
-          return { score: finalScore, type: "reputation", details: `Reputation+Cuisine: ${repRelevance.score.toFixed(2)}/${cuisineRel.toFixed(2)}` };
-        }
-      }
     }
     return repRelevance;
   }
@@ -1083,14 +1085,13 @@ export function computeRelevance(
         const canonicalLower = canonical.toLowerCase();
         if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
           const matchType = (intent && ((intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0)) ? "vibe" as const : "open_ended" as const;
-          // V18: Raised from 0.93 to 1.0 for location-only queries ("near wrigley field").
-          // Restaurant IS in the right neighborhood — that's a perfect location match.
-          const isLocationOnly = !intent || isOpenEnded(intent);
-          return { score: isLocationOnly ? 1.0 : 0.93, type: matchType, details: `Neighborhood match: ${canonical}` };
+          // V18: Raised from 0.93 to 1.0 — restaurant IS in the right neighborhood,
+          // that's a perfect location match regardless of other intent signals.
+          return { score: 1.0, type: matchType, details: `Neighborhood match: ${canonical}` };
         }
-        // Neighborhood mentioned but restaurant isn't there — penalize harder for location-only
-        const isLocationOnly2 = !intent || isOpenEnded(intent);
-        return { score: isLocationOnly2 ? 0.35 : 0.55, type: "open_ended", details: "Neighborhood mismatch penalty" };
+        // V18: Neighborhood mentioned but restaurant isn't there — penalize harder (0.55→0.35)
+        // to create sharper differentiation between in-neighborhood and out-of-neighborhood
+        return { score: 0.35, type: "open_ended", details: "Neighborhood mismatch penalty" };
       }
     }
   }
