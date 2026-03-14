@@ -1411,6 +1411,16 @@ function computeCuisineRelevance(
   if (targets.length === 0) return 0.5;
   const ri = candidate.review_intelligence;
 
+  // V18: Restaurant name contains target cuisine — check FIRST, before RI family matching.
+  // This ensures "Nepal House" gets high relevance for "Nepalese" even when cuisine_type
+  // is "Indian" and RI only provides a family match (0.88 instead of 0.95).
+  const restName = (candidate.name || "").toLowerCase();
+  const nameMatchesTarget = targets.some(t => {
+    const tLower = t.toLowerCase().replace(/\/.*$/, ""); // "Nepalese/Tibetan" → "nepalese"
+    return restName.includes(tLower) || restName.includes(tLower.replace(/ese$/, "").replace(/ian$/, "").replace(/ish$/, ""));
+  });
+  if (nameMatchesTarget) return 0.95; // Restaurant name confirms cuisine match
+
   // Review intelligence cuisine signals (NEW in V9)
   // Evidence-based: what reviewers actually say about the cuisine
   if (ri?.cuisine_signals?.length) {
@@ -1446,14 +1456,6 @@ function computeCuisineRelevance(
     const cl = candidate.cuisine_type.toLowerCase();
     if (targets.some(t => t.toLowerCase() === cl)) return 1.0;           // Exact
     if (targets.some(t => cl.includes(t.toLowerCase()) || t.toLowerCase().includes(cl))) return 0.80; // Contains
-    // V18: Restaurant name contains target cuisine — strong signal restaurant IS that cuisine
-    // e.g., "Nepal House" for "Nepalese" query, "Safari Somali" for "Somali" query
-    const restName = (candidate.name || "").toLowerCase();
-    const nameMatchesTarget = targets.some(t => {
-      const tLower = t.toLowerCase().replace(/\/.*$/, ""); // "Nepalese/Tibetan" → "nepalese"
-      return restName.includes(tLower) || restName.includes(tLower.replace(/ese$/, "").replace(/ian$/, "").replace(/ish$/, ""));
-    });
-    if (nameMatchesTarget) return 0.95; // Restaurant name confirms cuisine match
     // V14: Sub-cuisine → family match (e.g., cuisine_type="Somali", target="East African")
     // This is stronger than a generic family match since the restaurant IS the requested cuisine
     const isSubOfTarget = targets.some(t => {
