@@ -66,7 +66,7 @@ CREATE OR REPLACE FUNCTION compute_taste_profile(p_user_id UUID)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-AS $$
+AS $fn$
 DECLARE
   v_cutoff TIMESTAMPTZ := now() - interval '90 days';
   v_search_count INTEGER := 0;
@@ -310,4 +310,4 @@ BEGIN
     computed_at = now(),
     expires_at = now() + interval '24 hours';
 END;
-$$;
+$fn$;
