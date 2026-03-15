@@ -23,6 +23,7 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 
 | Agent | Purpose | Trigger |
 |-------|---------|---------|
+| `donde-coo` | **COO super-agent** — orchestrates all agents across 4 divisions, runs quality cycles, coordinates cross-repo changes, reports to CEO | Auto on significant changes, manual |
 | `ceo-advisor` | Strategic product advisor — Top 10 prioritized recommendations | Manual |
 | `donde-premium-advisor` | Premium app audit (UI polish, backend, marketing psychology, Claude Code mastery) | Manual |
 | `donde-ciso` | Security audit across 10 domains — severity-ranked findings with remediation | Manual or auto on security changes |
@@ -35,6 +36,16 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `bug-fixer` | Post-test bug fixer — ingests golden-dataset failures, root-causes, groups, fixes scoring/blurb/grading code, deploys | Auto after test failures |
 
 All agents in `.claude/agents/`. Spawn via the Agent tool or `/agents` dialog. Reference files for premium-advisor in `docs/references/premium-advisor/`.
+
+## Agent Hierarchy
+
+The COO (`donde-coo`) is the **super-agent** that orchestrates all other agents. Every agent reports to the COO, and the COO reports directly to the CEO. When any agent completes work, results flow through the COO for aggregation and prioritization.
+
+**Divisions:** Quality (analytics-expert, bug-fixer, gen-test-queries) | Infrastructure (perf-optimizer, db-reviewer, update-docs) | Product (ceo-advisor, donde-premium-advisor, frontenddesign) | Security (donde-ciso, uat-tester)
+
+**Escalation:** CRITICAL findings from any agent auto-escalate to COO. COO escalates to CEO with "The Bottom Line" summary.
+
+**Change notification:** COO should be spawned after significant code changes to run a quality cycle. It detects changes via git log, CI/CD status, and gauntlet_runs queries.
 
 ## Tests
 
