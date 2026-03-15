@@ -227,6 +227,41 @@ export interface V9QualityResult {
 // V9 SCORING ENGINE TYPES
 // ==========================================
 
+// ==========================================
+// LEARNING FLYWHEEL TYPES
+// ==========================================
+
+/** Pre-computed taste profile for personalized scoring (Phase 1: shadow mode) */
+export interface TasteProfile {
+  totalSignals: number;
+  cuisineAffinities: Array<{ cuisine: string; score: number }>;
+  cuisineAvoidances: string[];
+  noisePreference: number;       // -1 quiet → +1 loud
+  energyPreference: number;      // -1 calm → +1 lively
+  formalityPreference: number;   // -1 casual → +1 formal
+  weightFood: number;            // multiplier 0.7-1.3
+  weightVibe: number;
+  weightService: number;
+  weightReputation: number;
+  weightConvenience: number;
+  priceAffinity: number | null;  // 1-4
+  neighborhoodAffinities: Array<{ neighborhood: string; score: number }>;
+  discoveryScore: number;        // 0-1, higher = more adventurous
+}
+
+/** Shadow mode personalization result (logged, not applied in Phase 1) */
+export interface PersonalizationResult {
+  active: boolean;
+  shadowBoost: number;
+  signalsUsed: number;
+  tasteSummary: {
+    topCuisines: string[];
+    vibe: string;
+    price: string;
+    type: string;  // "explorer" | "loyalist" | "new_user"
+  } | null;
+}
+
 /** All inputs needed to compute V9 score */
 export interface V9ScoringContext {
   occasion: string;
@@ -249,6 +284,8 @@ export interface V9ScoringContext {
     topNeighborhoods: string[];
     topOccasions: string[];
   } | null;
+  /** Learning Flywheel: Pre-computed taste profile (Phase 1: shadow mode only) */
+  tasteProfile?: TasteProfile | null;
 }
 
 /** Individual factor scores (0-10 each) — for UI "Why This Match" bars */

@@ -57,6 +57,8 @@ import type {
   V9ScoredCandidate,
   V9ScoreResult,
   ReviewIntelligence,
+  TasteProfile,
+  PersonalizationResult,
 } from "./_shared/types-v9.ts";
 import { getScoreTier } from "./_shared/types-v9.ts";
 
@@ -591,11 +593,44 @@ Deno.serve(async (req: Request) => {
           })
       : Promise.resolve(null);
 
+    // Learning Flywheel Phase 1: Fetch taste profile (parallel, <5ms PK lookup)
+    const tasteProfilePromise: Promise<TasteProfile | null> = authUserId
+      ? supabase
+          .from("user_taste_profiles")
+          .select("*")
+          .eq("user_id", authUserId)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (!data) return null;
+            return {
+              totalSignals: data.total_signals ?? 0,
+              cuisineAffinities: (data.cuisine_affinities as Array<{ cuisine: string; score: number }>) || [],
+              cuisineAvoidances: (data.cuisine_avoidances as string[]) || [],
+              noisePreference: data.noise_preference ?? 0,
+              energyPreference: data.energy_preference ?? 0,
+              formalityPreference: data.formality_preference ?? 0,
+              weightFood: data.weight_food ?? 1.0,
+              weightVibe: data.weight_vibe ?? 1.0,
+              weightService: data.weight_service ?? 1.0,
+              weightReputation: data.weight_reputation ?? 1.0,
+              weightConvenience: data.weight_convenience ?? 1.0,
+              priceAffinity: data.price_affinity ?? null,
+              neighborhoodAffinities: (data.neighborhood_affinities as Array<{ neighborhood: string; score: number }>) || [],
+              discoveryScore: data.discovery_score ?? 0.5,
+            } as TasteProfile;
+          })
+          .catch((err: unknown) => {
+            logWarn("Failed to fetch taste profile", { error: String(err) });
+            return null;
+          })
+      : Promise.resolve(null);
+
     // V10: Intent classification FIRST so we can pass signals to RPC
-    const [intentResult, userFeedback, userPreferences] = await Promise.all([
+    const [intentResult, userFeedback, userPreferences, tasteProfile] = await Promise.all([
       classifyIntentV5(special_request, occasion, { skipClaude: skip_claude, claudeTimeoutMs: 6000 }),
       feedbackPromise,
       preferencesPromise,
+      tasteProfilePromise,
     ]);
 
     const intent = intentResult.intent;
@@ -856,6 +891,7 @@ Deno.serve(async (req: Request) => {
       clientTimeOfDay: time_of_day,
       dietaryRestrictions: dietary_restrictions,
       userPreferences: userPreferences || null,
+      tasteProfile: tasteProfile || null,
     };
 
     const scored = reRankV9(candidates, v9Context);
@@ -1497,6 +1533,26 @@ Deno.serve(async (req: Request) => {
       engine: "v11",
     });
 
+    // ================================================================
+    // STEP 9.7: Learning Flywheel — Shadow Personalization (Phase 1)
+    // Compute what the boost WOULD be, log it, but do NOT apply it
+    // ================================================================
+    const personalization = computeShadowPersonalization(tasteProfile, rerankedScored[0], v9Context);
+    (responseBody as Record<string, unknown>).personalization = {
+      active: personalization.active,
+      shadow_boost: personalization.shadowBoost,
+      signals_used: personalization.signalsUsed,
+      taste_summary: personalization.tasteSummary,
+    };
+    if (personalization.signalsUsed > 0) {
+      logInfo("Learning Flywheel shadow", {
+        shadowBoost: personalization.shadowBoost,
+        signalsUsed: personalization.signalsUsed,
+        topCuisines: personalization.tasteSummary?.topCuisines || [],
+        type: personalization.tasteSummary?.type || "new_user",
+      });
+    }
+
     const response = jsonResponse(responseBody, 200, requestOrigin);
     response.headers.set("X-API-Version", API_VERSION);
     response.headers.set("X-Engine", "v9");
@@ -1506,6 +1562,91 @@ Deno.serve(async (req: Request) => {
     return jsonResponse(buildV9ErrorResponse(error), 500, requestOrigin);
   }
 });
+
+// ================================================================
+// Learning Flywheel Phase 1: Shadow Personalization
+// Computes what the personalization boost WOULD be without applying it
+// ================================================================
+function computeShadowPersonalization(
+  profile: TasteProfile | null,
+  chosen: V9ScoredCandidate,
+  context: V9ScoringContext,
+): PersonalizationResult {
+  const noProfile: PersonalizationResult = {
+    active: false,
+    shadowBoost: 0,
+    signalsUsed: 0,
+    tasteSummary: null,
+  };
+  if (!profile || profile.totalSignals < 5) return noProfile;
+
+  let boost = 0;
+  const restaurantCuisine = chosen.profile.cuisine_type?.toLowerCase() || "";
+
+  // Cuisine affinity boost: top cuisine match → +3 max
+  for (const aff of profile.cuisineAffinities) {
+    if (aff.cuisine.toLowerCase() === restaurantCuisine) {
+      boost += Math.round(aff.score * 3);
+      break;
+    }
+  }
+
+  // Cuisine avoidance penalty: -5
+  if (profile.cuisineAvoidances.some(c => c.toLowerCase() === restaurantCuisine)) {
+    boost -= 5;
+  }
+
+  // Price fit: +1 if within 0.5 tiers, -1 if 2+ tiers away
+  if (profile.priceAffinity && context.priceLevel === "Any") {
+    const restaurantPrice = chosen.profile.price_level;
+    const priceMap: Record<string, number> = { "$": 1, "$$": 2, "$$$": 3, "$$$$": 4 };
+    const rp = priceMap[restaurantPrice || ""] || 0;
+    if (rp > 0) {
+      const diff = Math.abs(rp - profile.priceAffinity);
+      if (diff <= 0.5) boost += 1;
+      else if (diff >= 2) boost -= 1;
+    }
+  }
+
+  // Neighborhood affinity: +2 for favorite neighborhood
+  const restaurantNeighborhood = (chosen.profile as Record<string, unknown>).neighborhood_name as string || "";
+  for (const na of profile.neighborhoodAffinities) {
+    if (na.neighborhood.toLowerCase() === restaurantNeighborhood.toLowerCase() && na.score >= 0.5) {
+      boost += 2;
+      break;
+    }
+  }
+
+  // Discovery bonus: +1 for unexplored cuisine (adventurous users)
+  if (profile.discoveryScore > 0.6) {
+    const isExplored = profile.cuisineAffinities.some(a => a.cuisine.toLowerCase() === restaurantCuisine);
+    if (!isExplored && restaurantCuisine) {
+      boost += 1;
+    }
+  }
+
+  // Hard clamp: +/-5 total
+  boost = Math.max(-5, Math.min(5, boost));
+
+  // Build taste summary
+  const vibeLabel = profile.noisePreference < -0.3 ? "quiet" : profile.noisePreference > 0.3 ? "lively" : "moderate";
+  const priceLabel = profile.priceAffinity
+    ? ["$", "$$", "$$$", "$$$$"][Math.round(profile.priceAffinity) - 1] || "$$"
+    : "any";
+  const typeLabel = profile.discoveryScore > 0.6 ? "explorer" : profile.discoveryScore < 0.3 ? "loyalist" : "balanced";
+
+  return {
+    active: false,  // Phase 1: shadow mode — never active
+    shadowBoost: boost,
+    signalsUsed: profile.totalSignals,
+    tasteSummary: {
+      topCuisines: profile.cuisineAffinities.slice(0, 3).map(a => a.cuisine),
+      vibe: vibeLabel,
+      price: priceLabel,
+      type: typeLabel,
+    },
+  };
+}
 
 // V12: Insider tip structural validation — must start with verb, ≤25 words
 const INSIDER_TIP_VALID_STARTERS = [
