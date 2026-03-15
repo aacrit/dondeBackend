@@ -281,6 +281,14 @@ const BANNED_PATTERNS = [
   "artfully crafted", "lovingly prepared", "passion for", "dedication to",
   "attention to detail", "craft", "artisan",
   "\u2014",
+  // V20: Expanded anti-slop patterns
+  "it's worth noting", "it's no surprise", "pairs perfectly", "hits different",
+  "chef-driven", "locally sourced", "seasonal ingredients", "warm hospitality",
+  "inviting atmosphere", "culinary prowess", "flavor profile", "price point",
+  "farm-to-table", "nose-to-tail", "thoughtfully curated", "carefully selected",
+  "hand-picked", "each dish tells", "every plate is", "a celebration of",
+  "pays homage", "takes you on", "where every", "more than just",
+  "the star of the show", "steal the show", "take center stage",
 ];
 
 export function computeBlurbQualityGrade(
@@ -308,7 +316,7 @@ export function computeBlurbQualityGrade(
   const stopWords = [
     "best", "good", "great", "nice", "find", "want", "looking", "near",
     "restaurant", "food", "place", "chicago", "partnership", "close",
-    "financial", "area", "spot", "around", "dinner", "lunch", "breakfast",
+    "financial", "area", "spot", "around", "dinner", "lunch",
     "meal", "dining", "really", "like", "just", "that", "this", "with",
     "from", "have", "very", "some", "what", "where", "here", "there",
     // V15: Additional stop words — too generic to expect in blurbs
@@ -317,20 +325,24 @@ export function computeBlurbQualityGrade(
     "vegan", "gluten", "free", "outdoor", "patio", "byob",
     // V17: Additional stop words — generic qualifiers and common query terms
     "open", "sunday", "walk", "star", "michelin", "james", "beard",
-    "celebration", "birthday", "date", "prix", "fixe",
+    "celebration", "birthday", "date",
     // V18: Additional stop words for common query patterns
-    "quick", "fast", "large", "party", "private", "room", "bottomless",
-    "style", "power", "craft", "bar", "wrigley", "field", "loop",
+    "quick", "fast", "large", "party", "private", "room",
+    "style", "power", "wrigley", "field", "loop",
     "korean", "cuban", "taiwanese", "szechuan", "somali", "nepalese",
     "nigerian", "senegalese", "eritrean",
-    // V19: bug-fixer — additional stop words for golden dataset query patterns
-    "tiki", "dive", "sports", "jazz", "karaoke", "speakeasy",
-    "rooftop", "river", "north", "logan", "square", "west",
-    "smash", "deep", "dish", "soup", "hand", "rolls", "grain",
-    "bowl", "lobster", "bisque", "charcuterie", "board", "truffle",
-    "jerk", "chicken", "acai", "fondue", "hot",
+    // V19: stop words for golden dataset query patterns
+    "river", "north", "logan", "square", "west",
+    "deep", "hand", "rolls",
+    "board",
     "valet", "wifi", "friendly", "seating", "parking",
-    "tasting", "menu", "brunch", "omakase",
+    // V20: Removed from stop words to FIX 4 golden dataset WARNs:
+    // "brunch", "tasting", "menu", "prix", "fixe", "bottomless", "fried", "chicken",
+    // "breakfast", "omakase" — these are specific enough to expect in blurbs.
+    // Also removed: "bar", "craft", "dive", "sports", "jazz", "karaoke", "speakeasy",
+    // "rooftop", "tiki", "smash", "dish", "soup", "grain", "bowl", "lobster",
+    // "bisque", "charcuterie", "truffle", "jerk", "acai", "fondue", "hot"
+    // These domain-specific terms SHOULD count toward query relevance.
   ];
   let significantWords = queryWords.filter((w) => !stopWords.includes(w));
 

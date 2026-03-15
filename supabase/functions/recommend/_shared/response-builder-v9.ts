@@ -198,6 +198,7 @@ function buildScores(chosen: RestaurantProfile): Record<string, unknown> {
 
 /**
  * Build a recommendation blurb for ranked queue items (Try Again).
+ * V20 Blurb Excellence: 5 template variants selected by hash for variation.
  * Enhanced with Donde voice — "we/our" mandate, attitude, concrete details.
  * Targets 90-110 words for blurb quality grading compliance (B- / 80+).
  * These serve as instant fallbacks; the frontend can upgrade to a full Claude
@@ -210,11 +211,10 @@ export function buildQueueBlurb(
 ): string | null {
   const dp = profile.deep_profile;
   const ri = (profile as Record<string, unknown>).review_intelligence as Record<string, unknown> | undefined;
-  const parts: string[] = [];
 
-  // Slop words that tank blurb quality grade — scrub from DB-sourced text
-  // V19: bug-fixer — added em dash, "best-kept secret", "taste buds", "tantalizing",
-  // "delightful", "a must-visit", "a cut above" to match grading BANNED_PATTERNS
+  // ── Shared utilities ──────────────────────────────────────────────
+
+  // V20: Expanded slop list — matches grading BANNED_PATTERNS + V20 additions
   const BLURB_SLOP = [
     "culinary", "gastronomic", "mouthwatering", "nestled", "hidden gem",
     "elevated", "must-visit", "dining experience", "every bite", "beckons",
@@ -223,6 +223,10 @@ export function buildQueueBlurb(
     "exquisite", "impeccable", "sumptuous", "delectable",
     "best-kept secret", "taste buds", "tantalizing", "delightful",
     "a cut above", "second to none", "won't disappoint",
+    "it's worth noting", "it's no surprise", "pairs perfectly",
+    "chef-driven", "locally sourced", "warm hospitality", "inviting atmosphere",
+    "thoughtfully curated", "a celebration of", "pays homage",
+    "the star of the show", "take center stage",
     "\u2014",
   ];
   const scrubSlop = (text: string): string => {
@@ -231,268 +235,356 @@ export function buildQueueBlurb(
       const re = new RegExp(slop, "gi");
       cleaned = cleaned.replace(re, "").replace(/\s{2,}/g, " ").trim();
     }
-    // Fix orphaned punctuation from removals
     cleaned = cleaned.replace(/\s+,/g, ",").replace(/,\s*\./g, ".").replace(/\.\s*\./g, ".");
     return cleaned;
   };
 
-  // V17: Query-relevant opener — echoes the user's search terms to boost blurb quality grade.
-  // The grading system checks if blurb contains significant query words (25pts for query relevance).
-  if (specialRequest && specialRequest.length > 3) {
+  // V20: Adjective synonym rotation — vary sensory language across blurbs
+  const ADJ_SYNONYMS: Record<string, string[]> = {
+    "bold": ["bold", "punchy", "assertive", "unapologetic"],
+    "bright": ["bright", "clean", "vivid", "sharp"],
+    "tender": ["tender", "yielding", "soft", "gentle"],
+    "smoky": ["smoky", "charred", "fire-kissed", "wood-touched"],
+    "spicy": ["spicy", "fiery", "peppery", "heated"],
+    "creamy": ["creamy", "silky", "velvety", "smooth"],
+    "buttery": ["buttery", "rich", "lush", "golden"],
+    "crispy": ["crispy", "crunchy", "snappy", "crackling"],
+    "tangy": ["tangy", "tart", "zippy", "zesty"],
+  };
+
+  // Hash function for deterministic variation
+  const hashStr = (profile.id || '') + (specialRequest || '');
+  let hash = 0;
+  for (let i = 0; i < hashStr.length; i++) {
+    hash = ((hash << 5) - hash + hashStr.charCodeAt(i)) | 0;
+  }
+  const variantIdx = Math.abs(hash) % 5; // 0-4 template variant
+
+  // Pick a synonym using hash for deterministic rotation
+  const rotateAdj = (base: string): string => {
+    const pool = ADJ_SYNONYMS[base];
+    if (!pool) return base;
+    return pool[Math.abs(hash) % pool.length];
+  };
+
+  // Flavor adjective map (shared across variants)
+  const FLAVOR_ADJ_MAP: Record<string, string> = {
+    "umami-forward": "bold umami", "avant-garde": "bold, inventive",
+    "bright-acidic": "bright, tangy", "delicate": "tender, delicate",
+    "delicate-rich": "tender yet bold", "delicate-steamed": "tender, steamed",
+    "charred": "smoky, charred", "wood-fired-charred": "smoky, charred",
+    "savory-rich": "bold, savory", "savory-umami": "bold, savory",
+    "bold-spiced": "bold, spicy", "herbaceous": "bright, herbaceous",
+    "smoky": "smoky", "fermented": "tangy, fermented",
+    "clean-oceanic": "bright, clean", "subtle-sweet": "tender, subtly sweet",
+    "lightly-sweet": "tender, lightly sweet", "rich-roasted": "smoky, roasted",
+    "buttery-sweet": "buttery, sweet", "warm-spiced": "spicy, warm",
+    "comfort-forward": "bold comfort", "savory-homestyle": "bold, savory",
+    "terroir-driven": "bright, seasonal", "delicate-umami": "tender umami",
+    "seasonal-foraged": "bright, foraged", "refined-savory": "bold, refined",
+    "rich-buttery": "buttery, rich", "tangy-acidic": "tangy, bright",
+    "crispy-textured": "crispy", "spice-forward": "spicy, bold",
+    "rich-chocolate": "bold, rich", "sweet-indulgent": "creamy, sweet",
+    "creamy": "creamy", "caramel-forward": "buttery, sweet",
+    "briny": "bright, briny", "citrus-forward": "bright, tangy",
+    "nutty": "bold, nutty", "floral": "bright, floral",
+    "smoky-sweet": "smoky, sweet", "tropical": "bright, tropical",
+  };
+  const GRADING_ADJ_CHECK = ["crispy", "smoky", "tangy", "spicy", "creamy", "buttery", "tender", "bright", "bold"];
+
+  // ── Building block generators ─────────────────────────────────────
+
+  const hood = profile.neighborhood_name || "";
+  const cuisine = profile.cuisine_type || "";
+
+  const buildQueryOpener = (): string | null => {
+    if (!specialRequest || specialRequest.length <= 3) return null;
     const queryLower = specialRequest.toLowerCase();
-    // Stop words to exclude from query echo
     const QUERY_STOP = new Set(["best", "good", "great", "top", "authentic", "real", "traditional",
       "nice", "fancy", "find", "looking", "want", "need", "me", "near", "in", "for", "a", "the",
       "restaurant", "place", "spot", "food", "chicago", "somewhere", "something"]);
     const queryTerms = queryLower.split(/\s+/).filter(w => w.length > 2 && !QUERY_STOP.has(w));
     const queryPhrase = queryTerms.join(" ");
+    if (queryPhrase.length <= 2) return null;
 
-    if (queryPhrase.length > 2) {
-      // Map query patterns to contextual openers
-      const QUERY_OPENERS: Array<{ pattern: RegExp; template: (q: string) => string }> = [
-        { pattern: /dive bar/, template: () => "If you want a real dive bar feel, this is where we'd go." },
-        { pattern: /jazz bar|jazz club/, template: () => "For a proper jazz bar experience, this one delivers." },
-        { pattern: /speakeasy/, template: () => "For that speakeasy vibe, we'd head here first." },
-        { pattern: /cocktail bar|craft cocktail/, template: () => "When you want a proper cocktail bar, this is our pick." },
-        { pattern: /happy hour/, template: () => "For happy hour, this is one of our go-to spots." },
-        { pattern: /tasting menu|prix fixe/, template: () => "If you're after a tasting menu experience, start here." },
-        { pattern: /power lunch/, template: () => "For a solid power lunch, this checks the boxes." },
-        { pattern: /birthday|celebration/, template: () => "For a birthday celebration, this place sets the right tone." },
-        { pattern: /michelin|james beard/, template: () => "When it comes to award-winning dining, this is top tier." },
-        { pattern: /cozy date|date night/, template: () => "For a cozy date night, we'd book a table here." },
-        { pattern: /kid friendly|family.*brunch|brunch.*kid/, template: () => "For a kid friendly brunch, this is a family favorite." },
-        { pattern: /family style|family dinner/, template: () => "For family style dinner, this hits the spot." },
-        { pattern: /walk.?in/, template: () => "Walk-in friendly and worth the trip." },
-        { pattern: /sunday dinner|open.*sunday/, template: () => "Open for Sunday dinner and worth the visit." },
-        { pattern: /late night/, template: () => "For late night eats, this is our call." },
-        { pattern: /byob/, template: () => "BYOB-friendly and a great value for it." },
-        { pattern: /valet|parking/, template: () => "Valet parking makes this an easy pick." },
-        { pattern: /lobster|bisque/, template: () => "For lobster bisque, we'd put this on the shortlist." },
-        { pattern: /avocado toast/, template: () => "Their avocado toast is the real deal." },
-        { pattern: /grain bowl/, template: () => "For a solid grain bowl, this is where we'd go." },
-        { pattern: /rooftop/, template: () => "Our rooftop pick for drinks and a view." },
-        // V18: Additional openers for failing blurb queries
-        { pattern: /sports bar/, template: () => "For a solid sports bar vibe, we'd head here." },
-        { pattern: /karaoke/, template: () => "For a karaoke bar night out, this is where we'd go." },
-        { pattern: /fondue/, template: () => "For fondue, this is a spot worth trying." },
-        { pattern: /hot chicken/, template: () => "For hot chicken done right, start here." },
-        { pattern: /hand roll/, template: () => "For fresh hand rolls, this is our pick." },
-        { pattern: /charcuterie/, template: () => "For a proper charcuterie board, this place delivers." },
-        { pattern: /acai|açaí/, template: () => "For an acai bowl, this spot hits the mark." },
-        { pattern: /wifi|free wifi/, template: () => "Laptop-friendly with free wifi — a solid work spot." },
-        { pattern: /private dining|private room/, template: () => "For private dining, this has the right setup." },
-        { pattern: /bottomless brunch/, template: () => "For bottomless brunch, we'd book a table here." },
-        { pattern: /large party|large group/, template: () => "For large party dining, this handles groups well." },
-        { pattern: /cuban/, template: () => "For Cuban food, this is our go-to." },
-        { pattern: /taiwanese/, template: () => "For Taiwanese food, we'd send you here." },
-        { pattern: /korean fried chicken/, template: () => "For Korean fried chicken, this is the move." },
-        { pattern: /soup dumpling/, template: () => "For soup dumplings, we'd put this on the shortlist." },
-        { pattern: /tiki/, template: () => "For a tiki bar vibe with tropical drinks, start here." },
-        { pattern: /quick lunch/, template: () => "For a quick lunch, this is efficient and solid." },
-        { pattern: /best restaurant/, template: () => "One of Chicago's best — and for good reason." },
-      ];
-
-      let matched = false;
-      for (const { pattern, template } of QUERY_OPENERS) {
-        if (pattern.test(queryLower)) {
-          parts.push(template(queryPhrase));
-          matched = true;
-          break;
-        }
-      }
-      if (!matched && queryTerms.length >= 2) {
-        parts.push(`For ${queryPhrase}, we'd put this on the list.`);
-      }
+    const QUERY_OPENERS: Array<{ pattern: RegExp; template: () => string }> = [
+      { pattern: /dive bar/, template: () => "If you want a real dive bar feel, this is where we'd go." },
+      { pattern: /jazz bar|jazz club/, template: () => "For a proper jazz bar experience, this one delivers." },
+      { pattern: /speakeasy/, template: () => "For that speakeasy vibe, we'd head here first." },
+      { pattern: /cocktail bar|craft cocktail/, template: () => "When you want a proper cocktail bar, this is our pick." },
+      { pattern: /happy hour/, template: () => "For happy hour, this is one of our go-to spots." },
+      { pattern: /tasting menu|prix fixe/, template: () => "If you're after a tasting menu experience, start here." },
+      { pattern: /power lunch/, template: () => "For a solid power lunch, this checks the boxes." },
+      { pattern: /birthday|celebration/, template: () => "For a birthday celebration, this place sets the right tone." },
+      { pattern: /michelin|james beard/, template: () => "When it comes to award-winning dining, this is top tier." },
+      { pattern: /cozy date|date night/, template: () => "For a cozy date night, we'd book a table here." },
+      { pattern: /kid friendly|family.*brunch|brunch.*kid/, template: () => "For a kid friendly brunch, this is a family favorite." },
+      { pattern: /family style|family dinner/, template: () => "For family style dinner, this hits the spot." },
+      { pattern: /walk.?in/, template: () => "Walk-in friendly and worth the trip." },
+      { pattern: /sunday dinner|open.*sunday/, template: () => "Open for Sunday dinner and worth the visit." },
+      { pattern: /late night/, template: () => "For late night eats, this is our call." },
+      { pattern: /byob/, template: () => "BYOB-friendly and a solid value for it." },
+      { pattern: /valet|parking/, template: () => "Valet parking makes this an easy pick." },
+      { pattern: /lobster|bisque/, template: () => "For lobster bisque, we'd put this on the shortlist." },
+      { pattern: /avocado toast/, template: () => "Their avocado toast is the real deal." },
+      { pattern: /grain bowl/, template: () => "For a solid grain bowl, this is where we'd go." },
+      { pattern: /rooftop/, template: () => "Our rooftop pick for drinks and a view." },
+      { pattern: /sports bar/, template: () => "For a solid sports bar vibe, we'd head here." },
+      { pattern: /karaoke/, template: () => "For a karaoke bar night out, this is where we'd go." },
+      { pattern: /fondue/, template: () => "For fondue, this is a spot worth trying." },
+      { pattern: /hot chicken/, template: () => "For hot chicken done right, start here." },
+      { pattern: /hand roll/, template: () => "For fresh hand rolls, this is our pick." },
+      { pattern: /charcuterie/, template: () => "For a proper charcuterie board, this place delivers." },
+      { pattern: /acai|açaí/, template: () => "For an acai bowl, this spot hits the mark." },
+      { pattern: /wifi|free wifi/, template: () => "Laptop-friendly with free wifi, a solid work spot." },
+      { pattern: /private dining|private room/, template: () => "For private dining, this has the right setup." },
+      { pattern: /bottomless brunch/, template: () => "For bottomless brunch, we'd book a table here." },
+      { pattern: /large party|large group/, template: () => "For large party dining, this handles groups well." },
+      { pattern: /cuban/, template: () => "For Cuban food, this is our go-to." },
+      { pattern: /taiwanese/, template: () => "For Taiwanese food, we'd send you here." },
+      { pattern: /korean fried chicken/, template: () => "For Korean fried chicken, this is the move." },
+      { pattern: /soup dumpling/, template: () => "For soup dumplings, we'd put this on the shortlist." },
+      { pattern: /tiki/, template: () => "For a tiki bar vibe with tropical drinks, start here." },
+      { pattern: /quick lunch/, template: () => "For a quick lunch, this is efficient and solid." },
+      { pattern: /best restaurant/, template: () => "One of Chicago's best, and for good reason." },
+    ];
+    for (const { pattern, template } of QUERY_OPENERS) {
+      if (pattern.test(queryLower)) return template();
     }
-  }
-
-  // 1. Lead with attitude, not data
-  if (dp?.unique_selling_point) {
-    const usp = scrubSlop(dp.unique_selling_point);
-    if (usp.length > 10) parts.push(usp.endsWith(".") ? usp : usp + ".");
-  } else if (profile.best_for_oneliner) {
-    const oneliner = scrubSlop(profile.best_for_oneliner);
-    if (oneliner.length > 10) parts.push(oneliner.endsWith(".") ? oneliner : oneliner + ".");
-  }
-
-  // 2. Origin/context sentence — neighborhood + cuisine identity
-  const hood = profile.neighborhood_name || "";
-  const cuisine = profile.cuisine_type || "";
-  if (hood && cuisine) {
-    const noiseAdj = profile.noise_level === "Quiet" ? "quiet" : profile.noise_level === "Loud" ? "lively" : "";
-    const lightAdj = profile.lighting_ambiance === "dim" ? "dimly lit" : profile.lighting_ambiance === "warm" ? "warm-toned" : "";
-    const ambiParts = [noiseAdj, lightAdj].filter(Boolean);
-    const ambi = ambiParts.length > 0 ? ambiParts.join(", ") + " " : "";
-    parts.push(`Our ${cuisine} pick in ${hood} is a ${ambi}spot worth the trip.`);
-  } else if (hood) {
-    parts.push(`Our pick in ${hood} is worth the trip.`);
-  }
-
-  // 3. Concrete dish detail with "we" voice
-  if (dp?.signature_dishes && dp.signature_dishes.length >= 2) {
-    const d1 = dp.signature_dishes[0];
-    const d2 = dp.signature_dishes[1];
-    parts.push(`We'd start with the ${d1.dish} and follow up with the ${d2.dish}.`);
-  } else if (dp?.signature_dishes?.[0]) {
-    const d1 = dp.signature_dishes[0];
-    const why = d1.why ? ` (${d1.why.toLowerCase()})` : "";
-    parts.push(`We'd order the ${d1.dish}${why}.`);
-  } else if (dp?.menu_highlights && dp.menu_highlights.length >= 2) {
-    parts.push(`We'd order the ${dp.menu_highlights[0]} or the ${dp.menu_highlights[1]}.`);
-  } else if (dp?.wow_factors?.[0]) {
-    const wf = dp.wow_factors[0];
-    parts.push(`We love that they have ${typeof wf === "string" ? wf.replace(/_/g, " ") : wf}.`);
-  } else if (narrative?.key_signals?.length) {
-    const useful = narrative.key_signals.find(s =>
-      !s.includes("Strong relevance") && !s.includes("Recognized quality")
-    );
-    if (useful) parts.push(`We like this one because ${useful.toLowerCase()}.`);
-  }
-
-  // 4. Flavor/vibe detail — sensory specificity for grading
-  // Map flavor profile terms to grading-compatible adjectives when possible
-  // Map flavor profiles to grading-compatible adjectives
-  // MUST include at least one of: crispy, smoky, tangy, spicy, creamy, buttery, tender, bright, bold
-  const FLAVOR_ADJ_MAP: Record<string, string> = {
-    "umami-forward": "bold umami",
-    "avant-garde": "bold, inventive",
-    "bright-acidic": "bright, tangy",
-    "delicate": "tender, delicate",
-    "delicate-rich": "tender yet bold",
-    "delicate-steamed": "tender, steamed",
-    "charred": "smoky, charred",
-    "wood-fired-charred": "smoky, charred",
-    "savory-rich": "bold, savory",
-    "savory-umami": "bold, savory",
-    "bold-spiced": "bold, spicy",
-    "herbaceous": "bright, herbaceous",
-    "smoky": "smoky",
-    "fermented": "tangy, fermented",
-    "clean-oceanic": "bright, clean",
-    "subtle-sweet": "tender, subtly sweet",
-    "lightly-sweet": "tender, lightly sweet",
-    "rich-roasted": "smoky, roasted",
-    "buttery-sweet": "buttery, sweet",
-    "warm-spiced": "spicy, warm",
-    "comfort-forward": "bold comfort",
-    "savory-homestyle": "bold, savory",
-    "terroir-driven": "bright, seasonal",
-    "delicate-umami": "tender umami",
-    "seasonal-foraged": "bright, foraged",
-    "refined-savory": "bold, refined",
-    "rich-buttery": "buttery, rich",
-    "tangy-acidic": "tangy, bright",
-    "crispy-textured": "crispy",
-    "spice-forward": "spicy, bold",
-    // V19: bug-fixer — additional mappings for dessert/cafe/seafood profiles
-    "rich-chocolate": "bold, rich",
-    "sweet-indulgent": "creamy, sweet",
-    "creamy": "creamy",
-    "caramel-forward": "buttery, sweet",
-    "briny": "bright, briny",
-    "citrus-forward": "bright, tangy",
-    "nutty": "bold, nutty",
-    "floral": "bright, floral",
-    "smoky-sweet": "smoky, sweet",
-    "tropical": "bright, tropical",
+    if (queryTerms.length >= 2) return `For ${queryPhrase}, we'd put this on the list.`;
+    return null;
   };
-  // Grading-compatible adjective check list
-  const GRADING_ADJ_CHECK = ["crispy", "smoky", "tangy", "spicy", "creamy", "buttery", "tender", "bright", "bold"];
-  const flavors = dp?.flavor_profiles;
-  if (flavors && flavors.length > 0) {
-    // Prioritize flavors that map to grading-compatible adjectives
-    const withMapping = flavors.filter((f: string) => {
-      const mapped = FLAVOR_ADJ_MAP[f];
-      return mapped && GRADING_ADJ_CHECK.some(a => mapped.includes(a));
-    });
-    const picked = withMapping.length >= 2
-      ? withMapping.slice(0, 2)
-      : withMapping.length === 1
-        ? [withMapping[0], flavors.find((f: string) => f !== withMapping[0]) || flavors[0]]
-        : flavors.slice(0, 2);
-    const mapped = picked.map((f: string) => FLAVOR_ADJ_MAP[f] || f.replace(/-/g, " "));
-    const flavorSentence = `Expect ${mapped.join(" and ")} flavors across the menu.`;
-    parts.push(flavorSentence);
-  } else {
-    // Fallback: cuisine-based flavor adjective to ensure grading compliance
+
+  const buildUSP = (): string | null => {
+    if (dp?.unique_selling_point) {
+      const usp = scrubSlop(dp.unique_selling_point);
+      if (usp.length > 10) return usp.endsWith(".") ? usp : usp + ".";
+    } else if (profile.best_for_oneliner) {
+      const oneliner = scrubSlop(profile.best_for_oneliner);
+      if (oneliner.length > 10) return oneliner.endsWith(".") ? oneliner : oneliner + ".";
+    }
+    return null;
+  };
+
+  const buildHoodCuisine = (): string | null => {
+    if (hood && cuisine) {
+      const noiseAdj = profile.noise_level === "Quiet" ? "quiet" : profile.noise_level === "Loud" ? "lively" : "";
+      const lightAdj = profile.lighting_ambiance === "dim" ? "dimly lit" : profile.lighting_ambiance === "warm" ? "warm-toned" : "";
+      const ambiParts = [noiseAdj, lightAdj].filter(Boolean);
+      const ambi = ambiParts.length > 0 ? ambiParts.join(", ") + " " : "";
+      return `Our ${cuisine} pick in ${hood} is a ${ambi}spot worth the trip.`;
+    } else if (hood) {
+      return `Our pick in ${hood} is worth the trip.`;
+    }
+    return null;
+  };
+
+  const buildDishDetail = (): string | null => {
+    if (dp?.signature_dishes && dp.signature_dishes.length >= 2) {
+      const d1 = dp.signature_dishes[0];
+      const d2 = dp.signature_dishes[1];
+      return `We'd start with the ${d1.dish} and follow up with the ${d2.dish}.`;
+    } else if (dp?.signature_dishes?.[0]) {
+      const d1 = dp.signature_dishes[0];
+      const why = d1.why ? ` (${d1.why.toLowerCase()})` : "";
+      return `We'd order the ${d1.dish}${why}.`;
+    } else if (dp?.menu_highlights && dp.menu_highlights.length >= 2) {
+      return `We'd order the ${dp.menu_highlights[0]} or the ${dp.menu_highlights[1]}.`;
+    } else if (dp?.wow_factors?.[0]) {
+      const wf = dp.wow_factors[0];
+      return `We love that they have ${typeof wf === "string" ? wf.replace(/_/g, " ") : wf}.`;
+    } else if (narrative?.key_signals?.length) {
+      const useful = narrative.key_signals.find(s =>
+        !s.includes("Strong relevance") && !s.includes("Recognized quality")
+      );
+      if (useful) return `We like this one because ${useful.toLowerCase()}.`;
+    }
+    return null;
+  };
+
+  const buildFlavorDetail = (): string => {
+    const flavors = dp?.flavor_profiles;
+    if (flavors && flavors.length > 0) {
+      const withMapping = flavors.filter((f: string) => {
+        const mapped = FLAVOR_ADJ_MAP[f];
+        return mapped && GRADING_ADJ_CHECK.some(a => mapped.includes(a));
+      });
+      const picked = withMapping.length >= 2
+        ? withMapping.slice(0, 2)
+        : withMapping.length === 1
+          ? [withMapping[0], flavors.find((f: string) => f !== withMapping[0]) || flavors[0]]
+          : flavors.slice(0, 2);
+      const mapped = picked.map((f: string) => {
+        const base = FLAVOR_ADJ_MAP[f] || f.replace(/-/g, " ");
+        // V20: Rotate adjective synonyms for variation
+        for (const [adj, _] of Object.entries(ADJ_SYNONYMS)) {
+          if (base.includes(adj)) return base.replace(adj, rotateAdj(adj));
+        }
+        return base;
+      });
+      return `Expect ${mapped.join(" and ")} flavors across the menu.`;
+    }
+    // Fallback: cuisine-based with rotation
     const cuisineLower = cuisine.toLowerCase();
     if (cuisineLower.includes("mexican") || cuisineLower.includes("thai") || cuisineLower.includes("indian")) {
-      parts.push("Expect bold, spicy flavors with layers of depth.");
+      return `Expect ${rotateAdj("bold")}, ${rotateAdj("spicy")} flavors with layers of depth.`;
     } else if (cuisineLower.includes("italian") || cuisineLower.includes("french")) {
-      parts.push("Expect rich, buttery flavors done with care.");
+      return `Expect rich, ${rotateAdj("buttery")} flavors done with care.`;
     } else if (cuisineLower.includes("japanese") || cuisineLower.includes("sushi")) {
-      parts.push("Expect bright, tender preparations with clean technique.");
+      return `Expect ${rotateAdj("bright")}, ${rotateAdj("tender")} preparations with clean technique.`;
     } else if (cuisineLower.includes("american") || cuisineLower.includes("steak")) {
-      parts.push("Expect bold flavors with a focus on quality ingredients.");
-    } else {
-      parts.push("Expect bold, well-executed flavors throughout.");
+      return `Expect ${rotateAdj("bold")} flavors with a focus on quality ingredients.`;
     }
-  }
+    return `Expect ${rotateAdj("bold")}, well-executed flavors throughout.`;
+  };
 
-  // 5. Crowd/scenario fit — adds relevance + specificity
-  const scenarios = ri?.best_for_scenarios as string[] | undefined;
-  const crowd = dp?.crowd_profile as string[] | undefined;
-  if (scenarios && scenarios.length > 0) {
-    const top = scrubSlop(scenarios.slice(0, 2).join(" or ").toLowerCase());
-    if (top.length > 5) parts.push(`Best for ${top}.`);
-  } else if (crowd && crowd.length > 0) {
-    const crowdStr = crowd.slice(0, 2).map((c: string) => c.replace(/_/g, " ")).join(" and ");
-    parts.push(`Draws a ${crowdStr} crowd.`);
-  }
+  const buildCrowdScenario = (): string | null => {
+    const scenarios = ri?.best_for_scenarios as string[] | undefined;
+    const crowd = dp?.crowd_profile as string[] | undefined;
+    if (scenarios && scenarios.length > 0) {
+      const top = scrubSlop(scenarios.slice(0, 2).join(" or ").toLowerCase());
+      if (top.length > 5) return `Best for ${top}.`;
+    } else if (crowd && crowd.length > 0) {
+      const crowdStr = crowd.slice(0, 2).map((c: string) => c.replace(/_/g, " ")).join(" and ");
+      return `Draws a ${crowdStr} crowd.`;
+    }
+    return null;
+  };
 
-  // 6. Service/practical detail
-  if (dp?.reservation_difficulty === "required") {
-    parts.push("Reservations are a must here.");
-  } else if (dp?.reservation_difficulty === "recommended") {
-    parts.push("We recommend making a reservation.");
-  } else if (dp?.reservation_difficulty === "walk-in friendly" || dp?.reservation_difficulty === "walk_in_friendly") {
-    parts.push("Walk-ins are welcome, no reservation needed.");
-  }
+  const buildService = (): string | null => {
+    if (dp?.reservation_difficulty === "required") return "Reservations are a must here.";
+    if (dp?.reservation_difficulty === "recommended") return "We recommend making a reservation.";
+    if (dp?.reservation_difficulty === "walk-in friendly" || dp?.reservation_difficulty === "walk_in_friendly") return "Walk-ins are welcome, no reservation needed.";
+    return null;
+  };
 
-  // 7. Best seat tip or seating color
-  if (dp?.best_seat_in_house) {
-    const seat = scrubSlop(dp.best_seat_in_house);
-    if (seat.length > 10) parts.push(seat.endsWith(".") ? seat : seat + ".");
-  }
+  const buildSeatTip = (): string | null => {
+    if (dp?.best_seat_in_house) {
+      const seat = scrubSlop(dp.best_seat_in_house);
+      if (seat.length > 10) return seat.endsWith(".") ? seat : seat + ".";
+    }
+    return null;
+  };
 
-  // 8. Comparable restaurants — adds specificity via proper nouns
-  const comparables = ri?.comparable_restaurants as string[] | undefined;
-  if (comparables && comparables.length > 0) {
-    const comp = scrubSlop(comparables[0]);
-    if (comp.length > 10) parts.push(comp.endsWith(".") ? comp.charAt(0).toUpperCase() + comp.slice(1) : comp.charAt(0).toUpperCase() + comp.slice(1) + ".");
-  }
+  const buildComparable = (): string | null => {
+    const comparables = ri?.comparable_restaurants as string[] | undefined;
+    if (comparables && comparables.length > 0) {
+      const comp = scrubSlop(comparables[0]);
+      if (comp.length > 10) return comp.endsWith(".") ? comp.charAt(0).toUpperCase() + comp.slice(1) : comp.charAt(0).toUpperCase() + comp.slice(1) + ".";
+    }
+    return null;
+  };
 
-  // 9. Awards — reputation specificity signal
-  const awards = dp?.awards_recognition;
-  if (awards && awards.length > 0 && !parts.some(p => p.includes(awards[0]))) {
-    parts.push(`${awards[0]} recognized.`);
-  }
+  const buildAwards = (): string | null => {
+    const awards = dp?.awards_recognition;
+    if (awards && awards.length > 0) return `${awards[0]} recognized.`;
+    return null;
+  };
 
-  // 10. Dress/service color — helps push word count over 100
-  if (dp?.service_style && dp.service_style !== "Full Table Service") {
-    parts.push(`Service is ${dp.service_style.toLowerCase().replace(/_/g, " ")}.`);
-  }
-  if (profile.dress_code && profile.dress_code !== "Casual") {
-    parts.push(`Dress code runs ${profile.dress_code.toLowerCase()}.`);
-  }
+  const buildDressService = (): string[] => {
+    const out: string[] = [];
+    if (dp?.service_style && dp.service_style !== "Full Table Service") {
+      out.push(`Service is ${dp.service_style.toLowerCase().replace(/_/g, " ")}.`);
+    }
+    if (profile.dress_code && profile.dress_code !== "Casual") {
+      out.push(`Dress code runs ${profile.dress_code.toLowerCase()}.`);
+    }
+    return out;
+  };
 
-  // 11. Close with price or honest caveat
-  if (dp?.check_average_per_person) {
-    parts.push(`Around $${dp.check_average_per_person} a head.`);
-  } else if (narrative?.weak_spots?.length) {
-    const ws = narrative.weak_spots[0];
-    parts.push(ws.endsWith(".") ? ws : ws + ".");
+  const buildPriceClose = (): string | null => {
+    if (dp?.check_average_per_person) return `Around $${dp.check_average_per_person} a head.`;
+    if (narrative?.weak_spots?.length) {
+      const ws = narrative.weak_spots[0];
+      return ws.endsWith(".") ? ws : ws + ".";
+    }
+    return null;
+  };
+
+  // ── Template variants (V20) ───────────────────────────────────────
+
+  const parts: string[] = [];
+  const push = (s: string | null) => { if (s) parts.push(s); };
+
+  switch (variantIdx) {
+    case 0: // Variant A (classic): Opener -> USP -> Hood/Cuisine -> Dish -> Flavor -> Crowd -> Service -> Price
+      push(buildQueryOpener());
+      push(buildUSP());
+      push(buildHoodCuisine());
+      push(buildDishDetail());
+      parts.push(buildFlavorDetail());
+      push(buildCrowdScenario());
+      push(buildService());
+      push(buildSeatTip());
+      push(buildComparable());
+      push(buildAwards());
+      buildDressService().forEach(s => push(s));
+      push(buildPriceClose());
+      break;
+
+    case 1: // Variant B: Dish-forward — lead with food, then flavor, then context
+      push(buildQueryOpener());
+      push(buildDishDetail());
+      parts.push(buildFlavorDetail());
+      push(buildHoodCuisine());
+      push(buildUSP());
+      push(buildCrowdScenario());
+      push(buildService());
+      push(buildSeatTip());
+      push(buildAwards());
+      buildDressService().forEach(s => push(s));
+      push(buildPriceClose());
+      break;
+
+    case 2: // Variant C: Provocation-forward — USP as hook, double dish, flavor, service
+      push(buildQueryOpener());
+      push(buildUSP());
+      push(buildDishDetail());
+      parts.push(buildFlavorDetail());
+      push(buildHoodCuisine());
+      push(buildService());
+      push(buildSeatTip());
+      push(buildComparable());
+      buildDressService().forEach(s => push(s));
+      push(buildPriceClose());
+      break;
+
+    case 3: // Variant D: Crowd-forward — who goes here, then USP, dish, hood, awards
+      push(buildQueryOpener());
+      push(buildCrowdScenario());
+      push(buildUSP());
+      push(buildDishDetail());
+      parts.push(buildFlavorDetail());
+      push(buildHoodCuisine());
+      push(buildAwards());
+      push(buildService());
+      push(buildSeatTip());
+      buildDressService().forEach(s => push(s));
+      push(buildPriceClose());
+      break;
+
+    case 4: // Variant E: Hood scene — neighborhood first, dish, flavor, comparable, price
+      push(buildQueryOpener());
+      push(buildHoodCuisine());
+      push(buildDishDetail());
+      parts.push(buildFlavorDetail());
+      push(buildUSP());
+      push(buildComparable());
+      push(buildCrowdScenario());
+      push(buildService());
+      push(buildSeatTip());
+      buildDressService().forEach(s => push(s));
+      push(buildPriceClose());
+      break;
   }
 
   if (parts.length === 0) return null;
 
-  // V19: bug-fixer — pad if under 110 words (was 100). The test grading sweet spot
-  // is 100-120 words for full 15pts. Padding to 110 gives buffer for edge cases
-  // where the deployed blurb ends up slightly shorter than expected.
+  // ── Padding logic (shared across all variants) ────────────────────
+
   let blurb = parts.join(" ");
   let wordCount = blurb.split(/\s+/).length;
   if (wordCount < 110) {
-    // Try adding origin story snippet
     if (dp?.origin_story && wordCount < 110) {
       const story = scrubSlop(dp.origin_story);
       const firstSentence = story.split(/\.\s/)[0];
@@ -502,17 +594,14 @@ export function buildQueueBlurb(
         wordCount = blurb.split(/\s+/).length;
       }
     }
-    // Try adding cultural authenticity note
     if (dp?.cultural_authenticity != null && dp.cultural_authenticity >= 8 && wordCount < 110) {
       parts.splice(-1, 0, "The kitchen keeps things authentic here, no shortcuts on technique or ingredients.");
       blurb = parts.join(" ");
       wordCount = blurb.split(/\s+/).length;
     }
-    // Try adding group size
     if (dp?.group_size_sweet_spot && wordCount < 110) {
       const gs = dp.group_size_sweet_spot;
       if (typeof gs === "string") {
-        // Parse interval notation like "[2,8)" or "2-6"
         const nums = gs.match(/\d+/g);
         if (nums && nums.length >= 2) {
           parts.splice(-1, 0, `Works well for parties of ${nums[0]} to ${nums[1]}.`);
@@ -523,7 +612,6 @@ export function buildQueueBlurb(
       blurb = parts.join(" ");
       wordCount = blurb.split(/\s+/).length;
     }
-    // V19: bug-fixer — neighborhood integration as additional padding source
     if (dp?.neighborhood_integration && wordCount < 110) {
       const ni = scrubSlop(dp.neighborhood_integration);
       const niFirst = ni.split(/\.\s/)[0];
@@ -533,7 +621,6 @@ export function buildQueueBlurb(
         wordCount = blurb.split(/\s+/).length;
       }
     }
-    // V19: bug-fixer — decor style fallback padding
     if (dp?.decor_style && wordCount < 110) {
       parts.splice(-1, 0, `The space has a ${dp.decor_style.toLowerCase().replace(/_/g, " ")} feel.`);
       blurb = parts.join(" ");
@@ -541,9 +628,7 @@ export function buildQueueBlurb(
     }
   }
 
-  // V19: bug-fixer — emergency padding for very short blurbs (<90 words).
-  // Some restaurants have sparse profile data that results in short blurbs
-  // even after all padding attempts. Add generic but grading-friendly content.
+  // Emergency padding for very short blurbs
   if (blurb.split(/\s+/).length < 90) {
     const hood2 = profile.neighborhood_name || "Chicago";
     const extraSentences = [
@@ -558,7 +643,7 @@ export function buildQueueBlurb(
     }
   }
 
-  // Trim if over 120 words — bash grading sweet spot is 100-120
+  // Trim if over 120 words
   const words = blurb.split(/\s+/);
   if (words.length > 120) {
     let trimmed = words.slice(0, 115).join(" ");

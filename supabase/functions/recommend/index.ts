@@ -74,7 +74,7 @@ const RESPONSE_CACHE = new Map<string, CacheEntry>();
 const CACHE_SOFT_TTL = 15 * 60 * 1000; // 15 minutes — serve stale after this
 const CACHE_HARD_TTL = 30 * 60 * 1000; // 30 minutes — delete after this
 
-// V12: Unified slop patterns — shared between main blurb, blurb endpoint, and quality guardrail
+// V20: Unified slop patterns — expanded to 50+ (shared between main blurb, blurb endpoint, and quality guardrail)
 const BLURB_SLOP_PATTERNS = [
   "\u2014",                // em dash — strictly prohibited
   "nestled", "mouthwatering", "culinary journey", "hidden gem", "hidden treasure",
@@ -84,6 +84,22 @@ const BLURB_SLOP_PATTERNS = [
   "something for everyone", "won't disappoint", "does not disappoint",
   "dining experience", "unforgettable", "the perfect spot", "go-to spot",
   "ideal for", "the ultimate",
+  // V20: Expanded anti-slop patterns
+  "it's worth noting", "it's no surprise", "pairs perfectly", "hits different",
+  "chef-driven", "locally sourced", "seasonal ingredients", "warm hospitality",
+  "inviting atmosphere", "culinary prowess", "flavor profile", "price point",
+  "farm-to-table", "nose-to-tail", "thoughtfully curated", "carefully selected",
+  "hand-picked", "each dish tells", "every plate is", "a celebration of",
+  "pays homage", "takes you on", "where every", "more than just",
+  "the star of the show", "steal the show", "take center stage",
+];
+
+// V20: Structural slop detection patterns — catch AI writing patterns beyond word-level
+const STRUCTURAL_SLOP_PATTERNS = [
+  { pattern: /\b(\w+)\s+\1\b/i, name: "word_repetition" },
+  { pattern: /\b(?:wonderful|amazing|fantastic|incredible|outstanding)\b/gi, name: "generic_superlative" },
+  { pattern: /\b(?:is served|are prepared|is crafted|are made|is presented)\b/gi, name: "passive_food_voice" },
+  { pattern: /(?:From\s+the\s+\w+\s+to\s+the|Whether\s+you|If\s+you're\s+looking)/i, name: "ai_opening_pattern" },
 ];
 
 function getCacheKey(occasion: string, neighborhood: string, price: string, request: string, exclude?: string[]): string {
@@ -310,8 +326,8 @@ Deno.serve(async (req: Request) => {
       // Determine score tier for tone modulation
       const scoreTier = context?.score_tier || "good";
 
-      // Detect culture theme from restaurant's actual cuisine only
-      const cultureTheme = detectCultureTheme(restaurantData.cuisine_type || '');
+      // V20: Detect voice from cuisine + occasion + query (3-axis selection)
+      const cultureTheme = detectCultureTheme(restaurantData.cuisine_type || '', context?.occasion || '', context?.special_request || '');
 
       // Build minimal prompt for single restaurant blurb
       const systemPrompt = buildV5SystemPrompt(scoreTier as "exceptional" | "great" | "good" | "decent" | "weak", cultureTheme, context?.occasion || "");
@@ -1114,7 +1130,8 @@ Deno.serve(async (req: Request) => {
       const cultureText = rerankedScored[0].profile.cuisine_type
         || (rerankedScored[0].profile as any).review_intelligence?.cuisine_signals?.join(' ')
         || '';
-      const cultureTheme = detectCultureTheme(cultureText);
+      // V20: 3-axis voice selection — cuisine + occasion + query
+      const cultureTheme = detectCultureTheme(cultureText, occasion, special_request);
 
       // System prompt with Donde character voice + tone + narrative voice + occasion register
       const systemPrompt = buildV5SystemPrompt(scoreTier, cultureTheme, occasion);
@@ -1359,6 +1376,12 @@ Deno.serve(async (req: Request) => {
         const slopHits = BLURB_SLOP_PATTERNS.filter(p => recLower.includes(p.toLowerCase()));
         if (slopHits.length >= 2) {
           logWarn("V5 slop patterns detected", { count: slopHits.length, patterns: slopHits });
+        }
+
+        // V20: Structural slop detection
+        const structuralHits = STRUCTURAL_SLOP_PATTERNS.filter(p => p.pattern.test(parsed.recommendation!));
+        if (structuralHits.length > 0) {
+          logWarn("V20 structural slop detected", { patterns: structuralHits.map(h => h.name) });
         }
 
         const emDashCount = (parsed.recommendation.match(/\u2014/g) || []).length;
