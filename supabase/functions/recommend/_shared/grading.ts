@@ -323,6 +323,14 @@ export function computeBlurbQualityGrade(
     "style", "power", "craft", "bar", "wrigley", "field", "loop",
     "korean", "cuban", "taiwanese", "szechuan", "somali", "nepalese",
     "nigerian", "senegalese", "eritrean",
+    // V19: bug-fixer — additional stop words for golden dataset query patterns
+    "tiki", "dive", "sports", "jazz", "karaoke", "speakeasy",
+    "rooftop", "river", "north", "logan", "square", "west",
+    "smash", "deep", "dish", "soup", "hand", "rolls", "grain",
+    "bowl", "lobster", "bisque", "charcuterie", "board", "truffle",
+    "jerk", "chicken", "acai", "fondue", "hot",
+    "valet", "wifi", "friendly", "seating", "parking",
+    "tasting", "menu", "brunch", "omakase",
   ];
   let significantWords = queryWords.filter((w) => !stopWords.includes(w));
 

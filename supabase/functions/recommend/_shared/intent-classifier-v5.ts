@@ -43,6 +43,10 @@ const VIBE_WORDS: string[] = [
   "moody", "dark", "bustling", "comfortable",
   // V16: Additional vibe words from 31-issue gap analysis
   "garden",
+  // V19: bug-fixer — bar/venue vibe words that also map to CUISINE_KEYWORDS.
+  // Adding here ensures both cuisine AND vibe signals are set, so the
+  // scoring engine's cuisine+vibe blending path activates properly.
+  "tiki", "dive",
 ];
 
 /** Practical constraint trigger words mapped to constraint labels */
