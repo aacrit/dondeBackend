@@ -99,7 +99,8 @@ Each agent has an XP/level system, per-session budget drawn from a daily $50 cap
 **Scoring V11 formula:** `Relevance(0–1) × Quality(0–100) + OccasionBonus(±5)`
 - 40+ semantic concepts, dynamic weight profiles per query type, self-healing for NULL fields.
 - Rate-limited: 30 req/min/IP (429 on breach).
-- Response cache: 5-min TTL, 100 entries, stale-while-revalidate at 15 min.
+- In-memory cache: 15-min soft TTL / 30-min hard TTL, 500 entries, stale-while-revalidate.
+- DondeCache: persistent 3-level fuzzy cache (exact/fingerprint/canonical), quality gate B-/80+.
 
 ### Database Tables (CEO-Relevant)
 
@@ -109,7 +110,11 @@ Each agent has an XP/level system, per-session budget drawn from a daily $50 cap
 | **`gauntlet_runs`** | Test run summaries — `passed_60/80/90`, `avg_dm`, gap counts, category stats, delta vs prior run. |
 | **`gauntlet_results`** | Per-query scores, factor breakdowns, gap analysis per run. |
 | **`restaurant_popularity`** | 7d/30d recommendation counts, trending score (0–10), query demand score (0–10). |
-| **`user_queries`** | Fire-and-forget query log with feedback. |
+| **`user_queries`** | Fire-and-forget query log with feedback + cache hit tracking. |
+| **`query_cache`** | DondeCache persistent cache (quality-gated B-/80+, 3-level fuzzy matching). |
+| **`warming_runs`** | Cache pre-warming pipeline execution tracking. |
+
+**RPC:** `get_cache_dashboard()` returns cache health metrics: active entries, 24h hit rate, savings, latency comparison, top uncached queries, last warming run.
 
 All tables have RLS enabled. Gauntlet and maintenance data is publicly readable; mutations are frontend-auth-gated.
 
@@ -124,7 +129,7 @@ The CEO Command Center writes to `maintenance_requests`; a **GitHub Actions cron
 | **scores_tags** | `generate-occasion-scores.ts` + `generate-tags.ts` | Monthly 1st, 07:00 UTC |
 | **audit** | `audit-full-dataset.ts` + `audit-enrichment-gaps.ts` | On-demand |
 
-Additional pipelines: `analytics.ts` (daily trending aggregation), `validate-status.ts` (active status checks), `gauntlet-dashboard.ts` (markdown + JSON report generation with regression detection).
+Additional pipelines: `analytics.ts` (daily trending aggregation), `validate-status.ts` (active status checks), `gauntlet-dashboard.ts` (markdown + JSON report generation with regression detection), `cache-warmer.ts` (daily DondeCache pre-warming), `cache-invalidator.ts` (cache cleanup), `query-miner.ts` (canonical query extraction).
 
 All pipeline scripts support `DRY_RUN` mode and use the `SUPAB_SERVICE_ROLE_KEY` to bypass RLS.
 
@@ -216,7 +221,14 @@ CEO clicks "Check Data" → selects operation (e.g. enrichment)
 | `supabase/functions/review-intelligence/index.ts` | Review analytics |
 | `supabase/migrations/20260309000001_maintenance_requests.sql` | Pipeline queue table |
 | `supabase/migrations/20260308000001_gauntlet_tracking.sql` | Test tracking tables |
+| `supabase/migrations/20260314000001_query_cache.sql` | DondeCache tables + triggers + RPC |
+| `supabase/functions/recommend/_shared/query-cache.ts` | DondeCache module |
+| `supabase/functions/recommend/_shared/grading.ts` | Score fit + blurb quality grading |
 | `scripts/pipelines/maintenance-worker.ts` | Cron worker |
 | `scripts/pipelines/analytics.ts` | Trending aggregation |
 | `scripts/pipelines/gauntlet-dashboard.ts` | Report generator |
+| `scripts/pipelines/cache-warmer.ts` | DondeCache pre-warming |
+| `scripts/pipelines/cache-invalidator.ts` | Cache cleanup |
+| `scripts/pipelines/query-miner.ts` | Canonical query extraction |
 | `.github/workflows/maintenance-worker.yml` | 5-min cron |
+| `.github/workflows/cache-warmer.yml` | Daily cache warming |

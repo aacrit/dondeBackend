@@ -1,6 +1,6 @@
 # DondeAI Optimization Recommendations (Backend)
 
-Last updated: 2026-03-13
+Last updated: 2026-03-15
 
 Strategic optimization assessment by CEO Advisor. Backend-relevant items from the full recommendation set.
 
@@ -17,14 +17,9 @@ Strategic optimization assessment by CEO Advisor. Backend-relevant items from th
 - Apply as tiebreaker in ranked queue when quality scores are within 5 points
 - Incremental rollout: frequency counts first, then tiebreaking logic
 
-### 2. Cache Smarter — Prefetch & Expand Queue (Priority: Next Sprint)
+### 2. ~~Cache Smarter — Prefetch & Expand Queue~~ IMPLEMENTED (2026-03-14)
 
-**What:** Reduce time-to-first-recommendation and extend "Try Another" depth.
-
-- Increase ranked queue depth from 2-5 to 5-8 for common query patterns
-- Add `stale-while-revalidate` semantics to 5-min cache
-- For returning users: support prefetch endpoint for "top pick" based on last occasion + neighborhood combo
-- Track cache hit rate as KPI (target: 30%+ for returning users)
+**Status:** Implemented as DondeCache. Persistent 3-level fuzzy query cache with quality gate (B-/80+). Pre-warming pipeline (`cache-warmer.ts`) runs daily. Cache hit rate tracked via `get_cache_dashboard()` RPC. Try Another uses cached `ranked_queue` for instant fallback. See `_shared/query-cache.ts`, `scripts/pipelines/cache-warmer.ts`, migration `20260314000001_query_cache.sql`.
 
 ### 3. Match Narrative Surfacing (Priority: This Week)
 

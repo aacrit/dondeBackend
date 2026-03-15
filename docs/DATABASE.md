@@ -1,6 +1,6 @@
 # Database Schema
 
-Last updated: 2026-03-13
+Last updated: 2026-03-15
 
 ## Overview
 
@@ -15,12 +15,14 @@ Last updated: 2026-03-13
 | `user_profiles` | — | 1:1 with auth.users | Authenticated user preferences |
 | `user_searches` | — | N:1 → user_profiles | Server-side search history |
 | `user_favorites` | — | N:1 → user_profiles, restaurants | Saved bookmarks |
-| `user_queries` | — | N:1 → restaurants | Query logging + feedback + blurb audit |
+| `user_queries` | — | N:1 → restaurants | Query logging + feedback + blurb audit + cache hit tracking |
 | `user_visits` | — | N:1 → restaurants | Restaurant visit tracking |
 | `user_app_feedback` | — | — | User feedback messages |
 | `gauntlet_runs` | — | — | Command Center test run summaries |
 | `gauntlet_results` | — | N:1 → gauntlet_runs | Individual test results per run |
 | `maintenance_requests` | — | — | Pipeline operation queue |
+| `query_cache` | — | N:1 → restaurants | DondeCache persistent query cache (quality-gated B-/80+) |
+| `warming_runs` | — | — | Cache pre-warming pipeline execution tracking |
 
 ## Entity Relationships
 
@@ -36,6 +38,7 @@ restaurants (2,719 — all active)
   |--- 1:N ---> tags (~15,500)
   |--- 1:N ---> user_favorites
   |--- 1:N ---> user_queries
+  |--- 1:N ---> query_cache (primary_restaurant_id)
 
 user_profiles
   |--- 1:N ---> user_favorites
@@ -170,7 +173,7 @@ user_profiles
 
 **user_favorites:** `id`, `user_id` (FK), `restaurant_id` (FK), `created_at`, `removed_at`.
 
-**user_queries:** `id`, `user_id`, `auth_user_id`, `recommended_restaurant_id` (FK), `occasion`, `price_level`, `special_request`, `neighborhood_id`, `donde_match`, `exclude_count`, `was_fallback`, `response_time_ms`, `unmatched_keywords`, `dietary_restrictions`, `feedback`, `created_at`, `source` (text, default 'website' — distinguishes 'command-center' test traffic), `recommendation_text` (text — persisted blurb for quality auditing).
+**user_queries:** `id`, `user_id`, `auth_user_id`, `recommended_restaurant_id` (FK), `occasion`, `price_level`, `special_request`, `neighborhood_id`, `donde_match`, `exclude_count`, `was_fallback`, `response_time_ms`, `unmatched_keywords`, `dietary_restrictions`, `feedback`, `created_at`, `source` (text, default 'website' — distinguishes 'command-center' test traffic), `recommendation_text` (text — persisted blurb for quality auditing), `score_fit_score` (INT), `score_fit_grade` (TEXT), `blurb_quality_score` (INT), `blurb_quality_grade` (TEXT), `cache_hit` (BOOLEAN, DEFAULT false — whether response came from DondeCache), `cache_hit_level` (INT — 1=exact, 2=fingerprint, 3=canonical, NULL=miss).
 
 **user_visits:** `id`, `user_id`, `auth_user_id`, `restaurant_id`, `visited_at`, `created_at`. RLS: insert requires non-empty user_id; select limited to own visits.
 
@@ -181,6 +184,63 @@ user_profiles
 **gauntlet_results:** `id`, `run_id` (FK → gauntlet_runs), `query`, `category`, `donde_match`, `gap_type`, `gap_severity`, `restaurant_name`, `food`, `vibe`, `service`, `reputation`, `convenience`, `relevance_type`, `prev_dm`, `delta_dm`, `query_id`, `score_fit_score` (INT — Score fit grade numeric 0-100), `score_fit_grade` (TEXT — Score fit letter grade e.g. A+, A, B+), `blurb_quality_score` (INT — Blurb quality grade numeric 0-100), `blurb_quality_grade` (TEXT — Blurb quality letter grade), `created_at`. Individual test results per run.
 
 **maintenance_requests:** `id`, `operation` (text), `status` (text, default 'pending'), `params` (jsonb), `result` (jsonb), `created_at`, `updated_at`. RLS: anon insert constrained to valid operations + pending status; only service_role can update.
+
+## query_cache (DondeCache)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | PK |
+| `cache_key` | text | UNIQUE, exact match key (occasion\|neighborhood\|price\|normalized_request) |
+| `intent_fingerprint` | text | Deterministic hash from classified intent (cuisines, dish, vibes, constraints) |
+| `canonical_form` | text | Signal-based canonical representation with synonym normalization |
+| `special_request` | text | Original query text |
+| `occasion` | text | Default 'Any' |
+| `neighborhood` | text | Default 'Anywhere' |
+| `price_level` | text | Default 'Any' |
+| `response_body` | jsonb | Full recommendation response (Google-live fields nulled to avoid stale data) |
+| `ranked_queue` | jsonb | Ranked queue for Try Another fallback from cache |
+| `primary_restaurant_id` | uuid | FK -> restaurants, for invalidation triggers |
+| `donde_match` | integer | Cached DondeMatch score |
+| `score_fit_score` | integer | CHECK >= 80 (quality gate) |
+| `blurb_quality_score` | integer | CHECK >= 80 (quality gate) |
+| `hit_count` | integer | Default 0, incremented on cache hit |
+| `last_hit_at` | timestamptz | |
+| `source` | text | 'organic', 'prewarm', or 'golden' |
+| `engine_version` | text | Default '11.0.0' |
+| `expires_at` | timestamptz | 3 days (organic) or 7 days (prewarm) from creation |
+| `created_at` | timestamptz | |
+
+**Indexes:** `intent_fingerprint`, `canonical_form`, `expires_at`, `primary_restaurant_id`, `hit_count DESC`
+
+**RLS:** service_role full access; anon SELECT only.
+
+**Triggers:**
+- `trg_invalidate_cache_restaurant` — Deletes cache entries when restaurant name, cuisine_type, is_active, price_level, or neighborhood_id changes
+- `trg_invalidate_cache_enrichment` — Deletes cache entries when deep profile enrichment_version changes
+
+## warming_runs
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `run_id` | text | PK |
+| `mode` | text | 'popular', 'golden', or 'manual' |
+| `budget_dollars` | numeric(6,2) | Max budget for this run |
+| `budget_used` | numeric(6,2) | Actual spend |
+| `total_queries` | integer | |
+| `cached_count` | integer | Queries that met quality gate |
+| `skipped_count` | integer | Queries below quality gate |
+| `failed_count` | integer | API failures |
+| `avg_donde_match` | numeric(4,1) | |
+| `avg_score_fit` | numeric(4,1) | |
+| `avg_blurb_quality` | numeric(4,1) | |
+| `started_at` | timestamptz | |
+| `completed_at` | timestamptz | |
+
+**RLS:** service_role full access; anon SELECT only.
+
+## RPC: get_cache_dashboard
+
+Returns JSONB with cache health metrics: `cache_size`, `total_queries_24h`, `cache_hits_24h`, `hit_rate_24h`, `savings_24h_dollars`, `avg_hit_latency_ms`, `avg_miss_latency_ms`, `top_uncached_queries`, `last_warming_run`.
 
 ## RPC: get_ranked_restaurants
 
@@ -218,4 +278,4 @@ get_ranked_restaurants(
 
 ## Migrations
 
-61 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-12). Applied via `supabase db push` or Dashboard SQL Editor. Recent additions: cuisine taxonomy fixes (4 migrations), deep audit fixes (6 migrations — cuisine reclassifications, hallucinated data removal, pricing/logistics corrections, cross-field consistency, contradiction fixes), comprehensive data quality audit, phase 1 free enrichment, gauntlet grading columns, cuisine type analytics fixes, auto-merge CI/CD, gauntlet tracking tables, maintenance requests, RLS hardening, source column on user_queries, recommendation_text persistence.
+62 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-14). Applied via `supabase db push` or Dashboard SQL Editor. Recent additions: DondeCache persistent query cache + warming_runs tables + get_cache_dashboard RPC + cache invalidation triggers + cache_hit columns on user_queries (20260314000001), cuisine taxonomy fixes (4 migrations), deep audit fixes (6 migrations), comprehensive data quality audit, phase 1 free enrichment, gauntlet grading columns, cuisine type analytics fixes, auto-merge CI/CD, gauntlet tracking tables, maintenance requests, RLS hardening, source column on user_queries, recommendation_text persistence.

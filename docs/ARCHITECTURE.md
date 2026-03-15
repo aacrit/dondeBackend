@@ -1,17 +1,18 @@
 # Backend Architecture
 
-Last updated: 2026-03-13
+Last updated: 2026-03-15
 
 ## System Overview
 
 | Layer | Technology |
 |-------|-----------|
-| API | Supabase Edge Function (Deno/TS), V11 scoring engine |
+| API | Supabase Edge Function (Deno/TS), V11 scoring engine (V18 tuning) |
 | AI | Claude Haiku 4.5 (recommendations, enrichment, intent classification) |
-| DB | Supabase PostgreSQL (15 tables, 61 migrations) |
+| DB | Supabase PostgreSQL (17 tables, 62 migrations) |
+| Cache | DondeCache — persistent 3-level fuzzy query cache (exact/fingerprint/canonical) |
 | Data | Google Places API (live fetch per request; only `google_place_id` stored per ToS §3.2.3) |
 | Pipelines | Node.js 20 + tsx scripts, GitHub Actions cron |
-| CI/CD | 15 GitHub Actions workflows |
+| CI/CD | 16 GitHub Actions workflows |
 
 ## File Tree
 
@@ -27,6 +28,8 @@ supabase/
       intent-classifier-v5.ts     # Deterministic (~80%) + Claude fallback (~15%), semantic tags
       prompts-v5.ts               # Claude system/user prompt templates (5 literary voices, 9 occasions, 5 tone tiers)
       scoring.ts                  # Shared: keyword dicts, diversity, slop detection
+      grading.ts                  # Score fit + blurb quality grading (mirrors cc-grading.js)
+      query-cache.ts              # DondeCache — 3-level persistent cache (exact/fingerprint/canonical)
       intent-classifier.ts        # V4 intent types (reused by V5 classifier)
       claude.ts                   # Anthropic API client (raw fetch, prompt caching, retry)
       google-places.ts            # Google Places API wrapper (1.5s timeout)
@@ -38,19 +41,19 @@ supabase/
 scripts/
   lib/                            # 6 shared pipeline libraries
     config.ts, claude.ts, google-places.ts, supabase.ts, batch.ts, types.ts
-  pipelines/                      # 28 pipeline scripts (see API-WORKFLOWS.md)
+  pipelines/                      # 31 pipeline scripts (see API-WORKFLOWS.md)
   package.json
 
 tests/
   test_catalog.sh                 # 65-scenario bash API test suite
-  golden-dataset-test.sh          # 50-query golden dataset benchmark (88 checks)
+  golden-dataset-test.sh          # 50-query golden dataset benchmark (188 checks)
   benchmark-200.sh                # 200-case V11 benchmark
   regression-guard.sh             # V10 baseline regression guard
   compare-scores.sh               # A/B score comparison tool
   TEST-FULL.md                    # 170-scenario agent-driven test spec
   GOLDEN_DATASET_RESULTS.md       # Latest golden dataset results
 
-.github/workflows/                # 15 CI/CD workflows
+.github/workflows/                # 16 CI/CD workflows
 
 .devcontainer/
   devcontainer.json               # Codespace config (Node 20, port forwarding)
@@ -66,6 +69,8 @@ tests/
 | `response-builder-v9.ts` | Builds `scoring_v9` (relevance + quality + factors), `ranked_queue`, `match_narrative`, queue blurbs | **Active (V11)** |
 | `intent-classifier-v5.ts` | Deterministic intent classification + semantic tags, similar_to, mood, implicit_cuisines | **Active** |
 | `prompts-v5.ts` | Claude prompt templates — 5 literary personas, 9 occasion registers, 5 tone tiers | **Active** |
+| `grading.ts` | Server-side score fit + blurb quality grading (mirrors cc-grading.js) | **Active** |
+| `query-cache.ts` | DondeCache — 3-level persistent cache with fuzzy matching + quality gate | **Active** |
 | All V3-V8 modules | Archived to `_archive/pre-v9/` | **Archived** |
 
 ## Deployment
@@ -95,6 +100,7 @@ tests/
 | `auto-merge-claude.yml` | On push to `claude/**` | Auto-merges claude branches to main |
 | `auto-migrate.yml` | On push (when `supabase/migrations/**` changes) | Auto-applies new migrations to Supabase |
 | `maintenance-worker.yml` | Every 5 min | Polls `maintenance_requests` table, executes pipeline operations |
+| `cache-warmer.yml` | Daily midnight Chicago (06:00 UTC) + manual dispatch | DondeCache pre-warming: mine queries → invalidate stale → warm cache |
 
 ## Google API Compliance
 

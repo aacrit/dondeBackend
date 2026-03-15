@@ -1,6 +1,6 @@
 # Recommendation Blurb Generation
 
-Last updated: 2026-03-13
+Last updated: 2026-03-15
 
 How DondeAI generates the recommendation text, match headlines, insider tips, and queue blurbs that users see in the app.
 
@@ -83,9 +83,12 @@ How DondeAI generates the recommendation text, match headlines, insider tips, an
                                             │
                                             ▼
                       ┌────────────────────────────────────────────────┐
-                      │ 10. CACHE + LOG                                │
-                      │     Stale-while-revalidate: 15min soft / 30min │
+                      │ 10. CACHE + LOG + GRADE                        │
+                      │     In-memory: 15min soft / 30min hard         │
+                      │     Persistent: DondeCache write-through       │
+                      │       (quality gate: SF>=80 AND BQ>=80)        │
                       │     Fire-and-forget logging to user_queries    │
+                      │     Score fit + blurb quality grading           │
                       └────────────────────────────────────────────────┘
 ```
 
@@ -386,11 +389,25 @@ Closed restaurant handling: if the chosen restaurant has `business_status === "C
 
 ## 10. Caching
 
-**Response cache:** Stale-while-revalidate pattern.
+### In-Memory Cache
+
+Stale-while-revalidate pattern:
 - Soft TTL: 15 minutes (serve stale, flag for refresh)
 - Hard TTL: 30 minutes (delete entry)
 - Cache key: `occasion|neighborhood|price|normalized_request|exclude_list`
 - Max 500 entries
+
+### DondeCache (Persistent)
+
+Three-level fuzzy matching with quality gate:
+- **L1 (Exact):** Same cache key as in-memory (without exclude list)
+- **L2 (Fingerprint):** Intent-based hash (cuisines + dish + vibes + constraints + context)
+- **L3 (Canonical):** Signal-based canonical form with 60+ query synonyms + 50+ dish canonical mappings
+- **Quality gate:** Only B-/80+ responses cached (CHECK constraints on score_fit_score and blurb_quality_score)
+- **TTL:** 3 days (organic), 7 days (prewarm)
+- **Invalidation:** DB triggers on restaurant/enrichment changes; engine version check; TTL expiry
+- **Try Another:** Cached `ranked_queue` used for exclude-list lookups without recomputing
+- **Google compliance:** `photo_urls`, `opening_hours`, `review_snippets` nulled in cached responses
 
 Claude-generated blurbs are cached as part of the full response. No separate blurb cache.
 
@@ -406,4 +423,6 @@ Claude-generated blurbs are cached as part of the full response. No separate blu
 | `supabase/functions/recommend/_shared/response-builder-v9.ts` | Response assembly, queue blurb templates, fallback responses |
 | `supabase/functions/recommend/_shared/scoring-v9.ts` | V9 scoring engine + match narrative generation |
 | `supabase/functions/recommend/_shared/types-v9.ts` | TypeScript types for scoring, narratives, Claude output |
+| `supabase/functions/recommend/_shared/grading.ts` | Server-side score fit + blurb quality grading |
+| `supabase/functions/recommend/_shared/query-cache.ts` | DondeCache — persistent 3-level cache with fuzzy matching |
 | `supabase/functions/recommend/_shared/google-places.ts` | Live Google Places enrichment |

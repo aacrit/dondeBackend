@@ -1,8 +1,8 @@
 # Backend Features
 
-Last updated: 2026-03-13
+Last updated: 2026-03-15
 
-## Edge Function (V11 — active, files retain V9 naming)
+## Edge Function (V11 — active, V18 tuning, files retain V9 naming)
 
 ### Scoring Engine
 - [x] V11 Relevance × Quality scoring (5 factors: Food, Vibe, Service, Reputation, Convenience)
@@ -20,8 +20,15 @@ Last updated: 2026-03-13
 - [x] Post-Google re-score: all candidates re-scored with real Google data
 - [x] Stretched Google rating (3.5→0, 5.0→10 for reputation factor)
 - [x] Confidence-weighted quality: CONFIDENCE_MEAN=55, confidenceFactor 0.80-1.0
-- [x] OccasionBonus (±5 points)
+- [x] OccasionBonus (+/-5 points)
 - [x] Cuisine mismatch cap at 65 (post-Claude guard rail)
+- [x] V17: Concept constraint/tag merging into intent for scoring
+- [x] V17: Neighborhood relevance check before open_ended return
+- [x] V18: Neighborhood detection from special_request (auto-sets RPC filter)
+- [x] V18: Quality floor hierarchy (cuisine >=74, neighborhood >=80, reputation >=72)
+- [x] V18: _originalVibeCount for reputation vibe penalty guard
+- [x] V18: Skip vibe blending for high cuisine relevance (>=0.93)
+- [x] V18: Cross-cuisine synonym guard strengthened for dish queries
 
 ### Blurb Generation
 - [x] Claude Haiku 4.5 blurb generation (100-120 words, single API call)
@@ -37,7 +44,11 @@ Last updated: 2026-03-13
 - [x] Dietary hard filter (safety-critical, never relaxed)
 - [x] Semantic tag search in RPC via `p_semantic_tags`
 - [x] V11 RPC with fallback chain (V11 → V10 → V9)
-- [x] 5-min in-memory response cache (100 entries, LRU, stale-while-revalidate at 15 min)
+- [x] 5-min in-memory response cache (500 entries, stale-while-revalidate at 15 min, hard TTL 30 min)
+- [x] DondeCache persistent query cache (3-level: exact/fingerprint/canonical; quality gate B-/80; TTL 3d/7d)
+- [x] Cache pre-warming pipeline (popular/golden/manual sources, budget-gated, 3-worker pool)
+- [x] Cache invalidation (TTL expiry + engine version + DB trigger on restaurant/enrichment changes)
+- [x] Server-side score fit + blurb quality grading (grading.ts, mirrors cc-grading.js)
 - [x] 30/min/IP rate limiting (soft enforcement)
 - [x] Input sanitization + prompt injection defense
 - [x] Tiered fallback (JSON parse → regex recovery → template → one-liner)
@@ -62,6 +73,9 @@ Last updated: 2026-03-13
 - [x] Tips/stories backfill (Claude Sonnet 4)
 - [x] Full dataset re-enrichment
 - [x] Maintenance worker (5-min cron, polls maintenance_requests table)
+- [x] Cache warmer (3 sources: popular/golden/manual, budget-gated, 3-worker pool)
+- [x] Cache invalidator (TTL expiry + engine version + enrichment invalidation)
+- [x] Query miner (canonical query extraction from user_queries)
 
 ## Auth & User Features
 
@@ -77,7 +91,7 @@ Last updated: 2026-03-13
 
 ## Database
 
-- [x] 15 tables, 61 migrations
+- [x] 17 tables, 62 migrations
 - [x] RPC `get_candidates_v11` (composite scoring with semantic tags, fallback V10 → V9)
 - [x] RPC `get_candidates_v9` (full-text search + review intelligence)
 - [x] RPC `get_ranked_restaurants` (legacy, 49 return columns)
@@ -88,3 +102,6 @@ Last updated: 2026-03-13
 - [x] Keyword dictionaries (28 cuisines, 19 tags, 3 boolean features)
 - [x] gauntlet_runs + gauntlet_results (test tracking)
 - [x] maintenance_requests (pipeline queue for CEO Command Center)
+- [x] query_cache + warming_runs (DondeCache persistent cache + warming tracking)
+- [x] RPC `get_cache_dashboard` (cache health metrics for CEO dashboard)
+- [x] DB triggers for cache invalidation on restaurant/enrichment changes

@@ -1,10 +1,10 @@
 # DondeAI Backend
 
-Last updated: 2026-03-13
+Last updated: 2026-03-15
 
 > **Read this file first, then `docs/*.md` only as needed. Only open source files when modifying code.**
 
-AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines. ~2,720 restaurants (active, including 7 newly added iconic Chicago institutions), 2,719+ with deep profiles, 2,712 with review intelligence. 33 neighborhoods, 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification. 61 migrations (including comprehensive data quality audit fixes), 15 CI/CD workflows, 28 pipeline scripts. Codespace dev container with Claude Code + Supabase CLI.
+AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines. ~2,720 restaurants (active, including 7 newly added iconic Chicago institutions), 2,719+ with deep profiles, 2,712 with review intelligence. 33 neighborhoods, 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification. 62 migrations (including comprehensive data quality audit fixes + DondeCache), 16 CI/CD workflows, 31 pipeline scripts. DondeCache persistent query cache with multi-level fuzzy matching. Codespace dev container with Claude Code + Supabase CLI.
 
 ## Documentation Index
 
@@ -17,6 +17,9 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `docs/RECOMMENDATION-BLURBS.md` | Blurb generation architecture — Claude prompts, literary voices, quality guardrails, intent boost |
 | `docs/CEO-COMMAND-CENTER.md` | Admin dashboard architecture (agents, pipelines, data health, maintenance worker) |
 | `docs/OPTIMIZATION-RECOMMENDATIONS.md` | Backend optimization priorities (learning flywheel, caching, match narrative) |
+| `docs/COO-EXECUTIVE-REPORT.md` | COO operational report — scorecard, strategic assessment, 90-day plan, risk register |
+| `docs/TEAM-OPERATIONS.md` | Operations & CI team — hierarchy, communication protocol, workflows, 5 project proposals |
+| `docs/CEO-QUICK-REFERENCE.md` | CEO guide — one-command operations, report reading, decision framework, agent roster |
 | `_archive/VERSION-HISTORY.md` | Pre-V9 scoring evolution, V8 optimization, historical test results, case studies |
 
 ## Agents
@@ -44,6 +47,10 @@ The COO (`donde-coo`) is the **super-agent** that orchestrates all other agents.
 **Divisions:** Quality (analytics-expert, bug-fixer, gen-test-queries) | Infrastructure (perf-optimizer, db-reviewer, update-docs) | Product (ceo-advisor, donde-premium-advisor, frontenddesign) | Security (donde-ciso, uat-tester)
 
 **Escalation:** CRITICAL findings from any agent auto-escalate to COO. COO escalates to CEO with "The Bottom Line" summary.
+
+**Team Orchestration:** COO uses `TeamCreate` + `SendMessage` + `TaskCreate` for real-time multi-agent coordination. See `docs/TEAM-OPERATIONS.md` for full protocol. CEO operates through natural language commands — see `docs/CEO-QUICK-REFERENCE.md`.
+
+**Projects:** Alpha (quality automation) | Bravo (cross-repo sync) | Charlie (cache intelligence) | Delta (competitive intel) | Echo (launch readiness). All $0 cost. Details in `docs/TEAM-OPERATIONS.md`.
 
 **Change notification:** COO should be spawned after significant code changes to run a quality cycle. It detects changes via git log, CI/CD status, and gauntlet_runs queries.
 
@@ -74,6 +81,12 @@ The COO (`donde-coo`) is the **super-agent** that orchestrates all other agents.
 **V16 retest results (2026-03-13):** Golden dataset (188 checks): 177P/0F/11W, avg DM 77, avg score fit 88, avg blurb quality 79. Regression guard: 177P/0F/11W, avg DM 77 — NO REGRESSION vs V10 baseline (44P/4F/2W, avg DM 70). Pass count improved +133, avg DM improved +7. Key improvements: tiki bar 60→78, authentic Szechuan 53→76, Senegalese 48→70, Nigerian 48→70, Eritrean 49→75, near wrigley field 45→82.
 
 **V16 blurb quality fixes (2026-03-13):** Deterministic blurb generation (buildQueueBlurb) rebuilt to produce 100-120 word blurbs scoring B-/80+ on grading. Slop scrubbing (22 banned patterns removed from DB-sourced text). Flavor profile → grading adjective mapping (30+ entries: umami→bold, charred→smoky, etc.). Word count padding (origin story, cultural authenticity, group size). Service score floor of 6.0 for restaurants with service_style data. Occasion score power curve softened (0.85→0.70). Results: 144P→177P (+33), 4F→0F, 34W→11W, avg score fit 85→88, avg blurb quality 76→79.
+
+**V17 scoring fixes (2026-03-14):** 31-issue gap fix via `bug-fixer` agent. Concept constraint merging (CONCEPT_MAP constraints like happy hour, BYOB, valet now flow into scoring). Concept tag merging into intent target_tags. Neighborhood relevance check moved before open_ended return (fixes "near wrigley field" always getting 1.0 relevance). Sub-cuisine relevance raised 0.85→0.95. Grading: service query score fit accepts "vibe" and "reputation" relevance types as valid. Added 10+ stop words to blurb quality grading.
+
+**V18 scoring fixes (2026-03-14):** 60-issue gap fix. Neighborhood detection from `special_request` when `body.neighborhood` is "Anywhere" (e.g., "near wrigley field" auto-filters to Lakeview). Cuisine check ordering: restaurant name cuisine check before RI family matching. `_originalVibeCount` tracks pre-expansion vibe count so reputation path only penalizes user-intended vibes. Skip vibe blending for very high cuisine relevance (>=0.93). Quality floors raised: cuisine/dish 65→74 (rel>=0.90), neighborhood 65→80, reputation 65→72. Vibe-primary minimum raised 0.75→0.86. Cross-cuisine synonym guard strengthened (require exact cuisine match for dish queries). Grading: 15+ additional stop words for blurb quality.
+
+**DondeCache (2026-03-14):** Persistent query cache with 3-level fuzzy matching (L1: exact key, L2: intent fingerprint, L3: canonical form). Quality gate: only B-/80+ responses cached. TTL: 3 days organic, 7 days prewarm. Query synonym normalization (60+ synonyms). Dish canonical normalization (50+ dishes). DB-trigger cache invalidation on restaurant/enrichment changes. New tables: `query_cache`, `warming_runs`. New columns on `user_queries`: `cache_hit`, `cache_hit_level`. New RPC: `get_cache_dashboard()`. Pipeline scripts: `cache-warmer.ts` (3 sources: popular/golden/manual, budget-gated), `cache-invalidator.ts` (TTL + engine version + enrichment invalidation), `query-miner.ts` (extracts canonical queries from user_queries). CI/CD: `cache-warmer.yml` (daily at midnight Chicago time + manual dispatch).
 
 **CLI test write-back:** `golden-dataset-test.sh` and `regression-guard.sh` persist results to `gauntlet_runs` + `gauntlet_results` Supabase tables when `SUPAB_URL` and `SUPAB_ANON_KEY` env vars are set. Run ID format: `cli-golden-*` / `cli-regression-*`. Source field: `cli`.
 
@@ -106,7 +119,6 @@ The COO (`donde-coo`) is the **super-agent** that orchestrates all other agents.
 - Reputation+vibe blending: reputation queries with vibe/constraint signals blend both relevance paths (60/40 rep/vibe)
 - Cross-cuisine dish synonym guard: dish synonyms capped at 0.50 relevance when restaurant cuisine doesn't match target
 - BYOB enforcement: restaurants without BYOB data get 0.40 relevance penalty when BYOB is primary constraint
-- Quality floor hierarchy: cuisine/dish ≥65, neighborhood ≥65, vibe ≥68, reputation ≥65
 - Valet parking constraint pattern and matching in both relevance and convenience quality
 - Vibe relevance floor raised 0.70→0.75 for vibe-primary queries
 - Constraint relevance formula: base 0.85, cap 0.98 (was 0.80/0.97)
@@ -116,6 +128,29 @@ The COO (`donde-coo`) is the **super-agent** that orchestrates all other agents.
 - Service score floor: 6.0 minimum for restaurants with service_style data (prevents formula compression below grading threshold)
 - Occasion score power curve: 0.85→0.70 (less compression for "Any" occasion queries)
 - Deterministic blurbs: 100-120 word target with slop scrubbing, flavor adjective mapping, word count padding, "we/our" voice
+
+**V17 enhancements (over V16):**
+- Concept constraint merging: CONCEPT_MAP constraints (happy hour, BYOB, valet, walk-in) now flow into intent.practical_constraints for scoring
+- Concept tag merging: CONCEPT_MAP tags merge into intent.target_tags for vibe relevance
+- Neighborhood check moved before open_ended return: "near wrigley field" now differentiates by location instead of giving all restaurants 1.0
+- Sub-cuisine relevance raised 0.85→0.95 when restaurant cuisine_type is a sub-cuisine of target
+- Sub-cuisine specific target_cuisines: "somali place" adds "Somali" directly to target_cuisines (not just "East African")
+- Reputation base floor raised 0.55→0.60 for generic reputation queries
+- Query-relevant blurb openers: deterministic blurbs echo user's search terms for grading compliance
+- Grading: service query score fit accepts "vibe" and "reputation" relevance types as valid
+
+**V18 enhancements (over V17):**
+- Neighborhood detection from special_request: when body.neighborhood is "Anywhere", scans query for NEIGHBORHOOD_ALIASES to auto-set RPC filter
+- `_originalVibeCount` tracking: stores pre-expansion vibe count so reputation path only penalizes user-intended vibes (not concept-expanded ones)
+- Cuisine check ordering: restaurant name cuisine check runs before RI family matching for faster exact matches
+- Skip vibe blending for very high cuisine relevance (>=0.93) to avoid diluting strong cuisine matches
+- Quality floor hierarchy raised: cuisine/dish >=74 (rel>=0.90), >=68 (rel>=0.70); neighborhood >=80 (rel>=0.90); vibe >=68 (rel>=0.75); reputation >=72 (rel>=0.80)
+- Vibe-primary minimum raised 0.75→0.86 for vibe-primary queries
+- Cross-cuisine synonym guard strengthened: require exact cuisine match for dish-level queries
+- Neighborhood match relevance raised 0.93→1.0; mismatch penalty at 0.50
+- Multi-word INTENT_MAP phrase cuisine supersession: "korean fried chicken" → Korean only, not Korean + American + Southern
+- Additional deterministic blurb openers for sports bar, karaoke, fondue, hot chicken, hand roll
+- Grading: 15+ additional blurb quality stop words for common query patterns
 
 **Self-healing**: When `cuisine_type` is NULL, falls back to `cuisine_signals` (29/2,719 restaurants — down from 1,806 after cuisine taxonomy fixes).
 
@@ -133,7 +168,7 @@ The COO (`donde-coo`) is the **super-agent** that orchestrates all other agents.
 
 **Score Validation Grading:**
 - Score Fit Grade (0-100): Relevance alignment (30pts) + Cuisine match (25pts) + Factor alignment (25pts) + Compression check (10pts) + Weak spots coherence (10pts)
-- Blurb Quality Grade (0-100): Slop-free (25pts) + Query relevance (25pts, includes compound neighborhood detection + 30 stop words) + Specificity (20pts) + Voice compliance (15pts) + Word count (15pts)
+- Blurb Quality Grade (0-100): Slop-free (25pts) + Query relevance (25pts, includes compound neighborhood detection + 55+ stop words) + Specificity (20pts) + Voice compliance (15pts) + Word count (15pts)
 - Pass criteria: DM >= 70 AND Score Fit >= B- (80) AND Blurb Quality >= B- (80)
 - Grade scale: A+ (97+), A (93-96), B+ (87-89), B (83-86), B- (80-82), C (73-79), D (60-69), F (<60)
 - Grading code: `_shared/grading.ts` (backend) + `dondeAI/js/cc-grading.js` (frontend) — must stay in sync
@@ -226,6 +261,11 @@ cd scripts && npx tsx pipelines/generate-occasion-scores.ts
 cd scripts && TARGET_CUISINES=Japanese npm run discovery:targeted
 cd scripts && DRY_RUN=true npm run discovery:gaps
 cd scripts && npx tsx pipelines/enrichment-review-intelligence.ts  # V11 semantic descriptors
+
+# DondeCache
+cd scripts && npx tsx pipelines/query-miner.ts                    # Extract canonical queries from user_queries
+cd scripts && npx tsx pipelines/cache-warmer.ts --source popular --budget 5.00  # Pre-warm cache
+cd scripts && npx tsx pipelines/cache-invalidator.ts              # Cleanup expired/stale cache
 
 # Migrations
 supabase db push

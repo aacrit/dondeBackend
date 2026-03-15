@@ -1,6 +1,6 @@
 # API & Workflows
 
-Last updated: 2026-03-13
+Last updated: 2026-03-15
 
 ## Edge Function Request Flow (V11)
 
@@ -9,20 +9,26 @@ index.ts orchestration — single POST /recommend endpoint
 ```
 
 1. **Parse & sanitize** — Extract craving, occasion, neighborhood, price, exclude, dietary, time_of_day, open_now. Prompt injection defense.
-2. **Rate limit** — 30 req/min/IP (soft: logs warning, returns 429)
-3. **Cache check** — 5-min TTL, 100-entry LRU. Stale-while-revalidate at 15 min. Bypassed if exclude list non-empty.
-4. **[Parallel]** Intent classification (`classifyIntentV5` — deterministic + LLM fallback with `semantic_tags`, `similar_to`, `mood`, `implicit_cuisines`) + user feedback fetch + RPC `get_candidates_v11` (composite scoring with `p_semantic_tags`, fallback to V10 → V9 RPC)
-5. **Dietary filter** — Safety-critical hard filter on dietary restrictions (never relaxed). No other hard filters — V11 relevance gating handles cuisine/dish/vibe/semantic.
-6. **V11 scoring** (`reRankV9`) — Relevance(0-1) × Quality(0-100) + OccasionBonus(±5). Relevance uses review intelligence + semantic concept matching. 6 weight profiles (dish, cuisine, vibe, reputation, open_ended, multi_signal). Dynamic candidate pool: 100 for complex queries.
-7. **Diversity filter** — `ensureDiversity()` max 2 same cuisine in top results
-8. **Google Places fetch** — Top 5 candidates, 1.5s timeout, parallel
-9. **Post-Google re-score** — Re-compute all candidates with real Google data for reputation accuracy. Simple descending re-sort.
-10. **Build Ranked Queue** — Top 5 results packaged as `ranked_queue` items (template blurbs, no Claude call)
-11. **Claude recommendation** — System prompt (character voice + literary persona + occasion register + tone tier) + user prompt (candidates + reviews + deep profiles). Claude picks restaurant, writes 100-120 word blurb, optional intent boost.
-12. **Intent Boost guard rails** — If Claude elevates lower candidate: base ≥ 35, max boost +35, total ≤ 99.
-13. **Cuisine mismatch cap** — If high-importance cuisine mismatch: cap DondeMatch at 65 post-Claude.
-14. **Quality guardrails** — Slop detection (67 banned patterns), em dash stripping, word count check (100-120), "we/our" voice mandate.
-15. **Response build** — `buildV9SuccessResponse()` with `scoring_v9`, `match_narrative`, `ranked_queue`. Cache result. Fire-and-forget query log.
+2. **Neighborhood detection** — V18: When `neighborhood` is "Anywhere", scans `special_request` for NEIGHBORHOOD_ALIASES (sorted longest-first to avoid partial matches). "near wrigley field" auto-sets neighborhood to "Lakeview" for RPC filtering.
+3. **Rate limit** — 30 req/min/IP (soft: logs warning, returns 429)
+4. **In-memory cache check** — 15-min soft TTL, 30-min hard TTL, stale-while-revalidate. Bypassed if exclude list non-empty.
+5. **Persistent cache L1** — DondeCache exact key lookup. If hit, return immediately (~50ms). For "Try Another" (exclude non-empty), check `ranked_queue` for next eligible result.
+6. **[Parallel]** Intent classification (`classifyIntentV5` — deterministic + LLM fallback with `semantic_tags`, `similar_to`, `mood`, `implicit_cuisines`) + user feedback fetch + user preference profile fetch
+7. **Persistent cache L2/L3** — After intent classification, try fingerprint match (L2) and canonical form match (L3). Fuzzy matching via synonym normalization + dish canonicalization.
+8. **Concept expansion** — V17/V18: Merge concept constraints, tags, and vibes into intent for scoring. Track `_originalVibeCount` before merging.
+9. **RPC candidates** — `get_candidates_v11` (composite scoring with `p_semantic_tags`, fallback to V10 → V9 RPC). Dynamic candidate pool: 100 for complex queries.
+10. **Dietary filter** — Safety-critical hard filter on dietary restrictions (never relaxed). No other hard filters — V11 relevance gating handles cuisine/dish/vibe/semantic.
+11. **V11 scoring** (`reRankV9`) — Relevance(0-1) x Quality(0-100) + OccasionBonus(+/-5). V18 quality floors. 6 weight profiles.
+12. **Diversity filter** — `ensureDiversity()` max 2 same cuisine in top results
+13. **Google Places fetch** — Top 5 candidates, 1.5s timeout, parallel
+14. **Post-Google re-score** — Re-compute all candidates with real Google data for reputation accuracy. Simple descending re-sort.
+15. **Build Ranked Queue** — Top 5 results packaged as `ranked_queue` items (template blurbs, no Claude call)
+16. **Claude recommendation** — System prompt (character voice + literary persona + occasion register + tone tier) + user prompt (candidates + reviews + deep profiles). Claude picks restaurant, writes 100-120 word blurb, optional intent boost.
+17. **Intent Boost guard rails** — If Claude elevates lower candidate: base >= 35, max boost +35, total <= 99.
+18. **Cuisine mismatch cap** — If high-importance cuisine mismatch: cap DondeMatch at 65 post-Claude.
+19. **Quality guardrails** — Slop detection (67 banned patterns), em dash stripping, word count check (100-120), "we/our" voice mandate.
+20. **Response build** — `buildV9SuccessResponse()` with `scoring_v9`, `match_narrative`, `ranked_queue`. Cache result. Fire-and-forget query log + score validation grading.
+21. **Persistent cache write-through** — Quality-gated (score fit >= 80 AND blurb quality >= 80). Stores response with intent fingerprint + canonical form for L2/L3 future hits.
 
 **Fallback tiers:** JSON parse → regex recovery → fallback response (top restaurant, no AI text) → no-results → error
 
@@ -37,8 +43,8 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 - **cuisine** (R=0.85-1.0): Cuisine matches `cuisine_signals` or `cuisine_type`
 - **vibe** (R=0.45-0.75): Vibe/occasion match, dynamic floor based on signal count
 - **semantic** (R=0.50-0.80): Semantic tag matching via `computeSemanticRelevance()`
-- **reputation** (R=0.45-0.70): Chef/award/reputation match
-- **open_ended** (R=0.40-0.60): Generic query, no specific match signal
+- **reputation** (R=0.45-0.70): Chef/award/reputation match, blended with vibe/constraint signals
+- **open_ended** (R=0.40-1.0): Generic query or neighborhood match (V18: R=1.0 for neighborhood match, R=0.50 for mismatch)
 
 **Quality** computes 5 factors (0-10 each) with query-type-aware weight profiles:
 
@@ -50,6 +56,8 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | Reputation | Stretched Google rating (3.5→0, 5.0→10), review count confidence, awards, chef_notable |
 | Convenience | Timing, reservation accessibility, wait time, parking, practical constraints |
 
+**Quality floors (V18):** cuisine/dish >=74 (rel>=0.90), >=68 (rel>=0.70); neighborhood >=80 (rel>=0.90); vibe >=68 (rel>=0.75); reputation >=72 (rel>=0.80).
+
 **Self-healing:** When `cuisine_type` is NULL (29/2,719 restaurants — down from 1,806 after cuisine taxonomy fixes), V11 falls back to `cuisine_signals` from review intelligence.
 
 **Score tiers:** 90+ Outstanding | 80-89 Strong Pick | 70-79 Solid Option | 60-69 Worth a Try | <60 Best Available
@@ -60,11 +68,14 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 
 | Version | Tests | Pass | Notes |
 |---------|-------|------|-------|
+| V18 (current) | 188 checks | 177P/0F/11W | Golden dataset, avg DM 77, avg SF 88, avg BQ 79 |
+| V16 | 188 checks | 177P/0F/11W | First pass of V16 fixes |
+| V11 | 188 checks | 142P/2F/44W | Semantic matching, avg DM 76 |
 | V10 (baseline) | 50 | 44P/4F/2W | Golden dataset, avg DM 70 |
-| V9.0 | 95 | 95/95 | Relevance × Quality, review intelligence, self-healing |
+| V9.0 | 95 | 95/95 | Relevance x Quality, review intelligence, self-healing |
 | V7.3b (archived) | 88 | 67/88 | Geometric mean, V5 weights |
 
-## Pipeline Inventory (28 scripts in `scripts/pipelines/`)
+## Pipeline Inventory (31 scripts in `scripts/pipelines/`)
 
 ### Scheduled (GitHub Actions cron)
 
@@ -79,6 +90,8 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | `generate-tags.ts` | Monthly 1st, 7:00 UTC | Claude generates 3-6 tags per restaurant |
 | `enrichment-review-intelligence.ts` | Monthly 1st | V11 semantic descriptors, scenarios, wow_factors |
 | `maintenance-worker.ts` | Every 5 min (GH Actions) | Cron worker for CEO Command Center pipeline triggers |
+| `cache-warmer.ts` | Daily midnight Chicago (06:00 UTC) | DondeCache pre-warming (3 sources: popular/golden/manual, budget-gated) |
+| `cache-invalidator.ts` | Daily (with cache-warmer) | Cleanup expired/stale cache entries, engine version invalidation |
 
 ### Manual Dispatch
 
@@ -103,6 +116,7 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | `convert-v8-to-atlas.ts` | V8 → Atlas data conversion utility |
 | `regenerate-occasion-scores.ts` | Full regeneration of all occasion scores |
 | `regenerate-tags.ts` | Full regeneration of all restaurant tags |
+| `query-miner.ts` | Extract canonical queries from user_queries for cache warming |
 
 **Rate limits:** All Claude pipelines use 6s between batches (10 req/min). Batch size: 5-10 restaurants per call.
 
