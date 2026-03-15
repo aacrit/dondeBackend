@@ -64,6 +64,8 @@ CEO (Aacrit)
 
 **Projects:** Alpha (quality automation) | Bravo (cross-repo sync) | Charlie (cache intelligence) | Delta (competitive intel) | Echo (launch readiness). All $0 cost.
 
+**CEO task trigger:** All CEO tasks should trigger an agentic team response — spawn the COO (`donde-coo`) to orchestrate the appropriate division agents for the task. The COO triages, assigns agents, and reports back.
+
 **Change notification:** COO should be spawned after significant code changes to run a quality cycle.
 
 ## Tests
