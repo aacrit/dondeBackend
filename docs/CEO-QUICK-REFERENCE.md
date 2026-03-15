@@ -32,6 +32,11 @@ Say any of these to start a COO-led operation:
 
 | Command | What Happens |
 |---------|-------------|
+| `"Build [feature/component]"` | COO spawns frontend-builder to implement the spec |
+| `"Fix UI bugs from UAT"` | COO spawns frontend-fixer with failure context |
+| `"Check theme coverage"` | COO spawns css-theme-specialist for 10-variant audit |
+| `"Run tests"` | COO spawns continuous-tester for golden dataset + regression guard |
+| `"Check production health"` | COO spawns prod-sentinel for API/cache/quality monitoring |
 | `"Run security audit"` | COO spawns donde-ciso for 10-domain audit |
 | `"Benchmark the scoring engine"` | COO spawns analytics-expert for competitive analysis |
 | `"Update all documentation"` | COO spawns update-docs to sync all MD files |
@@ -142,27 +147,36 @@ SECURITY:       85/100 posture (target: 85) [GREEN]
 
 ### Who Does What
 
-| Agent | One-Line Description | When You'd Use Them |
-|-------|---------------------|-------------------|
-| **COO** | Your VP Engineering — orchestrates everything | Always. Your primary interface. |
-| **analytics-expert** | Scores the scoring engine against Google/Netflix/TikTok | "How good is our engine really?" |
-| **bug-fixer** | Surgical scorer fixer — root causes, groups, fixes | After test failures (COO auto-spawns) |
-| **gen-test-queries** | Generates diverse test queries from Chicago personas | "We need more test coverage" |
-| **perf-optimizer** | Sub-8s response time guardian | "Responses feel slow" |
-| **db-reviewer** | Audits 2,719 restaurant profiles for accuracy | "Is our data fresh and complete?" |
-| **update-docs** | Keeps all documentation current | Auto after changes (COO handles) |
-| **ceo-advisor** | Board-level product strategist | "What should we build next?" |
-| **donde-premium-advisor** | $50B app quality assessor | "Are we premium enough?" |
-| **donde-ciso** | Security auditor across 10 domains | "Are we secure for launch?" |
-| **uat-tester** | Browser testing via Playwright | "Test the actual UI" |
+| Agent | Division | One-Line Description | When You'd Use Them |
+|-------|----------|---------------------|-------------------|
+| **COO** | Lead | Your VP Engineering — orchestrates everything | Always. Your primary interface. |
+| **frontend-builder** | Frontend | Builds UI components from specs | "Build me a [feature]" |
+| **frontend-fixer** | Frontend | Fixes UI bugs — root causes, groups, fixes | "These UI bugs need fixing" |
+| **css-theme-specialist** | Frontend | Owns 10 cultural theme variants | "Check theme coverage" |
+| **uat-tester** | Frontend | Browser testing via Playwright | "Test the actual UI" |
+| **analytics-expert** | Quality | Scores the engine against Google/Netflix/TikTok | "How good is our engine really?" |
+| **bug-fixer** | Quality | Surgical scorer fixer — root causes, groups, fixes | After test failures (COO auto-spawns) |
+| **gen-test-queries** | Quality | Generates diverse test queries from Chicago personas | "We need more test coverage" |
+| **continuous-tester** | Quality | Automated golden dataset + regression guard | "Run tests" (COO auto-spawns) |
+| **prod-sentinel** | Infra | Monitors API errors, cache health, quality trends | "Check production health" |
+| **perf-optimizer** | Infra | Sub-8s response time guardian | "Responses feel slow" |
+| **db-reviewer** | Infra | Audits 2,719 restaurant profiles for accuracy | "Is our data fresh and complete?" |
+| **update-docs** | Infra | Keeps all documentation current | Auto after changes (COO handles) |
+| **ceo-advisor** | Product | Board-level product strategist | "What should we build next?" |
+| **donde-premium-advisor** | Product | $50B app quality assessor | "Are we premium enough?" |
+| **donde-ciso** | Security | Security auditor across 10 domains | "Are we secure for launch?" |
 
 ### You Should Never Need To
 
 - Spawn agents directly (COO does this)
 - Read test output files (COO summarizes)
 - Debug scoring engine code (bug-fixer handles)
+- Write CSS/HTML yourself (frontend-builder does this)
+- Fix UI bugs manually (frontend-fixer handles)
+- Check theme variants (css-theme-specialist handles)
 - Check CI/CD status (COO monitors)
 - Sync documentation (update-docs auto-runs)
+- Monitor production health (prod-sentinel handles)
 - Worry about $0 operations (all safe, all reversible)
 
 ---
@@ -232,17 +246,13 @@ COO checks for regressions, CI failures, security issues. Reports only what's es
        |
        | natural language commands
        |
-     COO (team lead)
+     COO (team lead) ─── 225 lines, 5 divisions, 16 agents
        |
-       +-- SendMessage (direct) -----> Individual agents
-       |
-       +-- SendMessage (broadcast) --> All agents (emergencies only)
-       |
-       +-- TaskCreate/TaskUpdate -----> Shared task list
-       |
-       +-- Agent (spawn) ------------> New teammates into team
-       |
-       +-- shutdown_request ----------> Graceful team teardown
+       +── Quality ────── analyst, fixer, query-gen, tester
+       +── Infrastructure ─ profiler, auditor, documenter, sentinel
+       +── Frontend ────── builder, ui-fixer, themer, ux, frontenddesign
+       +── Product ─────── strategist, designer
+       +── Security ────── security (donde-ciso)
 ```
 
 **Key insight:** You talk to the COO in natural language. The COO translates your intent into structured agent operations, task lists, and real-time coordination via SendMessage. You never need to learn the tooling — just tell the COO what you want.

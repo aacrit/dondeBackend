@@ -24,35 +24,47 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 
 ## Agents
 
-| Agent | Purpose | Trigger |
-|-------|---------|---------|
-| `donde-coo` | **COO super-agent** — orchestrates all agents across 4 divisions, runs quality cycles, coordinates cross-repo changes, reports to CEO | Auto on significant changes, manual |
-| `ceo-advisor` | Strategic product advisor — Top 10 prioritized recommendations | Manual |
-| `donde-premium-advisor` | Premium app audit (UI polish, backend, marketing psychology, Claude Code mastery) | Manual |
-| `donde-ciso` | Security audit across 10 domains — severity-ranked findings with remediation | Manual or auto on security changes |
-| `update-docs` | Scans codebase and updates all MD files to reflect current state | Auto when Claude judges changes are significant |
-| `gen-test-queries` | Generates 10 diverse, persona-driven test queries (1000-query repository) | Manual |
-| `analytics-expert` | Chief Analytics Officer — benchmarks engine, implements quick-wins, CEO report | Manual or auto on scoring changes |
-| `db-reviewer` | Database quality audit — accuracy, freshness, completeness, cross-field consistency | Manual or auto after enrichment runs |
-| `perf-optimizer` | Response time optimizer — profiles latency waterfall, audits timeouts, implements safe optimizations | Manual or auto on timeout/latency issues |
-| `uat-tester` | UAT super-user — browses DondeAI UIs via Playwright, inspects every element for bugs, UX, accessibility, visual consistency | Manual |
-| `bug-fixer` | Post-test bug fixer — ingests golden-dataset failures, root-causes, groups, fixes scoring/blurb/grading code, deploys | Auto after test failures |
+| Agent | Division | Purpose | Trigger |
+|-------|----------|---------|---------|
+| `donde-coo` | Lead | **COO** — orchestrates all agents across 5 divisions, runs quality cycles, reports to CEO | Auto on significant changes, manual |
+| `analytics-expert` | Quality | Chief Analytics Officer — benchmarks engine, implements quick-wins | Manual or auto on scoring changes |
+| `bug-fixer` | Quality | Post-test bug fixer — root-causes, groups, fixes scoring/blurb/grading code | Auto after test failures |
+| `gen-test-queries` | Quality | Generates 10 diverse, persona-driven test queries | Manual |
+| `continuous-tester` | Quality | Automated test runner — golden dataset + regression guard after deploys | After deploys, manual |
+| `perf-optimizer` | Infra | Response time optimizer — latency waterfall, timeout prevention | Manual or auto on latency issues |
+| `db-reviewer` | Infra | Database quality audit — accuracy, freshness, consistency | Manual or auto after enrichment |
+| `update-docs` | Infra | Scans codebase and updates all MD files | Auto on significant changes |
+| `prod-sentinel` | Infra | Production monitoring — error rates, cache health, quality trends | Scheduled or manual |
+| `ceo-advisor` | Product | Strategic product advisor — Top 10 prioritized recommendations | Manual |
+| `donde-premium-advisor` | Product | Premium app audit ($50B caliber assessment) | Manual |
+| `donde-ciso` | Security | Security audit across 10 domains — severity-ranked findings | Manual or auto on security changes |
+| `uat-tester` | Frontend | UAT browser testing via Playwright — bugs, UX, accessibility | Manual |
 
-All agents in `.claude/agents/`. Spawn via the Agent tool or `/agents` dialog. Reference files for premium-advisor in `docs/references/premium-advisor/`.
+Frontend agents (in `../dondeAI/.claude/agents/`): `frontend-builder` (component engineering), `frontend-fixer` (UI bug remediation), `css-theme-specialist` (10 theme variants). Frontend skill: `frontenddesign` (design system enforcement).
+
+All backend agents in `.claude/agents/`. Spawn via the Agent tool or `/agents` dialog.
 
 ## Agent Hierarchy
 
-The COO (`donde-coo`) is the **super-agent** that orchestrates all other agents. Every agent reports to the COO, and the COO reports directly to the CEO. When any agent completes work, results flow through the COO for aggregation and prioritization.
+The COO (`donde-coo`) orchestrates all agents across **5 divisions**. Every agent reports to the COO, and the COO reports directly to the CEO.
 
-**Divisions:** Quality (analytics-expert, bug-fixer, gen-test-queries) | Infrastructure (perf-optimizer, db-reviewer, update-docs) | Product (ceo-advisor, donde-premium-advisor, frontenddesign) | Security (donde-ciso, uat-tester)
+```
+CEO (Aacrit)
+  └── COO (donde-coo)
+        ├── Quality ———— analytics-expert, bug-fixer, gen-test-queries, continuous-tester
+        ├── Infrastructure — perf-optimizer, db-reviewer, update-docs, prod-sentinel
+        ├── Frontend ———— frontend-builder, frontend-fixer, css-theme-specialist, uat-tester, frontenddesign
+        ├── Product ————— ceo-advisor, donde-premium-advisor
+        └── Security ———— donde-ciso
+```
 
-**Escalation:** CRITICAL findings from any agent auto-escalate to COO. COO escalates to CEO with "The Bottom Line" summary.
+**Escalation:** CRITICAL findings auto-escalate to COO → CEO with "The Bottom Line" summary.
 
-**Team Orchestration:** COO uses `TeamCreate` + `SendMessage` + `TaskCreate` for real-time multi-agent coordination. See `docs/TEAM-OPERATIONS.md` for full protocol. CEO operates through natural language commands — see `docs/CEO-QUICK-REFERENCE.md`.
+**Team Orchestration:** COO uses `TeamCreate` + `SendMessage` + `TaskCreate` for real-time multi-agent coordination. See `docs/TEAM-OPERATIONS.md` for full protocol. CEO guide: `docs/CEO-QUICK-REFERENCE.md`.
 
-**Projects:** Alpha (quality automation) | Bravo (cross-repo sync) | Charlie (cache intelligence) | Delta (competitive intel) | Echo (launch readiness). All $0 cost. Details in `docs/TEAM-OPERATIONS.md`.
+**Projects:** Alpha (quality automation) | Bravo (cross-repo sync) | Charlie (cache intelligence) | Delta (competitive intel) | Echo (launch readiness). All $0 cost.
 
-**Change notification:** COO should be spawned after significant code changes to run a quality cycle. It detects changes via git log, CI/CD status, and gauntlet_runs queries.
+**Change notification:** COO should be spawned after significant code changes to run a quality cycle.
 
 ## Tests
 

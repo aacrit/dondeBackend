@@ -17,29 +17,29 @@ Last updated: 2026-03-15
                                 |
                     +-----------+-----------+
                     |     COO (team lead)   |
-                    |   donde-coo           |
+                    |   donde-coo (225 ln)  |
                     |   TeamCreate owner     |
                     |   SendMessage hub      |
                     +-----------+-----------+
                                 |
-          +----------+----------+----------+----------+
-          |          |          |          |          |
-    QUALITY     INFRASTRUCTURE  PRODUCT    SECURITY
-    DIVISION    DIVISION        DIVISION   DIVISION
-          |          |          |          |
-    analytics    perf-         ceo-       donde-
-    -expert      optimizer     advisor    ciso
-          |          |          |          |
-    bug-fixer    db-reviewer   donde-     uat-tester
-          |          |          premium-
-    gen-test-    update-docs   advisor
-    queries          |
-          |     [fullstack-    [ux-
-    [continuous-  deployer]    innovator]
-     tester]                   [engine-
-                               innovator]
-
-    [ ] = PLANNED agents
+     +----------+----------+----------+----------+----------+
+     |          |          |          |          |          |
+  QUALITY   INFRASTRUC-  FRONTEND   PRODUCT    SECURITY
+  DIVISION  TURE DIV     DIVISION   DIVISION   DIVISION
+     |          |          |          |          |
+  analytics  perf-       frontend-  ceo-       donde-
+  -expert    optimizer   builder    advisor    ciso
+     |          |          |          |
+  bug-fixer  db-reviewer frontend-  donde-
+     |          |        fixer      premium-
+  gen-test-  update-docs   |        advisor
+  queries       |        css-theme-
+     |       prod-       specialist
+  continuous sentinel       |
+  -tester                uat-tester
+                            |
+                         frontenddesign
+                         (skill)
 ```
 
 ### Division Missions
@@ -48,8 +48,9 @@ Last updated: 2026-03-15
 |----------|---------|---------------|--------|
 | **Quality** | "Nothing ships below B-" | Golden dataset pass rate | 95%+ |
 | **Infrastructure** | "The system runs itself" | Doc freshness + P95 latency | <1 day drift, <8s |
+| **Frontend** | "Ship-ready UI" | Smoke test + theme coverage | 10/10, 10/10 |
 | **Product** | "Every release moves the needle" | Feature completion + premium score | 95%+, 90/100 |
-| **Security** | "No surprises in production" | Security posture + UAT pass | 85/100, 100% critical |
+| **Security** | "No surprises in production" | Security posture | 85/100+ |
 
 ---
 
@@ -57,17 +58,22 @@ Last updated: 2026-03-15
 
 | Agent | Division | Tools | Cost | Trigger | Output |
 |-------|----------|-------|------|---------|--------|
+| `donde-coo` | **Lead** | All tools | $0.00 | Auto/manual | CEO briefing + orchestration |
 | `analytics-expert` | Quality | Read, Grep, Glob, Bash, Edit, Write | $0.20 max | Manual, post-scoring changes | CEO report + quick-wins |
 | `bug-fixer` | Quality | Read, Grep, Glob, Bash, Edit, Write | $0.00 | Post-test failures | Root cause fixes + CEO report |
 | `gen-test-queries` | Quality | Read, Write, Edit, Bash | $0.00 | Manual | 10 persona-driven queries |
+| `continuous-tester` | Quality | Read, Grep, Glob, Bash | $0.00 | Post-deploy, manual | Test results + retest handoff |
 | `perf-optimizer` | Infra | Read, Grep, Glob, Bash, Edit, Write | $0.00 | Manual, latency issues | Latency waterfall + optimizations |
 | `db-reviewer` | Infra | Read, Grep, Glob, Bash, Edit, Write | $0.00 | Manual, post-enrichment | Data quality audit |
 | `update-docs` | Infra | Read, Grep, Glob, Bash, Edit, Write | $0.00 | Auto after significant changes | Updated MD files |
+| `prod-sentinel` | Infra | Read, Grep, Glob, Bash | $0.00 | Scheduled, manual | Production health report |
+| `frontend-builder` | Frontend | Read, Grep, Glob, Bash, Edit, Write | $0.00 | CEO directives, COO tasks | Built UI components |
+| `frontend-fixer` | Frontend | Read, Grep, Glob, Bash, Edit, Write | $0.00 | UAT failures, visual bugs | Root cause fixes + report |
+| `css-theme-specialist` | Frontend | Read, Grep, Glob, Bash, Edit, Write | $0.00 | New components, theme bugs | Theme coverage report |
+| `uat-tester` | Frontend | All tools | $0.00 | Manual | Playwright test results |
 | `ceo-advisor` | Product | Read, Grep, Glob, Bash | $0.00 | Manual | Top 10 recommendations |
 | `donde-premium-advisor` | Product | Read, Grep, Glob, Bash | $0.00 | Manual | Premium app audit |
 | `donde-ciso` | Security | Read, Grep, Glob, Bash | $0.00 | Manual, security changes | Severity-ranked findings |
-| `uat-tester` | Security | All tools | $0.00 | Manual | Playwright test results |
-| `donde-coo` | **Lead** | All tools | $0.00 | Auto/manual | CEO briefing + orchestration |
 
 ---
 
@@ -720,19 +726,24 @@ Step 6: CEO Briefing → Shutdown → TeamDelete
 
 When spawning agents into a team, use short, role-based names:
 
-| Agent Type | Team Name | Purpose |
-|-----------|-----------|---------|
-| `analytics-expert` | `analyst` | Shorter, role-clear |
-| `bug-fixer` | `fixer` | Action-oriented |
-| `gen-test-queries` | `query-gen` | Descriptive |
-| `perf-optimizer` | `profiler` | What they do |
-| `db-reviewer` | `auditor` | Role in context |
-| `update-docs` | `documenter` | Clear responsibility |
-| `ceo-advisor` | `strategist` | Strategic perspective |
-| `donde-premium-advisor` | `designer` | Design perspective |
-| `donde-ciso` | `security` | Domain name |
-| `uat-tester` | `ux` | What they test |
-| `donde-coo` | `coo` | Always the lead |
+| Agent Type | Team Name | Division |
+|-----------|-----------|----------|
+| `donde-coo` | `coo` | Lead |
+| `analytics-expert` | `analyst` | Quality |
+| `bug-fixer` | `fixer` | Quality |
+| `gen-test-queries` | `query-gen` | Quality |
+| `continuous-tester` | `tester` | Quality |
+| `perf-optimizer` | `profiler` | Infra |
+| `db-reviewer` | `auditor` | Infra |
+| `update-docs` | `documenter` | Infra |
+| `prod-sentinel` | `sentinel` | Infra |
+| `frontend-builder` | `builder` | Frontend |
+| `frontend-fixer` | `ui-fixer` | Frontend |
+| `css-theme-specialist` | `themer` | Frontend |
+| `uat-tester` | `ux` | Frontend |
+| `ceo-advisor` | `strategist` | Product |
+| `donde-premium-advisor` | `designer` | Product |
+| `donde-ciso` | `security` | Security |
 
 ---
 
@@ -767,14 +778,25 @@ Each cycle should improve at least one metric. If no metrics improve for 3 conse
 
 ---
 
-## Planned Agent Expansion
+## Agent Expansion Log
+
+### Shipped (Project Phoenix — 2026-03-15)
+
+| Agent | Division | Gap Filled |
+|-------|----------|-----------|
+| `frontend-builder` | Frontend | No agent could build frontend components |
+| `frontend-fixer` | Frontend | No agent could fix UI bugs systematically |
+| `css-theme-specialist` | Frontend | No agent owned 10 cultural theme variants |
+| `continuous-tester` | Quality | No automated test execution after deploys |
+| `prod-sentinel` | Infra | No production monitoring or anomaly detection |
+
+### Planned (Future)
 
 | Agent | Division | Status | Gap Filled | Priority |
 |-------|----------|--------|-----------|----------|
-| `continuous-tester` | Quality | PLANNED | Automated test execution | HIGH — enables Project Alpha |
-| `fullstack-deployer` | Infra | PLANNED | Cross-repo sync | HIGH — enables Project Bravo |
-| `ux-innovator` | Product | PLANNED | UI/UX proposals | MEDIUM — future sprints |
-| `engine-innovator` | Product | PLANNED | Scoring R&D | MEDIUM — future sprints |
+| `fullstack-deployer` | Infra | PLANNED | Cross-repo sync coordination | MEDIUM |
+| `ux-innovator` | Product | PLANNED | UI/UX innovation proposals | LOW |
+| `engine-innovator` | Product | PLANNED | Scoring algorithm R&D | LOW |
 | `learning-agent` | Quality | PLANNED | Personalization pipeline | LOW — post Learning Flywheel |
 
 New agents are created only when:
