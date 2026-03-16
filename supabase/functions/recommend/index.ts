@@ -888,6 +888,53 @@ Deno.serve(async (req: Request) => {
       return jsonResponse(buildV9NoResultsResponse(neighborhood, price_level), 200, requestOrigin);
     }
 
+    // V19: bug-fixer — Neighborhood candidate injection
+    // When a neighborhood is detected from the query, the RPC's +5 neighborhood bonus
+    // may be too weak to surface neighborhood restaurants in the top 50. If no candidates
+    // from the target neighborhood appear, do a supplementary RPC with a larger limit
+    // and inject matching neighborhood restaurants into the candidate pool.
+    if (neighborhood !== "Anywhere" && finalRpcData && finalRpcData.length > 0) {
+      const neighborhoodLower = neighborhood.toLowerCase();
+      const hasNeighborhoodCandidate = (finalRpcData as Record<string, unknown>[]).some(
+        (row) => ((row.neighborhood_name as string) || "").toLowerCase() === neighborhoodLower
+      );
+      if (!hasNeighborhoodCandidate && (Date.now() - startTime) < 6000) {
+        logInfo("V19: No candidates from target neighborhood, injecting", { neighborhood });
+        const injDeadline = Math.max(2000, Math.min(3000, 15000 - (Date.now() - startTime) - 8000));
+        const { data: injData } = await rpcWithTimeout(
+          supabase.rpc("get_candidates_v11", {
+            p_query: special_request || null,
+            p_neighborhood: neighborhood,
+            p_occasion: occasion,
+            p_limit: 200,
+            p_exclude: exclude,
+            p_target_cuisines: targetCuisines,
+            p_target_tags: targetTags,
+            p_semantic_tags: semanticTags,
+          }).then(result => {
+            if (result.error?.message?.includes("get_candidates_v11")) {
+              return supabase.rpc("get_candidates_v10", { p_query: special_request || null, p_neighborhood: neighborhood, p_occasion: occasion, p_limit: 200, p_exclude: exclude, p_target_cuisines: targetCuisines, p_target_tags: targetTags });
+            }
+            return result;
+          }),
+          injDeadline,
+        );
+        if (injData?.length) {
+          const existingIds = new Set((finalRpcData as Record<string, unknown>[]).map(r => r.id as string));
+          const neighborhoodCandidates = (injData as Record<string, unknown>[])
+            .filter((row: Record<string, unknown>) =>
+              !existingIds.has(row.id as string) &&
+              ((row.neighborhood_name as string) || "").toLowerCase() === neighborhoodLower
+            )
+            .slice(0, 10);
+          if (neighborhoodCandidates.length > 0) {
+            finalRpcData = [...(finalRpcData as Record<string, unknown>[]), ...neighborhoodCandidates] as typeof finalRpcData;
+            logInfo("V19: Injected neighborhood candidates", { count: neighborhoodCandidates.length, neighborhood });
+          }
+        }
+      }
+    }
+
     // ================================================================
     // STEP 2: Map RPC results to V9Candidate (RestaurantProfile + review intelligence)
     // ================================================================
