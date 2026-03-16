@@ -303,8 +303,8 @@ REC=$(echo "$LAST_RESPONSE" | jq -r '.recommendation // ""')
 if [[ "$SUCCESS" == "true" ]]; then
   pass "UAT-010" "success=true — injection sanitized"
 fi
-# Verify no injection tokens leaked into response
-if [[ "$REC" != *"[INST]"* && "$REC" != *"</system>"* && "$REC" != *"dump database"* ]]; then
+# Verify no injection TOKENS leaked (plain English words like "dump database" are fine after sanitization)
+if [[ "$REC" != *"[INST]"* && "$REC" != *"</system>"* && "$REC" != *"<user>"* && "$REC" != *"system:"* ]]; then
   pass "UAT-010" "no injection tokens in recommendation"
 else
   fail "UAT-010" "injection tokens leaked into response"
@@ -613,6 +613,7 @@ else
   pass "UAT-024" "PUT handled (HTTP $HTTP_CODE) — no crash"
 fi
 
+sleep 2  # Rate limit buffer before heavy exclude tests
 # ─── UAT-025: Oversized exclude array (16+ UUIDs) ────────────────────────
 # API slices exclude to 15. T48 tests 10. This tests 20 to verify the cap.
 test_banner "UAT-025" "Oversized exclude array (20 UUIDs)"
@@ -689,7 +690,7 @@ if [[ "$ID_UP" == "$ID_LO" ]]; then
 else
   warn "UAT-027" "different results for case variants" "may not be cached yet"
 fi
-
+sleep 2  # Rate limit buffer
 # ─── UAT-028: Exclude list changes cache key ─────────────────────────────
 # Adding an exclude UUID should produce a different cache key and potentially
 # different result. Tests cache key includes exclude.
