@@ -63,7 +63,7 @@ import type {
   PersonalizationResult,
 } from "./_shared/types-v9.ts";
 import { getScoreTier } from "./_shared/types-v9.ts";
-import { buildReservationLinks } from "./_shared/reservation-links.ts";
+import { buildReservationLinks, checkResyAvailability } from "./_shared/reservation-links.ts";
 import type { ReservationRow, ReservationLinks as ReservationLinksType } from "./_shared/reservation-links.ts";
 
 const API_VERSION = "11.0.0";
@@ -1177,13 +1177,13 @@ Deno.serve(async (req: Request) => {
           .eq("restaurant_id", chosenRestaurantId)
           .eq("is_active", true)
           .order("priority", { ascending: true })
-          .then(({ data, error }) => {
+          .then(async ({ data, error }) => {
             if (error || !data || data.length === 0) return null;
             const phone = rerankedScored[0]?.googleData?.phone || null;
             const website = rerankedScored[0]?.googleData?.website || null;
             const resDifficulty = rerankedScored[0]?.profile?.deep_profile?.reservation_difficulty || null;
             const googleReservable = rerankedScored[0]?.googleData?.reservable ?? null;
-            return buildReservationLinks(
+            const links = buildReservationLinks(
               data as ReservationRow[],
               phone,
               website,
@@ -1191,6 +1191,14 @@ Deno.serve(async (req: Request) => {
               undefined, // params
               googleReservable,
             );
+            // Resy real-time availability (2s timeout, best-effort)
+            const resyRow = (data as ReservationRow[]).find(
+              r => r.platform === "resy" && r.platform_id
+            );
+            if (resyRow?.platform_id) {
+              links.availability = await checkResyAvailability(resyRow.platform_id);
+            }
+            return links;
           })
           .catch(() => null)
       : Promise.resolve(null);
