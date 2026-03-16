@@ -2,7 +2,7 @@
  * Project Foxtrot — Reservation Link Builder
  *
  * Builds reservation deep links for restaurant recommendations.
- * Supports: Resy, OpenTable, Tock, Yelp, direct booking, phone fallback.
+ * Supports: Resy, OpenTable, direct booking, phone fallback.
  *
  * Usage:
  *   const links = buildReservationLinks(restaurant, reservationRows, deepProfile);
@@ -57,8 +57,6 @@ export interface ReservationLinks {
 const PLATFORM_DISPLAY: Record<string, string> = {
   resy: "Reserve on Resy",
   opentable: "Reserve on OpenTable",
-  tock: "Reserve on Tock",
-  yelp: "Reserve on Yelp",
   direct: "Book directly",
   phone: "Call for reservations",
 };
@@ -122,14 +120,6 @@ const PLATFORM_URL_BUILDERS: Record<string, (slug: string, id?: string | null) =
     template: id
       ? `https://www.opentable.com/r/${slug}?restref=${id}&datetime={date}T{time}&covers={covers}`
       : `https://www.opentable.com/r/${slug}?datetime={date}T{time}&covers={covers}`,
-  }),
-  tock: (slug: string) => ({
-    url: `https://www.exploretock.com/${slug}`,
-    template: `https://www.exploretock.com/${slug}`,
-  }),
-  yelp: (slug: string) => ({
-    url: `https://www.yelp.com/reservations/${slug}-chicago`,
-    template: `https://www.yelp.com/reservations/${slug}-chicago`,
   }),
 };
 

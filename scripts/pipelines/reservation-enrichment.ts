@@ -6,13 +6,11 @@
  *
  * Strategy per platform:
  *   OpenTable: HTTP GET validation (200=found, 404=not) — broadest coverage, reliable
- *   Resy:     Optimistic deep links for $$$/$$$$+ restaurants (SPA can't validate server-side)
- *   Tock:     Optimistic deep links for fine dining / $$$$ (403 blocks validation)
+ *   Resy:     Optimistic deep links for $$+ restaurants (validated via resy-enrichment.ts)
  *
  * Modes:
  *   --platform opentable    Full validated scan (1.2s/req, ~55 min for 2,720)
  *   --platform resy         Optimistic links for upscale restaurants (instant, no HTTP)
- *   --platform tock         Optimistic links for fine dining (instant, no HTTP)
  *   (no flag)               All platforms in sequence
  *
  * Usage:
@@ -178,29 +176,6 @@ function enrichResy(
 }
 
 // ==========================================
-// TOCK — Optimistic links for fine dining
-// ==========================================
-// Tock blocks automated requests (403). Store unverified deep links for
-// $$$/$$$$ fine dining and tasting menu restaurants.
-
-function enrichTock(
-  restaurants: Restaurant[],
-  existingVerified: Set<string>,
-  supabase: ReturnType<typeof createAdminClient>,
-  opts: { dryRun: boolean; limit: number; reverify: boolean; verbose: boolean },
-) {
-  return enrichOptimistic(restaurants, existingVerified, supabase, opts, {
-    platform: 'tock',
-    priority: 25,
-    // Tock targets: $$$ and $$$$ only (fine dining, tasting menus)
-    priceFilter: (p: string | null) => p === '$$$' || p === '$$$$',
-    buildUrl: (slug: string) => `https://www.exploretock.com/${slug}`,
-    buildTemplate: (slug: string) => `https://www.exploretock.com/${slug}`,
-    slugFn: slugNoAnd,
-  });
-}
-
-// ==========================================
 // OPTIMISTIC ENRICHMENT (no HTTP validation)
 // ==========================================
 
@@ -353,7 +328,7 @@ async function main() {
   console.log('PROJECT FOXTROT M2: Reservation Platform Enrichment');
   console.log('='.repeat(60));
   console.log(`Mode: ${dryRun ? 'DRY RUN' : 'LIVE'}`);
-  console.log(`Platform: ${targetPlatform || 'ALL (opentable + resy + tock)'}`);
+  console.log(`Platform: ${targetPlatform || 'ALL (opentable + resy)'}`);
   console.log(`Limit: ${limitArg || 'ALL restaurants'}`);
   console.log('');
 
@@ -407,10 +382,9 @@ async function main() {
   const platformMap: Record<string, EnrichFn> = {
     opentable: enrichOpenTable,
     resy: enrichResy,
-    tock: enrichTock,
   };
 
-  const platformOrder = targetPlatform ? [targetPlatform] : ['resy', 'tock', 'opentable'];
+  const platformOrder = targetPlatform ? [targetPlatform] : ['resy', 'opentable'];
   const opts = { dryRun, limit: limitArg, reverify, verbose };
   const results: Record<string, { checked: number; found: number; errors: number; skipped: number }> = {};
 
@@ -423,7 +397,7 @@ async function main() {
 
     console.log(`\n${'─'.repeat(50)}`);
     const validated = pName === 'opentable';
-    console.log(`${pName.toUpperCase()} — ${validated ? 'HTTP validated' : 'optimistic deep links'} (priority ${pName === 'resy' ? 20 : pName === 'tock' ? 25 : 30})`);
+    console.log(`${pName.toUpperCase()} — ${validated ? 'HTTP validated' : 'optimistic deep links'} (priority ${pName === 'resy' ? 20 : 30})`);
     console.log('─'.repeat(50));
 
     const stats = await fn(allRestaurants, existingKeys, supabase, opts);
