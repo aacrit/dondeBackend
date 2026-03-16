@@ -89,13 +89,16 @@ function isMatch(dbName: string, resyHit: ResySearchHit): boolean {
   // Exact match
   if (a === b) return true;
 
-  // One contains the other (handles "Bavette's Bar & Boeuf - Chicago" vs "Bavette's Bar & Boeuf")
-  if (a.includes(b) || b.includes(a)) return true;
+  // Strip common suffixes for comparison: "- Chicago", "Restaurant", etc.
+  const strip = (s: string) => s.replace(/\s*(chicago|restaurant|bar|grill|cafe|caf)\s*$/i, '').trim();
+  const aStrip = strip(a);
+  const bStrip = strip(b);
+  if (aStrip === bStrip) return true;
 
-  // First 2 words match (handles name variations)
-  const wordsA = a.split(' ').slice(0, 2).join(' ');
-  const wordsB = b.split(' ').slice(0, 2).join(' ');
-  if (wordsA.length >= 4 && wordsA === wordsB) return true;
+  // One contains the other — but require the contained string is substantial (>60% of the longer)
+  const longer = Math.max(a.length, b.length);
+  if (a.includes(b) && b.length / longer > 0.6) return true;
+  if (b.includes(a) && a.length / longer > 0.6) return true;
 
   return false;
 }
