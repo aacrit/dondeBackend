@@ -61,6 +61,8 @@ import type {
   PersonalizationResult,
 } from "./_shared/types-v9.ts";
 import { getScoreTier } from "./_shared/types-v9.ts";
+import { buildReservationLinks } from "./_shared/reservation-links.ts";
+import type { ReservationRow, ReservationLinks as ReservationLinksType } from "./_shared/reservation-links.ts";
 
 const API_VERSION = "11.0.0";
 
@@ -1154,6 +1156,32 @@ Deno.serve(async (req: Request) => {
     }
 
     // ================================================================
+    // STEP 6.6: Fetch reservation links for chosen restaurant (parallel, non-blocking)
+    // ================================================================
+    const chosenRestaurantId = rerankedScored[0]?.profile?.id;
+    const reservationPromise: Promise<ReservationLinksType | null> = chosenRestaurantId
+      ? supabase
+          .from("restaurant_reservations")
+          .select("platform, platform_id, platform_slug, booking_url, url_template, priority, is_verified")
+          .eq("restaurant_id", chosenRestaurantId)
+          .eq("is_active", true)
+          .order("priority", { ascending: true })
+          .then(({ data, error }) => {
+            if (error || !data || data.length === 0) return null;
+            const phone = rerankedScored[0]?.googleData?.phone || null;
+            const website = rerankedScored[0]?.googleData?.website || null;
+            const resDifficulty = rerankedScored[0]?.profile?.deep_profile?.reservation_difficulty || null;
+            return buildReservationLinks(
+              data as ReservationRow[],
+              phone,
+              website,
+              resDifficulty,
+            );
+          })
+          .catch(() => null)
+      : Promise.resolve(null);
+
+    // ================================================================
     // STEP 7: Build Claude prompt — full pool + top 3 deep profiles
     // ================================================================
     let responseBody: Record<string, unknown>;
@@ -1365,6 +1393,9 @@ Deno.serve(async (req: Request) => {
         chosenGoogleData = await fetchPlaceDetails(chosen.profile.google_place_id);
       }
 
+      // Resolve reservation links (launched in Step 6.6, non-blocking)
+      const reservationLinks = await reservationPromise;
+
       // Skip closed restaurants
       if (chosenGoogleData?.business_status === "CLOSED_PERMANENTLY") {
         logWarn("V9: Chosen restaurant permanently closed, picking next", { name: chosen.profile.name });
@@ -1394,7 +1425,7 @@ Deno.serve(async (req: Request) => {
           responseBody = buildV9SuccessResponse(
             nextChosen.profile, parsed, nextGoogle, nextChosen.dondeMatch,
             v9Result, null, rankedQueue,
-            needsQualityCallout, neighborhoodExpanded,
+            needsQualityCallout, neighborhoodExpanded, reservationLinks,
           );
         } else {
           const v9Result: V9ScoreResult = {
@@ -1409,7 +1440,7 @@ Deno.serve(async (req: Request) => {
           };
           responseBody = buildV9FallbackResponse(
             chosen.profile, chosenGoogleData, 55,
-            v9Result, rankedQueue, special_request,
+            v9Result, rankedQueue, special_request, reservationLinks,
           );
         }
       } else {
@@ -1433,7 +1464,7 @@ Deno.serve(async (req: Request) => {
         responseBody = buildV9SuccessResponse(
           chosen.profile, parsed, chosenGoogleData, dondeMatch,
           v9Result, intentBoost, rankedQueue,
-          needsQualityCallout, neighborhoodExpanded,
+          needsQualityCallout, neighborhoodExpanded, reservationLinks,
         );
       }
 
@@ -1584,6 +1615,7 @@ Deno.serve(async (req: Request) => {
       if (!chosenGoogleData && chosen.profile.google_place_id) {
         chosenGoogleData = await fetchPlaceDetails(chosen.profile.google_place_id);
       }
+      const reservationLinks = await reservationPromise;
 
       // Skip closed restaurant in fallback
       if (chosenGoogleData?.business_status === "CLOSED_PERMANENTLY" && rerankedScored.length > 1) {
@@ -1602,7 +1634,7 @@ Deno.serve(async (req: Request) => {
           dataCompleteness: nextChosen.dataCompleteness,
         };
         responseBody = buildV9FallbackResponse(
-          nextChosen.profile, nextGoogle, nextChosen.dondeMatch, v9Result, rankedQueue, special_request,
+          nextChosen.profile, nextGoogle, nextChosen.dondeMatch, v9Result, rankedQueue, special_request, reservationLinks,
         );
       } else {
         const v9Result: V9ScoreResult = {
@@ -1616,7 +1648,7 @@ Deno.serve(async (req: Request) => {
           dataCompleteness: chosen.dataCompleteness,
         };
         responseBody = buildV9FallbackResponse(
-          chosen.profile, chosenGoogleData, chosen.dondeMatch, v9Result, rankedQueue, special_request,
+          chosen.profile, chosenGoogleData, chosen.dondeMatch, v9Result, rankedQueue, special_request, reservationLinks,
         );
       }
     }

@@ -26,6 +26,7 @@ import type {
   V9FactorConfidence,
   V9QualityWeights,
 } from "./types-v9.ts";
+import type { ReservationLinks } from "./reservation-links.ts";
 
 // ==========================================
 // INTERNAL HELPERS
@@ -800,6 +801,7 @@ export function buildV9SuccessResponse(
   rankedQueue: Record<string, unknown>[],
   qualityCallout?: boolean,
   neighborhoodExpanded?: boolean,
+  reservationLinks?: ReservationLinks | null,
 ): Record<string, unknown> {
   const scoringV9 = buildScoringV9(
     v9Result.factors,
@@ -841,6 +843,7 @@ export function buildV9SuccessResponse(
     scores: buildScores(chosen),
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
+    reservation_links: reservationLinks || undefined,
     timestamp: new Date().toISOString(),
   };
 }
@@ -855,6 +858,7 @@ export function buildV9FallbackResponse(
   v9Result: V9ScoreResult,
   rankedQueue: Record<string, unknown>[],
   specialRequest?: string,
+  reservationLinks?: ReservationLinks | null,
 ): Record<string, unknown> {
   const scoringV9 = buildScoringV9(
     v9Result.factors,
@@ -880,6 +884,7 @@ export function buildV9FallbackResponse(
     scores: buildScores(chosen),
     tags: chosen.tags,
     deep_context: buildDeepContext(chosen),
+    reservation_links: reservationLinks || undefined,
     timestamp: new Date().toISOString(),
   };
 }
