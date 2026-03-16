@@ -36,12 +36,18 @@ export interface ReservationFallback {
   display_name: string;
 }
 
+export interface AvailabilitySlot {
+  time: string;       // "7:00 PM"
+  type: string | null; // "Dining Room", "Bar", "Patio"
+}
+
 export interface ReservationLinks {
   primary: ReservationLink | null;
   alternatives: ReservationLink[];
   fallback: ReservationFallback;
   reservation_difficulty: string | null;
   booking_tip: string | null;
+  availability: AvailabilitySlot[] | null; // Real-time slots (Resy)
 }
 
 // ==========================================
@@ -152,6 +158,73 @@ function generateBookingTip(
 }
 
 // ==========================================
+// RESY REAL-TIME AVAILABILITY (public client API, $0)
+// ==========================================
+
+const RESY_API_KEY = "VbWk7s3L4KiK5fzlO7JD3Q5EYolJI7n5";
+
+/**
+ * Check Resy real-time availability for a venue.
+ * Uses Resy's public client API key (same as their website).
+ * Returns up to 3 next available time slots.
+ * Timeout: 2s (non-blocking, availability is a nice-to-have).
+ */
+export async function checkResyAvailability(
+  resyVenueId: string,
+  partySize = 2,
+): Promise<AvailabilitySlot[]> {
+  try {
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2000);
+
+    const response = await fetch("https://api.resy.com/4/find", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Authorization": `ResyAPI api_key="${RESY_API_KEY}"`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        lat: 41.8781,
+        long: -87.6298,
+        day: today,
+        party_size: partySize,
+        venue_id: parseInt(resyVenueId, 10),
+      }),
+    });
+
+    clearTimeout(timeout);
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    const venues = data?.results?.venues || [];
+    if (venues.length === 0) return [];
+
+    const slots = venues[0]?.slots || [];
+    return slots.slice(0, 3).map((s: Record<string, unknown>) => {
+      const start = (s.date as Record<string, string>)?.start || "";
+      // Parse "2026-03-16 19:00:00" → "7:00 PM"
+      let timeStr = "";
+      if (start) {
+        const timePart = start.split(" ")[1]; // "19:00:00"
+        if (timePart) {
+          const [h, m] = timePart.split(":");
+          const hour = parseInt(h, 10);
+          const ampm = hour >= 12 ? "PM" : "AM";
+          const h12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+          timeStr = m === "00" ? `${h12} ${ampm}` : `${h12}:${m} ${ampm}`;
+        }
+      }
+      const configType = (s.config as Record<string, string>)?.type || null;
+      return { time: timeStr, type: configType };
+    });
+  } catch {
+    return []; // Timeout or network error — availability is best-effort
+  }
+}
+
+// ==========================================
 // MAIN BUILDER
 // ==========================================
 
@@ -234,5 +307,6 @@ export function buildReservationLinks(
     fallback,
     reservation_difficulty: reservationDifficulty,
     booking_tip: bookingTip,
+    availability: null, // Populated async by caller when Resy venue ID available
   };
 }
