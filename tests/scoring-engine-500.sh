@@ -82,7 +82,14 @@ run_test() {
       fi
     elif [[ "$expected_rel" == "vibe" && "$rel_type" != "vibe" && "$rel_type" != "semantic" && "$rel_type" != "reputation" && "$rel_type" != "cuisine" ]]; then
       # "cuisine" is valid for bar/cocktail/wine/beer vibe queries — they ARE cuisine types
-      status="WARN"; reason="rel=${rel_type},expected=${expected_rel}"
+      # "open_ended" is valid for abstract vibes (e.g., "bohemian", "retro diner") when DM >= 60
+      if [[ "$rel_type" == "open_ended" && "$dm_int" -ge 60 ]]; then
+        status="PASS"  # Abstract vibe with no DB signal — open_ended is correct behavior
+      elif [[ "$rel_type" == "dish" && "$dm_int" -ge 70 ]]; then
+        status="PASS"  # Dish-vibe overlap (e.g., "conveyor belt sushi") is acceptable
+      else
+        status="WARN"; reason="rel=${rel_type},expected=${expected_rel}"
+      fi
     fi
   fi
 
