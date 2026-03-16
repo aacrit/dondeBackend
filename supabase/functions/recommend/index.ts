@@ -376,6 +376,8 @@ Deno.serve(async (req: Request) => {
   }
 
   const startTime = Date.now();
+  const timings: Record<string, number> = {};
+  let stepStart = startTime;
 
   try {
     // ================================================================
@@ -424,7 +426,7 @@ Deno.serve(async (req: Request) => {
     const user_id = (typeof body.user_id === "string" && body.user_id.length < 100)
       ? body.user_id : null;
 
-    // SSO: Extract authenticated user ID from JWT
+    // SSO: Extract authenticated user ID from JWT (1s timeout guard — on timeout, continue as anonymous)
     let authUserId: string | null = null;
     const authHeader = req.headers.get("authorization");
     if (authHeader?.startsWith("Bearer ")) {
@@ -432,10 +434,16 @@ Deno.serve(async (req: Request) => {
       if (token.length > 200) {
         try {
           const serviceClient = createServiceClient();
-          const { data: { user: authUser } } = await serviceClient.auth.getUser(token);
-          if (authUser?.id) authUserId = authUser.id;
+          const authResult = await Promise.race([
+            serviceClient.auth.getUser(token),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000)),
+          ]);
+          if (authResult && typeof authResult === "object" && "data" in authResult) {
+            const authUser = (authResult as { data: { user: { id: string } | null } }).data.user;
+            if (authUser?.id) authUserId = authUser.id;
+          }
         } catch {
-          // Invalid JWT — continue as anonymous
+          // Invalid JWT or timeout — continue as anonymous
         }
       }
     }
@@ -473,6 +481,9 @@ Deno.serve(async (req: Request) => {
         return jsonResponse(cached.response, 200, requestOrigin);
       }
     }
+
+    timings.parse = Date.now() - stepStart;
+    stepStart = Date.now();
 
     const supabase = createSupabaseClient();
 
@@ -670,6 +681,9 @@ Deno.serve(async (req: Request) => {
           })
       : Promise.resolve(null);
 
+    timings.cache_lookup = Date.now() - stepStart;
+    stepStart = Date.now();
+
     // V10: Intent classification FIRST so we can pass signals to RPC
     const [intentResult, userFeedback, userPreferences, tasteProfile] = await Promise.all([
       classifyIntentV5(special_request, occasion, { skipClaude: skip_claude, claudeTimeoutMs: 6000 }),
@@ -680,6 +694,9 @@ Deno.serve(async (req: Request) => {
 
     const intent = intentResult.intent;
     const classificationPath = intentResult.classificationPath;
+
+    timings.intent = Date.now() - stepStart;
+    stepStart = Date.now();
 
     logInfo("V10 intent classification", {
       path: classificationPath,
@@ -944,6 +961,9 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    timings.rpc = Date.now() - stepStart;
+    stepStart = Date.now();
+
     // ================================================================
     // STEP 2: Map RPC results to V9Candidate (RestaurantProfile + review intelligence)
     // ================================================================
@@ -1068,6 +1088,9 @@ Deno.serve(async (req: Request) => {
         }
       }
     }
+
+    timings.scoring = Date.now() - stepStart;
+    stepStart = Date.now();
 
     // ================================================================
     // STEP 5: Google Places enrichment (top 5 candidates)
@@ -1226,6 +1249,9 @@ Deno.serve(async (req: Request) => {
           })
           .catch(() => null)
       : Promise.resolve(null);
+
+    timings.google = Date.now() - stepStart;
+    stepStart = Date.now();
 
     // ================================================================
     // STEP 7: Build Claude prompt — full pool + top 3 deep profiles
@@ -1560,7 +1586,7 @@ Deno.serve(async (req: Request) => {
       // Fire parallel Claude calls for the top 2 queue items (positions #2 and #3).
       // Uses a shorter prompt (just voice + restaurant profile + user query).
       // Budget guard: only attempt if <10s elapsed. Falls back to deterministic on failure.
-      if (!skip_claude && rankedQueue.length >= 2 && (Date.now() - startTime) < 10000) {
+      if (!skip_claude && rankedQueue.length >= 2 && (Date.now() - startTime) < 8000) {
         const queueUpgradeStart = Date.now();
         const upgradePromises: Promise<{ idx: number; blurb: string | null; headline: string | null; tip: string | null }>[] = [];
 
@@ -1699,6 +1725,9 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    timings.claude_blurb = Date.now() - stepStart;
+    stepStart = Date.now();
+
     // ================================================================
     // STEP 8.5: Attach post-filter metadata to response
     // ================================================================
@@ -1836,9 +1865,20 @@ Deno.serve(async (req: Request) => {
     // Attach Google API cost stats to every response
     (responseBody as Record<string, unknown>).google_api_cost = getGoogleCallStats();
 
+    // Performance telemetry: finalize timings
+    timings.response_build = Date.now() - stepStart;
+    timings.total = Date.now() - startTime;
+    (responseBody as Record<string, unknown>).response_time_ms = timings.total;
+
+    // Log timings for monitoring
+    logInfo("Perf telemetry", timings);
+
     const response = jsonResponse(responseBody, 200, requestOrigin);
     response.headers.set("X-API-Version", API_VERSION);
     response.headers.set("X-Engine", "v9");
+    // X-Donde-Timing header: comma-separated key=value pairs for performance monitoring
+    const timingHeader = Object.entries(timings).map(([k, v]) => `${k}=${v}`).join(", ");
+    response.headers.set("X-Donde-Timing", timingHeader);
     return response;
   } catch (error) {
     logError("V9 engine error", { error: String(error) });
