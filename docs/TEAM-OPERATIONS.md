@@ -2,7 +2,7 @@
 
 Last updated: 2026-03-15
 
-> The Operations Team is DondeAI's force multiplier. Eleven specialized agents, orchestrated by the COO through real-time communication, replace the coordination overhead of a 100-person engineering org. Every cycle makes the product smarter.
+> The Operations Team is DondeAI's force multiplier. Twenty specialized agents across six divisions, orchestrated by the COO through real-time communication, replace the coordination overhead of a 100-person engineering org. Every cycle makes the product smarter.
 
 ---
 
@@ -22,24 +22,26 @@ Last updated: 2026-03-15
                     |   SendMessage hub      |
                     +-----------+-----------+
                                 |
-     +----------+----------+----------+----------+----------+
+     +----------+----------+----------+----------+----------+----------+
+     |          |          |          |          |          |          |
+  QUALITY   INFRASTRUC-  FRONTEND   PRODUCT    SECURITY  INTEGRA-
+  DIVISION  TURE DIV     DIVISION   DIVISION   DIVISION  TIONS DIV
      |          |          |          |          |          |
-  QUALITY   INFRASTRUC-  FRONTEND   PRODUCT    SECURITY
-  DIVISION  TURE DIV     DIVISION   DIVISION   DIVISION
-     |          |          |          |          |
-  analytics  perf-       frontend-  ceo-       donde-
-  -expert    optimizer   builder    advisor    ciso
-     |          |          |          |
-  bug-fixer  db-reviewer frontend-  donde-
-     |          |        fixer      premium-
-  gen-test-  update-docs   |        advisor
-  queries       |        css-theme-
-     |       prod-       specialist
-  continuous sentinel       |
-  -tester                uat-tester
-                            |
-                         frontenddesign
-                         (skill)
+  analytics  perf-       frontend-  ceo-       donde-    reservation-
+  -expert    optimizer   builder    advisor    ciso      integration
+     |          |          |          |                    -specialist
+  bug-fixer  db-reviewer frontend-  donde-                  |
+     |          |        fixer      premium-              payments-
+  gen-test-  update-docs   |        advisor               ordering
+  queries       |        css-theme-                       -specialist
+     |       prod-       specialist                         |
+  continuous sentinel       |                             maps-
+  -tester                uat-tester                       location
+                            |                             -specialist
+                         frontenddesign                      |
+                         (skill)                          social-
+                                                          reviews
+                                                          -specialist
 ```
 
 ### Division Missions
@@ -51,6 +53,7 @@ Last updated: 2026-03-15
 | **Frontend** | "Ship-ready UI" | Smoke test + theme coverage | 10/10, 10/10 |
 | **Product** | "Every release moves the needle" | Feature completion + premium score | 95%+, 90/100 |
 | **Security** | "No surprises in production" | Security posture | 85/100+ |
+| **Integrations** | "Connect DondeAI to the dining ecosystem" | Platform coverage + $0 cost | 1,200+ restaurants, $0/month |
 
 ---
 
@@ -74,6 +77,10 @@ Last updated: 2026-03-15
 | `ceo-advisor` | Product | Read, Grep, Glob, Bash | $0.00 | Manual | Top 10 recommendations |
 | `donde-premium-advisor` | Product | Read, Grep, Glob, Bash | $0.00 | Manual | Premium app audit |
 | `donde-ciso` | Security | Read, Grep, Glob, Bash | $0.00 | Manual, security changes | Severity-ranked findings |
+| `reservation-integration-specialist` | Integrations | Read, Grep, Glob, Bash, Edit, Write, WebSearch, WebFetch | $0.00 | Manual, Project Foxtrot | Reservation platform coverage + deep links |
+| `payments-ordering-specialist` | Integrations | Read, Grep, Glob, Bash, Edit, Write, WebSearch, WebFetch | $0.00 | Manual | Ordering/delivery integration plan |
+| `maps-location-specialist` | Integrations | Read, Grep, Glob, Bash, Edit, Write, WebSearch, WebFetch | $0.00 | Manual | Maps provider recommendation + cost analysis |
+| `social-reviews-specialist` | Integrations | Read, Grep, Glob, Bash, Edit, Write, WebSearch, WebFetch | $0.00 | Manual | Social proof layer + trending detection plan |
 
 ---
 
@@ -695,6 +702,60 @@ Step 6: CEO Briefing → Shutdown → TeamDelete
 
 ---
 
+### Project Foxtrot: $0 Reservation Integration
+
+**Codename:** `donde-integrations-foxtrot`
+**Objective:** Integrate reservation booking into every DondeAI recommendation at $0 cost. Turn "Where should I eat?" into "Where should I eat? Book a table now."
+
+**The Opportunity:** DondeAI recommends restaurants but stops short of the booking action. Users must leave the app to find reservation options. Resy, OpenTable, Tock, and Yelp all support deep links that cost $0 to generate. An estimated 1,200-1,500 of DondeAI's 2,720 Chicago restaurants are on at least one reservation platform.
+
+**Full plan:** `docs/PROJECT-FOXTROT-RESERVATION-INTEGRATION.md`
+
+**Team Composition:**
+
+| Role | Agent | Responsibility |
+|------|-------|---------------|
+| Team Lead | `coo` | Orchestration, cross-division coordination, CEO report |
+| Reservations | `reservation-integration-specialist` | Platform research, deep link specs, coverage mapping |
+| Data | `db-reviewer` | Schema design, migration, data quality |
+| Builder | `frontend-builder` | "Reserve" button component, platform logos |
+| Tester | `continuous-tester` | Verify reservation links don't affect scoring |
+
+**Execution Flow:**
+
+```
+Step 1: COO -> TeamCreate("donde-integrations-foxtrot")
+
+Step 2: COO spawns reservation-integration-specialist:
+        Agent(name: "reservations",
+              prompt: "Research all reservation platforms for Chicago.
+                       Map which DondeAI restaurants are on which platforms.
+                       Generate deep link URL templates for each platform.
+                       Deliver coverage report + implementation spec.",
+              team_name: "donde-integrations-foxtrot")
+
+Step 3: Reservations -> SendMessage(to: "coo",
+        message: "Coverage mapped. 1,247 restaurants have booking links.
+                  OpenTable: 832, Resy: 287, Tock: 64, Yelp: 519.
+                  Deep link templates ready for all 4 platforms.")
+
+Step 4: COO spawns db-reviewer for schema + frontend-builder for UI
+
+Step 5: COO spawns continuous-tester to verify no scoring regression
+
+Step 6: COO aggregates -> CEO Briefing -> Shutdown -> TeamDelete
+```
+
+**Success Criteria:**
+- 1,200+ restaurants with at least one reservation link
+- 0 scoring regression (golden dataset pass rate maintained)
+- $0 total cost
+
+**Cost:** $0.00 (deep links, free API tiers, no paid integrations)
+**Duration:** ~2 weeks for full implementation
+
+---
+
 ## Team Lifecycle
 
 ### Creating a Team
@@ -719,6 +780,7 @@ Step 6: CEO Briefing → Shutdown → TeamDelete
 | `donde-infra-*` | `donde-infra-sync` | Infrastructure projects |
 | `donde-product-*` | `donde-product-delta` | Product projects |
 | `donde-security-*` | `donde-security-echo` | Security projects |
+| `donde-integrations-*` | `donde-integrations-foxtrot` | Integrations projects |
 | `donde-sprint-*` | `donde-sprint-w12` | Sprint planning (by week) |
 | `donde-incident-*` | `donde-incident-20260315` | Incident response (by date) |
 
@@ -744,6 +806,10 @@ When spawning agents into a team, use short, role-based names:
 | `ceo-advisor` | `strategist` | Product |
 | `donde-premium-advisor` | `designer` | Product |
 | `donde-ciso` | `security` | Security |
+| `reservation-integration-specialist` | `reservations` | Integrations |
+| `payments-ordering-specialist` | `payments` | Integrations |
+| `maps-location-specialist` | `maps` | Integrations |
+| `social-reviews-specialist` | `social` | Integrations |
 
 ---
 
@@ -761,6 +827,8 @@ When spawning agents into a team, use short, role-based names:
 | Grading sync status | Diff grading.ts vs cc-grading.js | Every COO session | In sync |
 | Cache hit rate | `query_cache` + `user_queries` | Weekly | 40%+ |
 | Security posture | CISO audit | Monthly | 85/100+ |
+| Reservation platform coverage | `restaurant_reservations` table | Per integration cycle | 1,200+ restaurants |
+| Integration cost | API billing dashboards | Monthly | $0/month |
 
 ### Improvement Flywheel
 
@@ -789,6 +857,15 @@ Each cycle should improve at least one metric. If no metrics improve for 3 conse
 | `css-theme-specialist` | Frontend | No agent owned 10 cultural theme variants |
 | `continuous-tester` | Quality | No automated test execution after deploys |
 | `prod-sentinel` | Infra | No production monitoring or anomaly detection |
+
+### Shipped (Integrations Division — 2026-03-15)
+
+| Agent | Division | Gap Filled |
+|-------|----------|-----------|
+| `reservation-integration-specialist` | Integrations | No agent knew reservation platform APIs, deep links, affiliate programs |
+| `payments-ordering-specialist` | Integrations | No agent knew ordering/delivery/payment platform APIs |
+| `maps-location-specialist` | Integrations | No agent could optimize across mapping providers or design location features |
+| `social-reviews-specialist` | Integrations | No agent knew social/review platform APIs, trending detection, ToS constraints |
 
 ### Planned (Future)
 
