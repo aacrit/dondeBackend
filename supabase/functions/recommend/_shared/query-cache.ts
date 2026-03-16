@@ -273,9 +273,14 @@ export function computeCanonicalForm(
   return parts.join("|");
 }
 
+/** Internal timeout constant — cache lookups must not stall the pipeline */
+const CACHE_LOOKUP_TIMEOUT_MS = 500;
+
 /**
- * Three-level persistent cache lookup via single SQL query.
- * Returns the best match (exact > fingerprint > canonical) or null.
+ * Three-level persistent cache lookup with 500ms timeout guard.
+ * L1 (exact) runs first; on miss, L2 (fingerprint) and L3 (canonical) run in parallel.
+ * The entire lookup is wrapped in a Promise.race against a 500ms deadline.
+ * On timeout, returns null (cache miss) — the pipeline computes the answer normally.
  */
 export async function lookupPersistentCache(
   supabase: SupabaseClient,
@@ -283,7 +288,24 @@ export async function lookupPersistentCache(
   fingerprint: string,
   canonicalForm: string,
 ): Promise<CacheHitResult | null> {
-  // Try exact match first (fastest path)
+  const timeoutPromise = new Promise<null>((resolve) =>
+    setTimeout(() => resolve(null), CACHE_LOOKUP_TIMEOUT_MS)
+  );
+
+  return Promise.race([
+    _lookupPersistentCacheInternal(supabase, exactKey, fingerprint, canonicalForm),
+    timeoutPromise,
+  ]);
+}
+
+/** Internal implementation — runs L1 first, then L2+L3 in parallel on miss. */
+async function _lookupPersistentCacheInternal(
+  supabase: SupabaseClient,
+  exactKey: string,
+  fingerprint: string,
+  canonicalForm: string,
+): Promise<CacheHitResult | null> {
+  // L1: Try exact match first (fastest path)
   const { data: exactMatch } = await supabase
     .from("query_cache")
     .select("id, response_body, ranked_queue")
@@ -309,16 +331,34 @@ export async function lookupPersistentCache(
     };
   }
 
-  // Try fingerprint match (L2)
-  const { data: fpMatch } = await supabase
-    .from("query_cache")
-    .select("id, response_body, ranked_queue")
-    .eq("intent_fingerprint", fingerprint)
-    .gt("expires_at", new Date().toISOString())
-    .order("hit_count", { ascending: false })
-    .limit(1)
-    .single();
+  // L2 + L3: Run fingerprint and canonical lookups in parallel
+  const [fpResult, canonResult] = await Promise.all([
+    // L2: fingerprint match
+    fingerprint
+      ? supabase
+          .from("query_cache")
+          .select("id, response_body, ranked_queue")
+          .eq("intent_fingerprint", fingerprint)
+          .gt("expires_at", new Date().toISOString())
+          .order("hit_count", { ascending: false })
+          .limit(1)
+          .single()
+      : Promise.resolve({ data: null }),
+    // L3: canonical form match
+    canonicalForm
+      ? supabase
+          .from("query_cache")
+          .select("id, response_body, ranked_queue")
+          .eq("canonical_form", canonicalForm)
+          .gt("expires_at", new Date().toISOString())
+          .order("hit_count", { ascending: false })
+          .limit(1)
+          .single()
+      : Promise.resolve({ data: null }),
+  ]);
 
+  // Prefer L2 (fingerprint) over L3 (canonical)
+  const fpMatch = fpResult.data;
   if (fpMatch) {
     supabase
       .from("query_cache")
@@ -335,16 +375,7 @@ export async function lookupPersistentCache(
     };
   }
 
-  // Try canonical form match (L3)
-  const { data: canonMatch } = await supabase
-    .from("query_cache")
-    .select("id, response_body, ranked_queue")
-    .eq("canonical_form", canonicalForm)
-    .gt("expires_at", new Date().toISOString())
-    .order("hit_count", { ascending: false })
-    .limit(1)
-    .single();
-
+  const canonMatch = canonResult.data;
   if (canonMatch) {
     supabase
       .from("query_cache")

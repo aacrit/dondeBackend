@@ -28,6 +28,7 @@ export function buildCorsHeaders(requestOrigin?: string | null): Record<string, 
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers":
       "Content-Type, Authorization, x-client-info, apikey",
+    "Access-Control-Expose-Headers": "X-Donde-Timing, X-API-Version, X-Engine",
     "Vary": "Origin",
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
