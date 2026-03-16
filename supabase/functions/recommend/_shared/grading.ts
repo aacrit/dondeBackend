@@ -124,17 +124,29 @@ export function computeScoreFitGrade(
   const relType = ((scoring.relevance_type as string) || "").toLowerCase();
   let relPoints = 0;
 
+  // V19: bug-fixer — detect reputation keywords in query to accept reputation rel_type
+  // for dish/cuisine queries. "best burger" has both dish AND reputation intent;
+  // the engine correctly routes through the reputation path, so grading should not penalize.
+  const queryHasReputation = /\bbest\b|\btop rated\b|\bmichelin\b|\bjames beard\b|\baward/i.test(query);
+
   if (intent.type === "dish") {
     if (relType === "dish" || relType === "dish_match") relPoints = 30;
     else if (relType === "cuisine" || relType === "cuisine_match") relPoints = 15;
+    // V19: bug-fixer — "best burger" → reputation type is valid (dish + reputation intent)
+    else if (relType === "reputation" && queryHasReputation) relPoints = 20;
     else relPoints = 5;
   } else if (intent.type === "cuisine") {
     if (relType === "cuisine" || relType === "cuisine_match") relPoints = 30;
     else if (relType === "dish" || relType === "dish_match") relPoints = 15;
+    // V19: bug-fixer — "best pasta in the city" → reputation type is valid
+    else if (relType === "reputation" && queryHasReputation) relPoints = 20;
     else relPoints = 5;
   } else if (intent.type === "vibe") {
     if (relType === "vibe" || relType.includes("vibe") || relType.includes("atmosphere")) relPoints = 30;
     else if (relType.includes("semantic") || relType.includes("concept")) relPoints = 20;
+    // V19: bug-fixer — "wine bar", "tiki bar" are both vibe AND cuisine concepts;
+    // the engine may return cuisine rel_type which is partially valid for vibe queries
+    else if (relType === "cuisine" || relType === "cuisine_match") relPoints = 20;
     else relPoints = 10;
   } else if (intent.type === "service") {
     // V17: Accept "vibe" as valid for service queries — the engine's CONCEPT_MAP treats

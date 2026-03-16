@@ -513,6 +513,12 @@ export async function classifyIntentV5(
     "calabrese", "sicilian", "neapolitan", "tuscan",
     "peruvian", "colombian", "argentinian", "venezuelan", "chilean",
     "vegan", "plant-based", "plant based", "meatless",
+    // V19: bug-fixer — cuisine category names that appear in CUISINE_KEYWORDS
+    // but don't match cuisineNamesLower due to slash-separated keys
+    // (e.g., "caribbean" != "caribbean/jamaican", "southern" != "southern/soul food").
+    // Also multi-word cuisine phrases not matching any single key.
+    "caribbean", "southern", "midwestern",
+    "soul food", "southern food", "cajun food", "creole food", "jamaican food",
   ]);
   const matchedFoodItems = matchedKeywordStrings.filter(
     (kw) => !cuisineNamesLower.has(kw) && !NON_DISH_WORDS.has(kw),
