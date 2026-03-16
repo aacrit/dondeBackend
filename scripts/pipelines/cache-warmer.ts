@@ -6,14 +6,22 @@
  *
  * Follows the WorkerPool pattern from gauntlet-runner.ts (3 workers, rate limiting).
  *
- * Query sources (3 modes):
- *   --source popular   Mine user_queries for top canonical queries (last 30 days)
- *   --source golden    Use 50 golden dataset queries
- *   --source manual    Accept a JSON file of queries (--file path/to/queries.json)
+ * Query sources (5 modes):
+ *   --source popular     Mine user_queries for top canonical queries (last 30 days)
+ *   --source golden      Use 50 golden dataset queries
+ *   --source benchmark   Use 200 benchmark-200 queries
+ *   --source all         Combine golden + benchmark + popular (deduped)
+ *   --source manual      Accept a JSON file of queries (--file path/to/queries.json)
+ *
+ * Flags:
+ *   --skip-claude   Use skip_claude=true for $0 warming (deterministic blurbs).
+ *                   Server-side grading + cache write-through still runs normally.
+ *   --no-dedup      Skip dedup against existing cache (force re-warm).
  *
  * Usage:
+ *   npx tsx pipelines/cache-warmer.ts --source all --skip-claude
+ *   npx tsx pipelines/cache-warmer.ts --source golden --skip-claude
  *   npx tsx pipelines/cache-warmer.ts --source popular --budget 5.00
- *   npx tsx pipelines/cache-warmer.ts --source golden --budget 3.70
  *   npx tsx pipelines/cache-warmer.ts --source manual --file tests/canonical-queries.json --budget 5.00
  */
 
@@ -36,7 +44,6 @@ const TESTS_DIR = join(__dirname, '..', '..', 'tests');
 // Config
 const API_URL = 'https://vwbzkgsxmgwcvmvuxnbe.supabase.co/functions/v1/recommend';
 const API_KEY = process.env.SUPAB_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
-const COST_PER_QUERY = 0.074;
 const RATE_LIMIT_PER_MIN = 30;
 const WORKERS = 3;
 
@@ -48,8 +55,11 @@ function getArg(name: string, defaultVal: string): string {
 }
 
 const SOURCE = getArg('source', 'popular');
-const BUDGET = parseFloat(getArg('budget', '5.00'));
+const BUDGET = parseFloat(getArg('budget', '999.00'));
 const MANUAL_FILE = getArg('file', '');
+const SKIP_CLAUDE = args.includes('--skip-claude');
+const NO_DEDUP = args.includes('--no-dedup');
+const COST_PER_QUERY = SKIP_CLAUDE ? 0 : 0.074;
 
 interface WarmingQuery {
   special_request: string;
@@ -130,7 +140,6 @@ async function loadPopularQueries(sb: ReturnType<typeof createAdminClient>): Pro
 }
 
 function loadGoldenQueries(): WarmingQuery[] {
-  // Parse golden dataset queries from the shell test script
   const goldenPath = join(TESTS_DIR, 'golden-dataset-test.sh');
   if (!existsSync(goldenPath)) {
     console.error('Golden dataset test not found at', goldenPath);
@@ -140,31 +149,67 @@ function loadGoldenQueries(): WarmingQuery[] {
   const content = readFileSync(goldenPath, 'utf-8');
   const queries: WarmingQuery[] = [];
 
-  // Match patterns like: run_query "romantic Italian dinner" "Date Night" "Anywhere" "Any"
-  const regex = /run_query\s+"([^"]+)"\s+"([^"]+)"\s+"([^"]+)"\s+"([^"]+)"/g;
+  // Match: run_golden_test "ID" "Category" "query" "cuisines" min_score ["occasion"]
+  const regex = /run_golden_test\s+"[^"]+"\s+"[^"]+"\s+"([^"]+)"\s+"[^"]+"\s+\d+(?:\s+"([^"]+)")?/g;
   let match;
   while ((match = regex.exec(content)) !== null) {
     queries.push({
       special_request: match[1],
-      occasion: match[2],
-      neighborhood: match[3],
-      price_level: match[4],
-    });
-  }
-
-  // Also try: test_query "query" "occasion" "neighborhood" "price"
-  const regex2 = /test_query\s+"([^"]+)"\s+"([^"]+)"\s+"([^"]+)"\s+"([^"]+)"/g;
-  while ((match = regex2.exec(content)) !== null) {
-    queries.push({
-      special_request: match[1],
-      occasion: match[2],
-      neighborhood: match[3],
-      price_level: match[4],
+      occasion: match[2] || 'Any',
+      neighborhood: 'Anywhere',
+      price_level: 'Any',
     });
   }
 
   console.log(`  Loaded ${queries.length} golden dataset queries`);
   return queries;
+}
+
+function loadBenchmarkQueries(): WarmingQuery[] {
+  const benchPath = join(TESTS_DIR, 'benchmark-200.sh');
+  if (!existsSync(benchPath)) {
+    console.error('Benchmark-200 test not found at', benchPath);
+    return [];
+  }
+
+  const content = readFileSync(benchPath, 'utf-8');
+  const queries: WarmingQuery[] = [];
+
+  // Match: run_bench_test "ID" "Category" "query"
+  const regex = /run_bench_test\s+"[^"]+"\s+"[^"]+"\s+"([^"]+)"/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    queries.push({
+      special_request: match[1],
+      occasion: 'Any',
+      neighborhood: 'Anywhere',
+      price_level: 'Any',
+    });
+  }
+
+  console.log(`  Loaded ${queries.length} benchmark-200 queries`);
+  return queries;
+}
+
+async function loadAllQueries(sb: ReturnType<typeof createAdminClient>): Promise<WarmingQuery[]> {
+  const golden = loadGoldenQueries();
+  const benchmark = loadBenchmarkQueries();
+  const popular = await loadPopularQueries(sb);
+
+  // Combine and dedup by normalized special_request
+  const seen = new Set<string>();
+  const combined: WarmingQuery[] = [];
+
+  for (const q of [...golden, ...benchmark, ...popular]) {
+    const key = q.special_request.toLowerCase().trim();
+    if (!seen.has(key)) {
+      seen.add(key);
+      combined.push(q);
+    }
+  }
+
+  console.log(`  Combined: ${golden.length} golden + ${benchmark.length} benchmark + ${popular.length} popular = ${combined.length} unique`);
+  return combined;
 }
 
 function loadManualQueries(filePath: string): WarmingQuery[] {
@@ -188,21 +233,27 @@ function loadManualQueries(filePath: string): WarmingQuery[] {
 // ─── Dedup Against Existing Cache ───────────────────────────────────────────
 
 async function dedupAgainstCache(sb: ReturnType<typeof createAdminClient>, queries: WarmingQuery[]): Promise<WarmingQuery[]> {
-  // Build exact cache keys and check which are already cached
   const keys = queries.map(q =>
     `${q.occasion}|${q.neighborhood}|${q.price_level}|${q.special_request.toLowerCase().trim().split(/\s+/).sort().join(' ')}`
   );
 
-  const { data: existing } = await sb
-    .from('query_cache')
-    .select('cache_key')
-    .in('cache_key', keys)
-    .gt('expires_at', new Date().toISOString());
+  // Supabase .in() has a limit, batch if needed
+  const batchSize = 100;
+  const existingKeys = new Set<string>();
+  for (let i = 0; i < keys.length; i += batchSize) {
+    const batch = keys.slice(i, i + batchSize);
+    const { data: existing } = await sb
+      .from('query_cache')
+      .select('cache_key')
+      .in('cache_key', batch)
+      .gt('expires_at', new Date().toISOString());
+    for (const e of existing || []) {
+      existingKeys.add((e as Record<string, string>).cache_key);
+    }
+  }
 
-  const existingKeys = new Set((existing || []).map((e: Record<string, string>) => e.cache_key));
   const filtered = queries.filter((q, i) => !existingKeys.has(keys[i]));
-
-  console.log(`  Dedup: ${queries.length} → ${filtered.length} (${queries.length - filtered.length} already cached)`);
+  console.log(`  Dedup: ${queries.length} -> ${filtered.length} (${queries.length - filtered.length} already cached)`);
   return filtered;
 }
 
@@ -213,6 +264,16 @@ async function warmQuery(query: WarmingQuery): Promise<WarmingResult> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 45000);
 
+    const requestBody: Record<string, unknown> = {
+      special_request: query.special_request,
+      occasion: query.occasion,
+      neighborhood: query.neighborhood,
+      price_level: query.price_level,
+    };
+    if (SKIP_CLAUDE) {
+      requestBody.skip_claude = true;
+    }
+
     const resp = await fetch(API_URL, {
       method: 'POST',
       headers: {
@@ -221,12 +282,7 @@ async function warmQuery(query: WarmingQuery): Promise<WarmingResult> {
         apikey: API_KEY,
         'x-donde-source': 'cache-warmer',
       },
-      body: JSON.stringify({
-        special_request: query.special_request,
-        occasion: query.occasion,
-        neighborhood: query.neighborhood,
-        price_level: query.price_level,
-      }),
+      body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -282,7 +338,7 @@ async function runWorkerPool(queries: WarmingQuery[], maxBudget: number): Promis
     while (true) {
       const qi = index++;
       if (qi >= queries.length) break;
-      if (budgetUsed >= maxBudget) {
+      if (!SKIP_CLAUDE && budgetUsed >= maxBudget) {
         console.log(`  Worker ${workerId}: Budget exhausted ($${budgetUsed.toFixed(2)}/$${maxBudget.toFixed(2)})`);
         break;
       }
@@ -293,7 +349,7 @@ async function runWorkerPool(queries: WarmingQuery[], maxBudget: number): Promis
       results.push(result);
 
       const status = result.success ? (result.cached ? 'CACHED' : 'SKIP') : 'FAIL';
-      console.log(`  [${qi + 1}/${queries.length}] ${status} DM:${result.donde_match} "${query.special_request.slice(0, 40)}"`);
+      console.log(`  [${qi + 1}/${queries.length}] ${status} DM:${result.donde_match} "${query.special_request.slice(0, 50)}"`);
 
       // Rate limit
       await sleep(delayBetweenRequests);
@@ -309,7 +365,8 @@ async function runWorkerPool(queries: WarmingQuery[], maxBudget: number): Promis
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log(`DondeCache Warmer — source: ${SOURCE}, budget: $${BUDGET.toFixed(2)}`);
+  const modeLabel = SKIP_CLAUDE ? '$0 (skip_claude)' : `$${BUDGET.toFixed(2)} budget`;
+  console.log(`DondeCache Warmer — source: ${SOURCE}, ${modeLabel}${NO_DEDUP ? ', no-dedup' : ''}`);
 
   if (!API_KEY) {
     console.error('Missing SUPAB_ANON_KEY environment variable');
@@ -317,7 +374,7 @@ async function main() {
   }
 
   const sb = createAdminClient();
-  const runId = `warm-${SOURCE}-${Date.now()}`;
+  const runId = `warm-${SOURCE}-${SKIP_CLAUDE ? 'cli-' : ''}${Date.now()}`;
 
   // Load queries based on source
   let queries: WarmingQuery[];
@@ -328,11 +385,17 @@ async function main() {
     case 'golden':
       queries = loadGoldenQueries();
       break;
+    case 'benchmark':
+      queries = loadBenchmarkQueries();
+      break;
+    case 'all':
+      queries = await loadAllQueries(sb);
+      break;
     case 'manual':
       queries = loadManualQueries(MANUAL_FILE);
       break;
     default:
-      console.error(`Unknown source: ${SOURCE}. Use: popular, golden, manual`);
+      console.error(`Unknown source: ${SOURCE}. Use: popular, golden, benchmark, all, manual`);
       process.exit(1);
   }
 
@@ -341,29 +404,32 @@ async function main() {
     return;
   }
 
-  // Dedup against existing cache
-  queries = await dedupAgainstCache(sb, queries);
-
-  if (queries.length === 0) {
-    console.log('All queries already cached. Exiting.');
-    return;
+  // Dedup against existing cache (skip with --no-dedup)
+  if (!NO_DEDUP) {
+    queries = await dedupAgainstCache(sb, queries);
+    if (queries.length === 0) {
+      console.log('All queries already cached. Exiting.');
+      return;
+    }
   }
 
-  // Budget check
-  const estimatedCost = queries.length * COST_PER_QUERY;
-  const maxQueries = Math.floor(BUDGET / COST_PER_QUERY);
-  if (queries.length > maxQueries) {
-    console.log(`  Budget allows ${maxQueries} queries (${queries.length} available). Trimming.`);
-    queries = queries.slice(0, maxQueries);
+  // Budget check (skip when using skip_claude — $0 cost)
+  if (!SKIP_CLAUDE) {
+    const maxQueries = Math.floor(BUDGET / COST_PER_QUERY);
+    if (queries.length > maxQueries) {
+      console.log(`  Budget allows ${maxQueries} queries (${queries.length} available). Trimming.`);
+      queries = queries.slice(0, maxQueries);
+    }
   }
 
-  console.log(`  Warming ${queries.length} queries (est. cost: $${(queries.length * COST_PER_QUERY).toFixed(2)})`);
+  const estCost = SKIP_CLAUDE ? '$0.00 (skip_claude)' : `$${(queries.length * COST_PER_QUERY).toFixed(2)}`;
+  console.log(`  Warming ${queries.length} queries (est. cost: ${estCost})`);
 
   // Create warming_runs entry
   await sb.from('warming_runs').insert({
     run_id: runId,
-    mode: SOURCE,
-    budget_dollars: BUDGET,
+    mode: `${SOURCE}${SKIP_CLAUDE ? '-cli' : ''}`,
+    budget_dollars: SKIP_CLAUDE ? 0 : BUDGET,
     budget_used: 0,
     total_queries: queries.length,
   }).then(() => {}).catch(() => {});
@@ -383,7 +449,7 @@ async function main() {
 
   // Update warming_runs
   await sb.from('warming_runs').update({
-    budget_used: results.length * COST_PER_QUERY,
+    budget_used: SKIP_CLAUDE ? 0 : results.length * COST_PER_QUERY,
     cached_count: cached.length,
     skipped_count: results.length - cached.length - failed.length,
     failed_count: failed.length,
@@ -394,15 +460,17 @@ async function main() {
   }).eq('run_id', runId).then(() => {}).catch(() => {});
 
   // Summary
+  const costStr = SKIP_CLAUDE ? '$0.00 (skip_claude)' : `$${(results.length * COST_PER_QUERY).toFixed(2)}`;
   console.log(`\n${'='.repeat(60)}`);
   console.log(`Cache Warming Complete — ${duration}s`);
+  console.log(`  Source: ${SOURCE}${SKIP_CLAUDE ? ' (skip_claude)' : ''}`);
   console.log(`  Total:  ${results.length}`);
-  console.log(`  Cached: ${cached.length}`);
+  console.log(`  Cached: ${cached.length} (${results.length > 0 ? Math.round(cached.length / results.length * 100) : 0}%)`);
   console.log(`  Failed: ${failed.length}`);
   console.log(`  Avg DM: ${avgDM.toFixed(1)}`);
   console.log(`  Avg SF: ${avgSF.toFixed(1)}`);
   console.log(`  Avg BQ: ${avgBQ.toFixed(1)}`);
-  console.log(`  Cost:   $${(results.length * COST_PER_QUERY).toFixed(2)}`);
+  console.log(`  Cost:   ${costStr}`);
   console.log(`${'='.repeat(60)}`);
 
   if (failed.length > 0) {
