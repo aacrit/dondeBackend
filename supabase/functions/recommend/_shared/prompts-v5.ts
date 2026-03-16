@@ -205,7 +205,7 @@ export function detectCultureTheme(cuisineText: string, occasion?: string, query
   if (tied.length === 1) return tied[0] as CultureTheme;
 
   // Hash-based tiebreaker for deterministic variation
-  const hashStr = (cuisineText || '') + (queryText || '') + (occasion || '');
+  const hashStr = (cuisineText || '') + '|' + (queryText || '') + '|' + (occasion || '');
   let hash = 0;
   for (let i = 0; i < hashStr.length; i++) {
     hash = ((hash << 5) - hash + hashStr.charCodeAt(i)) | 0;

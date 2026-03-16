@@ -448,7 +448,7 @@ export function buildQueueBlurb(
         `Expect ${mapped.join(" and ")} flavors across the menu.`,
         `The kitchen runs ${mapped.join(" and ")}, and it shows in every plate.`,
         `Flavors land ${mapped.join(" and ")}, the kind that build as you eat.`,
-        `${mapped[0].charAt(0).toUpperCase() + mapped[0].slice(1)} and ${mapped[1] || mapped[0]} define the kitchen here.`,
+        `${mapped[0].charAt(0).toUpperCase() + mapped[0].slice(1)}${mapped.length >= 2 ? ` and ${mapped[1]}` : ""} define${mapped.length < 2 ? "s" : ""} the kitchen here.`,
         `The menu leans ${mapped.join(" and ")}, which is exactly what we want.`,
       ];
       return flavorVariants[variantIdx];
@@ -516,7 +516,12 @@ export function buildQueueBlurb(
 
   const buildAwards = (): string | null => {
     const awards = dp?.awards_recognition;
-    if (awards && awards.length > 0) return `${awards[0]} recognized.`;
+    if (awards && awards.length > 0) {
+      const awardText = awards[0];
+      // Dedup: skip if award already mentioned in earlier parts
+      if (parts.some(p => p.toLowerCase().includes(awardText.toLowerCase().slice(0, 15)))) return null;
+      return `${awardText} recognized.`;
+    }
     return null;
   };
 

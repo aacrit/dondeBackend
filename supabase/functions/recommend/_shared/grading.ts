@@ -287,7 +287,7 @@ const BANNED_PATTERNS = [
   "inviting atmosphere", "culinary prowess", "flavor profile", "price point",
   "farm-to-table", "nose-to-tail", "thoughtfully curated", "carefully selected",
   "hand-picked", "each dish tells", "every plate is", "a celebration of",
-  "pays homage", "takes you on", "where every", "more than just",
+  "pays homage", "takes you on", "where every bite", "where every dish", "where every plate", "more than just",
   "the star of the show", "steal the show", "take center stage",
 ];
 

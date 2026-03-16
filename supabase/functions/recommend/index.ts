@@ -97,8 +97,8 @@ const BLURB_SLOP_PATTERNS = [
 // V20: Structural slop detection patterns — catch AI writing patterns beyond word-level
 const STRUCTURAL_SLOP_PATTERNS = [
   { pattern: /\b(\w+)\s+\1\b/i, name: "word_repetition" },
-  { pattern: /\b(?:wonderful|amazing|fantastic|incredible|outstanding)\b/gi, name: "generic_superlative" },
-  { pattern: /\b(?:is served|are prepared|is crafted|are made|is presented)\b/gi, name: "passive_food_voice" },
+  { pattern: /\b(?:wonderful|amazing|fantastic|incredible|outstanding)\b/i, name: "generic_superlative" },
+  { pattern: /\b(?:is served|are prepared|is crafted|are made|is presented)\b/i, name: "passive_food_voice" },
   { pattern: /(?:From\s+the\s+\w+\s+to\s+the|Whether\s+you|If\s+you're\s+looking)/i, name: "ai_opening_pattern" },
 ];
 
@@ -404,11 +404,11 @@ Deno.serve(async (req: Request) => {
     const time_of_day = (typeof body.time_of_day === "string" && VALID_TIME_PERIODS.includes(body.time_of_day))
       ? body.time_of_day : null;
     const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const exclude = (body.exclude || [])
+    const exclude = (Array.isArray(body.exclude) ? body.exclude : [])
       .filter((id: string) => typeof id === "string" && UUID_REGEX.test(id))
       .slice(0, 15);
 
-    const dietary_restrictions = (body.dietary_restrictions || [])
+    const dietary_restrictions = (Array.isArray(body.dietary_restrictions) ? body.dietary_restrictions : [])
       .filter((d: string) => typeof d === "string" && d.length < 30)
       .slice(0, 5);
 
