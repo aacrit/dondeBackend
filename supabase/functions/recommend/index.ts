@@ -1841,7 +1841,9 @@ Deno.serve(async (req: Request) => {
     response.headers.set("X-Engine", "v9");
     return response;
   } catch (error) {
-    logError("V9 engine error", { error: String(error) });
+    // Log full error server-side for debugging — never expose to client
+    logError("V9 engine error", { error: String(error), stack: (error instanceof Error) ? error.stack : undefined });
+    // Build sanitized response with generic user-facing message (no raw errors/stack traces/paths)
     const errorBody = buildV9ErrorResponse(error);
     errorBody.google_api_cost = getGoogleCallStats();
     return jsonResponse(errorBody, 500, requestOrigin);

@@ -1,5 +1,5 @@
 // Allowed origins — add production domain when launched
-const ALLOWED_ORIGINS = new Set([
+const ALLOWED_ORIGINS = [
   "https://dondeai.com",
   "https://www.dondeai.com",
   "https://aacrit.github.io",
@@ -7,17 +7,19 @@ const ALLOWED_ORIGINS = new Set([
   "http://localhost:5500",
   "http://127.0.0.1:3000",
   "http://127.0.0.1:5500",
-]);
+];
+
+const ALLOWED_ORIGINS_SET = new Set(ALLOWED_ORIGINS);
+
+// Safe default origin (first in the allow list) — never return wildcard "*"
+const DEFAULT_ORIGIN = ALLOWED_ORIGINS[0]; // "https://dondeai.com"
 
 function getAllowedOrigin(requestOrigin?: string | null): string {
-  if (requestOrigin && ALLOWED_ORIGINS.has(requestOrigin)) {
+  if (requestOrigin && ALLOWED_ORIGINS_SET.has(requestOrigin)) {
     return requestOrigin;
   }
-  // During alpha: allow file:// and null origins (local dev opening index.html directly)
-  if (!requestOrigin || requestOrigin === "null") {
-    return "*";
-  }
-  return "https://dondeai.com";
+  // For null/missing origins (e.g. server-to-server, file://), return the safe default
+  return DEFAULT_ORIGIN;
 }
 
 export function buildCorsHeaders(requestOrigin?: string | null): Record<string, string> {
@@ -27,16 +29,14 @@ export function buildCorsHeaders(requestOrigin?: string | null): Record<string, 
     "Access-Control-Allow-Headers":
       "Content-Type, Authorization, x-client-info, apikey",
     "Vary": "Origin",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
   };
 }
 
-// Backwards-compatible static export for code that references corsHeaders directly
-export const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers":
-    "Content-Type, Authorization, x-client-info, apikey, x-donde-source",
-};
+// Backwards-compatible static export — uses safe default origin (not wildcard)
+export const corsHeaders: Record<string, string> = buildCorsHeaders();
 
 export function jsonResponse(
   body: unknown,

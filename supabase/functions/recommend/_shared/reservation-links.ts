@@ -151,18 +151,22 @@ function generateBookingTip(
 // RESY REAL-TIME AVAILABILITY (public client API, $0)
 // ==========================================
 
-const RESY_API_KEY = "VbWk7s3L4KiK5fzlO7JD3Q5EYolJI7n5";
-
 /**
  * Check Resy real-time availability for a venue.
- * Uses Resy's public client API key (same as their website).
+ * Uses Resy's public client API key from environment variable.
  * Returns up to 3 next available time slots.
  * Timeout: 2s (non-blocking, availability is a nice-to-have).
+ * Graceful degradation: returns empty availability if no API key is configured.
  */
 export async function checkResyAvailability(
   resyVenueId: string,
   partySize = 2,
 ): Promise<AvailabilitySlot[]> {
+  const resyApiKey = Deno.env.get("RESY_API_KEY") || "";
+  if (!resyApiKey) {
+    return []; // No API key configured — skip availability check
+  }
+
   try {
     const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
     const controller = new AbortController();
@@ -172,7 +176,7 @@ export async function checkResyAvailability(
       method: "POST",
       signal: controller.signal,
       headers: {
-        "Authorization": `ResyAPI api_key="${RESY_API_KEY}"`,
+        "Authorization": `ResyAPI api_key="${resyApiKey}"`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

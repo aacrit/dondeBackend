@@ -2,10 +2,9 @@
 node_modules/
 scripts/node_modules/
 
-# Environment
+# Environment — never commit secrets
 .env
-.env.local
-.env.*.local
+.env.*
 
 # Supabase
 supabase/.temp/
@@ -28,3 +27,10 @@ dist/
 # Gauntlet test artifacts (generated, large)
 tests/search-atlas-*.jsonl
 tests/gauntlet-results/
+
+# System packages (should not be in repo)
+*.deb
+
+# UAT test scripts and artifacts (local dev only)
+uat-*.mjs
+uat-screenshots/
