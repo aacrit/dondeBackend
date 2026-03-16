@@ -107,7 +107,7 @@ CEO (Aacrit)
 ### Phase 2: Delegate
 Spawn agents based on what's needed. Maximize parallelism for read-only agents.
 
-**Parallel safe:** analytics-expert, db-reviewer, donde-ciso, perf-optimizer, prod-sentinel, ceo-advisor
+**Parallel safe:** analytics-expert, db-reviewer, donde-ciso, perf-optimizer, prod-sentinel, ceo-advisor, all R&I agents (read-only advisors)
 **Sequential:** continuous-tester → bug-fixer → continuous-tester (retest)
 **Never parallel:** Two agents modifying the same files
 
@@ -208,6 +208,7 @@ TeamCreate → TaskCreate → Agent (spawn teammates) → SendMessage → aggreg
 | "competitive analysis" / "Project Delta" | Competitive Intel | donde-intel-delta |
 | "launch readiness" / "Project Echo" | Launch Readiness | donde-launch-echo |
 | "reservation integration" / "Project Foxtrot" | $0 Reservation Integration | donde-integrations-foxtrot |
+| "innovate" / "Project Golf" | R&I Innovation Sprint | donde-innovation-golf |
 
 Full project details: `docs/TEAM-OPERATIONS.md`
 
@@ -275,3 +276,13 @@ Full project details: `docs/TEAM-OPERATIONS.md`
 - 3 frontend execution agents created: frontend-builder, frontend-fixer, css-theme-specialist
 - uat-tester moved from Security to Frontend Division
 - Frontend duplicates consolidated to stubs pointing to backend canonical
+
+### Research & Innovation Division (2026-03-15)
+- 6th division created: R&I — "Make Chicago talk about Donde"
+- 10 specialist agents covering motion, spatial, social, personalization, gamification, micro-interactions, accessibility, data storytelling, voice/conversational, and premium experience
+- All R&I agents are read-only advisors (parallel safe with all divisions)
+- R&I agents propose innovations; Frontend/Quality/Infra divisions implement them
+- Each agent has 10 concrete proposals with priority tiers: quick-win / medium-term / moonshot
+- Total proposals: 100 across all agents (48 quick-wins, 38 medium-term, 14 moonshots)
+- Innovation brief: `docs/CEO-INNOVATION-BRIEF.md`
+- Project Golf: R&I Innovation Sprint for executing top proposals
