@@ -1088,7 +1088,9 @@ export function computeRelevance(
       if (reqLower.includes(alias)) {
         const restNeighborhood = (candidate.neighborhood_name || "").toLowerCase();
         const canonicalLower = canonical.toLowerCase();
-        if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
+        // V19: bug-fixer — use exact match only. The old .includes() check caused
+        // "West Loop" to match "Loop" since "west loop".includes("loop") = true.
+        if (restNeighborhood === canonicalLower) {
           const matchType = (intent && ((intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0)) ? "vibe" as const : "open_ended" as const;
           // V18: Raised from 0.93 to 1.0 — restaurant IS in the right neighborhood,
           // that's a perfect location match regardless of other intent signals.
@@ -1308,7 +1310,8 @@ export function computeRelevance(
       if (reqLower.includes(alias)) {
         const restNeighborhood = (candidate.neighborhood_name || "").toLowerCase();
         const canonicalLower = canonical.toLowerCase();
-        if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
+        // V19: bug-fixer — exact match only (see V19 comment above)
+        if (restNeighborhood === canonicalLower) {
           const matchType = hasVibe ? "vibe" as const : "open_ended" as const;
           return { score: 0.93, type: matchType, details: `Neighborhood match: ${canonical}` };
         }
@@ -2319,7 +2322,8 @@ function computeConvenienceQuality(
       if (reqLower.includes(alias)) {
         const restNeighborhood = (candidate.neighborhood_name || "").toLowerCase();
         const canonicalLower = canonical.toLowerCase();
-        if (restNeighborhood === canonicalLower || restNeighborhood.includes(canonicalLower) || canonicalLower.includes(restNeighborhood)) {
+        // V19: bug-fixer — exact match only (see V19 comment in computeRelevance)
+        if (restNeighborhood === canonicalLower) {
           score += 2.0;
           details.neighborhood = { score: 2, max: 2, signal: `In ${canonical}` };
         } else {
