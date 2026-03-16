@@ -75,6 +75,13 @@ function buildRestaurantObject(
     opening_hours: googleData?.opening_hours || null,
     best_times: chosen.best_times || null,
     review_snippets: buildReviewSnippets(googleData),
+    // Foxtrot: Additional Google Places fields (free — already in Atmosphere tier)
+    reservable: googleData?.reservable ?? null,
+    serves_brunch: googleData?.serves_brunch ?? null,
+    serves_vegetarian_food: googleData?.serves_vegetarian_food ?? null,
+    dine_in: googleData?.dine_in ?? null,
+    takeout: googleData?.takeout ?? null,
+    delivery: googleData?.delivery ?? null,
   };
 }
 

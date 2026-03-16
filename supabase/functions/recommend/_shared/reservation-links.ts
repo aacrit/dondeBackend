@@ -163,6 +163,7 @@ function generateBookingTip(
  * @param website - Restaurant website
  * @param reservationDifficulty - From deep_profile
  * @param params - Optional date/covers/time for parameterized deep links
+ * @param googleReservable - Google Places "reservable" flag (Foxtrot: used as fallback booking tip)
  */
 export function buildReservationLinks(
   reservationRows: ReservationRow[],
@@ -170,6 +171,7 @@ export function buildReservationLinks(
   website: string | null,
   reservationDifficulty: string | null,
   params?: { date?: string; covers?: number; time?: string },
+  googleReservable?: boolean | null,
 ): ReservationLinks {
   // Sort by priority (lower = better)
   const sorted = [...reservationRows].sort((a, b) => a.priority - b.priority);
@@ -216,14 +218,21 @@ export function buildReservationLinks(
     };
   }
 
+  // Foxtrot: When no platform links exist but Google says reservable,
+  // provide a helpful booking tip indicating Google Reserve availability
+  let bookingTip = generateBookingTip(
+    reservationDifficulty,
+    primary?.platform || null,
+  );
+  if (!primary && googleReservable === true && !bookingTip) {
+    bookingTip = "Reservations available via Google";
+  }
+
   return {
     primary,
     alternatives,
     fallback,
     reservation_difficulty: reservationDifficulty,
-    booking_tip: generateBookingTip(
-      reservationDifficulty,
-      primary?.platform || null,
-    ),
+    booking_tip: bookingTip,
   };
 }

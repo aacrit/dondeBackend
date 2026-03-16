@@ -17,6 +17,13 @@ export interface GooglePlaceData {
     open_now: boolean | null;
     weekday_text: string[] | null;
   } | null;
+  // Foxtrot: Additional fields from Places API (already included in Atmosphere pricing tier)
+  reservable: boolean | null;
+  serves_brunch: boolean | null;
+  serves_vegetarian_food: boolean | null;
+  dine_in: boolean | null;
+  takeout: boolean | null;
+  delivery: boolean | null;
 }
 
 export interface GoogleReviewData {
@@ -26,8 +33,10 @@ export interface GoogleReviewData {
 
 // Enhancement 20: Added business_status to detect closed restaurants
 // Cost note: Basic (name,address,business_status) = $0, Contact (phone,website) = $0.003, Atmosphere (rest) = $0.005
+// Foxtrot: Added reservable, serves_brunch, serves_vegetarian_food, dine_in, takeout, delivery
+// These are already included in the Atmosphere pricing tier ($0.005/call) — no additional cost
 const PLACE_DETAILS_FIELDS =
-  "name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,reviews,business_status,photos,opening_hours,current_opening_hours";
+  "name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,reviews,business_status,photos,opening_hours,current_opening_hours,reservable,serves_brunch,serves_vegetarian_food,dine_in,takeout,delivery";
 
 /**
  * Fetch fresh Google Place Details for a single restaurant.
@@ -110,6 +119,13 @@ export async function fetchPlaceDetails(
       business_status: result.business_status || null,
       photo_urls: photoRefs,
       opening_hours: openingHours,
+      // Foxtrot: Additional fields (already in Atmosphere tier, no extra cost)
+      reservable: result.reservable ?? null,
+      serves_brunch: result.serves_brunch ?? null,
+      serves_vegetarian_food: result.serves_vegetarian_food ?? null,
+      dine_in: result.dine_in ?? null,
+      takeout: result.takeout ?? null,
+      delivery: result.delivery ?? null,
     };
   } catch (err) {
     console.error(`Failed to fetch place details for ${placeId}:`, err);

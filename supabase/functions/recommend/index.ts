@@ -1171,11 +1171,14 @@ Deno.serve(async (req: Request) => {
             const phone = rerankedScored[0]?.googleData?.phone || null;
             const website = rerankedScored[0]?.googleData?.website || null;
             const resDifficulty = rerankedScored[0]?.profile?.deep_profile?.reservation_difficulty || null;
+            const googleReservable = rerankedScored[0]?.googleData?.reservable ?? null;
             return buildReservationLinks(
               data as ReservationRow[],
               phone,
               website,
               resDifficulty,
+              undefined, // params
+              googleReservable,
             );
           })
           .catch(() => null)
