@@ -138,7 +138,7 @@ function generateBookingTip(
   if (!reservationDifficulty) return null;
 
   const difficulty = reservationDifficulty.toLowerCase();
-  if (difficulty === "required" || difficulty === "hard") {
+  if (difficulty === "required" || difficulty === "hard" || difficulty === "hard_to_get") {
     return "Book well in advance, especially for weekends.";
   }
   if (difficulty === "recommended") {
