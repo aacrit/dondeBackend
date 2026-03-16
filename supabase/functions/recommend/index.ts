@@ -30,7 +30,7 @@ import type { UserFeedbackSignals } from "./_shared/scoring.ts";
 import { applyPostScoringFilters } from "./_shared/post-filters.ts";
 // V9 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
-import { computeV9Score, reRankV9, NEIGHBORHOOD_ALIASES, expandQueryConcepts } from "./_shared/scoring-v9.ts";
+import { computeV9Score, reRankV9, NEIGHBORHOOD_ALIASES, expandQueryConcepts, applyMMRDiversity } from "./_shared/scoring-v9.ts";
 import { buildV5SystemPrompt, buildV5UserPrompt, buildBlurbOnlyPrompt, detectCultureTheme } from "./_shared/prompts-v5.ts";
 import type { CultureTheme } from "./_shared/prompts-v5.ts";
 import {
@@ -1183,11 +1183,30 @@ Deno.serve(async (req: Request) => {
     }
 
     // ================================================================
-    // STEP 6.5: Build Ranked Queue for instant "Try Again"
+    // STEP 6.5: MMR Diversity Re-Ranking + Build Ranked Queue
     // ================================================================
+    // Apply MMR diversity to positions #2-5 (queue candidates).
+    // Position #1 (primary recommendation) is never changed.
+    const queueCandidates = rerankedScored.slice(1, Math.min(6, rerankedScored.length));
+    const mmrResult = applyMMRDiversity(
+      rerankedScored[0],
+      queueCandidates,
+    );
+    // Update rerankedScored positions 1..N to reflect MMR order
+    // (downstream code like queue blurb upgrade uses rerankedScored[qi+1])
+    for (let i = 0; i < mmrResult.reranked.length; i++) {
+      rerankedScored[i + 1] = mmrResult.reranked[i];
+    }
     const rankedQueue: Record<string, unknown>[] = [];
-    for (let i = 1; i < Math.min(6, rerankedScored.length); i++) {  // Cap at 5 (scores degrade past 5)
-      rankedQueue.push(buildV9RankedQueueItem(rerankedScored[i], i + 1, special_request));
+    for (let i = 0; i < mmrResult.reranked.length; i++) {
+      const item = buildV9RankedQueueItem(mmrResult.reranked[i], i + 2, special_request);
+      // Append diversity annotation to match_headline if present
+      const annotation = mmrResult.annotations.get(mmrResult.reranked[i].profile.id);
+      if (annotation) {
+        const existing = item.match_headline as string | null;
+        item.match_headline = existing ? `${existing} | ${annotation}` : annotation;
+      }
+      rankedQueue.push(item);
     }
 
     // ================================================================

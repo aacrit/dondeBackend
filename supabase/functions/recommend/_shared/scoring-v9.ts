@@ -2645,3 +2645,243 @@ export function reRankV9(
 
   return scored;
 }
+
+// ==========================================
+// MMR (MAXIMAL MARGINAL RELEVANCE) DIVERSITY RE-RANKING
+// ==========================================
+
+/**
+ * MMR lambda controls the relevance-vs-diversity tradeoff.
+ * 1.0 = pure DondeMatch ranking (diversity disabled).
+ * 0.7 = default blend (70% relevance, 30% diversity).
+ * 0.5 = strong diversity boost (used for "discovery pick" slot).
+ */
+export const MMR_LAMBDA = 0.7;
+
+/** Price level ordering for adjacency computation */
+const PRICE_ORDER: Record<string, number> = {
+  "$": 1,
+  "$$": 2,
+  "$$$": 3,
+  "$$$$": 4,
+};
+
+/**
+ * Compute cuisine diversity of a candidate against already-selected restaurants.
+ * Returns 1.0 if the candidate's cuisine differs from ALL selected, 0.0 if same as any.
+ */
+function cuisineDiversity(
+  candidateCuisine: string,
+  selectedCuisines: string[],
+): number {
+  if (selectedCuisines.length === 0) return 1.0;
+  const isDifferentFromAll = selectedCuisines.every(
+    sc => sc.toLowerCase() !== candidateCuisine.toLowerCase()
+  );
+  return isDifferentFromAll ? 1.0 : 0.0;
+}
+
+/**
+ * Compute neighborhood diversity of a candidate against already-selected restaurants.
+ * Returns 1.0 if the candidate's neighborhood differs from ALL selected, 0.0 if same as any.
+ */
+function neighborhoodDiversity(
+  candidateNeighborhood: string,
+  selectedNeighborhoods: string[],
+): number {
+  if (selectedNeighborhoods.length === 0) return 1.0;
+  const isDifferentFromAll = selectedNeighborhoods.every(
+    sn => sn.toLowerCase() !== candidateNeighborhood.toLowerCase()
+  );
+  return isDifferentFromAll ? 1.0 : 0.0;
+}
+
+/**
+ * Compute price diversity of a candidate against already-selected restaurants.
+ * Returns 1.0 if different price, 0.5 if adjacent ($$ vs $$$), 0.0 if same.
+ * Takes the minimum distance across all selected (worst case = most similar).
+ */
+function priceDiversity(
+  candidatePrice: string,
+  selectedPrices: string[],
+): number {
+  if (selectedPrices.length === 0) return 1.0;
+  const candidateOrder = PRICE_ORDER[candidatePrice] || 0;
+  if (candidateOrder === 0) return 0.5; // Unknown price — neutral
+
+  let minDistance = Infinity;
+  for (const sp of selectedPrices) {
+    const selectedOrder = PRICE_ORDER[sp] || 0;
+    if (selectedOrder === 0) continue; // Skip unknown
+    const dist = Math.abs(candidateOrder - selectedOrder);
+    if (dist < minDistance) minDistance = dist;
+  }
+
+  if (minDistance === Infinity) return 0.5; // All selected have unknown price
+  if (minDistance === 0) return 0.0; // Same price level
+  if (minDistance === 1) return 0.5; // Adjacent price ($$ vs $$$)
+  return 1.0; // 2+ levels apart
+}
+
+/**
+ * Compute overall diversity score of a candidate against the already-selected set.
+ * Average of cuisine, neighborhood, and price diversity (each 0-1).
+ */
+function computeDiversityScore(
+  candidate: V9ScoredCandidate,
+  selected: V9ScoredCandidate[],
+): number {
+  const candidateCuisine = (candidate.profile as unknown as Record<string, unknown>).cuisine_type as string || "Unknown";
+  const candidateNeighborhood = (candidate.profile as unknown as Record<string, unknown>).neighborhood_name as string || "Unknown";
+  const candidatePrice = (candidate.profile as unknown as Record<string, unknown>).price_level as string || "";
+
+  const selectedCuisines = selected.map(
+    s => ((s.profile as unknown as Record<string, unknown>).cuisine_type as string) || "Unknown"
+  );
+  const selectedNeighborhoods = selected.map(
+    s => ((s.profile as unknown as Record<string, unknown>).neighborhood_name as string) || "Unknown"
+  );
+  const selectedPrices = selected.map(
+    s => ((s.profile as unknown as Record<string, unknown>).price_level as string) || ""
+  );
+
+  const cd = cuisineDiversity(candidateCuisine, selectedCuisines);
+  const nd = neighborhoodDiversity(candidateNeighborhood, selectedNeighborhoods);
+  const pd = priceDiversity(candidatePrice, selectedPrices);
+
+  return (cd + nd + pd) / 3;
+}
+
+/**
+ * Detect whether the candidate set is "very similar" — all sharing cuisine/neighborhood/price.
+ * Used to decide if the last slot should get a stronger discovery boost.
+ */
+function isHomogeneousSet(candidates: V9ScoredCandidate[]): boolean {
+  if (candidates.length < 3) return false;
+  const cuisines = new Set(
+    candidates.map(c =>
+      ((c.profile as unknown as Record<string, unknown>).cuisine_type as string || "Unknown").toLowerCase()
+    )
+  );
+  const neighborhoods = new Set(
+    candidates.map(c =>
+      ((c.profile as unknown as Record<string, unknown>).neighborhood_name as string || "Unknown").toLowerCase()
+    )
+  );
+  // Homogeneous if only 1 unique cuisine OR only 1 unique neighborhood
+  return cuisines.size <= 1 || neighborhoods.size <= 1;
+}
+
+/**
+ * Generate a diversity annotation for the match_headline of a queue item.
+ * Returns null if no notable diversity dimension.
+ */
+export function getDiversityAnnotation(
+  candidate: V9ScoredCandidate,
+  selected: V9ScoredCandidate[],
+  isDiscoveryPick: boolean,
+): string | null {
+  if (selected.length === 0) return null;
+
+  const candidateCuisine = ((candidate.profile as unknown as Record<string, unknown>).cuisine_type as string || "Unknown").toLowerCase();
+  const candidateNeighborhood = ((candidate.profile as unknown as Record<string, unknown>).neighborhood_name as string || "Unknown").toLowerCase();
+  const candidatePrice = (candidate.profile as unknown as Record<string, unknown>).price_level as string || "";
+
+  const selectedCuisines = selected.map(s =>
+    ((s.profile as unknown as Record<string, unknown>).cuisine_type as string || "Unknown").toLowerCase()
+  );
+  const selectedNeighborhoods = selected.map(s =>
+    ((s.profile as unknown as Record<string, unknown>).neighborhood_name as string || "Unknown").toLowerCase()
+  );
+  const selectedPrices = selected.map(s =>
+    ((s.profile as unknown as Record<string, unknown>).price_level as string || "")
+  );
+
+  const newCuisine = selectedCuisines.every(sc => sc !== candidateCuisine);
+  const newNeighborhood = selectedNeighborhoods.every(sn => sn !== candidateNeighborhood);
+  const newPrice = selectedPrices.every(sp => sp !== candidatePrice) && candidatePrice !== "";
+
+  const prefix = isDiscoveryPick ? "Discovery pick" : "Diverse pick";
+
+  const dimensions: string[] = [];
+  if (newCuisine) dimensions.push("different cuisine");
+  if (newNeighborhood) dimensions.push("different neighborhood");
+  if (newPrice) dimensions.push("different price point");
+
+  if (dimensions.length === 0) return null;
+  return `${prefix} — ${dimensions.join(", ")}`;
+}
+
+/**
+ * Apply MMR (Maximal Marginal Relevance) diversity re-ranking to the queue candidates.
+ *
+ * Position #1 (the primary recommendation) is NEVER changed.
+ * Positions #2-5 in the queue are re-ranked using:
+ *   MMR_score = lambda * normalized_DM + (1 - lambda) * diversity_from_selected
+ *
+ * The last slot (position 4 or 5) gets a stronger diversity boost (lambda drops to 0.5)
+ * when the top candidates are very similar (homogeneous cuisine/neighborhood).
+ *
+ * @param primary - The #1 recommendation (already chosen, used as diversity anchor)
+ * @param queueCandidates - Candidates for positions #2-5 (sorted by DondeMatch)
+ * @param lambda - Relevance vs diversity tradeoff (default: MMR_LAMBDA = 0.7)
+ * @returns Re-ranked queue candidates with diversity annotations
+ */
+export function applyMMRDiversity(
+  primary: V9ScoredCandidate,
+  queueCandidates: V9ScoredCandidate[],
+  lambda: number = MMR_LAMBDA,
+): { reranked: V9ScoredCandidate[]; annotations: Map<string, string> } {
+  // Nothing to diversify with fewer than 2 queue candidates
+  if (queueCandidates.length < 2) {
+    return { reranked: [...queueCandidates], annotations: new Map() };
+  }
+
+  // Normalize DondeMatch scores to 0-1 range for MMR formula
+  const allScores = queueCandidates.map(c => c.dondeMatch);
+  const maxDM = Math.max(...allScores);
+  const minDM = Math.min(...allScores);
+  const dmRange = maxDM - minDM || 1; // Avoid division by zero
+
+  const remaining = [...queueCandidates];
+  const selected: V9ScoredCandidate[] = [primary]; // Primary is the diversity anchor
+  const result: V9ScoredCandidate[] = [];
+  const annotations = new Map<string, string>();
+
+  const totalSlots = remaining.length;
+  const isHomogeneous = isHomogeneousSet([primary, ...queueCandidates]);
+
+  for (let slot = 0; slot < totalSlots && remaining.length > 0; slot++) {
+    // Discovery pick: last slot gets stronger diversity if set is homogeneous
+    const isLastSlot = slot === totalSlots - 1;
+    const isDiscoverySlot = isLastSlot && isHomogeneous && totalSlots >= 3;
+    const effectiveLambda = isDiscoverySlot ? Math.min(lambda, 0.5) : lambda;
+
+    let bestIdx = 0;
+    let bestMMR = -Infinity;
+
+    for (let i = 0; i < remaining.length; i++) {
+      const candidate = remaining[i];
+      const normalizedDM = (candidate.dondeMatch - minDM) / dmRange;
+      const diversity = computeDiversityScore(candidate, selected);
+      const mmrScore = effectiveLambda * normalizedDM + (1 - effectiveLambda) * diversity;
+
+      if (mmrScore > bestMMR) {
+        bestMMR = mmrScore;
+        bestIdx = i;
+      }
+    }
+
+    const chosen = remaining.splice(bestIdx, 1)[0];
+    result.push(chosen);
+    selected.push(chosen);
+
+    // Generate diversity annotation
+    const annotation = getDiversityAnnotation(chosen, selected.slice(0, -1), isDiscoverySlot);
+    if (annotation) {
+      annotations.set(chosen.profile.id, annotation);
+    }
+  }
+
+  return { reranked: result, annotations };
+}
