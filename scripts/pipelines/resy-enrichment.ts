@@ -18,7 +18,7 @@
 
 import { createAdminClient } from '../lib/supabase.js';
 
-const RESY_API_KEY = 'VbWk7s3L4KiK5fzlO7JD3Q5EYolJI7n5'; // Resy public client key
+const RESY_API_KEY = process.env.RESY_API_KEY || '';
 const RATE_LIMIT_MS = 1200;
 const REQUEST_TIMEOUT_MS = 8000;
 
@@ -115,6 +115,12 @@ const dryRun = hasFlag('dry-run');
 const verbose = hasFlag('verbose');
 
 async function main() {
+  if (!RESY_API_KEY) {
+    console.error('ERROR: RESY_API_KEY environment variable is not set.');
+    console.error('Set it before running this pipeline: export RESY_API_KEY="your_key"');
+    process.exit(1);
+  }
+
   const supabase = createAdminClient();
 
   console.log('='.repeat(60));

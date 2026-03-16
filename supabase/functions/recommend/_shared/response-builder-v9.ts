@@ -924,14 +924,17 @@ export function buildV9NoResultsResponse(
 
 /**
  * Build a V9 error response.
+ * SECURITY: Never expose raw error messages, stack traces, or internal paths to clients.
+ * The raw error is logged server-side only (via console.error).
  */
 export function buildV9ErrorResponse(
   error: unknown
 ): Record<string, unknown> {
+  // Log the full error server-side for debugging (visible in Supabase logs, never in response)
   console.error("V9 engine error:", error);
   return {
     success: false,
-    recommendation: "The engine took a nap. Try again.",
+    recommendation: "Something went wrong with your request. Please try again.",
     restaurant: {},
     scores: {},
     tags: [],
