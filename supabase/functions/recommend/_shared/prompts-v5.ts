@@ -690,8 +690,7 @@ OCCASION: ${occasion}
 NEIGHBORHOOD: ${neighborhood}
 PRICE: ${priceLevel}
 DIETARY: ${dietaryRestrictions.length > 0 ? dietaryRestrictions.join(', ') : 'None'}
-${keyTerms.length > 0 ? `KEY SEARCH TERMS (weave naturally into blurb where relevant): ${keyTerms.join(', ')}\n` : ''}
-WEIGHT CONTEXT: ${weightContext}
+${keyTerms.length > 0 ? `KEY SEARCH TERMS (weave naturally into blurb where relevant): ${keyTerms.join(', ')}\n` : ''}${intent?.practical_constraints && intent.practical_constraints.length > 0 ? `USER CONSTRAINTS (acknowledge in blurb — confirm if restaurant meets them or note if it doesn't): ${intent.practical_constraints.join(', ')}\n` : ''}WEIGHT CONTEXT: ${weightContext}
 
 `;
 

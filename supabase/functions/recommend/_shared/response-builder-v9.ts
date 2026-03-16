@@ -236,6 +236,9 @@ export function buildQueueBlurb(
       cleaned = cleaned.replace(re, "").replace(/\s{2,}/g, " ").trim();
     }
     cleaned = cleaned.replace(/\s+,/g, ",").replace(/,\s*\./g, ".").replace(/\.\s*\./g, ".");
+    // V22: Fix broken apostrophes — "that s" → "that's", "don t" → "don't", "it s" → "it's"
+    cleaned = cleaned.replace(/\b(that|it|don|won|can|doesn|isn|wasn|shouldn|couldn|wouldn|hasn|haven|aren|weren|didn|ain)\s+(s|t|re|ve|ll|d)\b/gi,
+      (_, word, suffix) => `${word}'${suffix}`);
     return cleaned;
   };
 
@@ -363,7 +366,13 @@ export function buildQueueBlurb(
     for (const { pattern, template } of QUERY_OPENERS) {
       if (pattern.test(queryLower)) return template();
     }
-    if (queryTerms.length >= 2) return `For ${queryPhrase}, we'd put this on the list.`;
+    // V22: Cap query echo at 5 words and ensure it reads naturally
+    if (queryTerms.length >= 2) {
+      const capped = queryTerms.slice(0, 5).join(" ");
+      // If the capped phrase ends with a dangling word (preposition/adjective), trim it
+      const cleaned = capped.replace(/\s+(and|or|with|the|an?|very|really|some)\s*$/i, "");
+      if (cleaned.length >= 4) return `For ${cleaned}, we'd put this on the list.`;
+    }
     return null;
   };
 
@@ -403,13 +412,17 @@ export function buildQueueBlurb(
     if (dp?.signature_dishes && dp.signature_dishes.length >= 2) {
       const d1 = dp.signature_dishes[0];
       const d2 = dp.signature_dishes[1];
+      // V22: Article collision guard — skip "the" when dish name starts with "The/A/An"
+      const article = (name: string) => /^(the|a|an)\s/i.test(name) ? "" : "the ";
+      const a1 = article(d1.dish);
+      const a2 = article(d2.dish);
       // V21: 5 sentence variants for dish pairs
       const dishVariants = [
-        `We'd start with the ${d1.dish} and follow up with the ${d2.dish}.`,
-        `The ${d1.dish} alone is worth the trip, but the ${d2.dish} seals it.`,
-        `Start with the ${d1.dish}. Then the ${d2.dish}. Then decide you're coming back.`,
-        `Order the ${d1.dish} and the ${d2.dish}. Trust us on the order.`,
-        `The ${d1.dish} gets the attention, but the ${d2.dish} is the sleeper hit.`,
+        `We'd start with ${a1}${d1.dish} and follow up with ${a2}${d2.dish}.`,
+        `${a1 ? "The " : ""}${d1.dish} alone is worth the trip, but ${a2}${d2.dish} seals it.`,
+        `Start with ${a1}${d1.dish}. Then ${a2}${d2.dish}. Then decide you're coming back.`,
+        `Order ${a1}${d1.dish} and ${a2}${d2.dish}. Trust us on the order.`,
+        `${a1 ? "The " : ""}${d1.dish} gets the attention, but ${a2}${d2.dish} is the sleeper hit.`,
       ];
       return dishVariants[variantIdx];
     } else if (dp?.signature_dishes?.[0]) {
@@ -450,6 +463,11 @@ export function buildQueueBlurb(
         }
         return base;
       });
+      // V22: Dedup — if both mapped adjectives are identical, replace second with a fallback
+      if (mapped.length >= 2 && mapped[0] === mapped[1]) {
+        const fallbacks = ["well-executed", "layered", "precise"];
+        mapped[1] = fallbacks[variantIdx % fallbacks.length];
+      }
       // V21: 5 sentence variants for flavor descriptions
       const flavorVariants = [
         `Expect ${mapped.join(" and ")} flavors across the menu.`,
@@ -516,7 +534,11 @@ export function buildQueueBlurb(
     const comparables = ri?.comparable_restaurants as string[] | undefined;
     if (comparables && comparables.length > 0) {
       const comp = scrubSlop(comparables[0]);
-      if (comp.length > 10) return comp.endsWith(".") ? comp.charAt(0).toUpperCase() + comp.slice(1) : comp.charAt(0).toUpperCase() + comp.slice(1) + ".";
+      // V22: Skip if this exact comparable text already appeared in another queue blurb
+      // (many fine-dining restaurants share "Comparable to Alinea..." text)
+      if (comp.length > 10 && !parts.some(p => p.toLowerCase().includes(comp.toLowerCase().slice(0, 20)))) {
+        return comp.endsWith(".") ? comp.charAt(0).toUpperCase() + comp.slice(1) : comp.charAt(0).toUpperCase() + comp.slice(1) + ".";
+      }
     }
     return null;
   };
@@ -527,6 +549,8 @@ export function buildQueueBlurb(
       const awardText = awards[0];
       // Dedup: skip if award already mentioned in earlier parts
       if (parts.some(p => p.toLowerCase().includes(awardText.toLowerCase().slice(0, 15)))) return null;
+      // V22: Skip redundant " recognized." if award text already contains "recogni" or ends with punctuation
+      if (/recogni|awarded|winner|starred/i.test(awardText)) return awardText.endsWith(".") ? awardText : awardText + ".";
       return `${awardText} recognized.`;
     }
     return null;
