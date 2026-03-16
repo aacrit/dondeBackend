@@ -1,0 +1,2702 @@
+[
+  {
+    "special_request": "Caribbean food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 6,
+    "canonical_key": "caribbean food|Any",
+    "last_seen": "2026-03-16T03:31:03.945071+00:00"
+  },
+  {
+    "special_request": "river north restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 5,
+    "canonical_key": "north restaurant river|Any",
+    "last_seen": "2026-03-16T03:34:24.506302+00:00"
+  },
+  {
+    "special_request": "taiwanese food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 5,
+    "canonical_key": "food taiwanese|Any",
+    "last_seen": "2026-03-16T03:34:20.65136+00:00"
+  },
+  {
+    "special_request": "jerk chicken",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 5,
+    "canonical_key": "chicken jerk|Any",
+    "last_seen": "2026-03-16T03:31:26.494974+00:00"
+  },
+  {
+    "special_request": "logan square restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 4,
+    "canonical_key": "logan restaurant square|Any",
+    "last_seen": "2026-03-16T03:34:27.084413+00:00"
+  },
+  {
+    "special_request": "quick lunch near the loop",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 4,
+    "canonical_key": "loop lunch near quick the|Any",
+    "last_seen": "2026-03-16T03:34:24.153164+00:00"
+  },
+  {
+    "special_request": "near wrigley field",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 4,
+    "canonical_key": "field near wrigley|Any",
+    "last_seen": "2026-03-16T03:34:23.676363+00:00"
+  },
+  {
+    "special_request": "best craft cocktail bar",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 4,
+    "canonical_key": "bar best cocktail craft|Any",
+    "last_seen": "2026-03-16T03:34:21.260793+00:00"
+  },
+  {
+    "special_request": "west loop restaurants",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 4,
+    "canonical_key": "loop restaurants west|Any",
+    "last_seen": "2026-03-16T03:34:20.907503+00:00"
+  },
+  {
+    "special_request": "intimate wine bar",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 3,
+    "canonical_key": "bar intimate wine|Any",
+    "last_seen": "2026-03-16T03:31:08.539806+00:00"
+  },
+  {
+    "special_request": "best burger in Chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 3,
+    "canonical_key": "best burger chicago in|Any",
+    "last_seen": "2026-03-16T03:31:06.876349+00:00"
+  },
+  {
+    "special_request": "soul food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 3,
+    "canonical_key": "food soul|Any",
+    "last_seen": "2026-03-16T03:31:04.495428+00:00"
+  },
+  {
+    "special_request": "best chicago restaurant 2025",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 3,
+    "canonical_key": "2025 best chicago restaurant|Any",
+    "last_seen": "2026-03-16T03:22:38.616445+00:00"
+  },
+  {
+    "special_request": "no reservation needed",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 3,
+    "canonical_key": "needed no reservation|Any",
+    "last_seen": "2026-03-16T03:13:57.306899+00:00"
+  },
+  {
+    "special_request": "byob restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 3,
+    "canonical_key": "byob restaurant|Any",
+    "last_seen": "2026-03-16T03:13:22.732107+00:00"
+  },
+  {
+    "special_request": "mothers day brunch",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 3,
+    "canonical_key": "brunch day mothers|Any",
+    "last_seen": "2026-03-16T03:13:00.464264+00:00"
+  },
+  {
+    "special_request": "lakeview spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 3,
+    "canonical_key": "lakeview spot|Any",
+    "last_seen": "2026-03-16T01:49:28.393363+00:00"
+  },
+  {
+    "special_request": "southern comfort food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "comfort food southern|Any",
+    "last_seen": "2026-03-16T03:34:27.633388+00:00"
+  },
+  {
+    "special_request": "late night food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "food late night|Any",
+    "last_seen": "2026-03-16T03:31:57.965036+00:00"
+  },
+  {
+    "special_request": "speakeasy",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "speakeasy|Any",
+    "last_seen": "2026-03-16T03:31:54.826709+00:00"
+  },
+  {
+    "special_request": "cuban food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "cuban food|Any",
+    "last_seen": "2026-03-16T03:31:31.21911+00:00"
+  },
+  {
+    "special_request": "hot chicken",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chicken hot|Any",
+    "last_seen": "2026-03-16T03:31:28.913439+00:00"
+  },
+  {
+    "special_request": "wood-fired pizza",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "pizza wood-fired|Any",
+    "last_seen": "2026-03-16T03:22:22.952473+00:00"
+  },
+  {
+    "special_request": "best pasta in the city",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best city in pasta the|Any",
+    "last_seen": "2026-03-16T03:22:10.406857+00:00"
+  },
+  {
+    "special_request": "late night taco spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "late night spot taco|Any",
+    "last_seen": "2026-03-16T03:17:50.396566+00:00"
+  },
+  {
+    "special_request": "Michelin star restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "michelin restaurant star|Any",
+    "last_seen": "2026-03-16T03:13:55.110177+00:00"
+  },
+  {
+    "special_request": "chilaquiles",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chilaquiles|Any",
+    "last_seen": "2026-03-16T03:13:12.25761+00:00"
+  },
+  {
+    "special_request": "sri lankan hoppers with dhal curry",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "curry dhal hoppers lankan sri with|Any",
+    "last_seen": "2026-03-16T01:51:01.449365+00:00"
+  },
+  {
+    "special_request": "nepalese momo dumplings with spicy sauce",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dumplings momo nepalese sauce spicy with|Any",
+    "last_seen": "2026-03-16T01:51:00.974379+00:00"
+  },
+  {
+    "special_request": "nigerian jollof rice with suya",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "jollof nigerian rice suya with|Any",
+    "last_seen": "2026-03-16T01:51:00.43298+00:00"
+  },
+  {
+    "special_request": "salvadoran pupusas with curtido on the side",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "curtido on pupusas salvadoran side the with|Any",
+    "last_seen": "2026-03-16T01:51:00.328219+00:00"
+  },
+  {
+    "special_request": "afghan kabob with bolani appetizers",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "afghan appetizers bolani kabob with|Any",
+    "last_seen": "2026-03-16T01:51:00.026915+00:00"
+  },
+  {
+    "special_request": "turkish kebab with baklava for dessert",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "baklava dessert for kebab turkish with|Any",
+    "last_seen": "2026-03-16T01:50:59.7782+00:00"
+  },
+  {
+    "special_request": "cuban restaurant with live salsa music",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "cuban live music restaurant salsa with|Any",
+    "last_seen": "2026-03-16T01:50:59.672735+00:00"
+  },
+  {
+    "special_request": "filipino restaurant with adobo and lumpia",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "adobo and filipino lumpia restaurant with|Any",
+    "last_seen": "2026-03-16T01:50:59.492279+00:00"
+  },
+  {
+    "special_request": "spanish tapas with sangria for group celebration",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "celebration for group sangria spanish tapas with|Any",
+    "last_seen": "2026-03-16T01:50:59.277977+00:00"
+  },
+  {
+    "special_request": "italian trattoria with homemade pasta and tiramisu",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and homemade italian pasta tiramisu trattoria with|Any",
+    "last_seen": "2026-03-16T01:50:58.998017+00:00"
+  },
+  {
+    "special_request": "german beer hall with pretzels and sausage",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and beer german hall pretzels sausage with|Any",
+    "last_seen": "2026-03-16T01:50:58.902543+00:00"
+  },
+  {
+    "special_request": "best fish tacos near the lake with a view",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "a best fish lake near tacos the view with|Any",
+    "last_seen": "2026-03-16T01:50:58.811859+00:00"
+  },
+  {
+    "special_request": "mexican mole with mezcal cocktails for date night",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "cocktails date for mexican mezcal mole night with|Any",
+    "last_seen": "2026-03-16T01:50:58.651307+00:00"
+  },
+  {
+    "special_request": "japanese ramen shop with tsukemen dipping noodles",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dipping japanese noodles ramen shop tsukemen with|Any",
+    "last_seen": "2026-03-16T01:50:58.07972+00:00"
+  },
+  {
+    "special_request": "moroccan couscous with tagine for group dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "couscous dinner for group moroccan tagine with|Any",
+    "last_seen": "2026-03-16T01:50:57.682272+00:00"
+  },
+  {
+    "special_request": "brazilian steakhouse all you can eat with salad bar",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "all bar brazilian can eat salad steakhouse with you|Any",
+    "last_seen": "2026-03-16T01:50:57.673725+00:00"
+  },
+  {
+    "special_request": "thai street food style with papaya salad and pad see ew",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and ew food pad papaya salad see street style thai with|Any",
+    "last_seen": "2026-03-16T01:50:57.324606+00:00"
+  },
+  {
+    "special_request": "argentinian steakhouse with malbec wine selection",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "argentinian malbec selection steakhouse wine with|Any",
+    "last_seen": "2026-03-16T01:50:57.174414+00:00"
+  },
+  {
+    "special_request": "jamaican restaurant with curry goat and plantains",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and curry goat jamaican plantains restaurant with|Any",
+    "last_seen": "2026-03-16T01:50:56.81069+00:00"
+  },
+  {
+    "special_request": "best deep dish for out of town guests first time",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best deep dish first for guests of out time town|Any",
+    "last_seen": "2026-03-16T01:50:56.411812+00:00"
+  },
+  {
+    "special_request": "michelin bib gourmand restaurant for casual date",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bib casual date for gourmand michelin restaurant|Any",
+    "last_seen": "2026-03-16T01:50:56.338966+00:00"
+  },
+  {
+    "special_request": "vietnamese pho with fresh herbs near chinatown",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chinatown fresh herbs near pho vietnamese with|Any",
+    "last_seen": "2026-03-16T01:50:56.328754+00:00"
+  },
+  {
+    "special_request": "colombian empanadas and arepas casual lunch",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and arepas casual colombian empanadas lunch|Any",
+    "last_seen": "2026-03-16T01:50:55.899753+00:00"
+  },
+  {
+    "special_request": "greek taverna with lamb and wine near greektown",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and greek greektown lamb near taverna wine with|Any",
+    "last_seen": "2026-03-16T01:50:55.543134+00:00"
+  },
+  {
+    "special_request": "peruvian chicken with green sauce for takeout",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chicken for green peruvian sauce takeout with|Any",
+    "last_seen": "2026-03-16T01:50:55.420991+00:00"
+  },
+  {
+    "special_request": "lebanese shawarma with hookah lounge",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "hookah lebanese lounge shawarma with|Any",
+    "last_seen": "2026-03-16T01:50:55.11101+00:00"
+  },
+  {
+    "special_request": "polish pierogi and sausage on milwaukee avenue",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and avenue milwaukee on pierogi polish sausage|Any",
+    "last_seen": "2026-03-16T01:50:54.916747+00:00"
+  },
+  {
+    "special_request": "caribbean jerk chicken with rum drinks",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "caribbean chicken drinks jerk rum with|Any",
+    "last_seen": "2026-03-16T01:50:54.823444+00:00"
+  },
+  {
+    "special_request": "high end omakase with counter seating under 200",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "200 counter end high omakase seating under with|Any",
+    "last_seen": "2026-03-16T01:50:54.588667+00:00"
+  },
+  {
+    "special_request": "old school chicago italian beef sandwich spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "beef chicago italian old sandwich school spot|Any",
+    "last_seen": "2026-03-16T01:50:54.513554+00:00"
+  },
+  {
+    "special_request": "trendy new restaurant everyone is talking about",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "about everyone is new restaurant talking trendy|Any",
+    "last_seen": "2026-03-16T01:50:54.1168+00:00"
+  },
+  {
+    "special_request": "seafood restaurant with raw bar and outdoor patio",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and bar outdoor patio raw restaurant seafood with|Any",
+    "last_seen": "2026-03-16T01:50:53.844104+00:00"
+  },
+  {
+    "special_request": "southern comfort food with bourbon selection",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bourbon comfort food selection southern with|Any",
+    "last_seen": "2026-03-16T01:50:53.640426+00:00"
+  },
+  {
+    "special_request": "quiet coffee shop with wifi for working all day",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "all coffee day for quiet shop wifi with working|Any",
+    "last_seen": "2026-03-16T01:50:53.351237+00:00"
+  },
+  {
+    "special_request": "indian restaurant with lunch buffet near the loop",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "buffet indian loop lunch near restaurant the with|Any",
+    "last_seen": "2026-03-16T01:50:53.0877+00:00"
+  },
+  {
+    "special_request": "best burger and craft beer in logan square",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and beer best burger craft in logan square|Any",
+    "last_seen": "2026-03-16T01:50:52.838589+00:00"
+  },
+  {
+    "special_request": "late night sushi near lakeview open past midnight",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "lakeview late midnight near night open past sushi|Any",
+    "last_seen": "2026-03-16T01:50:52.509872+00:00"
+  },
+  {
+    "special_request": "farm to table restaurant with seasonal menu and cocktails",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and cocktails farm menu restaurant seasonal table to with|Any",
+    "last_seen": "2026-03-16T01:50:52.489576+00:00"
+  },
+  {
+    "special_request": "gluten free pizza near downtown for family dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner downtown family for free gluten near pizza|Any",
+    "last_seen": "2026-03-16T01:50:52.101134+00:00"
+  },
+  {
+    "special_request": "authentic Szechuan restaurant that is actually spicy",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "actually authentic is restaurant spicy szechuan that|Any",
+    "last_seen": "2026-03-16T01:50:52.027977+00:00"
+  },
+  {
+    "special_request": "best brunch in wicker park with bottomless mimosas",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best bottomless brunch in mimosas park wicker with|Any",
+    "last_seen": "2026-03-16T01:50:51.4207+00:00"
+  },
+  {
+    "special_request": "romantic French bistro with wine list for valentines",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bistro for french list romantic valentines wine with|Any",
+    "last_seen": "2026-03-16T01:50:51.334698+00:00"
+  },
+  {
+    "special_request": "casual Korean bbq for group of ten people",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bbq casual for group korean of people ten|Any",
+    "last_seen": "2026-03-16T01:50:51.282398+00:00"
+  },
+  {
+    "special_request": "vegan Ethiopian restaurant with outdoor seating",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "ethiopian outdoor restaurant seating vegan with|Any",
+    "last_seen": "2026-03-16T01:50:50.882695+00:00"
+  },
+  {
+    "special_request": "cheap Thai food near lincoln park open late",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "cheap food late lincoln near open park thai|Any",
+    "last_seen": "2026-03-16T01:50:50.844848+00:00"
+  },
+  {
+    "special_request": "quiet Japanese restaurant with sake for anniversary in river north",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "anniversary for in japanese north quiet restaurant river sake with|Any",
+    "last_seen": "2026-03-16T01:50:50.023251+00:00"
+  },
+  {
+    "special_request": "loud Mexican place with margaritas for bachelor party",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bachelor for loud margaritas mexican party place with|Any",
+    "last_seen": "2026-03-16T01:50:50.019299+00:00"
+  },
+  {
+    "special_request": "kid friendly Chinese restaurant with dim sum on sunday",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chinese dim friendly kid on restaurant sum sunday with|Any",
+    "last_seen": "2026-03-16T01:50:50.018812+00:00"
+  },
+  {
+    "special_request": "upscale steakhouse with private room for business dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "business dinner for private room steakhouse upscale with|Any",
+    "last_seen": "2026-03-16T01:50:49.595964+00:00"
+  },
+  {
+    "special_request": "best Italian near west loop under 30 per person",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "30 best italian loop near per person under west|Any",
+    "last_seen": "2026-03-16T01:50:49.384695+00:00"
+  },
+  {
+    "special_request": "money is no object dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner is money no object|Any",
+    "last_seen": "2026-03-16T01:50:48.297988+00:00"
+  },
+  {
+    "special_request": "best food under ten dollars",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best dollars food ten under|Any",
+    "last_seen": "2026-03-16T01:50:47.937161+00:00"
+  },
+  {
+    "special_request": "mildest least spicy option",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "least mildest option spicy|Any",
+    "last_seen": "2026-03-16T01:50:47.729076+00:00"
+  },
+  {
+    "special_request": "spiciest food in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chicago food in spiciest|Any",
+    "last_seen": "2026-03-16T01:50:47.335691+00:00"
+  },
+  {
+    "special_request": "cold refreshing summer food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "cold food refreshing summer|Any",
+    "last_seen": "2026-03-16T01:50:47.333642+00:00"
+  },
+  {
+    "special_request": "heavy meal im starving",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "heavy im meal starving|Any",
+    "last_seen": "2026-03-16T01:50:47.276558+00:00"
+  },
+  {
+    "special_request": "light meal before theater",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "before light meal theater|Any",
+    "last_seen": "2026-03-16T01:50:46.454975+00:00"
+  },
+  {
+    "special_request": "protein heavy gym food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "food gym heavy protein|Any",
+    "last_seen": "2026-03-16T01:50:46.30229+00:00"
+  },
+  {
+    "special_request": "carb loading before marathon",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "before carb loading marathon|Any",
+    "last_seen": "2026-03-16T01:50:45.95117+00:00"
+  },
+  {
+    "special_request": "health food that tastes good",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "food good health tastes that|Any",
+    "last_seen": "2026-03-16T01:50:45.913061+00:00"
+  },
+  {
+    "special_request": "food that tastes like home",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "food home like tastes that|Any",
+    "last_seen": "2026-03-16T01:50:45.337414+00:00"
+  },
+  {
+    "special_request": "guilty pleasure meal",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "guilty meal pleasure|Any",
+    "last_seen": "2026-03-16T01:50:45.208097+00:00"
+  },
+  {
+    "special_request": "nostalgic childhood food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "childhood food nostalgic|Any",
+    "last_seen": "2026-03-16T01:50:45.078293+00:00"
+  },
+  {
+    "special_request": "last meal on earth",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "earth last meal on|Any",
+    "last_seen": "2026-03-16T01:50:45.024421+00:00"
+  },
+  {
+    "special_request": "celebration we got the job",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "celebration got job the we|Any",
+    "last_seen": "2026-03-16T01:50:45.023809+00:00"
+  },
+  {
+    "special_request": "crying into food breakup meal",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "breakup crying food into meal|Any",
+    "last_seen": "2026-03-16T01:50:44.379874+00:00"
+  },
+  {
+    "special_request": "impress a foodie friend",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "a foodie friend impress|Any",
+    "last_seen": "2026-03-16T01:50:44.096239+00:00"
+  },
+  {
+    "special_request": "take my parents",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "my parents take|Any",
+    "last_seen": "2026-03-16T01:50:44.060562+00:00"
+  },
+  {
+    "special_request": "convince someone to move here",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "convince here move someone to|Any",
+    "last_seen": "2026-03-16T01:50:43.945701+00:00"
+  },
+  {
+    "special_request": "make someone fall in love",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "fall in love make someone|Any",
+    "last_seen": "2026-03-16T01:50:43.881752+00:00"
+  },
+  {
+    "special_request": "would wait an hour for",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "an for hour wait would|Any",
+    "last_seen": "2026-03-16T01:50:43.49042+00:00"
+  },
+  {
+    "special_request": "no frills just good food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "food frills good just no|Any",
+    "last_seen": "2026-03-16T01:50:42.809038+00:00"
+  },
+  {
+    "special_request": "looks bad tastes amazing",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "amazing bad looks tastes|Any",
+    "last_seen": "2026-03-16T01:50:42.710682+00:00"
+  },
+  {
+    "special_request": "cheap and filling",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and cheap filling|Any",
+    "last_seen": "2026-03-16T01:50:42.636775+00:00"
+  },
+  {
+    "special_request": "hangover cure breakfast",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "breakfast cure hangover|Any",
+    "last_seen": "2026-03-16T01:50:42.59772+00:00"
+  },
+  {
+    "special_request": "fancy but not pretentious",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "but fancy not pretentious|Any",
+    "last_seen": "2026-03-16T01:50:42.332551+00:00"
+  },
+  {
+    "special_request": "after bar food 2am",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "2am after bar food|Any",
+    "last_seen": "2026-03-16T01:50:41.73638+00:00"
+  },
+  {
+    "special_request": "restaurant industry night",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "industry night restaurant|Any",
+    "last_seen": "2026-03-16T01:50:41.561744+00:00"
+  },
+  {
+    "special_request": "where do chefs eat",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chefs do eat where|Any",
+    "last_seen": "2026-03-16T01:50:41.417036+00:00"
+  },
+  {
+    "special_request": "most chicago thing to eat",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chicago eat most thing to|Any",
+    "last_seen": "2026-03-16T01:50:41.365195+00:00"
+  },
+  {
+    "special_request": "local favorite not touristy",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "favorite local not touristy|Any",
+    "last_seen": "2026-03-16T01:50:41.343257+00:00"
+  },
+  {
+    "special_request": "visiting from new york",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "from new visiting york|Any",
+    "last_seen": "2026-03-16T01:50:40.638969+00:00"
+  },
+  {
+    "special_request": "what is chicago known for",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chicago for is known what|Any",
+    "last_seen": "2026-03-16T01:50:40.636403+00:00"
+  },
+  {
+    "special_request": "tourist first time chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chicago first time tourist|Any",
+    "last_seen": "2026-03-16T01:50:40.028276+00:00"
+  },
+  {
+    "special_request": "just moved to chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chicago just moved to|Any",
+    "last_seen": "2026-03-16T01:50:39.475086+00:00"
+  },
+  {
+    "special_request": "no idea help",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "help idea no|Any",
+    "last_seen": "2026-03-16T01:50:39.330826+00:00"
+  },
+  {
+    "special_request": "adventurous eating",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "adventurous eating|Any",
+    "last_seen": "2026-03-16T01:50:39.235036+00:00"
+  },
+  {
+    "special_request": "something different",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "different something|Any",
+    "last_seen": "2026-03-16T01:50:38.977147+00:00"
+  },
+  {
+    "special_request": "never tried before",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "before never tried|Any",
+    "last_seen": "2026-03-16T01:50:38.902132+00:00"
+  },
+  {
+    "special_request": "whatever is good",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "good is whatever|Any",
+    "last_seen": "2026-03-16T01:50:38.288015+00:00"
+  },
+  {
+    "special_request": "I dont know what I want",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dont i i know want what|Any",
+    "last_seen": "2026-03-16T01:50:38.274459+00:00"
+  },
+  {
+    "special_request": "dealers choice",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "choice dealers|Any",
+    "last_seen": "2026-03-16T01:50:38.120695+00:00"
+  },
+  {
+    "special_request": "what should I eat tonight",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "eat i should tonight what|Any",
+    "last_seen": "2026-03-16T01:50:37.965872+00:00"
+  },
+  {
+    "special_request": "surprise me",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "me surprise|Any",
+    "last_seen": "2026-03-16T01:50:37.809544+00:00"
+  },
+  {
+    "special_request": "yum",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "yum|Any",
+    "last_seen": "2026-03-16T01:50:37.041838+00:00"
+  },
+  {
+    "special_request": "feed me",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "feed me|Any",
+    "last_seen": "2026-03-16T01:50:36.950777+00:00"
+  },
+  {
+    "special_request": "hungry",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "hungry|Any",
+    "last_seen": "2026-03-16T01:50:36.776002+00:00"
+  },
+  {
+    "special_request": "food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "food|Any",
+    "last_seen": "2026-03-16T01:50:36.687629+00:00"
+  },
+  {
+    "special_request": "eat",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "eat|Any",
+    "last_seen": "2026-03-16T01:50:36.671747+00:00"
+  },
+  {
+    "special_request": "breakfast burrito early morning",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "breakfast burrito early morning|Any",
+    "last_seen": "2026-03-16T01:50:35.74774+00:00"
+  },
+  {
+    "special_request": "hot pot group dinner chinatown",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chinatown dinner group hot pot|Any",
+    "last_seen": "2026-03-16T01:50:35.646404+00:00"
+  },
+  {
+    "special_request": "craft beer with burger and fries",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and beer burger craft fries with|Any",
+    "last_seen": "2026-03-16T01:50:35.101807+00:00"
+  },
+  {
+    "special_request": "cuban sandwich with mojito",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "cuban mojito sandwich with|Any",
+    "last_seen": "2026-03-16T01:50:34.74967+00:00"
+  },
+  {
+    "special_request": "moroccan tagine with couscous",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "couscous moroccan tagine with|Any",
+    "last_seen": "2026-03-16T01:50:34.631062+00:00"
+  },
+  {
+    "special_request": "sushi omakase for special occasion",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "for occasion omakase special sushi|Any",
+    "last_seen": "2026-03-16T01:50:34.333657+00:00"
+  },
+  {
+    "special_request": "taco tuesday specials near me",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "me near specials taco tuesday|Any",
+    "last_seen": "2026-03-16T01:50:33.897347+00:00"
+  },
+  {
+    "special_request": "oyster bar happy hour west loop",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bar happy hour loop oyster west|Any",
+    "last_seen": "2026-03-16T01:50:33.750673+00:00"
+  },
+  {
+    "special_request": "dim sum cart service on sunday",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "cart dim on service sum sunday|Any",
+    "last_seen": "2026-03-16T01:50:33.618367+00:00"
+  },
+  {
+    "special_request": "bbq ribs with outdoor patio river north",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bbq north outdoor patio ribs river with|Any",
+    "last_seen": "2026-03-16T01:50:33.615845+00:00"
+  },
+  {
+    "special_request": "indian buffet lunch in devon area",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "area buffet devon in indian lunch|Any",
+    "last_seen": "2026-03-16T01:50:32.899718+00:00"
+  },
+  {
+    "special_request": "banh mi near downtown for quick lunch",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "banh downtown for lunch mi near quick|Any",
+    "last_seen": "2026-03-16T01:50:32.881863+00:00"
+  },
+  {
+    "special_request": "ramen and sake late night",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and late night ramen sake|Any",
+    "last_seen": "2026-03-16T01:50:32.855809+00:00"
+  },
+  {
+    "special_request": "speakeasy cocktails with prohibition era vibe",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "cocktails era prohibition speakeasy vibe with|Any",
+    "last_seen": "2026-03-16T01:50:32.353098+00:00"
+  },
+  {
+    "special_request": "gluten free pasta italian restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "free gluten italian pasta restaurant|Any",
+    "last_seen": "2026-03-16T01:50:32.233696+00:00"
+  },
+  {
+    "special_request": "wine bar with charcuterie in old town",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bar charcuterie in old town wine with|Any",
+    "last_seen": "2026-03-16T01:50:31.844048+00:00"
+  },
+  {
+    "special_request": "soul food with live jazz on friday",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "food friday jazz live on soul with|Any",
+    "last_seen": "2026-03-16T01:50:31.667964+00:00"
+  },
+  {
+    "special_request": "deep dish pizza near magnificent mile",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "deep dish magnificent mile near pizza|Any",
+    "last_seen": "2026-03-16T01:50:31.545058+00:00"
+  },
+  {
+    "special_request": "michelin restaurant outdoor seating birthday",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "birthday michelin outdoor restaurant seating|Any",
+    "last_seen": "2026-03-16T01:50:30.86718+00:00"
+  },
+  {
+    "special_request": "rooftop drinks with skyline view date",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "date drinks rooftop skyline view with|Any",
+    "last_seen": "2026-03-16T01:50:30.742369+00:00"
+  },
+  {
+    "special_request": "quiet brunch for baby shower",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "baby brunch for quiet shower|Any",
+    "last_seen": "2026-03-16T01:50:30.69004+00:00"
+  },
+  {
+    "special_request": "affordable omakase under 100",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "100 affordable omakase under|Any",
+    "last_seen": "2026-03-16T01:50:30.506556+00:00"
+  },
+  {
+    "special_request": "turkish breakfast with tea",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "breakfast tea turkish with|Any",
+    "last_seen": "2026-03-16T01:50:30.016247+00:00"
+  },
+  {
+    "special_request": "polish food on mothers day",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "day food mothers on polish|Any",
+    "last_seen": "2026-03-16T01:50:29.422314+00:00"
+  },
+  {
+    "special_request": "southern comfort food for large group",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "comfort food for group large southern|Any",
+    "last_seen": "2026-03-16T01:50:29.288939+00:00"
+  },
+  {
+    "special_request": "peruvian ceviche with pisco sour",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "ceviche peruvian pisco sour with|Any",
+    "last_seen": "2026-03-16T01:50:29.191978+00:00"
+  },
+  {
+    "special_request": "japanese whiskey bar with food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bar food japanese whiskey with|Any",
+    "last_seen": "2026-03-16T01:50:29.081912+00:00"
+  },
+  {
+    "special_request": "late night ramen near lakeview",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "lakeview late near night ramen|Any",
+    "last_seen": "2026-03-16T01:50:28.61324+00:00"
+  },
+  {
+    "special_request": "vegan ramen with good broth options",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "broth good options ramen vegan with|Any",
+    "last_seen": "2026-03-16T01:50:28.5217+00:00"
+  },
+  {
+    "special_request": "kid friendly Italian restaurant with good pasta",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "friendly good italian kid pasta restaurant with|Any",
+    "last_seen": "2026-03-16T01:50:28.148345+00:00"
+  },
+  {
+    "special_request": "elegant seafood restaurant for business dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "business dinner elegant for restaurant seafood|Any",
+    "last_seen": "2026-03-16T01:50:27.868316+00:00"
+  },
+  {
+    "special_request": "brunch spot with bottomless mimosas logan square",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bottomless brunch logan mimosas spot square with|Any",
+    "last_seen": "2026-03-16T01:50:27.867472+00:00"
+  },
+  {
+    "special_request": "hole in wall tacos with byob",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "byob hole in tacos wall with|Any",
+    "last_seen": "2026-03-16T01:50:27.376757+00:00"
+  },
+  {
+    "special_request": "trendy cocktail bar with small plates bucktown",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bar bucktown cocktail plates small trendy with|Any",
+    "last_seen": "2026-03-16T01:50:27.355875+00:00"
+  },
+  {
+    "special_request": "farm to table dinner for birthday celebration",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "birthday celebration dinner farm for table to|Any",
+    "last_seen": "2026-03-16T01:50:26.642754+00:00"
+  },
+  {
+    "special_request": "authentic Chinese dim sum on weekends",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "authentic chinese dim on sum weekends|Any",
+    "last_seen": "2026-03-16T01:50:26.268564+00:00"
+  },
+  {
+    "special_request": "Greek food with outdoor patio family friendly",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "family food friendly greek outdoor patio with|Any",
+    "last_seen": "2026-03-16T01:50:26.268531+00:00"
+  },
+  {
+    "special_request": "Indian restaurant open late night",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "indian late night open restaurant|Any",
+    "last_seen": "2026-03-16T01:50:25.335845+00:00"
+  },
+  {
+    "special_request": "Ethiopian food with vegetarian options",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "ethiopian food options vegetarian with|Any",
+    "last_seen": "2026-03-16T01:50:25.222389+00:00"
+  },
+  {
+    "special_request": "best pizza in west loop for date night",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best date for in loop night pizza west|Any",
+    "last_seen": "2026-03-16T01:50:25.064133+00:00"
+  },
+  {
+    "special_request": "cozy ramen spot near wicker park",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "cozy near park ramen spot wicker|Any",
+    "last_seen": "2026-03-16T01:50:24.934797+00:00"
+  },
+  {
+    "special_request": "fancy steakhouse with valet parking",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "fancy parking steakhouse valet with|Any",
+    "last_seen": "2026-03-16T01:50:24.730149+00:00"
+  },
+  {
+    "special_request": "loud Korean bbq for group dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bbq dinner for group korean loud|Any",
+    "last_seen": "2026-03-16T01:50:24.15524+00:00"
+  },
+  {
+    "special_request": "cheap Vietnamese food in chinatown",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "cheap chinatown food in vietnamese|Any",
+    "last_seen": "2026-03-16T01:50:24.135702+00:00"
+  },
+  {
+    "special_request": "romantic Italian dinner with outdoor seating",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner italian outdoor romantic seating with|Any",
+    "last_seen": "2026-03-16T01:50:23.631293+00:00"
+  },
+  {
+    "special_request": "quiet French bistro for anniversary",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "anniversary bistro for french quiet|Any",
+    "last_seen": "2026-03-16T01:50:23.557486+00:00"
+  },
+  {
+    "special_request": "upscale sushi with sake bar downtown",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bar downtown sake sushi upscale with|Any",
+    "last_seen": "2026-03-16T01:50:23.45012+00:00"
+  },
+  {
+    "special_request": "spicy Thai food near lincoln park",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "food lincoln near park spicy thai|Any",
+    "last_seen": "2026-03-16T01:50:22.851883+00:00"
+  },
+  {
+    "special_request": "casual Mexican food with live music",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "casual food live mexican music with|Any",
+    "last_seen": "2026-03-16T01:50:22.728697+00:00"
+  },
+  {
+    "special_request": "dinner under 30 per person",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "30 dinner per person under|Any",
+    "last_seen": "2026-03-16T01:50:22.010349+00:00"
+  },
+  {
+    "special_request": "omakase under 100",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "100 omakase under|Any",
+    "last_seen": "2026-03-16T01:50:21.946407+00:00"
+  },
+  {
+    "special_request": "prix fixe under 50",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "50 fixe prix under|Any",
+    "last_seen": "2026-03-16T01:50:21.674954+00:00"
+  },
+  {
+    "special_request": "brunch buffet",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "brunch buffet|Any",
+    "last_seen": "2026-03-16T01:50:21.308808+00:00"
+  },
+  {
+    "special_request": "all you can eat",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "all can eat you|Any",
+    "last_seen": "2026-03-16T01:50:21.039494+00:00"
+  },
+  {
+    "special_request": "rooftop bar open",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bar open rooftop|Any",
+    "last_seen": "2026-03-16T01:50:20.959311+00:00"
+  },
+  {
+    "special_request": "heated patio winter",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "heated patio winter|Any",
+    "last_seen": "2026-03-16T01:50:20.711602+00:00"
+  },
+  {
+    "special_request": "corkage fee byob",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "byob corkage fee|Any",
+    "last_seen": "2026-03-16T01:50:20.29023+00:00"
+  },
+  {
+    "special_request": "lunch special deals",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "deals lunch special|Any",
+    "last_seen": "2026-03-16T01:50:20.113888+00:00"
+  },
+  {
+    "special_request": "early bird discount",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bird discount early|Any",
+    "last_seen": "2026-03-16T01:50:20.005097+00:00"
+  },
+  {
+    "special_request": "happy hour specials",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "happy hour specials|Any",
+    "last_seen": "2026-03-16T01:50:19.680084+00:00"
+  },
+  {
+    "special_request": "trivia night restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "night restaurant trivia|Any",
+    "last_seen": "2026-03-16T01:50:19.483493+00:00"
+  },
+  {
+    "special_request": "karaoke night",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "karaoke night|Any",
+    "last_seen": "2026-03-16T01:50:19.174282+00:00"
+  },
+  {
+    "special_request": "dj on weekends",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dj on weekends|Any",
+    "last_seen": "2026-03-16T01:50:19.13345+00:00"
+  },
+  {
+    "special_request": "live entertainment",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "entertainment live|Any",
+    "last_seen": "2026-03-16T01:50:19.02118+00:00"
+  },
+  {
+    "special_request": "raw bar available",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "available bar raw|Any",
+    "last_seen": "2026-03-16T01:50:18.707681+00:00"
+  },
+  {
+    "special_request": "high chairs for babies",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "babies chairs for high|Any",
+    "last_seen": "2026-03-16T01:50:18.410759+00:00"
+  },
+  {
+    "special_request": "allergy friendly kitchen",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "allergy friendly kitchen|Any",
+    "last_seen": "2026-03-16T01:50:18.241796+00:00"
+  },
+  {
+    "special_request": "counter seating",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "counter seating|Any",
+    "last_seen": "2026-03-16T01:50:18.169015+00:00"
+  },
+  {
+    "special_request": "booths available",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "available booths|Any",
+    "last_seen": "2026-03-16T01:50:17.886219+00:00"
+  },
+  {
+    "special_request": "no alcohol restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "alcohol no restaurant|Any",
+    "last_seen": "2026-03-16T01:50:17.721696+00:00"
+  },
+  {
+    "special_request": "beer and wine only",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and beer only wine|Any",
+    "last_seen": "2026-03-16T01:50:17.427079+00:00"
+  },
+  {
+    "special_request": "tasting menu available",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "available menu tasting|Any",
+    "last_seen": "2026-03-16T01:50:17.278499+00:00"
+  },
+  {
+    "special_request": "prix fixe menu",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "fixe menu prix|Any",
+    "last_seen": "2026-03-16T01:50:16.989186+00:00"
+  },
+  {
+    "special_request": "full bar restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bar full restaurant|Any",
+    "last_seen": "2026-03-16T01:50:16.982918+00:00"
+  },
+  {
+    "special_request": "delivery option",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "delivery option|Any",
+    "last_seen": "2026-03-16T01:50:16.728151+00:00"
+  },
+  {
+    "special_request": "takeout available",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "available takeout|Any",
+    "last_seen": "2026-03-16T01:50:16.413893+00:00"
+  },
+  {
+    "special_request": "quiet enough for conversation",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "conversation enough for quiet|Any",
+    "last_seen": "2026-03-16T01:50:16.012057+00:00"
+  },
+  {
+    "special_request": "kid friendly restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "friendly kid restaurant|Any",
+    "last_seen": "2026-03-16T01:50:15.93164+00:00"
+  },
+  {
+    "special_request": "large group 20 people",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "20 group large people|Any",
+    "last_seen": "2026-03-16T01:50:15.490882+00:00"
+  },
+  {
+    "special_request": "pet friendly patio",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "friendly patio pet|Any",
+    "last_seen": "2026-03-16T01:50:15.283919+00:00"
+  },
+  {
+    "special_request": "private room available",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "available private room|Any",
+    "last_seen": "2026-03-16T01:50:15.249381+00:00"
+  },
+  {
+    "special_request": "valet parking available",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "available parking valet|Any",
+    "last_seen": "2026-03-16T01:50:14.89578+00:00"
+  },
+  {
+    "special_request": "street parking easy",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "easy parking street|Any",
+    "last_seen": "2026-03-16T01:50:14.600071+00:00"
+  },
+  {
+    "special_request": "free parking restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "free parking restaurant|Any",
+    "last_seen": "2026-03-16T01:50:14.45594+00:00"
+  },
+  {
+    "special_request": "open early breakfast 6am",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "6am breakfast early open|Any",
+    "last_seen": "2026-03-16T01:50:13.963629+00:00"
+  },
+  {
+    "special_request": "walk in only",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "in only walk|Any",
+    "last_seen": "2026-03-16T01:50:13.808623+00:00"
+  },
+  {
+    "special_request": "open on monday",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "monday on open|Any",
+    "last_seen": "2026-03-16T01:50:13.703347+00:00"
+  },
+  {
+    "special_request": "gluten free options",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "free gluten options|Any",
+    "last_seen": "2026-03-16T01:50:13.549186+00:00"
+  },
+  {
+    "special_request": "vegetarian fine dining",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dining fine vegetarian|Any",
+    "last_seen": "2026-03-16T01:50:12.900454+00:00"
+  },
+  {
+    "special_request": "open late past midnight",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "late midnight open past|Any",
+    "last_seen": "2026-03-16T01:50:12.825623+00:00"
+  },
+  {
+    "special_request": "nut free restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "free nut restaurant|Any",
+    "last_seen": "2026-03-16T01:50:12.416207+00:00"
+  },
+  {
+    "special_request": "halal restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "halal restaurant|Any",
+    "last_seen": "2026-03-16T01:50:12.318174+00:00"
+  },
+  {
+    "special_request": "wheelchair accessible restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "accessible restaurant wheelchair|Any",
+    "last_seen": "2026-03-16T01:50:10.776527+00:00"
+  },
+  {
+    "special_request": "dairy free dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dairy dinner free|Any",
+    "last_seen": "2026-03-16T01:50:10.647367+00:00"
+  },
+  {
+    "special_request": "kosher restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "kosher restaurant|Any",
+    "last_seen": "2026-03-16T01:50:09.63745+00:00"
+  },
+  {
+    "special_request": "vegan friendly dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner friendly vegan|Any",
+    "last_seen": "2026-03-16T01:50:09.077752+00:00"
+  },
+  {
+    "special_request": "outdoor seating available",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "available outdoor seating|Any",
+    "last_seen": "2026-03-16T01:50:08.283145+00:00"
+  },
+  {
+    "special_request": "best bbq in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bbq best chicago in|Any",
+    "last_seen": "2026-03-16T01:50:06.167443+00:00"
+  },
+  {
+    "special_request": "best steak and eggs",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "and best eggs steak|Any",
+    "last_seen": "2026-03-16T01:50:05.922973+00:00"
+  },
+  {
+    "special_request": "best wings in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best chicago in wings|Any",
+    "last_seen": "2026-03-16T01:50:05.550541+00:00"
+  },
+  {
+    "special_request": "best hot dog stand",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best dog hot stand|Any",
+    "last_seen": "2026-03-16T01:50:05.381286+00:00"
+  },
+  {
+    "special_request": "best deep dish spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best deep dish spot|Any",
+    "last_seen": "2026-03-16T01:50:05.35244+00:00"
+  },
+  {
+    "special_request": "best tacos in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best chicago in tacos|Any",
+    "last_seen": "2026-03-16T01:50:04.705897+00:00"
+  },
+  {
+    "special_request": "best ramen in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best chicago in ramen|Any",
+    "last_seen": "2026-03-16T01:50:03.972555+00:00"
+  },
+  {
+    "special_request": "best coffee shop",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best coffee shop|Any",
+    "last_seen": "2026-03-16T01:50:03.647061+00:00"
+  },
+  {
+    "special_request": "best bakery near me",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bakery best me near|Any",
+    "last_seen": "2026-03-16T01:50:03.555412+00:00"
+  },
+  {
+    "special_request": "best food truck",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best food truck|Any",
+    "last_seen": "2026-03-16T01:50:03.415788+00:00"
+  },
+  {
+    "special_request": "best diner in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best chicago diner in|Any",
+    "last_seen": "2026-03-16T01:50:03.143051+00:00"
+  },
+  {
+    "special_request": "best cheap eats",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best cheap eats|Any",
+    "last_seen": "2026-03-16T01:50:02.879687+00:00"
+  },
+  {
+    "special_request": "best view restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best restaurant view|Any",
+    "last_seen": "2026-03-16T01:50:02.583475+00:00"
+  },
+  {
+    "special_request": "best cocktail bar",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bar best cocktail|Any",
+    "last_seen": "2026-03-16T01:50:02.448733+00:00"
+  },
+  {
+    "special_request": "best wine list",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best list wine|Any",
+    "last_seen": "2026-03-16T01:50:02.234497+00:00"
+  },
+  {
+    "special_request": "best outdoor dining",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best dining outdoor|Any",
+    "last_seen": "2026-03-16T01:50:02.121085+00:00"
+  },
+  {
+    "special_request": "best brunch spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best brunch spot|Any",
+    "last_seen": "2026-03-16T01:50:01.828943+00:00"
+  },
+  {
+    "special_request": "best sushi chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best chicago sushi|Any",
+    "last_seen": "2026-03-16T01:50:01.142575+00:00"
+  },
+  {
+    "special_request": "best pizza in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best chicago in pizza|Any",
+    "last_seen": "2026-03-16T01:50:00.994455+00:00"
+  },
+  {
+    "special_request": "best burger in town",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best burger in town|Any",
+    "last_seen": "2026-03-16T01:50:00.866969+00:00"
+  },
+  {
+    "special_request": "best steakhouse chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best chicago steakhouse|Any",
+    "last_seen": "2026-03-16T01:50:00.317364+00:00"
+  },
+  {
+    "special_request": "best seafood chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best chicago seafood|Any",
+    "last_seen": "2026-03-16T01:49:59.99161+00:00"
+  },
+  {
+    "special_request": "best dessert spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best dessert spot|Any",
+    "last_seen": "2026-03-16T01:49:59.725097+00:00"
+  },
+  {
+    "special_request": "best late night eats",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best eats late night|Any",
+    "last_seen": "2026-03-16T01:49:59.71732+00:00"
+  },
+  {
+    "special_request": "best breakfast in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best breakfast chicago in|Any",
+    "last_seen": "2026-03-16T01:49:59.701331+00:00"
+  },
+  {
+    "special_request": "best comfort food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best comfort food|Any",
+    "last_seen": "2026-03-16T01:49:59.107414+00:00"
+  },
+  {
+    "special_request": "most underrated restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "most restaurant underrated|Any",
+    "last_seen": "2026-03-16T01:49:58.80404+00:00"
+  },
+  {
+    "special_request": "best value restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best restaurant value|Any",
+    "last_seen": "2026-03-16T01:49:58.711933+00:00"
+  },
+  {
+    "special_request": "best chef in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best chef chicago in|Any",
+    "last_seen": "2026-03-16T01:49:58.474674+00:00"
+  },
+  {
+    "special_request": "triple michelin star level",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "level michelin star triple|Any",
+    "last_seen": "2026-03-16T01:49:58.38812+00:00"
+  },
+  {
+    "special_request": "reservation impossible",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "impossible reservation|Any",
+    "last_seen": "2026-03-16T01:49:57.984541+00:00"
+  },
+  {
+    "special_request": "hidden gem authentic",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "authentic gem hidden|Any",
+    "last_seen": "2026-03-16T01:49:57.815797+00:00"
+  },
+  {
+    "special_request": "always packed restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "always packed restaurant|Any",
+    "last_seen": "2026-03-16T01:49:57.669388+00:00"
+  },
+  {
+    "special_request": "best kept secret",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best kept secret|Any",
+    "last_seen": "2026-03-16T01:49:57.465063+00:00"
+  },
+  {
+    "special_request": "worth the drive",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "drive the worth|Any",
+    "last_seen": "2026-03-16T01:49:57.40603+00:00"
+  },
+  {
+    "special_request": "consistently excellent",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "consistently excellent|Any",
+    "last_seen": "2026-03-16T01:49:56.890416+00:00"
+  },
+  {
+    "special_request": "worth the wait",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "the wait worth|Any",
+    "last_seen": "2026-03-16T01:49:56.672515+00:00"
+  },
+  {
+    "special_request": "most iconic chicago food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chicago food iconic most|Any",
+    "last_seen": "2026-03-16T01:49:56.407008+00:00"
+  },
+  {
+    "special_request": "best bang for buck",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bang best buck for|Any",
+    "last_seen": "2026-03-16T01:49:56.406885+00:00"
+  },
+  {
+    "special_request": "best new restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best new restaurant|Any",
+    "last_seen": "2026-03-16T01:49:56.312085+00:00"
+  },
+  {
+    "special_request": "legendary chicago restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chicago legendary restaurant|Any",
+    "last_seen": "2026-03-16T01:49:55.70241+00:00"
+  },
+  {
+    "special_request": "must try before you die",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "before die must try you|Any",
+    "last_seen": "2026-03-16T01:49:55.696256+00:00"
+  },
+  {
+    "special_request": "james beard winner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "beard james winner|Any",
+    "last_seen": "2026-03-16T01:49:55.433546+00:00"
+  },
+  {
+    "special_request": "chicago institution",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "chicago institution|Any",
+    "last_seen": "2026-03-16T01:49:55.407124+00:00"
+  },
+  {
+    "special_request": "food critic favorite",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "critic favorite food|Any",
+    "last_seen": "2026-03-16T01:49:55.243436+00:00"
+  },
+  {
+    "special_request": "highest rated place",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "highest place rated|Any",
+    "last_seen": "2026-03-16T01:49:54.586696+00:00"
+  },
+  {
+    "special_request": "award winning chef",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "award chef winning|Any",
+    "last_seen": "2026-03-16T01:49:54.513293+00:00"
+  },
+  {
+    "special_request": "celebrity chef restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "celebrity chef restaurant|Any",
+    "last_seen": "2026-03-16T01:49:54.433589+00:00"
+  },
+  {
+    "special_request": "most popular restaurant",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "most popular restaurant|Any",
+    "last_seen": "2026-03-16T01:49:54.226152+00:00"
+  },
+  {
+    "special_request": "best restaurant chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "best chicago restaurant|Any",
+    "last_seen": "2026-03-16T01:49:54.200147+00:00"
+  },
+  {
+    "special_request": "late night study fuel",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "fuel late night study|Any",
+    "last_seen": "2026-03-16T01:49:53.04652+00:00"
+  },
+  {
+    "special_request": "sunday family dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner family sunday|Any",
+    "last_seen": "2026-03-16T01:49:52.174567+00:00"
+  },
+  {
+    "special_request": "networking dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner networking|Any",
+    "last_seen": "2026-03-16T01:49:52.111678+00:00"
+  },
+  {
+    "special_request": "casual double date",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "casual date double|Any",
+    "last_seen": "2026-03-16T01:49:51.904513+00:00"
+  },
+  {
+    "special_request": "welcome home dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner home welcome|Any",
+    "last_seen": "2026-03-16T01:49:51.613785+00:00"
+  },
+  {
+    "special_request": "tinder first date food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "date first food tinder|Any",
+    "last_seen": "2026-03-16T01:49:51.590773+00:00"
+  },
+  {
+    "special_request": "celebration with champagne",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "celebration champagne with|Any",
+    "last_seen": "2026-03-16T01:49:51.046844+00:00"
+  },
+  {
+    "special_request": "splurge worthy dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner splurge worthy|Any",
+    "last_seen": "2026-03-16T01:49:50.904017+00:00"
+  },
+  {
+    "special_request": "comfort food when sad",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "comfort food sad when|Any",
+    "last_seen": "2026-03-16T01:49:50.82406+00:00"
+  },
+  {
+    "special_request": "affordable group dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "affordable dinner group|Any",
+    "last_seen": "2026-03-16T01:49:50.76305+00:00"
+  },
+  {
+    "special_request": "impress out of town guests",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "guests impress of out town|Any",
+    "last_seen": "2026-03-16T01:49:50.333748+00:00"
+  },
+  {
+    "special_request": "catch up with old friend",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "catch friend old up with|Any",
+    "last_seen": "2026-03-16T01:49:49.936088+00:00"
+  },
+  {
+    "special_request": "neighborhood regulars spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "neighborhood regulars spot|Any",
+    "last_seen": "2026-03-16T01:49:49.807158+00:00"
+  },
+  {
+    "special_request": "working lunch laptop",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "laptop lunch working|Any",
+    "last_seen": "2026-03-16T01:49:49.689742+00:00"
+  },
+  {
+    "special_request": "studying with good coffee",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "coffee good studying with|Any",
+    "last_seen": "2026-03-16T01:49:49.42844+00:00"
+  },
+  {
+    "special_request": "hangover brunch cure",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "brunch cure hangover|Any",
+    "last_seen": "2026-03-16T01:49:48.793256+00:00"
+  },
+  {
+    "special_request": "post concert food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "concert food post|Any",
+    "last_seen": "2026-03-16T01:49:48.790834+00:00"
+  },
+  {
+    "special_request": "breakup recovery meal",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "breakup meal recovery|Any",
+    "last_seen": "2026-03-16T01:49:48.693704+00:00"
+  },
+  {
+    "special_request": "treat yourself dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner treat yourself|Any",
+    "last_seen": "2026-03-16T01:49:48.624161+00:00"
+  },
+  {
+    "special_request": "pre theater dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner pre theater|Any",
+    "last_seen": "2026-03-16T01:49:48.462642+00:00"
+  },
+  {
+    "special_request": "bachelorette dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "bachelorette dinner|Any",
+    "last_seen": "2026-03-16T01:49:47.610097+00:00"
+  },
+  {
+    "special_request": "kids birthday party",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "birthday kids party|Any",
+    "last_seen": "2026-03-16T01:49:47.539629+00:00"
+  },
+  {
+    "special_request": "post funeral gathering",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "funeral gathering post|Any",
+    "last_seen": "2026-03-16T01:49:47.398315+00:00"
+  },
+  {
+    "special_request": "family reunion dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner family reunion|Any",
+    "last_seen": "2026-03-16T01:49:47.348272+00:00"
+  },
+  {
+    "special_request": "reunion dinner large group",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "dinner group large reunion|Any",
+    "last_seen": "2026-03-16T01:49:47.184698+00:00"
+  },
+  {
+    "special_request": "superbowl watch party",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "party superbowl watch|Any",
+    "last_seen": "2026-03-16T01:49:46.216781+00:00"
+  },
+  {
+    "special_request": "easter brunch",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any",
+    "frequency": 2,
+    "canonical_key": "brunch easter|Any",
+    "last_seen": "2026-03-16T01:49:46.170304+00:00"
+  }
+]
