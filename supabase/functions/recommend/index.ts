@@ -512,13 +512,26 @@ Deno.serve(async (req: Request) => {
         if (pcHit?.rankedQueue) {
           const nextItem = getNextFromCachedQueue(pcHit.rankedQueue, exclude);
           if (nextItem) {
+            // Wrap ranked queue item in standard response envelope
+            const queueRestaurant = nextItem.restaurant as Record<string, unknown> || {};
+            const envelopedResponse = {
+              success: true,
+              restaurant: queueRestaurant,
+              recommendation: (nextItem as Record<string, unknown>).match_headline || "",
+              donde_match: nextItem.donde_match || 0,
+              scoring_v9: (nextItem as Record<string, unknown>).scoring_v9 || {},
+              match_narrative: (nextItem as Record<string, unknown>).match_narrative || {},
+              ranked_queue: [],
+              tags: [],
+              timestamp: new Date().toISOString(),
+            };
             const serviceForLog = createServiceClient();
             serviceForLog
               .from("user_queries")
               .insert({
                 id: crypto.randomUUID(),
                 occasion, price_level, special_request,
-                recommended_restaurant_id: (nextItem.restaurant as Record<string, unknown>)?.id || null,
+                recommended_restaurant_id: queueRestaurant?.id || null,
                 donde_match: nextItem.donde_match || null,
                 exclude_count: exclude.length, was_fallback: false,
                 response_time_ms: Date.now() - startTime,
@@ -528,7 +541,7 @@ Deno.serve(async (req: Request) => {
               })
               .then(() => {}).catch(() => {});
             logInfo("Persistent cache HIT (ranked_queue fallback)", { responseTimeMs: Date.now() - startTime, excludeCount: exclude.length });
-            return jsonResponse(nextItem, 200, requestOrigin);
+            return jsonResponse(envelopedResponse, 200, requestOrigin);
           }
         }
       } catch (err) {
