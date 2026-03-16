@@ -1,0 +1,2402 @@
+[
+  {
+    "special_request": "where should I take my girlfriend for her birthday",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "best spot for watching the Bears game",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "somewhere my picky kid will actually eat",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "summer patio vibes with good cocktails",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "cozy winter spot when its freezing outside",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "fall comfort food like pot roast or stew",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Diwali dinner with my family",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Lunar New Year celebration dinner",
+    "occasion": "Special Occasion",
+    "neighborhood": "Chinatown",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Cinco de Mayo party spot",
+    "occasion": "Group Hangout",
+    "neighborhood": "Pilsen",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Juneteenth dinner celebration",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "keto friendly restaurant that doesnt suck",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "paleo options where i wont feel weird ordering",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "whole30 compliant dinner ideas",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "dairy free desserts somewhere nice",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "nut free restaurant for my kid with allergies",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "pescatarian dinner that isnt just salad",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "cheap eats im broke but hungry",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "mid range date night nothing too crazy",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "full on splurge money is no object tonight",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "birria ramen fusion spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "my mom is visiting from India need authentic vegetarian",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "lowkey taco spot in pilsen thats not touristy",
+    "occasion": "Any",
+    "neighborhood": "Pilsen",
+    "price_level": "$"
+  },
+  {
+    "special_request": "where can I get good jjajangmyeon",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Polish food like my babcia used to make",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "best jibarito in Chicago no cap",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "dim sum on a Sunday morning in Chinatown",
+    "occasion": "Family Dinner",
+    "neighborhood": "Chinatown",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "late night munchies after bar hopping wicker park",
+    "occasion": "Any",
+    "neighborhood": "Wicker Park",
+    "price_level": "$"
+  },
+  {
+    "special_request": "bougie brunch with the girls in river north",
+    "occasion": "Group Hangout",
+    "neighborhood": "River North",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "halal fried chicken that slaps",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "somewhere to take my abuela for her birthday",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "i want really spicy food like actually spicy not american spicy",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "good breakfast spot near the loop before work",
+    "occasion": "Any",
+    "neighborhood": "The Loop",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "nice restaurant for a job promotion celebration",
+    "occasion": "Special Occasion",
+    "neighborhood": "West Loop",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "cheap lunch near UChicago campus",
+    "occasion": "Any",
+    "neighborhood": "Hyde Park",
+    "price_level": "$"
+  },
+  {
+    "special_request": "where to eat before a show at the Chicago Theatre",
+    "occasion": "Any",
+    "neighborhood": "The Loop",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "best al pastor on the south side",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "my friend is celiac where can we go",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "thai food but the real stuff not pad thai factory",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "something fun and different for my 30th birthday",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "i just got dumped give me the best comfort food ever",
+    "occasion": "Solo",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "business dinner where I need to impress Japanese clients",
+    "occasion": "Business",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "after work happy hour near merchandise mart",
+    "occasion": "Group Hangout",
+    "neighborhood": "River North",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "craving birria quesatacos rn",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "date night for two introverts who hate loud restaurants",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "sunday gravy italian style",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "good pho for this cold weather",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "uptown thai restaurants the legit ones",
+    "occasion": "Any",
+    "neighborhood": "Uptown",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "best kabobs in albany park",
+    "occasion": "Any",
+    "neighborhood": "Albany Park",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Ethiopian coffee ceremony and food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "tamales and champurrado for christmas",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "vegan sushi is that even a thing here",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "idc what we eat just needs good margs",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "where do Northwestern kids eat when they come downtown",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "watching Copa America need good Argentinian food",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "trendy spot in Logan Square with natural wines",
+    "occasion": "Date Night",
+    "neighborhood": "Logan Square",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "restuarant with a firepit outside",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "mediteranean food in Andersonville",
+    "occasion": "Any",
+    "neighborhood": "Andersonville",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "looking for good bibingka or halo halo",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "my dad wants a classic Chicago steakhouse old school vibes",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "need a spot for 15 people wont break the bank",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "somewhere to eat after a funeral not too festive",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "post marathon brunch im starving",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "carne asada fries at 1am",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "retirement dinner for my boss somewhere classy",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "kosher deli with good pastrami",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "laksa or nasi lemak in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "congee for a sick day",
+    "occasion": "Solo",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "pre cubs game burgers and beers in lakeview",
+    "occasion": "Group Hangout",
+    "neighborhood": "Lakeview",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "itallian beef sandwich the real Chicago kind",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "korean corn dogs anyone know a spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "my coworker is from Lebanon want to take him somewhere that reminds him of home",
+    "occasion": "Business",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "crepes for breakfast somewhere cute",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "gastropub lincoln square area",
+    "occasion": "Any",
+    "neighborhood": "Lincoln Square",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "dying for some Nashville hot chicken rn",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Ramadan iftar dinner with my family",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "grandparents 50th anniversary somewhere really special",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "Sunday supper family style like back in the old country",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "bottomless brunch that isnt mid",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "food truck vibes but actual restaurant in Humboldt Park",
+    "occasion": "Any",
+    "neighborhood": "Humboldt Park",
+    "price_level": "$"
+  },
+  {
+    "special_request": "got a tinder date in 2 hours where should I go",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "seafood tower somewhere impressive for clients",
+    "occasion": "Business",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "chicken katsu curry craving",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "elote and esquites street corn vibes",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "paczki and pierogi for Fat Tuesday",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "best pancit or lumpia in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "want to try something ive never had before like Georgian or Uzbek",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "quiet spot to read and eat in edgewater",
+    "occasion": "Solo",
+    "neighborhood": "Edgewater",
+    "price_level": "$"
+  },
+  {
+    "special_request": "engagement party for 30 people",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "4th of July BBQ restaurant with outdoor seating",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "good shakshuka for weekend brunch",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "need somewhere open on Christmas Day",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Korean street food like tteokbokki and kimbap",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "place where I can get a legit Chicago combo with mild sauce",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "wine dinner pairing in gold coast",
+    "occasion": "Date Night",
+    "neighborhood": "Gold Coast",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "food near the Art Institute of Chicago",
+    "occasion": "Any",
+    "neighborhood": "The Loop",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "catfish and hush puppies",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "college graduation dinner for 6 somewhere nice but not crazy",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Im vegan and my bf isnt where can we both be happy",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "gnocchi somewhere in the city that makes it fresh",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "street tacos in little village at night",
+    "occasion": "Any",
+    "neighborhood": "Little Village",
+    "price_level": "$"
+  },
+  {
+    "special_request": "best croissant in chicago no seriously",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "fire Thai basil fried rice",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "old fashioned diner with counter seating",
+    "occasion": "Solo",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "Nigerian suya spot on the north side",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "chaat and pani puri on Devon Ave area",
+    "occasion": "Any",
+    "neighborhood": "Rogers Park",
+    "price_level": "$"
+  },
+  {
+    "special_request": "want some really good cacio e pepe",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "sports bar in bridgeport for the Sox game",
+    "occasion": "Group Hangout",
+    "neighborhood": "Bridgeport",
+    "price_level": "$"
+  },
+  {
+    "special_request": "avocado toast and a latte somewhere aesthetic",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "all you can eat KBBQ with friends",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Indian biryani thats actually good",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "romantic dinner that wont bankrupt me",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "late night ramen after a show",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "somewhere I can eat outside with my dog in bucktown",
+    "occasion": "Any",
+    "neighborhood": "Bucktown",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "going away party dinner for a friend moving to NYC",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "mapo tofu that makes me sweat",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "best Chicago style hot dog stand",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "Caribbean food with rum cocktails",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Ukrainian Village brunch nothing fancy",
+    "occasion": "Any",
+    "neighborhood": "Ukrainian Village",
+    "price_level": "$"
+  },
+  {
+    "special_request": "szechuan dry hot pot spicy level 10",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "french onion soup on a cold night",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "lunch meeting downtown need quiet and decent food",
+    "occasion": "Business",
+    "neighborhood": "The Loop",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "baby shower brunch location with private space",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "portage park hidden gems",
+    "occasion": "Any",
+    "neighborhood": "Portage Park",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "good oxtail stew somewhere",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "upscale Mexican not just tacos",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "lox and bagels legit NY style",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "chicken shawarma plate thats fire",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "Passover dinner options kosher",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Hanukkah dinner with latkes",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "my vegetarian Hindu parents are visiting from Mumbai",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "North Center area family restaurants toddler friendly",
+    "occasion": "Family Dinner",
+    "neighborhood": "North Center",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "good menudo for Sunday morning",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "thai boat noodles somewhere in the city",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "oyster bar raw bar vibes",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "chicken parm that reminds me of my nonnas",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "West African jolof rice and suya",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Turkish breakfast spread on the weekend",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Japanese curry rice near downtown",
+    "occasion": "Solo",
+    "neighborhood": "The Loop",
+    "price_level": "$"
+  },
+  {
+    "special_request": "bachelor party 12 guys steakhouse",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "Avondale polish deli old school",
+    "occasion": "Any",
+    "neighborhood": "Avondale",
+    "price_level": "$"
+  },
+  {
+    "special_request": "good mofongo in chicago does it exist",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "boba tea and Taiwanese food combo",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "Greek food Lincoln Square gyros and stuff",
+    "occasion": "Any",
+    "neighborhood": "Lincoln Square",
+    "price_level": "$"
+  },
+  {
+    "special_request": "open mic night with decent food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "want to do a progressive dinner crawl in west loop",
+    "occasion": "Group Hangout",
+    "neighborhood": "West Loop",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "anniversary dinner 10 years need it to be perfect",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "best char siu in chinatown",
+    "occasion": "Any",
+    "neighborhood": "Chinatown",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "irish pub with actual good food not just pub grub",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "where can I get good bone broth around here",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "want that tiktok birria grilled cheese everyone posts",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Eid dinner with extended family need big table",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "late night Al pastor and horchata",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "mole enchiladas somewhere authentic",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "rooftop dinner streeterville with skyline views",
+    "occasion": "Date Night",
+    "neighborhood": "Streeterville",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "trying to find good Haitian griot in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Japanese wagyu A5 experience",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "my toddler only eats mac n cheese and chicken fingers",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "fish fry Friday lent Catholic thing",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "good mantou or baozi Chinese steamed buns",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "college reunion 8 of us somewhere fun",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "cocktail bar with food thats actually good",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "empanadas and chimichurri somewhere legit",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "place with really good naan and tandoor stuff",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "want to do hot pot but not AYCE somewhere quality",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Irving Park underrated restaurants",
+    "occasion": "Any",
+    "neighborhood": "Irving Park",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "breakfast tacos to start the day right",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "soondubu jjigae on a cold day",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "South Loop date night something new",
+    "occasion": "Date Night",
+    "neighborhood": "South Loop",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "middle school graduation dinner nothing too fancy",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "deep dish for my friend visiting from LA",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "brunch and vintage shopping day in andersonville",
+    "occasion": "Any",
+    "neighborhood": "Andersonville",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "good mango sticky rice for dessert",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "where in chicago can I get good injera",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "after Sox game late night food near guaranteed rate",
+    "occasion": "Any",
+    "neighborhood": "Bridgeport",
+    "price_level": "$"
+  },
+  {
+    "special_request": "churros and chocolate caliente",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "food before a concert at Thalia Hall",
+    "occasion": "Any",
+    "neighborhood": "Pilsen",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "lunch near Northwestern hospital",
+    "occasion": "Any",
+    "neighborhood": "Streeterville",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "fancy tasting menu for our 1 year anniversary",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "vegan comfort food mac n cheese burritos etc",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "BBQ brisket sandwich to go",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "Persian kabob koobideh",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "mothers day brunch fancy but kid friendly",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "my wife is pregnant wants everything on the menu",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Nigerian pepper soup somewhere warm and homey",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "best Chicago thin crust tavern cut pizza",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "romantic candlelit basement restaurant",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "brunch near Logan Square farmers market",
+    "occasion": "Any",
+    "neighborhood": "Logan Square",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "trying to impress a foodie friend from NYC",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "Eritrean or Ethiopian spot with good coffee",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "good xiao long bao near me",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "caribbean jerk shrimp plate",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "lunch hour quick service in the loop 30 min max",
+    "occasion": "Business",
+    "neighborhood": "The Loop",
+    "price_level": "$"
+  },
+  {
+    "special_request": "date at a cooking class restaurant",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "restaurant i can walk to from michigan ave shopping",
+    "occasion": "Any",
+    "neighborhood": "Gold Coast",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "casual friday night dinner with neighbors",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "authentic pho with all the fixings",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "wanna try something from every continent",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "South Asian street food chaat samosas etc",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "need a restaurant open past midnight in logan square",
+    "occasion": "Any",
+    "neighborhood": "Logan Square",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Mexican seafood mariscos place",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "dim sum push cart style old school",
+    "occasion": "Family Dinner",
+    "neighborhood": "Chinatown",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "work team lunch 10 people moderate budget",
+    "occasion": "Business",
+    "neighborhood": "The Loop",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "birthday cake and dinner in one place",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "outdoor beer garden summer vibes",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "vegan Thai food that doesnt use fish sauce",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "lomo saltado or anticuchos peruvian food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "good breakfast sandwich bacon egg and cheese",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "been craving khao soi all week",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "girls trip brunch and shopping wicker park",
+    "occasion": "Group Hangout",
+    "neighborhood": "Wicker Park",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Argentinian steak chimichurri proper asado",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "gluten free pasta restaurant that actually tastes good",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "St Patricks Day dinner somewhere Irish obviously",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "best chicken wings in the city fight me",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "romantic dinner where I can propose under the stars",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "good adobo or sinigang Filipino comfort food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "fancy seafood restaurant no touristy places",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "food near Lincoln Park Zoo after taking the kids",
+    "occasion": "Family Dinner",
+    "neighborhood": "Lincoln Park",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Sikh wedding reception venue restaurant",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "Sunday brunch after church with the family",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "good baklava and Turkish tea",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "gastropub near United Center before the game",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "looking for good goat curry or mutton",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "need a restaurant that can handle 25 for rehearsal dinner",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "farm to table dinner seasonal menu",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "soup and sandwich on a rainy day",
+    "occasion": "Solo",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "best torta in chicago the big messy kind",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "want Chinese hand pulled noodles",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "chicken tikka pizza fusion spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "catfish po boy or shrimp po boy",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "fancy dinner Gold Coast for my parents anniversary",
+    "occasion": "Special Occasion",
+    "neighborhood": "Gold Coast",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "solo dinner at the bar reading a book",
+    "occasion": "Solo",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "best pizza by the slice late night",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "authentic Jamaican curry goat",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "dim sum for a group of 10 whats good in chinatown",
+    "occasion": "Group Hangout",
+    "neighborhood": "Chinatown",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "just moved to Ravenswood whats good around here",
+    "occasion": "Any",
+    "neighborhood": "Lincoln Square",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "hookah and food middle eastern vibes",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "good bulgogi and soju dinner with my Korean friends",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "need a place with strong AC its 100 degrees out",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "restaurant with tableside guacamole",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "looking for ugali and nyama choma East African food",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "pupusa spot in Albany Park or around there",
+    "occasion": "Any",
+    "neighborhood": "Albany Park",
+    "price_level": "$"
+  },
+  {
+    "special_request": "tasting menu vegetarian friendly",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "chicharrones and mofongo Puerto Rican food",
+    "occasion": "Any",
+    "neighborhood": "Humboldt Park",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "dinner with my ex need good food no awkwardness",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "ethiopian food for a group sharing a big platter",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "fancy pasta bolognese or ragu",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "looking for Georgian khachapuri in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Labor Day weekend patio dinner",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "game day wings and nachos",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "chinese bakery mooncakes and egg tarts",
+    "occasion": "Any",
+    "neighborhood": "Chinatown",
+    "price_level": "$"
+  },
+  {
+    "special_request": "want to try suya and jollof at the same place",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "kid birthday party restaurant that does parties",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "winter date night cozy and warm food",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "early bird dinner for my elderly parents",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "restaurant near Midway that isnt chains",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "sushi train conveyor belt style",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "looking for good pad see ew",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "goat cheese beet salad type place healthy upscale",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "chicken fried steak with gravy",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "looking for a good Polish sausage on the northwest side",
+    "occasion": "Any",
+    "neighborhood": "Portage Park",
+    "price_level": "$"
+  },
+  {
+    "special_request": "cocktail forward restaurant molecular gastronomy type",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "Venezuelan arepas con carne mechada",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "brunch with a lakefront view",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "need halal options my friends from overseas are visiting",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "good butter and garlic naan with lamb vindaloo",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "dinner before Hamilton at the theater",
+    "occasion": "Any",
+    "neighborhood": "The Loop",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "roti canai or roti prata somewhere in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "valet parking fancy dinner impressing the in-laws",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "creole gumbo and jambalaya",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "food near the Museum of Science and Industry",
+    "occasion": "Family Dinner",
+    "neighborhood": "Hyde Park",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "neighborhood Italian BYOB somewhere in lincoln park area",
+    "occasion": "Date Night",
+    "neighborhood": "Lincoln Park",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Japanese izakaya small plates and sake bombs",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Puerto Rican food in Humboldt Park the real stuff",
+    "occasion": "Any",
+    "neighborhood": "Humboldt Park",
+    "price_level": "$"
+  },
+  {
+    "special_request": "salmon poke bowl healthy lunch option",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "want green curry with thai iced tea",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "steak frites somewhere good",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "need a place for a wake reception after the service",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "chinese banquet for family reunion 20+ people",
+    "occasion": "Family Dinner",
+    "neighborhood": "Chinatown",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "good dan dan noodles somewhere",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "easter brunch with mimosas and eggs benny",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "burger joint thats cash only but worth it",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "want pad kra pao with a fried egg on top",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "best samosas in chicago crispy ones",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "looking for good crab rangoon",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "dumpling soup in a bread bowl winter comfort",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "tapas and sangria night out",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Brazilian acai bowls and smoothies",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "steak and eggs diner breakfast",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "where should I eat in albany park first time exploring",
+    "occasion": "Any",
+    "neighborhood": "Albany Park",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "want good baba ganoush and hummus",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "cocktail bar with DJ and small bites",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "Super Bowl watch party food somewhere with big TVs",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "high tea afternoon tea service somewhere fancy",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "colombian bandeja paisa in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "food before visiting Shedd Aquarium",
+    "occasion": "Family Dinner",
+    "neighborhood": "South Loop",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "dinner for two under $80 total",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "late night gyros after bar close",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "looking for a good pozole spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "family dinner after baptism somewhere nice",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "hipster coffee shop that also serves food",
+    "occasion": "Solo",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "carnitas burrito as big as my head",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "want really good lamb biryani",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Oktoberfest celebration food German beer hall",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Vietnamese banh xeo crispy crepes",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "best garlic bread in chicago sounds dumb but I mean it",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "working from a restaurant need wifi and outlets",
+    "occasion": "Solo",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "food before a Bulls game walking distance from UC",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "quinceanera dinner 40 people",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "want lamb chops somewhere not a steakhouse",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "Salvadoran food pupusas and yuca frita",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "Chinese New Year banquet special menu",
+    "occasion": "Special Occasion",
+    "neighborhood": "Chinatown",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "food near Field Museum family lunch",
+    "occasion": "Family Dinner",
+    "neighborhood": "South Loop",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "mediterranean platter with grilled meats",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "weekend warrior brunch with bloody marys",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "quick healthy salad bowl near the loop",
+    "occasion": "Any",
+    "neighborhood": "The Loop",
+    "price_level": "$"
+  },
+  {
+    "special_request": "Japanese matcha desserts and cafe",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "peri peri chicken somewhere spicy",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "biscuits and gravy southern breakfast",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "valentines dinner last minute anywhere with availability",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "food safe for severe peanut allergy",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "trying to find somewhere that does Peking duck well",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "dinner where I can see them make the food in front of me",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "best lobster tail in the city",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "chicken mole that makes me cry its so good",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "german schnitzel and spaetzle",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "post-yoga healthy lunch spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "moroccan couscous and tagine",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "good paneer tikka for my vegetarian self",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "want real Neapolitan margherita VPN certified",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "bar trivia night with decent food",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "lobster thermidor or lobster newburg old school fancy",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "Cuban sandwich and cafe con leche",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "soul food mac and cheese greens and fried chicken",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "need a place with no stairs grandma uses a walker",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "where the locals eat in Bridgeport not gentrified",
+    "occasion": "Any",
+    "neighborhood": "Bridgeport",
+    "price_level": "$"
+  },
+  {
+    "special_request": "good scallops somewhere upscale",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "craving tuna tartare and a glass of rose",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "Pakistani nihari or haleem slow cooked",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Bosnian cevapi somewhere on the north side",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "good patty melt or grilled cheese spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "outdoor heated igloos winter dining experience",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "thai papaya salad som tum really spicy",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "dinner near the Riverwalk in summer",
+    "occasion": "Date Night",
+    "neighborhood": "The Loop",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Sunday morning dim sum no wait",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "just landed at O'Hare starving need food NOW",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "authentic hand rolled soba noodles",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "my daughter is going through a sushi phase shes 7",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "nice italian place bucktown or wicker park",
+    "occasion": "Date Night",
+    "neighborhood": "Bucktown",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "food near Adler Planetarium family outing",
+    "occasion": "Family Dinner",
+    "neighborhood": "South Loop",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "Chinese hot chicken Chongqing style",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "where to get the best horchata in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "want to eat at a restaurant inside a greenhouse",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "korean cold noodles naengmyeon for summer",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "dinner with friends who are all different levels of adventurous eaters",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "afternoon tea with scones and finger sandwiches",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "Kwanzaa celebration dinner",
+    "occasion": "Special Occasion",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "want fresh pasta made in house not dried",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "need a spot open for New Years Day brunch",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "duck confit somewhere classic french",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "south side BBQ that locals swear by",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "upscale Chinese food not your typical takeout",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "lobster ravioli somewhere special",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "good arepas and patacones",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "spring menu seasonal asparagus ramps etc",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "best martini and steak dinner old school power move",
+    "occasion": "Business",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "Indian dosa and uttapam south Indian breakfast",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "sushi for beginners my friend has never tried it",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "jazz and dinner combo somewhere swanky",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "good lamb gyro plate with all the toppings",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "mochi donuts or mochi ice cream spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "post blackhawks game food near the arena",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "want congee and chinese breakfast foods",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "romantic outdoor garden dinner fairy lights",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "good chicken schnitzel or wiener schnitzel",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Honduran baleadas somewhere in chicago",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "lunch near McCormick Place convention",
+    "occasion": "Business",
+    "neighborhood": "South Loop",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "dinner and bowling or dinner and an activity",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "trying to eat my way through Devon Ave",
+    "occasion": "Any",
+    "neighborhood": "Rogers Park",
+    "price_level": "$"
+  },
+  {
+    "special_request": "matzo ball soup when im sick",
+    "occasion": "Solo",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "new American small plates creative chef driven",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "Memorial Day weekend BBQ restaurant outdoor",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "good ramen spicy miso or tantanmen",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Korean fried chicken and beer chimaek",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Afghan kabob platter with rice",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "taco al vapor birria style the juicy kind",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "where to take visiting relatives who want the Chicago experience",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "cocktail dinner pairings like a wine dinner but cocktails",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$$"
+  },
+  {
+    "special_request": "just want really good garlic bread and red sauce",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "best empanada in the city what kind idc",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "wanna try Ethiopian food for the first time any recs",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "restaurant near Garfield Park Conservatory",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "prix fixe restaurant week deal",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "Caribbean food doubles and roti",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "Chinese scallion pancakes and cold noodles",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$"
+  },
+  {
+    "special_request": "want something fancy but I got sneakers on",
+    "occasion": "Date Night",
+    "neighborhood": "Anywhere",
+    "price_level": "$$$"
+  },
+  {
+    "special_request": "Polish brunch or Eastern European breakfast",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "my in-laws are in town need something universally likeable",
+    "occasion": "Family Dinner",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "spicy tuna crispy rice that one appetizer everyone gets",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  },
+  {
+    "special_request": "watching the World Cup need good food and big screens",
+    "occasion": "Group Hangout",
+    "neighborhood": "Anywhere",
+    "price_level": "Any"
+  },
+  {
+    "special_request": "acai bowl and avocado toast type healthy spot",
+    "occasion": "Any",
+    "neighborhood": "Anywhere",
+    "price_level": "$$"
+  }
+]
