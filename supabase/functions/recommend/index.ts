@@ -27,6 +27,7 @@ import {
   getNextFromCachedQueue,
 } from "./_shared/query-cache.ts";
 import type { UserFeedbackSignals } from "./_shared/scoring.ts";
+import { applyPostScoringFilters } from "./_shared/post-filters.ts";
 // V9 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
 import { computeV9Score, reRankV9, NEIGHBORHOOD_ALIASES, expandQueryConcepts } from "./_shared/scoring-v9.ts";
@@ -1145,6 +1146,29 @@ Deno.serve(async (req: Request) => {
     rerankedScored.sort((a, b) => b.dondeMatch - a.dondeMatch);
 
     // ================================================================
+    // STEP 6.05: Post-Scoring Neighborhood + Price Filters
+    // ================================================================
+    // Apply hard filters AFTER scoring so we filter on quality, not retrieval.
+    // Graceful expansion: exact -> adjacent -> best available.
+    const postFilter = applyPostScoringFilters(rerankedScored, neighborhood, price_level);
+    if (postFilter.filterApplied) {
+      // Replace rerankedScored contents in-place so all downstream refs update
+      rerankedScored.length = 0;
+      for (const c of postFilter.candidates) {
+        rerankedScored.push(c);
+      }
+      logInfo("Post-scoring filter applied", {
+        neighborhood: postFilter.neighborhoodFiltered ? neighborhood : "any",
+        price: postFilter.priceFiltered ? price_level : "any",
+        exactMatches: postFilter.exactMatchCount,
+        adjacentMatches: postFilter.adjacentMatchCount,
+        expanded: postFilter.expanded,
+        expansionReason: postFilter.expansionReason,
+        resultCount: rerankedScored.length,
+      });
+    }
+
+    // ================================================================
     // STEP 6.1: Quality Callout Check
     // ================================================================
     const QUALITY_CALLOUT_THRESHOLD = 35;
@@ -1673,6 +1697,20 @@ Deno.serve(async (req: Request) => {
           chosen.profile, chosenGoogleData, chosen.dondeMatch, v9Result, rankedQueue, special_request, reservationLinks,
         );
       }
+    }
+
+    // ================================================================
+    // STEP 8.5: Attach post-filter metadata to response
+    // ================================================================
+    if (postFilter.filterApplied) {
+      (responseBody as Record<string, unknown>).filter_applied = {
+        neighborhood: postFilter.neighborhoodFiltered ? neighborhood : null,
+        price_level: postFilter.priceFiltered ? price_level : null,
+        expanded: postFilter.expanded,
+        expansion_reason: postFilter.expansionReason,
+        exact_matches: postFilter.exactMatchCount,
+        adjacent_matches: postFilter.adjacentMatchCount,
+      };
     }
 
     // ================================================================
