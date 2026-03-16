@@ -30,7 +30,7 @@ import type { UserFeedbackSignals } from "./_shared/scoring.ts";
 import { applyPostScoringFilters } from "./_shared/post-filters.ts";
 // V9 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
-import { computeV9Score, reRankV9, NEIGHBORHOOD_ALIASES, expandQueryConcepts } from "./_shared/scoring-v9.ts";
+import { computeV9Score, reRankV9, NEIGHBORHOOD_ALIASES, expandQueryConcepts, computePersonalizationBoost } from "./_shared/scoring-v9.ts";
 import { buildV5SystemPrompt, buildV5UserPrompt, buildBlurbOnlyPrompt, detectCultureTheme } from "./_shared/prompts-v5.ts";
 import type { CultureTheme } from "./_shared/prompts-v5.ts";
 import {
@@ -195,6 +195,51 @@ function rpcWithTimeout<T>(
     setTimeout(() => resolve({ data: null, error: new Error(`RPC timed out after ${timeoutMs}ms`) }), timeoutMs)
   );
   return Promise.race([rpcPromise, timer]);
+}
+
+/**
+ * Learning Flywheel: Fetch user taste profile with 200ms timeout.
+ * Single-row PK lookup (<5ms typical). Returns null on timeout, error, or missing profile.
+ * Must not add more than 200ms to request latency — runs parallel with intent classification.
+ */
+async function fetchTasteProfile(
+  supabase: ReturnType<typeof createSupabaseClient>,
+  userId: string,
+): Promise<TasteProfile | null> {
+  const TASTE_PROFILE_TIMEOUT_MS = 200;
+  const timeoutPromise = new Promise<null>((resolve) =>
+    setTimeout(() => resolve(null), TASTE_PROFILE_TIMEOUT_MS)
+  );
+  const fetchPromise = supabase
+    .from("user_taste_profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle()
+    .then(({ data }) => {
+      if (!data) return null;
+      return {
+        totalSignals: data.total_signals ?? 0,
+        cuisineAffinities: (data.cuisine_affinities as Array<{ cuisine: string; score: number }>) || [],
+        cuisineAvoidances: (data.cuisine_avoidances as string[]) || [],
+        noisePreference: data.noise_preference ?? 0,
+        energyPreference: data.energy_preference ?? 0,
+        formalityPreference: data.formality_preference ?? 0,
+        weightFood: data.weight_food ?? 1.0,
+        weightVibe: data.weight_vibe ?? 1.0,
+        weightService: data.weight_service ?? 1.0,
+        weightReputation: data.weight_reputation ?? 1.0,
+        weightConvenience: data.weight_convenience ?? 1.0,
+        priceAffinity: data.price_affinity ?? null,
+        neighborhoodAffinities: (data.neighborhood_affinities as Array<{ neighborhood: string; score: number }>) || [],
+        discoveryScore: data.discovery_score ?? 0.5,
+      } as TasteProfile;
+    })
+    .catch((err: unknown) => {
+      logWarn("Failed to fetch taste profile", { error: String(err) });
+      return null;
+    });
+
+  return Promise.race([fetchPromise, timeoutPromise]);
 }
 
 // Extract RPC row → V9Candidate mapping (RestaurantProfile + review intelligence)
@@ -638,36 +683,9 @@ Deno.serve(async (req: Request) => {
           })
       : Promise.resolve(null);
 
-    // Learning Flywheel Phase 1: Fetch taste profile (parallel, <5ms PK lookup)
+    // Learning Flywheel Phase 1: Fetch taste profile (parallel, 200ms timeout PK lookup)
     const tasteProfilePromise: Promise<TasteProfile | null> = authUserId
-      ? supabase
-          .from("user_taste_profiles")
-          .select("*")
-          .eq("user_id", authUserId)
-          .maybeSingle()
-          .then(({ data }) => {
-            if (!data) return null;
-            return {
-              totalSignals: data.total_signals ?? 0,
-              cuisineAffinities: (data.cuisine_affinities as Array<{ cuisine: string; score: number }>) || [],
-              cuisineAvoidances: (data.cuisine_avoidances as string[]) || [],
-              noisePreference: data.noise_preference ?? 0,
-              energyPreference: data.energy_preference ?? 0,
-              formalityPreference: data.formality_preference ?? 0,
-              weightFood: data.weight_food ?? 1.0,
-              weightVibe: data.weight_vibe ?? 1.0,
-              weightService: data.weight_service ?? 1.0,
-              weightReputation: data.weight_reputation ?? 1.0,
-              weightConvenience: data.weight_convenience ?? 1.0,
-              priceAffinity: data.price_affinity ?? null,
-              neighborhoodAffinities: (data.neighborhood_affinities as Array<{ neighborhood: string; score: number }>) || [],
-              discoveryScore: data.discovery_score ?? 0.5,
-            } as TasteProfile;
-          })
-          .catch((err: unknown) => {
-            logWarn("Failed to fetch taste profile", { error: String(err) });
-            return null;
-          })
+      ? fetchTasteProfile(supabase, authUserId)
       : Promise.resolve(null);
 
     // V10: Intent classification FIRST so we can pass signals to RPC
@@ -1724,6 +1742,26 @@ Deno.serve(async (req: Request) => {
     const responseTimeMs = Date.now() - startTime;
     const unmatchedKw = extractUnmatchedKeywords(special_request);
 
+    // ================================================================
+    // STEP 9.0: Learning Flywheel — Shadow Personalization (Phase 1)
+    // Compute what the boost WOULD be for ALL scored candidates, log it, but do NOT apply it.
+    // Must be computed before logging so shadow_personalization_boost can be persisted.
+    // Uses computePersonalizationBoost() from scoring-v9.ts for per-restaurant analysis.
+    // ================================================================
+    const shadowBoosts: Array<{ restaurant_id: string; restaurant_name: string; boost: number; confidence: number; signals: string[] }> = [];
+    for (const sc of rerankedScored.slice(0, 10)) {
+      const boostResult = computePersonalizationBoost(sc.profile, tasteProfile);
+      if (boostResult.boost !== 0 || boostResult.signals.length > 0) {
+        shadowBoosts.push({
+          restaurant_id: sc.profile.id,
+          restaurant_name: sc.profile.name,
+          boost: boostResult.boost,
+          confidence: boostResult.confidence,
+          signals: boostResult.signals,
+        });
+      }
+    }
+
     // Use service client for reliable logging (anon key lacks RLS INSERT permission)
     // Generate UUID client-side since table lacks DEFAULT gen_random_uuid()
     const serviceForLog = createServiceClient();
@@ -1754,6 +1792,13 @@ Deno.serve(async (req: Request) => {
       cache_hit: false,
       cache_hit_level: null,
     };
+
+    // Learning Flywheel: Add shadow personalization boost to log (graceful — if column doesn't exist, insert still succeeds)
+    const chosenShadowBoost = shadowBoosts.find(sb => sb.restaurant_id === chosenId);
+    if (chosenShadowBoost) {
+      queryLogRow.shadow_personalization_boost = chosenShadowBoost.boost;
+    }
+
     serviceForLog
       .from("user_queries")
       .insert(queryLogRow)
@@ -1814,20 +1859,22 @@ Deno.serve(async (req: Request) => {
     });
 
     // ================================================================
-    // STEP 9.7: Learning Flywheel — Shadow Personalization (Phase 1)
-    // Compute what the boost WOULD be, log it, but do NOT apply it
+    // STEP 9.7: Learning Flywheel — Attach shadow personalization to response
+    // Shadow boosts computed in Step 9.0 (before logging). Here we attach to response.
     // ================================================================
     const personalization = computeShadowPersonalization(tasteProfile, rerankedScored[0], v9Context);
     (responseBody as Record<string, unknown>).personalization = {
-      active: personalization.active,
-      shadow_boost: personalization.shadowBoost,
-      signals_used: personalization.signalsUsed,
+      active: false,  // Phase 1: shadow mode — never active
+      taste_profile_exists: !!tasteProfile,
+      shadow_boosts: shadowBoosts,
       taste_summary: personalization.tasteSummary,
     };
-    if (personalization.signalsUsed > 0) {
-      logInfo("Learning Flywheel shadow", {
-        shadowBoost: personalization.shadowBoost,
-        signalsUsed: personalization.signalsUsed,
+    if (shadowBoosts.length > 0) {
+      logInfo("Learning Flywheel shadow boosts", {
+        candidatesWithBoost: shadowBoosts.length,
+        topBoost: shadowBoosts[0]?.boost || 0,
+        topRestaurant: shadowBoosts[0]?.restaurant_name || null,
+        signalsUsed: tasteProfile?.totalSignals || 0,
         topCuisines: personalization.tasteSummary?.topCuisines || [],
         type: personalization.tasteSummary?.type || "new_user",
       });

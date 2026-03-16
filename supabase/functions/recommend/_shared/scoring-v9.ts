@@ -39,6 +39,7 @@ import type {
   V9ScoredCandidate,
   V9SubComponent,
   ReviewIntelligence,
+  TasteProfile,
 } from "./types-v9.ts";
 import {
   OCCASION_WEIGHTS,
@@ -2644,4 +2645,141 @@ export function reRankV9(
   }
 
   return scored;
+}
+
+// ==========================================
+// LEARNING FLYWHEEL — PERSONALIZATION BOOST
+// Phase 1: Shadow mode — compute but never apply
+// ==========================================
+
+/** Per-restaurant personalization boost result (shadow mode) */
+export interface PersonalizationBoostResult {
+  /** Effective boost after confidence scaling. Capped at +/-5. NOT applied to DondeMatch in Phase 1. */
+  boost: number;
+  /** Confidence 0-1 based on interaction count: min(1.0, interactions / 30) */
+  confidence: number;
+  /** Human-readable signals that contributed to the boost */
+  signals: string[];
+}
+
+/**
+ * Compute the personalization boost a restaurant WOULD receive based on the
+ * user's pre-computed taste profile.
+ *
+ * Phase 1 (shadow mode): the returned boost is logged but never applied to
+ * DondeMatch scores. This lets us validate the logic in production before
+ * turning it on.
+ *
+ * @param restaurant  - Any restaurant record (profile or candidate)
+ * @param tasteProfile - Pre-computed taste profile from user_taste_profiles table, or null
+ * @returns PersonalizationBoostResult with effective_boost, confidence, and matched signals
+ */
+export function computePersonalizationBoost(
+  restaurant: any,
+  tasteProfile: TasteProfile | null,
+): PersonalizationBoostResult {
+  const noBoost: PersonalizationBoostResult = { boost: 0, confidence: 0, signals: [] };
+
+  // Guard: no profile or insufficient data (< 5 interactions)
+  if (!tasteProfile || tasteProfile.totalSignals < 5) {
+    return noBoost;
+  }
+
+  let rawBoost = 0;
+  const signals: string[] = [];
+
+  // --- 1. Cuisine affinity: +2 to +3 based on score ---
+  const restaurantCuisine = (restaurant.cuisine_type || "").toLowerCase();
+  if (restaurantCuisine) {
+    for (const aff of tasteProfile.cuisineAffinities) {
+      if (aff.cuisine.toLowerCase() === restaurantCuisine) {
+        // score is 0-1 normalized; top cuisine (score=1.0) gets +3, score=0.5 gets +2
+        const cuisineBoost = aff.score >= 0.7 ? 3 : 2;
+        rawBoost += cuisineBoost;
+        signals.push(`cuisine_affinity:${aff.cuisine}(+${cuisineBoost})`);
+        break;
+      }
+    }
+
+    // Cuisine avoidance penalty (not capped separately, flows into total clamp)
+    if (tasteProfile.cuisineAvoidances.some(c => c.toLowerCase() === restaurantCuisine)) {
+      rawBoost -= 5;
+      signals.push(`cuisine_avoidance:${restaurantCuisine}(-5)`);
+    }
+  }
+
+  // --- 2. Neighborhood affinity: +1 to +2 based on score ---
+  const restaurantNeighborhood = (restaurant.neighborhood_name || "").toLowerCase();
+  if (restaurantNeighborhood) {
+    for (const na of tasteProfile.neighborhoodAffinities) {
+      if (na.neighborhood.toLowerCase() === restaurantNeighborhood) {
+        const neighborhoodBoost = na.score >= 0.7 ? 2 : 1;
+        rawBoost += neighborhoodBoost;
+        signals.push(`neighborhood_affinity:${na.neighborhood}(+${neighborhoodBoost})`);
+        break;
+      }
+    }
+  }
+
+  // --- 3. Price affinity: +1 if within 0.5 tiers of user's typical range ---
+  if (tasteProfile.priceAffinity) {
+    const priceMap: Record<string, number> = { "$": 1, "$$": 2, "$$$": 3, "$$$$": 4 };
+    const rp = priceMap[restaurant.price_level || ""] || 0;
+    if (rp > 0) {
+      const diff = Math.abs(rp - tasteProfile.priceAffinity);
+      if (diff <= 0.5) {
+        rawBoost += 1;
+        signals.push(`price_affinity:${restaurant.price_level}(+1)`);
+      }
+    }
+  }
+
+  // --- 4. Vibe affinity: +1 to +2 based on vibe preference alignment ---
+  // Compare restaurant's noise/energy attributes against user preferences
+  const dp = restaurant.deep_profile;
+  if (dp) {
+    let vibeAlignmentScore = 0;
+
+    // Noise alignment
+    if (Math.abs(tasteProfile.noisePreference) > 0.3) {
+      const noiseMap: Record<string, number> = {
+        "quiet": -0.8, "moderate": 0, "lively": 0.5, "loud": 0.8,
+      };
+      const restaurantNoise = noiseMap[(restaurant.noise_level || "").toLowerCase()] ?? 0;
+      // Same sign = aligned
+      if (tasteProfile.noisePreference * restaurantNoise > 0) {
+        vibeAlignmentScore += 1;
+      }
+    }
+
+    // Energy alignment
+    if (Math.abs(tasteProfile.energyPreference) > 0.3 && dp.energy_level != null) {
+      // energy_level is typically 1-10 in deep profiles; normalize to -1 to +1
+      const normalizedEnergy = (dp.energy_level - 5) / 5;
+      if (tasteProfile.energyPreference * normalizedEnergy > 0) {
+        vibeAlignmentScore += 1;
+      }
+    }
+
+    if (vibeAlignmentScore > 0) {
+      const vibeBoost = vibeAlignmentScore >= 2 ? 2 : 1;
+      rawBoost += vibeBoost;
+      signals.push(`vibe_affinity(+${vibeBoost})`);
+    }
+  }
+
+  // --- Cap total boost at +/-5 ---
+  const cappedBoost = Math.max(-5, Math.min(5, rawBoost));
+
+  // --- Compute confidence based on interaction count ---
+  const confidence = Math.min(1.0, tasteProfile.totalSignals / 30);
+
+  // --- Apply confidence: effective_boost = boost * confidence ---
+  const effectiveBoost = Math.round(cappedBoost * confidence * 100) / 100;
+
+  return {
+    boost: effectiveBoost,
+    confidence: Math.round(confidence * 100) / 100,
+    signals,
+  };
 }
