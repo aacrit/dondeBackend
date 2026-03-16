@@ -260,11 +260,16 @@ export function buildQueueBlurb(
   }
   const variantIdx = Math.abs(hash) % 5; // 0-4 template variant
 
-  // Pick a synonym using hash for deterministic rotation
+  // V21: Pick a synonym using hash + call counter to avoid repetition.
+  // Each call increments the counter so "bold" maps to different synonyms
+  // on the 1st, 2nd, 3rd call within the same blurb.
+  let adjCallIndex = 0;
   const rotateAdj = (base: string): string => {
     const pool = ADJ_SYNONYMS[base];
     if (!pool) return base;
-    return pool[Math.abs(hash) % pool.length];
+    const idx = (Math.abs(hash) + adjCallIndex) % pool.length;
+    adjCallIndex++;
+    return pool[idx];
   };
 
   // Flavor adjective map (shared across variants)
@@ -372,7 +377,15 @@ export function buildQueueBlurb(
       const lightAdj = profile.lighting_ambiance === "dim" ? "dimly lit" : profile.lighting_ambiance === "warm" ? "warm-toned" : "";
       const ambiParts = [noiseAdj, lightAdj].filter(Boolean);
       const ambi = ambiParts.length > 0 ? ambiParts.join(", ") + " " : "";
-      return `Our ${cuisine} pick in ${hood} is a ${ambi}spot worth the trip.`;
+      // V21: 5 sentence variants for hood/cuisine to avoid repetition
+      const hoodVariants = [
+        `Our ${cuisine} pick in ${hood} is a ${ambi}spot worth the trip.`,
+        `${hood} has no shortage of ${cuisine}, but this ${ambi}spot keeps pulling us back.`,
+        `A ${ambi}${cuisine} spot in ${hood} that earns its repeat visits.`,
+        `In ${hood}, this ${ambi}${cuisine} place does the work to stand out.`,
+        `For ${cuisine} in ${hood}, this ${ambi}room has our vote.`,
+      ];
+      return hoodVariants[variantIdx];
     } else if (hood) {
       return `Our pick in ${hood} is worth the trip.`;
     }
@@ -383,7 +396,15 @@ export function buildQueueBlurb(
     if (dp?.signature_dishes && dp.signature_dishes.length >= 2) {
       const d1 = dp.signature_dishes[0];
       const d2 = dp.signature_dishes[1];
-      return `We'd start with the ${d1.dish} and follow up with the ${d2.dish}.`;
+      // V21: 5 sentence variants for dish pairs
+      const dishVariants = [
+        `We'd start with the ${d1.dish} and follow up with the ${d2.dish}.`,
+        `The ${d1.dish} alone is worth the trip, but the ${d2.dish} seals it.`,
+        `Start with the ${d1.dish}. Then the ${d2.dish}. Then decide you're coming back.`,
+        `Order the ${d1.dish} and the ${d2.dish}. Trust us on the order.`,
+        `The ${d1.dish} gets the attention, but the ${d2.dish} is the sleeper hit.`,
+      ];
+      return dishVariants[variantIdx];
     } else if (dp?.signature_dishes?.[0]) {
       const d1 = dp.signature_dishes[0];
       const why = d1.why ? ` (${d1.why.toLowerCase()})` : "";
@@ -422,7 +443,15 @@ export function buildQueueBlurb(
         }
         return base;
       });
-      return `Expect ${mapped.join(" and ")} flavors across the menu.`;
+      // V21: 5 sentence variants for flavor descriptions
+      const flavorVariants = [
+        `Expect ${mapped.join(" and ")} flavors across the menu.`,
+        `The kitchen runs ${mapped.join(" and ")}, and it shows in every plate.`,
+        `Flavors land ${mapped.join(" and ")}, the kind that build as you eat.`,
+        `${mapped[0].charAt(0).toUpperCase() + mapped[0].slice(1)} and ${mapped[1] || mapped[0]} define the kitchen here.`,
+        `The menu leans ${mapped.join(" and ")}, which is exactly what we want.`,
+      ];
+      return flavorVariants[variantIdx];
     }
     // Fallback: cuisine-based with rotation
     const cuisineLower = cuisine.toLowerCase();
@@ -443,7 +472,17 @@ export function buildQueueBlurb(
     const crowd = dp?.crowd_profile as string[] | undefined;
     if (scenarios && scenarios.length > 0) {
       const top = scrubSlop(scenarios.slice(0, 2).join(" or ").toLowerCase());
-      if (top.length > 5) return `Best for ${top}.`;
+      if (top.length > 5) {
+        // V21: 5 sentence variants for scenario/crowd
+        const scenarioVariants = [
+          `Best for ${top}.`,
+          `This is where you go for ${top}.`,
+          `Works especially well for ${top}.`,
+          `Built for ${top}, and it shows.`,
+          `If it's ${top} you're after, this is the call.`,
+        ];
+        return scenarioVariants[variantIdx];
+      }
     } else if (crowd && crowd.length > 0) {
       const crowdStr = crowd.slice(0, 2).map((c: string) => c.replace(/_/g, " ")).join(" and ");
       return `Draws a ${crowdStr} crowd.`;

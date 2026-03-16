@@ -348,9 +348,10 @@ Deno.serve(async (req: Request) => {
         if (slopHits.length > 0) {
           logWarn("Blurb endpoint slop detected", { patterns: slopHits, restaurant: restaurantData.name });
         }
-        // Voice compliance auto-fix for blurb endpoint
+        // V21: Voice compliance — log only, no auto-fix. Flexible voice identity allows
+        // blurbs without explicit "we/our" if they have strong Donde personality.
         if (!/\bwe\b|\bour\b/.test(blurbLower)) {
-          parsed.recommendation = "We'd pick this one. " + parsed.recommendation;
+          logWarn("Blurb endpoint: no 'we'/'our' detected (voice identity allows this)");
         }
       }
 
@@ -1401,12 +1402,109 @@ Deno.serve(async (req: Request) => {
           logWarn("V5 recommendation word count outside target", { wordCount, target: "100-120" });
         }
 
-        // V5: "We" voice check — auto-fix if missing
+        // V21: Voice compliance — log only, no auto-fix. Flexible voice identity allows
+        // blurbs without explicit "we/our" if they carry strong Donde personality.
         const recLowerForVoice = parsed.recommendation.toLowerCase();
         if (!/\bwe\b|\bour\b/.test(recLowerForVoice)) {
-          logWarn("V5 recommendation missing 'we'/'our' voice mandate — auto-fixing");
-          // Prepend "We'd pick this one." to salvage voice compliance
-          parsed.recommendation = "We'd pick this one. " + parsed.recommendation;
+          logWarn("V21 recommendation: no 'we'/'our' detected (voice identity allows this)");
+        }
+      }
+
+      // ================================================================
+      // STEP 9.5: V21 Hybrid — Claude blurbs for queue positions #2-3
+      // ================================================================
+      // Fire parallel Claude calls for the top 2 queue items (positions #2 and #3).
+      // Uses a shorter prompt (just voice + restaurant profile + user query).
+      // Budget guard: only attempt if <10s elapsed. Falls back to deterministic on failure.
+      if (!skip_claude && rankedQueue.length >= 2 && (Date.now() - startTime) < 10000) {
+        const queueUpgradeStart = Date.now();
+        const upgradePromises: Promise<{ idx: number; blurb: string | null; headline: string | null; tip: string | null }>[] = [];
+
+        for (let qi = 0; qi < Math.min(2, rankedQueue.length); qi++) {
+          const queueCandidate = rerankedScored[qi + 1]; // +1 because rerankedScored[0] is the main pick
+          if (!queueCandidate) continue;
+
+          const qProfile = queueCandidate.profile;
+          const qCuisineText = qProfile.cuisine_type || '';
+          const qVoice = detectCultureTheme(qCuisineText, occasion, special_request);
+          const qScoreTier = getScoreTier(queueCandidate.dondeMatch);
+          const qSystemPrompt = buildV5SystemPrompt(qScoreTier, qVoice, occasion);
+          const qUserPrompt = buildBlurbOnlyPrompt(
+            {
+              name: qProfile.name,
+              cuisine_type: qProfile.cuisine_type,
+              price_level: qProfile.price_level,
+              neighborhood_name: qProfile.neighborhood_name,
+              noise_level: qProfile.noise_level,
+              lighting_ambiance: qProfile.lighting_ambiance,
+              outdoor_seating: qProfile.outdoor_seating,
+              tags: qProfile.tags,
+              deep_context: qProfile.deep_profile ? {
+                signature_dishes: qProfile.deep_profile.signature_dishes,
+                menu_highlights: qProfile.deep_profile.menu_highlights,
+                flavor_profiles: qProfile.deep_profile.flavor_profiles,
+                service_style: qProfile.deep_profile.service_style,
+                music_vibe: qProfile.deep_profile.music_vibe,
+                unique_selling_point: qProfile.deep_profile.unique_selling_point,
+                best_seat_in_house: qProfile.deep_profile.best_seat_in_house,
+                wow_factors: qProfile.deep_profile.wow_factors,
+                awards_recognition: qProfile.deep_profile.awards_recognition,
+              } : undefined,
+            },
+            {
+              special_request,
+              occasion,
+              neighborhood,
+              score_tier: qScoreTier,
+              match_narrative: queueCandidate.matchNarrative ? {
+                summary: queueCandidate.matchNarrative.summary,
+                key_signals: queueCandidate.matchNarrative.key_signals,
+                strongest_factor_label: queueCandidate.matchNarrative.strongest_factor_label,
+                weak_spots: queueCandidate.matchNarrative.weak_spots,
+              } : undefined,
+            },
+          );
+
+          const qDeadline = Math.max(2000, Math.min(4000, 15000 - (Date.now() - startTime) - 1500));
+          upgradePromises.push(
+            callClaude(qUserPrompt, qSystemPrompt, { maxTokens: 256, temperature: 0.7, timeoutMs: qDeadline })
+              .then(text => {
+                const qParsed = parseClaudeJson<{ recommendation?: string; match_headline?: string; insider_tip?: string }>(text);
+                // Strip em dashes
+                let rec = qParsed.recommendation || null;
+                if (rec) rec = rec.replace(/\u2014/g, ", ").replace(/ , /g, ", ").replace(/,\s*,/g, ",");
+                return { idx: qi, blurb: rec, headline: qParsed.match_headline || null, tip: qParsed.insider_tip || null };
+              })
+              .catch(err => {
+                logWarn("V21 queue Claude call failed, keeping deterministic", { position: qi + 2, error: String(err) });
+                return { idx: qi, blurb: null, headline: null, tip: null };
+              })
+          );
+        }
+
+        try {
+          const results = await Promise.all(upgradePromises);
+          for (const r of results) {
+            if (r.blurb && rankedQueue[r.idx]) {
+              (rankedQueue[r.idx] as Record<string, unknown>).recommendation = r.blurb;
+              if (r.headline) (rankedQueue[r.idx] as Record<string, unknown>).match_headline = r.headline;
+              if (r.tip) (rankedQueue[r.idx] as Record<string, unknown>).insider_tip = r.tip;
+              logInfo("V21 queue blurb upgraded via Claude", {
+                position: r.idx + 2,
+                restaurant: (rankedQueue[r.idx] as Record<string, unknown>).restaurant
+                  ? ((rankedQueue[r.idx] as Record<string, unknown>).restaurant as Record<string, unknown>).name
+                  : "unknown",
+                elapsed: Date.now() - queueUpgradeStart,
+              });
+            }
+          }
+        } catch (err) {
+          logWarn("V21 queue upgrade Promise.all failed", { error: String(err) });
+        }
+
+        // Update the response body's ranked_queue with upgraded blurbs
+        if (responseBody && (responseBody as Record<string, unknown>).ranked_queue) {
+          (responseBody as Record<string, unknown>).ranked_queue = rankedQueue;
         }
       }
 

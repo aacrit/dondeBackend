@@ -435,9 +435,25 @@ export function computeBlurbQualityGrade(
   else specificityPoints = 5;
   total += specificityPoints;
 
-  // Check 4: Voice compliance — "we"/"our" (15 pts)
-  const hasVoice = /\bwe\b|\bour\b/i.test(blurb);
-  total += hasVoice ? 15 : 0;
+  // Check 4: Voice compliance — flexible Donde voice identity (15 pts)
+  // V21: Flexible voice — "we/our" is the primary signal, but strong Donde personality
+  // markers also count (imperatives, opinionated closers, attitude phrases).
+  const hasWeOur = /\bwe\b|\bour\b/i.test(blurb);
+  const DONDE_VOICE_MARKERS = [
+    "worth the trip", "worth the drive", "worth the wait", "worth the line",
+    "go.", "come hungry", "bring someone", "bring people", "don't skip",
+    "don't miss", "don't argue", "don't overthink", "order two",
+    "trust us", "the move", "the call", "the one",
+    "come back", "keep coming back", "keep sending people",
+    "not the prettiest", "doesn't need to be", "that's the pitch",
+    "that's the review", "that's the compliment",
+  ];
+  const hasVoiceMarkers = DONDE_VOICE_MARKERS.some(m => blurbLower.includes(m));
+  let voicePoints: number;
+  if (hasWeOur) voicePoints = 15;
+  else if (hasVoiceMarkers) voicePoints = 10;
+  else voicePoints = 0;
+  total += voicePoints;
 
   // Check 5: Word count (15 pts)
   // V15: Widened tolerance bands — prompt targets 100-115 but Claude often writes 85-125
