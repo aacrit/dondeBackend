@@ -27,6 +27,7 @@ Say any of these to start a COO-led operation:
 | `"COO: run Project Charlie"` | Cache Intelligence | Analyze and optimize DondeCache performance | 20 min |
 | `"COO: run Project Delta"` | Competitive Intel | Board-ready competitive analysis from 3 advisors | 25 min |
 | `"COO: run Project Echo"` | Launch Readiness | Full security + performance + UX + data audit | 30 min |
+| `"COO: run Project Foxtrot"` | Reservation Integration | $0 reservation deep links for 1,200+ restaurants | 2 weeks |
 
 ### Specific Agent Commands
 
@@ -44,6 +45,10 @@ Say any of these to start a COO-led operation:
 | `"Audit restaurant data quality"` | COO spawns db-reviewer for data completeness check |
 | `"Profile response latency"` | COO spawns perf-optimizer for latency waterfall |
 | `"Run UAT browser tests"` | COO spawns uat-tester for Playwright testing |
+| `"Research reservation APIs"` | COO spawns reservation-integration-specialist for platform analysis |
+| `"Research ordering/delivery APIs"` | COO spawns payments-ordering-specialist for platform analysis |
+| `"Optimize map integration"` | COO spawns maps-location-specialist for provider comparison |
+| `"Research social/review APIs"` | COO spawns social-reviews-specialist for platform analysis |
 
 ---
 
@@ -130,6 +135,7 @@ QUALITY:        94% pass rate (target: 95%) [AMBER]
 INFRASTRUCTURE: 0 day doc drift (target: <1) [GREEN]
 PRODUCT:        98% features complete       [GREEN]
 SECURITY:       85/100 posture (target: 85) [GREEN]
+INTEGRATIONS:   0/1,200 restaurants mapped  [RED — new division, Project Foxtrot pending]
 ```
 
 ### Trend Indicators
@@ -165,6 +171,10 @@ SECURITY:       85/100 posture (target: 85) [GREEN]
 | **ceo-advisor** | Product | Board-level product strategist | "What should we build next?" |
 | **donde-premium-advisor** | Product | $50B app quality assessor | "Are we premium enough?" |
 | **donde-ciso** | Security | Security auditor across 10 domains | "Are we secure for launch?" |
+| **reservation-integration-specialist** | Integrations | Resy, OpenTable, Tock, Yelp deep links + affiliates | "Add reservation booking to recommendations" |
+| **payments-ordering-specialist** | Integrations | Toast, DoorDash, UberEats, Square ordering links | "Add ordering/delivery to recommendations" |
+| **maps-location-specialist** | Integrations | Google Maps, Mapbox, Apple Maps cost optimization | "Add maps and directions" |
+| **social-reviews-specialist** | Integrations | Yelp Fusion, Instagram, TikTok trending detection | "Add social proof and trending signals" |
 
 ### You Should Never Need To
 
@@ -178,6 +188,8 @@ SECURITY:       85/100 posture (target: 85) [GREEN]
 - Sync documentation (update-docs auto-runs)
 - Monitor production health (prod-sentinel handles)
 - Worry about $0 operations (all safe, all reversible)
+- Research reservation/ordering/map APIs yourself (integration specialists handle)
+- Build deep links manually (reservation-integration-specialist automates)
 
 ---
 
@@ -199,7 +211,7 @@ COO creates quality team, runs tests, fixes failures, retests, reports.
 ```
 "COO: run Project Echo"
 ```
-COO runs full launch readiness audit across all 4 divisions. Delivers GO/NO-GO.
+COO runs full launch readiness audit across all 6 divisions. Delivers GO/NO-GO.
 
 ### "I want to know what to build next"
 ```
@@ -218,6 +230,12 @@ COO syncs grading code between backend and frontend.
 "COO: run Project Charlie"
 ```
 COO spawns analyst + profiler + auditor to optimize DondeCache.
+
+### "I want reservation booking in recommendations"
+```
+"COO: run Project Foxtrot"
+```
+COO spawns reservation-integration-specialist to map platform coverage, build deep links, and add "Reserve" buttons to recommendations. $0 cost.
 
 ### "Something feels broken"
 ```
@@ -246,13 +264,14 @@ COO checks for regressions, CI failures, security issues. Reports only what's es
        |
        | natural language commands
        |
-     COO (team lead) ─── 225 lines, 5 divisions, 16 agents
+     COO (team lead) ─── 6 divisions, 20 agents
        |
-       +── Quality ────── analyst, fixer, query-gen, tester
+       +── Quality ─────── analyst, fixer, query-gen, tester
        +── Infrastructure ─ profiler, auditor, documenter, sentinel
-       +── Frontend ────── builder, ui-fixer, themer, ux, frontenddesign
-       +── Product ─────── strategist, designer
-       +── Security ────── security (donde-ciso)
+       +── Frontend ─────── builder, ui-fixer, themer, ux, frontenddesign
+       +── Product ──────── strategist, designer
+       +── Security ─────── security (donde-ciso)
+       +── Integrations ─── reservations, payments, maps, social
 ```
 
 **Key insight:** You talk to the COO in natural language. The COO translates your intent into structured agent operations, task lists, and real-time coordination via SendMessage. You never need to learn the tooling — just tell the COO what you want.
