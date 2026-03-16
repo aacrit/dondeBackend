@@ -892,7 +892,10 @@ const OCCASION_NOISE: Record<string, string[]> = {
   "Family Dinner": ["Quiet", "Moderate"], "Business Lunch": ["Quiet"],
   "Solo Dining": ["Quiet", "Moderate"], "Special Occasion": ["Quiet"],
   "Treat Myself": ["Quiet", "Moderate"], Adventure: ["Moderate", "Loud", "Quiet"],
-  "Chill Hangout": ["Moderate", "Quiet"], Any: ["Quiet", "Moderate"],
+  // V22: Added "Loud" to "Any" — when user doesn't specify an occasion,
+  // all noise levels should be acceptable. Fixes vibe WARNs for tiki bar (4.6→~7)
+  // and bottomless brunch (4.3→~7) where "Loud" is the correct atmosphere.
+  "Chill Hangout": ["Moderate", "Quiet"], Any: ["Quiet", "Moderate", "Loud"],
 };
 
 const SERVICE_CLASH: Record<string, string[]> = {
