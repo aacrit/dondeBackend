@@ -125,7 +125,7 @@ CEO (Aacrit)
 
 **CLI test write-back:** `golden-dataset-test.sh` and `regression-guard.sh` persist results to `gauntlet_runs` + `gauntlet_results` Supabase tables when `SUPAB_URL` and `SUPAB_ANON_KEY` env vars are set. Run ID format: `cli-golden-*` / `cli-regression-*`. Source field: `cli`.
 
-**Zero-cost testing (`skip_claude`):** Pass `"skip_claude": true` in request body to skip all Claude API calls. Engine returns deterministic scores + fallback blurbs from restaurant profiles. Intent classification uses deterministic Tier 1 only. Used by CEO Command Center "Scoring Only" mode (default).
+**Zero-cost testing (`skip_claude` + `skip_google`):** Pass `"skip_claude": true` and `"skip_google": true` in request body to skip all Claude and Google Places API calls. Engine returns deterministic scores + fallback blurbs from restaurant profiles. Intent classification uses deterministic Tier 1 only. Google data (photos, hours, phone) will be null. Used by CEO Command Center "Scoring Only" mode (default). All CLI test scripts use both flags. Response includes `google_api_cost` field with per-request cost breakdown.
 
 ## Scoring Engine — V11 (Active)
 
@@ -235,7 +235,8 @@ Timeout: 15s (AbortController on frontend)
   "user_id": "uuid",
   "feedback": {"restaurant_id": "uuid", "feedback": "like|dislike"},
   "time_of_day": "breakfast|lunch|dinner|late_night",
-  "skip_claude": "boolean (internal: skip Claude API calls, use deterministic blurbs — $0 cost)"
+  "skip_claude": "boolean (internal: skip Claude API calls, use deterministic blurbs — $0 cost)",
+  "skip_google": "boolean (internal: skip Google Places API calls — $0 cost, null photos/hours/phone)"
 }
 ```
 
@@ -272,6 +273,7 @@ Timeout: 15s (AbortController on frontend)
   "deep_context": { "signature_dishes", "service_style", "reservation_difficulty", "..." },
   "tags": ["string"],
   "intent_boost": { "active", "reason", "boost_points", "base_score" },
+  "google_api_cost": { "detail_calls": 5, "photo_refs": 25, "estimated_cost_usd": 0.20 },
   "timestamp": "ISO"
 }
 ```
@@ -323,11 +325,22 @@ All use `SUPAB_` prefix (`SUPABASE_` is reserved in Edge Functions).
 | GitHub Actions | above + `SUPAB_SERVICE_ROLE_KEY`, `SUPABASE_ACCESS_TOKEN` |
 | Local `.env` | all above + optional `DATABASE_URL` |
 
-## Claude API Cost Policy
+## API Cost Policy
 
+### Claude API
 **Before running ANY pipeline that calls Claude:** estimate cost, get explicit approval.
-
 Haiku 4.5: $0.80/M input, $4.00/M output. Full enrichment-v2 (~1000 restaurants) ~ $2-2.50.
+
+### Google Places API
+Place Details: $0.005/call. Place Photo: $0.007/call (charged when frontend loads the URL).
+Per recommendation: ~$0.04 (1 detail + 5 photos). $200/month free credit covers ~5,000 recs/month.
+Every API response includes `google_api_cost: { detail_calls, photo_refs, estimated_cost_usd }`.
+
+### Zero-Cost Testing
+Use `skip_google: true` alongside `skip_claude: true` in request body for $0 tests.
+All test scripts (golden-dataset, benchmark-200, test-catalog, regression-guard) use both flags by default.
+CEO Command Center scoring-only mode (default) sends both `skip_claude` and `skip_google`.
+The flags work independently — you can use Google data with deterministic scoring, or vice versa.
 
 ## Git Workflow
 

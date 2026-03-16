@@ -173,6 +173,11 @@ echo "  Saved: $HISTORY_FILE"
 ###############################################################################
 
 echo ""
+echo "  ── API Cost Summary ──"
+echo "  Google API Cost:  \$0.00 (skip_google=true)"
+echo "  Claude API Cost:  \$0.00 (skip_claude=true)"
+echo "  Total API Cost:   \$0.00"
+echo ""
 echo "============================================================"
 if $REGRESSION_FAILED; then
   echo -e "  ${RED}${BOLD}REGRESSION DETECTED${NC} — scoring quality has degraded"

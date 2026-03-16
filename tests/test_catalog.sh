@@ -34,6 +34,10 @@ NC='\033[0m'
 
 api_call() {
   local body="${1:-'{}'}"
+  # Auto-inject skip_google for zero-cost testing (skip Google Places API calls)
+  if [[ "$body" != '{}' ]] && echo "$body" | jq -e '.' >/dev/null 2>&1; then
+    body=$(echo "$body" | jq -c '. + {skip_google: true}')
+  fi
   local raw
   raw=$(curl -s -w "\n%{http_code}" -X POST "$API" \
     -H "Content-Type: application/json" \
@@ -1736,6 +1740,11 @@ else
   echo -e "  ${RED}SIGNIFICANT FAILURES — $FAIL_COUNT checks failed${NC}"
 fi
 
+echo ""
+echo "  ── API Cost Summary ──"
+echo "  Google API Cost:  \$0.00 (skip_google=true)"
+echo "  Claude API Cost:  \$0.00 (skip_claude=true, where applicable)"
+echo "  Total API Cost:   \$0.00"
 echo ""
 echo "============================================================"
 echo "  END OF TEST SUITE — $(date -u '+%Y-%m-%dT%H:%M:%SZ')"

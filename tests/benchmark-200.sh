@@ -113,7 +113,7 @@ run_bench_test() {
   local body
   body=$(jq -n \
     --arg sr "$query" \
-    '{special_request: $sr, occasion: "Any", neighborhood: "Anywhere", price_level: "Any"}')
+    '{special_request: $sr, occasion: "Any", neighborhood: "Anywhere", price_level: "Any", skip_google: true}')
 
   api_call "$body"
 
@@ -667,6 +667,12 @@ if (( TOTAL_TESTS > 0 )); then
   echo ""
   echo "  Overall:     avg DM = $((TOTAL_DONDE_MATCH / TOTAL_TESTS)) ($TOTAL_TESTS tests)"
 fi
+
+echo ""
+echo "  ── API Cost Summary ──"
+echo "  Google API Cost:  \$0.00 (skip_google=true)"
+echo "  Claude API Cost:  \$0.00 (skip_claude=true)"
+echo "  Total API Cost:   \$0.00"
 
 # Generate markdown report
 echo ""

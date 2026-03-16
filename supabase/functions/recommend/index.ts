@@ -43,6 +43,8 @@ import {
 import {
   fetchPlaceDetails,
   formatReviewsForPrompt,
+  getGoogleCallStats,
+  resetGoogleCallStats,
 } from "./_shared/google-places.ts";
 import { logInfo, logWarn, logError } from "./_shared/logger.ts";
 import type {
@@ -401,6 +403,10 @@ Deno.serve(async (req: Request) => {
     const price_level = body.price_level || "Any";
     const open_now = body.open_now === true; // V5: Open Now toggle
     const skip_claude = body.skip_claude === true; // Zero-cost testing: skip Claude API calls
+    const skip_google = body.skip_google === true; // Zero-cost testing: skip Google Places API calls
+
+    // Reset Google API call counters at start of each request
+    resetGoogleCallStats();
 
     const VALID_TIME_PERIODS = ["breakfast", "lunch", "dinner", "late_night"];
     const time_of_day = (typeof body.time_of_day === "string" && VALID_TIME_PERIODS.includes(body.time_of_day))
@@ -1065,37 +1071,42 @@ Deno.serve(async (req: Request) => {
     // ================================================================
     // STEP 5: Google Places enrichment (top 5 candidates)
     // ================================================================
-    const top5PlaceIds = diverseScored
-      .slice(0, 5)
-      .map(s => s.profile.google_place_id)
-      .filter(Boolean) as string[];
-
-    const googlePromises = top5PlaceIds.map(pid => fetchPlaceDetails(pid));
-    const googleTimeout = new Promise<null>(resolve => setTimeout(() => resolve(null), 2500));
-    const googleRace = Promise.all(googlePromises);
-    const googleResultsOrTimeout = await Promise.race([googleRace, googleTimeout]);
-
-    const googleResults = googleResultsOrTimeout
-      ? (googleResultsOrTimeout as Awaited<ReturnType<typeof fetchPlaceDetails>>[])
-      : [];
-
     const googleByPlaceId = new Map<string, Awaited<ReturnType<typeof fetchPlaceDetails>>>();
-    for (let i = 0; i < top5PlaceIds.length && i < googleResults.length; i++) {
-      const gd = googleResults[i];
-      if (gd) googleByPlaceId.set(top5PlaceIds[i], gd);
-    }
 
-    // Log Google Places fetch outcome for debugging
-    const googleHitCount = googleByPlaceId.size;
-    const googleTimedOut = !googleResultsOrTimeout;
-    if (googleTimedOut) {
-      logWarn("V9: Google Places batch timed out (2.5s)", { placeIds: top5PlaceIds.length });
+    if (skip_google) {
+      logInfo("skip_google: skipping all Google Places API calls");
     } else {
-      logInfo("V9: Google Places enriched", {
-        fetched: googleHitCount,
-        total: top5PlaceIds.length,
-        hasHours: [...googleByPlaceId.values()].filter(g => g?.opening_hours).length,
-      });
+      const top5PlaceIds = diverseScored
+        .slice(0, 5)
+        .map(s => s.profile.google_place_id)
+        .filter(Boolean) as string[];
+
+      const googlePromises = top5PlaceIds.map(pid => fetchPlaceDetails(pid));
+      const googleTimeout = new Promise<null>(resolve => setTimeout(() => resolve(null), 2500));
+      const googleRace = Promise.all(googlePromises);
+      const googleResultsOrTimeout = await Promise.race([googleRace, googleTimeout]);
+
+      const googleResults = googleResultsOrTimeout
+        ? (googleResultsOrTimeout as Awaited<ReturnType<typeof fetchPlaceDetails>>[])
+        : [];
+
+      for (let i = 0; i < top5PlaceIds.length && i < googleResults.length; i++) {
+        const gd = googleResults[i];
+        if (gd) googleByPlaceId.set(top5PlaceIds[i], gd);
+      }
+
+      // Log Google Places fetch outcome for debugging
+      const googleHitCount = googleByPlaceId.size;
+      const googleTimedOut = !googleResultsOrTimeout;
+      if (googleTimedOut) {
+        logWarn("V9: Google Places batch timed out (2.5s)", { placeIds: top5PlaceIds.length });
+      } else {
+        logInfo("V9: Google Places enriched", {
+          fetched: googleHitCount,
+          total: top5PlaceIds.length,
+          hasHours: [...googleByPlaceId.values()].filter(g => g?.opening_hours).length,
+        });
+      }
     }
 
     // ================================================================
@@ -1390,9 +1401,9 @@ Deno.serve(async (req: Request) => {
       const chosen = rerankedScored[chosenIdx];
       const dondeMatch = chosen.dondeMatch;
 
-      // Get Google data for chosen (skip if time budget exceeded)
+      // Get Google data for chosen (skip if time budget exceeded or skip_google)
       let chosenGoogleData = chosen.googleData || null;
-      if (!chosenGoogleData && chosen.profile.google_place_id && (Date.now() - startTime) < 12000) {
+      if (!skip_google && !chosenGoogleData && chosen.profile.google_place_id && (Date.now() - startTime) < 12000) {
         chosenGoogleData = await fetchPlaceDetails(chosen.profile.google_place_id);
       }
 
@@ -1405,7 +1416,7 @@ Deno.serve(async (req: Request) => {
         const nextIdx = rerankedScored.findIndex((_s, i) => i !== chosenIdx);
         if (nextIdx !== -1) {
           const nextChosen = rerankedScored[nextIdx];
-          const nextGoogle = nextChosen.googleData || (nextChosen.profile.google_place_id && (Date.now() - startTime) < 12000
+          const nextGoogle = nextChosen.googleData || (!skip_google && nextChosen.profile.google_place_id && (Date.now() - startTime) < 12000
             ? await fetchPlaceDetails(nextChosen.profile.google_place_id) : null);
 
           if (!validateInsiderTip(parsed.insider_tip)) {
@@ -1615,7 +1626,7 @@ Deno.serve(async (req: Request) => {
 
       const chosen = rerankedScored[0];
       let chosenGoogleData = chosen.googleData || null;
-      if (!chosenGoogleData && chosen.profile.google_place_id) {
+      if (!skip_google && !chosenGoogleData && chosen.profile.google_place_id) {
         chosenGoogleData = await fetchPlaceDetails(chosen.profile.google_place_id);
       }
       const reservationLinks = await reservationPromise;
@@ -1623,7 +1634,7 @@ Deno.serve(async (req: Request) => {
       // Skip closed restaurant in fallback
       if (chosenGoogleData?.business_status === "CLOSED_PERMANENTLY" && rerankedScored.length > 1) {
         const nextChosen = rerankedScored[1];
-        const nextGoogle = nextChosen.googleData || (nextChosen.profile.google_place_id
+        const nextGoogle = nextChosen.googleData || (!skip_google && nextChosen.profile.google_place_id
           ? await fetchPlaceDetails(nextChosen.profile.google_place_id) : null);
 
         const v9Result: V9ScoreResult = {
@@ -1776,13 +1787,18 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // Attach Google API cost stats to every response
+    (responseBody as Record<string, unknown>).google_api_cost = getGoogleCallStats();
+
     const response = jsonResponse(responseBody, 200, requestOrigin);
     response.headers.set("X-API-Version", API_VERSION);
     response.headers.set("X-Engine", "v9");
     return response;
   } catch (error) {
     logError("V9 engine error", { error: String(error) });
-    return jsonResponse(buildV9ErrorResponse(error), 500, requestOrigin);
+    const errorBody = buildV9ErrorResponse(error);
+    errorBody.google_api_cost = getGoogleCallStats();
+    return jsonResponse(errorBody, 500, requestOrigin);
   }
 });
 

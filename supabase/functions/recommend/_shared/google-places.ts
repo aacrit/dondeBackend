@@ -3,6 +3,35 @@
  * Fetches fresh data at request time — never stored in DB (Google ToS compliance).
  */
 
+// ==========================================
+// Google API Call Counter (per-request)
+// ==========================================
+let _googleDetailCalls = 0;
+let _googlePhotoRefs = 0;
+
+export interface GoogleCallStats {
+  detail_calls: number;
+  photo_refs: number;
+  estimated_cost_usd: number;
+}
+
+/** Get current Google API call stats for this request cycle. */
+export function getGoogleCallStats(): GoogleCallStats {
+  // Place Details: $0.005/call, Place Photo: $0.007/call (when frontend loads the URL)
+  const cost = _googleDetailCalls * 0.005 + _googlePhotoRefs * 0.007;
+  return {
+    detail_calls: _googleDetailCalls,
+    photo_refs: _googlePhotoRefs,
+    estimated_cost_usd: Math.round(cost * 1000) / 1000,
+  };
+}
+
+/** Reset counters at the start of each request. */
+export function resetGoogleCallStats(): void {
+  _googleDetailCalls = 0;
+  _googlePhotoRefs = 0;
+}
+
 export interface GooglePlaceData {
   name: string;
   address: string;
@@ -52,6 +81,8 @@ export async function fetchPlaceDetails(
   }
 
   try {
+    _googleDetailCalls++;
+
     const params = new URLSearchParams({
       place_id: placeId,
       fields: PLACE_DETAILS_FIELDS,
@@ -98,6 +129,9 @@ export async function fetchPlaceDetails(
       .map((ref: string) =>
         `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${ref}&key=${apiKey}`
       );
+
+    // Track photo refs — each URL will cost $0.007 when the frontend loads it
+    _googlePhotoRefs += photoRefs.length;
 
     // Prefer current_opening_hours for live open_now accuracy
     const hours = result.current_opening_hours || result.opening_hours;
