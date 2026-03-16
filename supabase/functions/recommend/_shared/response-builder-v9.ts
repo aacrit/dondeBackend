@@ -463,10 +463,14 @@ export function buildQueueBlurb(
         }
         return base;
       });
-      // V22: Dedup — if both mapped adjectives are identical, replace second with a fallback
-      if (mapped.length >= 2 && mapped[0] === mapped[1]) {
-        const fallbacks = ["well-executed", "layered", "precise"];
-        mapped[1] = fallbacks[variantIdx % fallbacks.length];
+      // V22: Dedup — if mapped adjectives share key words, replace second with a fallback
+      if (mapped.length >= 2) {
+        const words0 = new Set(mapped[0].split(/[\s,]+/).filter(w => w.length > 3));
+        const overlap = mapped[1].split(/[\s,]+/).filter(w => w.length > 3).some(w => words0.has(w));
+        if (mapped[0] === mapped[1] || overlap) {
+          const fallbacks = ["well-executed", "layered", "precise"];
+          mapped[1] = fallbacks[variantIdx % fallbacks.length];
+        }
       }
       // V21: 5 sentence variants for flavor descriptions
       const flavorVariants = [
