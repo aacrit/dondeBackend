@@ -26,7 +26,7 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 
 | Agent | Division | Purpose | Trigger |
 |-------|----------|---------|---------|
-| `donde-coo` | Lead | **COO** — orchestrates all agents across 5 divisions, runs quality cycles, reports to CEO | Auto on significant changes, manual |
+| `donde-coo` | Lead | **COO** — orchestrates all agents across 6 divisions, runs quality cycles, reports to CEO | Auto on significant changes, manual |
 | `analytics-expert` | Quality | Chief Analytics Officer — benchmarks engine, implements quick-wins | Manual or auto on scoring changes |
 | `bug-fixer` | Quality | Post-test bug fixer — root-causes, groups, fixes scoring/blurb/grading code | Auto after test failures |
 | `gen-test-queries` | Quality | Generates 10 diverse, persona-driven test queries | Manual |
@@ -39,6 +39,16 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `donde-premium-advisor` | Product | Premium app audit ($50B caliber assessment) | Manual |
 | `donde-ciso` | Security | Security audit across 10 domains — severity-ranked findings | Manual or auto on security changes |
 | `uat-tester` | Frontend | UAT browser testing via Playwright — bugs, UX, accessibility | Manual |
+| `motion-physics-designer` | R&I | Spring physics, gesture interactions, haptic feedback, choreographed motion | Manual |
+| `spatial-map-innovator` | R&I | Map innovation, AR wayfinding, spatial discovery, L-line discovery | Manual |
+| `social-community-designer` | R&I | Social dining, food circles, shared lists, dining streaks | Manual |
+| `personalization-ai-architect` | R&I | Taste fingerprints, mood discovery, learning recommendation loops | Manual |
+| `gamification-engagement-designer` | R&I | Dining challenges, badges, cuisine passport, progression systems | Manual |
+| `micro-interaction-designer` | R&I | Easter eggs, celebrations, tactile feedback, delight moments | Manual |
+| `accessibility-inclusivity-lead` | R&I | WCAG 2.2 compliance, cultural sensitivity, language inclusivity | Manual |
+| `data-storytelling-designer` | R&I | Dining Wrapped, taste maps, data narratives, year-in-review | Manual |
+| `voice-conversational-designer` | R&I | Voice search, conversational UX, natural language refinement | Manual |
+| `premium-experience-architect` | R&I | VIP tiers, concierge features, luxury app quality, premium design | Manual |
 
 Frontend agents (in `../dondeAI/.claude/agents/`): `frontend-builder` (component engineering), `frontend-fixer` (UI bug remediation), `css-theme-specialist` (10 theme variants). Frontend skill: `frontenddesign` (design system enforcement).
 
@@ -46,7 +56,7 @@ All backend agents in `.claude/agents/`. Spawn via the Agent tool or `/agents` d
 
 ## Agent Hierarchy
 
-The COO (`donde-coo`) orchestrates all agents across **5 divisions**. Every agent reports to the COO, and the COO reports directly to the CEO.
+The COO (`donde-coo`) orchestrates all agents across **6 divisions**. Every agent reports to the COO, and the COO reports directly to the CEO.
 
 ```
 CEO (Aacrit)
@@ -55,14 +65,19 @@ CEO (Aacrit)
         ├── Infrastructure — perf-optimizer, db-reviewer, update-docs, prod-sentinel
         ├── Frontend ———— frontend-builder, frontend-fixer, css-theme-specialist, uat-tester, frontenddesign
         ├── Product ————— ceo-advisor, donde-premium-advisor
-        └── Security ———— donde-ciso
+        ├── Security ———— donde-ciso
+        └── R&I —————————— motion-physics-designer, spatial-map-innovator, social-community-designer,
+                           personalization-ai-architect, gamification-engagement-designer,
+                           micro-interaction-designer, accessibility-inclusivity-lead,
+                           data-storytelling-designer, voice-conversational-designer,
+                           premium-experience-architect
 ```
 
 **Escalation:** CRITICAL findings auto-escalate to COO → CEO with "The Bottom Line" summary.
 
 **Team Orchestration:** COO uses `TeamCreate` + `SendMessage` + `TaskCreate` for real-time multi-agent coordination. See `docs/TEAM-OPERATIONS.md` for full protocol. CEO guide: `docs/CEO-QUICK-REFERENCE.md`.
 
-**Projects:** Alpha (quality automation) | Bravo (cross-repo sync) | Charlie (cache intelligence) | Delta (competitive intel) | Echo (launch readiness). All $0 cost.
+**Projects:** Alpha (quality automation) | Bravo (cross-repo sync) | Charlie (cache intelligence) | Delta (competitive intel) | Echo (launch readiness) | Golf (R&I innovation). All $0 cost.
 
 **CEO task trigger:** All CEO tasks should trigger an agentic team response — spawn the COO (`donde-coo`) to orchestrate the appropriate division agents for the task. The COO triages, assigns agents, and reports back.
 
