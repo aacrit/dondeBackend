@@ -892,10 +892,7 @@ const OCCASION_NOISE: Record<string, string[]> = {
   "Family Dinner": ["Quiet", "Moderate"], "Business Lunch": ["Quiet"],
   "Solo Dining": ["Quiet", "Moderate"], "Special Occasion": ["Quiet"],
   "Treat Myself": ["Quiet", "Moderate"], Adventure: ["Moderate", "Loud", "Quiet"],
-  // V22: Added "Loud" to "Any" — when user doesn't specify an occasion,
-  // all noise levels should be acceptable. Fixes vibe WARNs for tiki bar (4.6→~7)
-  // and bottomless brunch (4.3→~7) where "Loud" is the correct atmosphere.
-  "Chill Hangout": ["Moderate", "Quiet"], Any: ["Quiet", "Moderate", "Loud"],
+  "Chill Hangout": ["Moderate", "Quiet"], Any: ["Quiet", "Moderate"],
 };
 
 const SERVICE_CLASH: Record<string, string[]> = {
@@ -1949,7 +1946,19 @@ function computeVibeQuality(
   let hasData = false;
 
   // Noise fit (0-3)
-  const expectedNoise = OCCASION_NOISE[occasion] || ["Moderate"];
+  // V22: Intent-aware noise tolerance — when intent signals a bar/party/brunch
+  // query, accept "Loud" as valid noise even for non-Group occasions. This fixes
+  // vibe WARNs for tiki bar (4.6→~7) and bottomless brunch (4.3→~7) without
+  // globally changing OCCASION_NOISE["Any"] (which would cause regressions).
+  const LOUD_INTENT_SIGNALS = ["tiki", "bar", "brunch", "bottomless", "karaoke", "sports bar", "dive bar", "nightlife", "club", "party"];
+  const intentImpliesLoud = intent && (
+    (intent.vibe_keywords || []).some((v: string) => LOUD_INTENT_SIGNALS.some(s => v.toLowerCase().includes(s))) ||
+    (intent.target_tags || []).some((t: string) => LOUD_INTENT_SIGNALS.some(s => t.toLowerCase().includes(s)))
+  );
+  let expectedNoise = OCCASION_NOISE[occasion] || ["Moderate"];
+  if (intentImpliesLoud && !expectedNoise.includes("Loud")) {
+    expectedNoise = [...expectedNoise, "Loud"];
+  }
   scorePossible += 3;
   let noisePoints = 1.5;
   if (candidate.noise_level) {
