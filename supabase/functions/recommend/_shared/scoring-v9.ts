@@ -1154,9 +1154,10 @@ export function computeRelevance(
     }
   }
 
-  // No intent → everything is equally relevant (open-ended query)
+  // No intent → open-ended query. Cap at 0.75 so high-quality restaurants don't
+  // dominate unclassified queries (prevents Bavette's monoculture on vague inputs).
   if (!intent || isOpenEnded(intent)) {
-    return { score: 1.0, type: "open_ended", details: "No specific request — all restaurants relevant" };
+    return { score: 0.75, type: "open_ended", details: "No specific request — broad match" };
   }
 
   // V11: Semantic concept matching — when semantic_tags are present, use them
@@ -2296,10 +2297,9 @@ function computeServiceQuality(
   }
 
   const confidence: "high" | "medium" | "low" = (dp?.service_style && dp?.kid_friendliness != null) ? "high" : dp?.service_style ? "medium" : "low";
-  // V16: Service floor of 6.0 for restaurants with full data (service_style + occasion scores).
-  // Prevents score_fit grade failures on service-category queries where the restaurant
-  // clearly has good service signals but the math formula compresses the score below 6.
-  const serviceFloor = dp?.service_style ? 6.0 : 0;
+  // Service floor: 5.0 for restaurants WITHOUT service_style data (cold-start protection).
+  // Restaurants WITH service_style compute naturally — no floor needed since they have real signals.
+  const serviceFloor = dp?.service_style ? 0 : 5.0;
   return { score: Math.min(10, Math.max(serviceFloor, score)), details, confidence };
 }
 
