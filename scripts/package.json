@@ -18,7 +18,10 @@
     "enrich:test": "tsx pipelines/enrich-full-dataset.ts --limit 3",
     "enrich:dishes": "tsx enrich-dishes.ts --live",
     "enrich:dishes:indian": "tsx enrich-dishes.ts --cuisine Indian --live",
-    "enrich:dishes:dry": "tsx enrich-dishes.ts"
+    "enrich:dishes:dry": "tsx enrich-dishes.ts",
+    "reservation:opentable": "tsx pipelines/reservation-enrichment.ts --platform opentable",
+    "reservation:resy": "tsx pipelines/resy-enrichment.ts",
+    "reservation:all": "tsx pipelines/reservation-enrichment.ts --platform opentable && tsx pipelines/resy-enrichment.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

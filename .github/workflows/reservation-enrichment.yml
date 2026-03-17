@@ -1,0 +1,64 @@
+name: Reservation Enrichment
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'   # 1st of each month at 6am UTC (midnight Chicago)
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to enrich: opentable, resy, or all'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - opentable
+          - resy
+
+jobs:
+  enrich-opentable:
+    if: ${{ github.event.inputs.platform == 'opentable' || github.event.inputs.platform == 'all' || github.event.inputs.platform == '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: scripts
+
+      - name: Run OpenTable enrichment
+        run: npx tsx pipelines/reservation-enrichment.ts --platform opentable
+        working-directory: scripts
+        env:
+          SUPAB_URL: ${{ secrets.SUPAB_URL }}
+          SUPAB_SERVICE_ROLE_KEY: ${{ secrets.SUPAB_SERVICE_ROLE_KEY }}
+
+  enrich-resy:
+    if: ${{ github.event.inputs.platform == 'resy' || github.event.inputs.platform == 'all' || github.event.inputs.platform == '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: scripts
+
+      - name: Run Resy enrichment
+        run: npx tsx pipelines/resy-enrichment.ts
+        working-directory: scripts
+        env:
+          SUPAB_URL: ${{ secrets.SUPAB_URL }}
+          SUPAB_SERVICE_ROLE_KEY: ${{ secrets.SUPAB_SERVICE_ROLE_KEY }}
+          RESY_API_KEY: ${{ secrets.RESY_API_KEY }}
