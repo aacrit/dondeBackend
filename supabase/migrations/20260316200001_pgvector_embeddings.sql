@@ -47,6 +47,7 @@ CREATE INDEX idx_query_embeddings_hnsw
   WITH (m = 16, ef_construction = 64);
 
 -- Semantic candidate search function
+-- NOTE: Fixed in 20260317000001_fix_semantic_candidates.sql to use neighborhood_id JOIN
 CREATE OR REPLACE FUNCTION semantic_candidates(
   p_query_embedding vector(384),
   p_neighborhood TEXT DEFAULT NULL,
@@ -61,9 +62,10 @@ AS $$
          r.name AS restaurant_name
   FROM restaurant_embeddings re
   JOIN restaurants r ON r.id = re.restaurant_id
+  LEFT JOIN neighborhoods n ON n.id = r.neighborhood_id
   WHERE (r.is_active IS NULL OR r.is_active = true)
     AND 1 - (re.embedding <=> p_query_embedding) > p_threshold
-    AND (p_neighborhood IS NULL OR r.neighborhood_name = p_neighborhood)
+    AND (p_neighborhood IS NULL OR n.name = p_neighborhood)
   ORDER BY re.embedding <=> p_query_embedding
   LIMIT p_limit;
 $$;
