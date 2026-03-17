@@ -42,15 +42,11 @@ import type {
 } from "./types-v9.ts";
 import {
   OCCASION_WEIGHTS,
-  DIETARY_KEYWORDS,
 } from "./scoring.ts";
 
 // ==========================================
 // SCORE DECOMPRESSION
 // ==========================================
-
-/** Feature flag: when false, decompression is skipped entirely (raw scores returned) */
-const SCORE_DECOMPRESSION_ENABLED = true;
 
 /**
  * Applies piecewise linear decompression to spread the compressed 70-90 DM band
@@ -79,7 +75,6 @@ const SCORE_DECOMPRESSION_ENABLED = true;
  *   95 -> 96 (near-perfect shines)
  */
 export function decompressScore(rawScore: number): number {
-  if (!SCORE_DECOMPRESSION_ENABLED) return Math.round(rawScore);
   if (rawScore <= 0) return 0;
   if (rawScore >= 99) return 99;
 
