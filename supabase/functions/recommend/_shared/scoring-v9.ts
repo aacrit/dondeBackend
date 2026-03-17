@@ -44,6 +44,8 @@ import {
   OCCASION_WEIGHTS,
   DIETARY_KEYWORDS,
 } from "./scoring.ts";
+import { computeFactorMLAdjustments } from "./factor-ml.ts";
+import type { FactorMLResult } from "./factor-ml.ts";
 
 // ==========================================
 // SCORE DECOMPRESSION
@@ -1790,7 +1792,7 @@ export function computeQuality(
   candidate: V9Candidate,
   relevanceType: V9RelevanceType,
   context: V9ScoringContext,
-): { quality: number; weights: V9QualityWeights; factors: V9Factors; factorDetails: V9FactorDetails; factorConfidence: V9FactorConfidence } {
+): { quality: number; weights: V9QualityWeights; factors: V9Factors; factorDetails: V9FactorDetails; factorConfidence: V9FactorConfidence; factorML: Record<string, FactorMLResult> } {
   // V11: Use multi-signal weights when query spans 3+ signal categories
   let weights = QUALITY_WEIGHTS[relevanceType];
   if (context.intent) {
@@ -1813,23 +1815,46 @@ export function computeQuality(
   const serviceResult = computeServiceQuality(candidate, context.occasion, context.intent);
   const convenienceResult = computeConvenienceQuality(candidate, context.intent, context.clientTimeOfDay, context.specialRequest, context.priceLevel);
 
+  // Per-factor ML adjustments — compute for all factors, apply only for active ones
+  // Uses raw factor scores + context to predict per-factor score nudges (clamped +/-2.0)
+  let foodScore = foodResult.score;
+  let vibeScore = vibeResult.score;
+  let serviceScore = serviceResult.score;
+  let repScore = reputationResult.score;
+  let convScore = convenienceResult.score;
+
+  const factorML = computeFactorMLAdjustments(
+    { food: foodScore, vibe: vibeScore, service: serviceScore, reputation: repScore, convenience: convScore },
+    relevanceType,
+    context.specialRequest || "",
+    0,  // dondeMatch not yet computed at this stage
+    0,  // scoreFit not yet computed at this stage
+  );
+
+  // Apply active adjustments (factor scores remain clamped to [0, 10])
+  if (factorML.food?.active) foodScore = factorML.food.adjusted;
+  if (factorML.vibe?.active) vibeScore = factorML.vibe.adjusted;
+  if (factorML.service?.active) serviceScore = factorML.service.adjusted;
+  if (factorML.reputation?.active) repScore = factorML.reputation.adjusted;
+  if (factorML.convenience?.active) convScore = factorML.convenience.adjusted;
+
   const quality = (
-    foodResult.score * weights.food +
-    reputationResult.score * weights.reputation +
-    vibeResult.score * weights.vibe +
-    serviceResult.score * weights.service +
-    convenienceResult.score * weights.convenience
+    foodScore * weights.food +
+    repScore * weights.reputation +
+    vibeScore * weights.vibe +
+    serviceScore * weights.service +
+    convScore * weights.convenience
   ) * 10; // Scale to 0-100
 
   return {
     quality: Math.min(100, Math.max(0, quality)),
     weights,
     factors: {
-      food: foodResult.score,
-      vibe: vibeResult.score,
-      service: serviceResult.score,
-      reputation: reputationResult.score,
-      convenience: convenienceResult.score,
+      food: foodScore,
+      vibe: vibeScore,
+      service: serviceScore,
+      reputation: repScore,
+      convenience: convScore,
     },
     factorDetails: {
       food: foodResult.details,
@@ -1845,6 +1870,7 @@ export function computeQuality(
       reputation: reputationResult.confidence,
       convenience: convenienceResult.confidence,
     },
+    factorML,
   };
 }
 
@@ -2566,7 +2592,7 @@ export function computeV9Score(
   const relevance = computeRelevance(candidate, context.intent, context.specialRequest, context.googleData);
 
   // Step 2: Compute Quality (the RANK)
-  const { quality, weights, factors, factorDetails, factorConfidence } = computeQuality(candidate, relevance.type, context);
+  const { quality, weights, factors, factorDetails, factorConfidence, factorML } = computeQuality(candidate, relevance.type, context);
 
   // Step 3: V10 confidence-weighted quality adjustment
   // When data is sparse, shrink quality toward conservative mean slightly.
@@ -2630,6 +2656,7 @@ export function computeV9Score(
     dataCompleteness,
     factorDetails,
     factorConfidence,
+    factorML,
   };
 }
 
@@ -2659,6 +2686,7 @@ export function reRankV9(
       dataCompleteness: result.dataCompleteness,
       factorDetails: result.factorDetails,
       factorConfidence: result.factorConfidence,
+      factorML: result.factorML,
       reviewIntelligence: candidate.review_intelligence,
     };
   });

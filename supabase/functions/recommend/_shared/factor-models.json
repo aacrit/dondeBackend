@@ -1,0 +1,10 @@
+{
+  "version": "0.0.0-placeholder",
+  "factors": {
+    "food": { "weights": {}, "bias": 0 },
+    "vibe": { "weights": {}, "bias": 0 },
+    "service": { "weights": {}, "bias": 0 },
+    "reputation": { "weights": {}, "bias": 0 },
+    "convenience": { "weights": {}, "bias": 0 }
+  }
+}

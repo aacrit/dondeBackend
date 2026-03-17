@@ -319,6 +319,8 @@ export interface V9ScoreResult {
   factorDetails: V9FactorDetails;
   /** Per-factor confidence (drives "limited data" UI notes) */
   factorConfidence: V9FactorConfidence;
+  /** Per-factor ML adjustments (shadow + active) */
+  factorML: Record<string, { raw: number; adjusted: number; delta: number; active: boolean; shadow: boolean }>;
 }
 
 // ==========================================
@@ -337,6 +339,8 @@ export interface V9ScoredCandidate {
   dataCompleteness: number;
   factorDetails: V9FactorDetails;
   factorConfidence: V9FactorConfidence;
+  /** Per-factor ML adjustments (shadow + active) */
+  factorML: Record<string, { raw: number; adjusted: number; delta: number; active: boolean; shadow: boolean }>;
   googleData?: GooglePlaceData | null;
   reviewIntelligence?: ReviewIntelligence | null;
 }

@@ -68,6 +68,7 @@ import { getScoreTier } from "./_shared/types-v9.ts";
 import { buildReservationLinks, checkResyAvailability } from "./_shared/reservation-links.ts";
 import type { ReservationRow, ReservationLinks as ReservationLinksType } from "./_shared/reservation-links.ts";
 import { computeMLShadowScores, isMLModelLoaded, getMLABGroup, applyMLAdjustments } from "./_shared/ml-adjustment.ts";
+import { isFactorMLLoaded } from "./_shared/factor-ml.ts";
 
 const API_VERSION = "11.0.0";
 
@@ -1199,6 +1200,7 @@ Deno.serve(async (req: Request) => {
         dataCompleteness: reResult.dataCompleteness,
         factorDetails: reResult.factorDetails,
         factorConfidence: reResult.factorConfidence,
+        factorML: reResult.factorML,
         googleData,
       };
     });
@@ -2023,6 +2025,14 @@ Deno.serve(async (req: Request) => {
           .map(s => ({ name: s.restaurant_name, rule_dm: s.rule_dm, adj: s.ml_adjustment, ml_dm: s.ml_dm })),
       });
     }
+
+    // Attach per-factor ML adjustment diagnostics to response
+    // Shows raw, adjusted, delta, active/shadow status for each of the 5 quality factors
+    const topFactorML = rerankedScored[0]?.factorML || {};
+    (responseBody as Record<string, unknown>).factor_ml = {
+      model_loaded: isFactorMLLoaded(),
+      adjustments: topFactorML,
+    };
 
     // Attach Google API cost stats to every response
     (responseBody as Record<string, unknown>).google_api_cost = getGoogleCallStats();
