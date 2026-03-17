@@ -1,6 +1,6 @@
 # Backend Architecture
 
-Last updated: 2026-03-17
+Last updated: 2026-03-17 (final)
 
 ## System Overview
 
@@ -8,14 +8,14 @@ Last updated: 2026-03-17
 |-------|-----------|
 | API | Supabase Edge Function (Deno/TS), V11 scoring engine (V19+ tuning) |
 | AI | Claude Haiku 4.5 (recommendations, enrichment, intent classification) |
-| ML | Linear/XGBoost scoring + targeted boost + per-factor models, A/B testing (50/50), `ml-adjustment.ts` |
+| ML | Targeted boost (654 keys, 7 winners, 100% traffic, 0 regressions) + per-factor models, `ml-adjustment.ts` |
 | DB | Supabase PostgreSQL (21 tables, 74 migrations, pgvector extension) |
 | Cache | DondeCache — persistent 3-level fuzzy query cache (exact/fingerprint/canonical) |
 | Vectors | pgvector HNSW indexes on `restaurant_embeddings` + `query_embeddings` (384-dim) |
 | Data | Google Places API (live fetch per request; only `google_place_id` stored per ToS §3.2.3) |
 | Reservations | Resy + OpenTable deep links via `restaurant_reservations` table |
 | Pipelines | Node.js 20 + tsx scripts (35 pipelines), GitHub Actions cron |
-| ML Training | `scripts/ml/` — 21 files: Python XGBoost + TS inference, 1,050 training pairs, per-factor models |
+| ML Training | `scripts/ml/` — 24 files: Python XGBoost + TS inference, ~3,050 training pairs (7 batches, 610 queries), per-factor models |
 | CI/CD | 17 GitHub Actions workflows |
 
 ## File Tree
@@ -53,7 +53,7 @@ scripts/
   lib/                            # 6 shared pipeline libraries
     config.ts, claude.ts, google-places.ts, supabase.ts, batch.ts, types.ts
   pipelines/                      # 35 pipeline scripts (see API-WORKFLOWS.md)
-  ml/                             # 21 ML training files (Python + TS + JSON datasets)
+  ml/                             # 24 ML training files (Python + TS + JSON datasets)
     train-model.py                # XGBoost LambdaMART + GroupKFold
     train-simple.py               # Zero-dep linear fallback
     train-factor-models.py        # Per-factor linear model trainer (5 factors)
@@ -62,12 +62,15 @@ scripts/
     extract-features.sh           # Feature extraction from live API
     distill-train.ts              # TS-based training orchestrator
     xgboost-inference.ts          # TS XGBoost inference implementation
-    training-data*.json           # 1,050 Opus-ranked training pairs (4 batches, 210 queries)
+    run-case-studies.sh           # 50-query boost case study trace analysis
+    training-data-batch{1-4,7}.json  # ~3,050 teacher-ranked pairs (7 batches, 610 queries, $0)
     factor-training-data.json     # 2,127 gauntlet results for per-factor training
     factor-models.json            # Trained per-factor model output
     features-dataset.json         # 2,315 feature extraction records
-    merged-training-data.json     # Merged training dataset (4,160 records)
+    merged-training-data.json     # Merged training dataset (2,160 records)
+    case-studies-results.json     # 50-query boost case study results
     ml-trace-report.json          # ML simulation trace report
+    harvest-metadata.json         # Training harvest metadata
   run-reservation-enrichment.sh   # Combined OpenTable + Resy pipeline runner
   package.json
 
@@ -81,7 +84,7 @@ tests/
   uat-targeted-test.sh            # 30-case targeted UAT test suite
   TEST-FULL.md                    # 170-scenario agent-driven test spec
   GOLDEN_DATASET_RESULTS.md       # Latest golden dataset results
-  generated-queries.json          # 210 persona-driven test queries (targeting 1000)
+  generated-queries.json          # 700 persona-driven test queries (13 categories)
 
 .github/workflows/                # 17 CI/CD workflows
 
@@ -102,7 +105,7 @@ tests/
 | `grading.ts` | Server-side score fit + blurb quality grading (mirrors cc-grading.js) | **Active** |
 | `query-cache.ts` | DondeCache — 3-level persistent cache with fuzzy matching + quality gate | **Active** |
 | `circuit-breaker.ts` | 3-state circuit breaker for Claude API calls (CLOSED/OPEN/HALF_OPEN, 60s cooldown) | **Active** |
-| `ml-adjustment.ts` | ML scoring layer — 22-feature extraction, linear/tree inference, targeted boost, A/B testing (50/50) | **Active** |
+| `ml-adjustment.ts` | ML scoring layer — targeted boost (654 keys, 7 winners, +5/+2), A/B at 100% (0 regressions) | **Active** |
 | `ml-model.json` | Pre-trained linear model weights | **Active (data)** |
 | `boost-table.json` | Targeted boost table — teacher-validated per-query restaurant boosts | **Active (data)** |
 | `factor-models.json` | Per-factor linear adjustment models (5 factors, deployed not yet wired) | **Staged (data)** |
@@ -115,7 +118,7 @@ tests/
 | Target | Trigger | Method |
 |--------|---------|--------|
 | Edge Function | Push to any branch (when `supabase/functions/recommend/**` changes) | `deploy-edge-function.yml` |
-| Migrations (73) | Manual | `supabase db push` or Dashboard SQL Editor |
+| Migrations (74) | Manual | `supabase db push` or Dashboard SQL Editor |
 | Pipelines | Cron (monthly) + manual dispatch | GitHub Actions |
 
 ## CI/CD Workflows

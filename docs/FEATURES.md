@@ -1,6 +1,6 @@
 # Backend Features
 
-Last updated: 2026-03-17
+Last updated: 2026-03-17 (final)
 
 ## Edge Function (V11 — active, V19+ tuning, files retain V9 naming)
 
@@ -13,7 +13,7 @@ Last updated: 2026-03-17
 - [x] 6 query-type-aware weight profiles (dish, cuisine, vibe, reputation, open_ended, multi_signal)
 - [x] Dynamic vibe relevance floor (0.45 for 3+ signals)
 - [x] Composite RPC scoring (V11) — all signals scored simultaneously
-- [x] Dynamic candidate pool: 100 for complex/semantic queries (was 50/80)
+- [x] Dynamic candidate pool: standard 100, complex/semantic 150 (was 50/80/100)
 - [x] Self-healing: NULL cuisine_type → fallback to cuisine_signals (29/2,719 restaurants — down from 1,806)
 - [x] Match Narrative: structured "why this match" data (strongest_factor, key_signals, summary)
 - [x] Ranked Queue: pre-computed top 5 results → instant Try Again on frontend
@@ -34,9 +34,10 @@ Last updated: 2026-03-17
 - [x] V19+: Post-scoring neighborhood + price filters with 3-phase graceful expansion
 - [x] V19+: Circuit breaker for Claude API (3-state, 60s cooldown, deterministic fallback)
 - [x] V19+: Shadow personalization from user_taste_profiles (logged, not applied)
-- [x] V19+: ML scoring layer with targeted boost + A/B testing (50/50 split, +/-5 DM adjustments)
+- [x] V19+: ML targeted boost at 100% traffic (654 keys, 7 winners, 550 restaurants, +5 direct / +2 winner, 0 regressions)
 - [x] V19+: Per-factor ML models trained on 2,127 gauntlet results (deployed, not yet wired)
-- [x] V19+: ML ceiling breakers: targeted boost-table.json, larger candidate pool for ML queries
+- [x] V19+: ~3,050 teacher-ranked training pairs from 610 queries (7 batches, $0 cost)
+- [x] V19+: 700-query test corpus (210 original + 490 hard: cuisine, dish, compound, neighborhood, vibe, occasion, group, time, edge)
 - [x] V19+: Factor scoring improvements: Service (review_service_quality + meal_pacing + group_size), Vibe (+ lighting + dress + decor), Convenience (+ transit + seasonal + cash-only), Food (+ signature_dishes + menu_depth), Reputation (composite 4 RI scores)
 - [x] V19+: Performance telemetry (9-marker X-Donde-Timing header + response_time_ms)
 - [x] V19+: Reservation deep links in API response (Resy + OpenTable, Project Foxtrot)
@@ -92,7 +93,7 @@ Last updated: 2026-03-17
 - [x] Reservation enrichment (OpenTable HTTP validation + Resy public API, $0)
 - [x] Resy venue validation (search API, name matching, slug correction)
 - [x] pgvector embedding generation (Ollama/OpenAI-style APIs)
-- [x] ML training pipeline (Python XGBoost + TS inference + per-factor models, 21 files in scripts/ml/)
+- [x] ML training pipeline (Python XGBoost + TS inference + per-factor models + case studies, 24 files in scripts/ml/)
 
 ## Auth & User Features
 

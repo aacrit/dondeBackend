@@ -1,6 +1,6 @@
 # Recommendation Blurb Generation
 
-Last updated: 2026-03-17
+Last updated: 2026-03-17 (final)
 
 How DondeAI generates the recommendation text, match headlines, insider tips, and queue blurbs that users see in the app.
 
@@ -21,7 +21,7 @@ How DondeAI generates the recommendation text, match headlines, insider tips, an
                                 ▼
 ┌───────────────────────────────────────────────────────────────────────┐
 │  2. CANDIDATE RETRIEVAL  (get_candidates_v11 RPC)                    │
-│     50–100 candidates from PostgreSQL via composite scoring RPC      │
+│     100–150 candidates from PostgreSQL via composite scoring RPC      │
 │     Fallback chain: V11 → V10 → V9                                  │
 └───────────────────────────────┬───────────────────────────────────────┘
                                 │
@@ -93,7 +93,7 @@ How DondeAI generates the recommendation text, match headlines, insider tips, an
                       ┌────────────────────────────────────────────────┐
                       │ 9b. ML SCORING + PERSONALIZATION + DECOMPRESS  │
                       │     Shadow personalization (logged, not applied)│
-                      │     ML A/B test (50/50, +/-5 DM adjustments)   │
+                      │     ML targeted boost (100%, +5/+2, 0 regr.)   │
                       │     Score decompression (post-grading)         │
                       │     Telemetry: X-Donde-Timing header           │
                       └─────────────────────┬──────────────────────────┘
@@ -209,7 +209,7 @@ Built by `buildV5UserPrompt()`. Sections:
 
 1. **User request context** — special_request (100 char max), occasion, neighborhood, price, dietary, weight context
 2. **Dish match analysis** (conditional) — if `dish_level_intent` exists, lists candidates with matching signature_dishes and menu_highlights. Includes: `CRITICAL: If #0 does NOT serve "X", you MUST boost a candidate that does.`
-3. **Full candidate pool** (compact) — all 50–100 candidates as: `#N. Name | Cuisine | Price | DM:score | Tags: ... [feature✓]`
+3. **Full candidate pool** (compact) — all 100–150 candidates as: `#N. Name | Cuisine | Price | DM:score | Tags: ... [feature✓]`
 4. **Top 10 deep profiles** — rich data for the best candidates:
    - Signature dishes + why, menu highlights, flavor profiles
    - Service style, pacing, decor, music, energy, conversation friendliness
