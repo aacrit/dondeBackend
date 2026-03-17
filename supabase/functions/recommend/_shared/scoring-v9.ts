@@ -1073,18 +1073,106 @@ export function computeRelevance(
   if (isReputationQuery(intent, specialRequest)) {
     const repRelevance = computeReputationRelevance(candidate, googleData);
     if (intent) {
-      // V18: Cuisine check FIRST — when query has BOTH reputation AND cuisine signals
-      // (e.g., "best cocktail bar", "best craft cocktail bar"), check if restaurant's
-      // cuisine_type matches the target. An exact cuisine match (1.0) is stronger than
-      // a generic reputation score (~0.90). Must run BEFORE vibe blending since
-      // "cocktail" triggers REPUTATION_VIBE_TRIGGERS and would short-circuit to vibe path.
+      const specialLower = specialRequest.toLowerCase();
+
+      // === V20: CUISINE-GATED REPUTATION (Change 1) ===
+      // When query has BOTH reputation keywords AND cuisine signals (e.g., "best Italian",
+      // "best Indian food", "best Korean food"), restaurants MUST match the target cuisine.
+      // Without this gate, "best Italian" returns non-Italian restaurants with high generic
+      // reputation scores (Big Jones, The Aviary) instead of actual Italian restaurants.
       if (intent.target_cuisines?.length && intent.cuisine_importance === "high") {
         const cuisineRel = computeCuisineRelevance(candidate, intent);
-        if (cuisineRel >= 0.95) {
+        if (cuisineRel >= 0.40) {
+          // Restaurant matches target cuisine — rank by reputation within cuisine.
+          // Return type "cuisine" so QUALITY_WEIGHTS uses food-heavy profile (0.35 vs 0.15).
           const finalScore = Math.max(repRelevance.score, cuisineRel);
-          return { score: finalScore, type: "reputation", details: `Reputation+Cuisine: ${repRelevance.score.toFixed(2)}/${cuisineRel.toFixed(2)}` };
+          return { score: finalScore, type: "cuisine", details: `Reputation+CuisineGated: rep=${repRelevance.score.toFixed(2)} cuisine=${cuisineRel.toFixed(2)}` };
+        }
+        // Restaurant does NOT match target cuisine — hard penalize.
+        // "Best Italian" should not return a Japanese restaurant regardless of reputation.
+        const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
+        return { score: cappedScore, type: "reputation", details: `Reputation (cuisine mismatch cap): rep=${repRelevance.score.toFixed(2)} cuisine=${cuisineRel.toFixed(2)}` };
+      }
+
+      // === V20: DISH-GATED REPUTATION (Change 1 extension) ===
+      // "best deep dish pizza" should return pizza places, not fine dining.
+      if (intent.dish_level_intent) {
+        const dishRel = computeDishRelevance(candidate, intent, specialRequest);
+        const cuisineRel = (intent.target_cuisines?.length ?? 0) > 0
+          ? computeCuisineRelevance(candidate, intent) : 0.5;
+        if (dishRel > 0) {
+          const finalScore = Math.max(repRelevance.score, dishRel);
+          return { score: finalScore, type: "dish", details: `Reputation+DishGated: rep=${repRelevance.score.toFixed(2)} dish=${dishRel.toFixed(2)}` };
+        }
+        if (cuisineRel >= 0.40) {
+          // Right cuisine but dish not found — capped
+          const cappedScore = Math.min(0.70, Math.max(repRelevance.score * 0.70, cuisineRel * 0.80));
+          return { score: cappedScore, type: "cuisine", details: `Reputation+CuisineOnly (no dish): rep=${repRelevance.score.toFixed(2)} cuisine=${cuisineRel.toFixed(2)}` };
+        }
+        // Wrong cuisine AND wrong dish — hard cap
+        return { score: Math.min(0.25, repRelevance.score * 0.25), type: "reputation", details: `Reputation (dish+cuisine mismatch cap)` };
+      }
+
+      // === V20: MICHELIN/AWARD STRUCTURAL CHECK (Change 2) ===
+      // "Michelin star restaurant" should return actual Michelin-starred restaurants.
+      if (specialLower.includes("michelin")) {
+        const dp = candidate.deep_profile;
+        const awardText = (dp?.awards_recognition || []).join(" ").toLowerCase();
+        const hasMichelin = awardText.includes("michelin");
+        if (!hasMichelin) {
+          const cappedScore = Math.min(0.40, repRelevance.score * 0.50);
+          return { score: cappedScore, type: "reputation", details: `Reputation (no Michelin cap): ${repRelevance.score.toFixed(2)}` };
         }
       }
+      if (specialLower.includes("james beard") || specialLower.includes("beard award")) {
+        const dp = candidate.deep_profile;
+        const awardText = (dp?.awards_recognition || []).join(" ").toLowerCase();
+        const hasBeard = awardText.includes("james beard") || awardText.includes("beard");
+        if (!hasBeard) {
+          const cappedScore = Math.min(0.60, repRelevance.score * 0.70);
+          return { score: cappedScore, type: "reputation", details: `Reputation (no James Beard cap): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+
+      // === V20: STRUCTURAL VIBE PRE-CHECKS (Changes 3-5) ===
+      // "best rooftop" must verify actual rooftop, not just outdoor seating.
+      if (specialLower.includes("rooftop")) {
+        const tagStrs = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+        const dp = candidate.deep_profile;
+        const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+        const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+        const hasRooftop =
+          tagStrs.some(t => t.includes("rooftop")) ||
+          wowFactors.some(w => w.includes("rooftop")) ||
+          oneliner.includes("rooftop");
+        if (!hasRooftop) {
+          const cappedScore = Math.min(0.35, repRelevance.score * 0.35);
+          return { score: cappedScore, type: "reputation", details: `Reputation (no rooftop cap): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+
+      // "late night food" must verify restaurant is actually open late.
+      if (specialLower.includes("late night") || specialLower.includes("late-night")) {
+        const hasLateNight =
+          (candidate.tags || []).some(t => tagToString(t).toLowerCase().includes("late night")) ||
+          (candidate.best_times || []).some((bt: string) => bt.toLowerCase().includes("late_night") || bt.toLowerCase().includes("late night")) ||
+          (candidate.deep_profile?.wow_factors || []).some((w: string) => w.toLowerCase().includes("late night")) ||
+          (candidate.best_for_oneliner || "").toLowerCase().includes("late night");
+        if (!hasLateNight) {
+          const cappedScore = Math.min(0.45, repRelevance.score * 0.40);
+          return { score: cappedScore, type: "reputation", details: `Reputation (no late night cap): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+
+      // "business lunch" requires appropriate price level (not $).
+      if (specialLower.includes("business lunch") || specialLower.includes("business dinner") || specialLower.includes("client dinner")) {
+        const priceLevel = candidate.price_level || "";
+        if (priceLevel === "$") {
+          const cappedScore = Math.min(0.40, repRelevance.score * 0.40);
+          return { score: cappedScore, type: "reputation", details: `Reputation (business lunch price cap): ${priceLevel}` };
+        }
+      }
+
       // V18: Only apply vibe blending/penalty when the QUERY itself contains vibe-specific words.
       // Concept-expanded vibes from CONCEPT_MAP shouldn't trigger the penalty for generic
       // reputation queries like "best restaurant Chicago".
@@ -2841,6 +2929,28 @@ export function reRankV9(
     }
     // Re-sort after preference adjustment
     scored.sort((a, b) => b.dondeMatch - a.dondeMatch);
+  }
+
+  // V20: Queue cuisine filtering (Change 6) — when primary has cuisine match
+  // and target_cuisines exist, remove queue items with clearly wrong cuisine.
+  // Prevents bakeries in steakhouse queue, Japanese in Italian queue, etc.
+  if (scored.length > 1 && context.intent?.target_cuisines?.length && context.intent.cuisine_importance === "high") {
+    const primaryRelType = scored[0].relevance.type;
+    const primaryRelScore = scored[0].relevance.score;
+    // Only filter when primary is a cuisine/dish match
+    if ((primaryRelType === "cuisine" || primaryRelType === "dish") && primaryRelScore >= 0.80) {
+      const filtered = scored.filter((item, idx) => {
+        if (idx === 0) return true; // Always keep primary
+        // Check item's cuisine relevance
+        const itemCuisineRel = computeCuisineRelevance(item.profile as unknown as V9Candidate, context.intent!);
+        return itemCuisineRel >= 0.25; // Below this = clearly wrong cuisine
+      });
+      // Only apply filter if we still have enough results
+      if (filtered.length >= 3) {
+        scored.length = 0;
+        scored.push(...filtered);
+      }
+    }
   }
 
   // Add comparison context to narratives

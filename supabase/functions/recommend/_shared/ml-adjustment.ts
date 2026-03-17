@@ -61,8 +61,23 @@ export function computeTargetedBoost(
   restaurantId: string,
   queryFingerprint: string,
   queryText: string,
+  restaurantCuisineType?: string | null,
+  targetCuisines?: string[] | null,
 ): number {
   if (!boostTable) return 0;
+
+  // V20: Cuisine gate — when query has target_cuisines, skip boost for wrong cuisine.
+  // Prevents feedback loop where wrong-cuisine picks get locked in via teacher validation.
+  if (targetCuisines?.length && restaurantCuisineType) {
+    const restCuisine = restaurantCuisineType.toLowerCase();
+    const cuisineMatch = targetCuisines.some(tc => {
+      const tl = tc.toLowerCase();
+      return restCuisine.includes(tl) || tl.includes(restCuisine);
+    });
+    if (!cuisineMatch) {
+      return 0; // Wrong cuisine — skip boost entirely
+    }
+  }
 
   // Strategy 1: Direct teacher boost (+5)
   // If this restaurant was in teacher's top-5 for a matching query

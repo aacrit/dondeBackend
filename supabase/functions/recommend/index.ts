@@ -1987,7 +1987,11 @@ Deno.serve(async (req: Request) => {
       || (rerankedScored[0] as Record<string, unknown>)?.restaurant
       || rerankedScored[0] || {};
     const primaryRestId = String((primaryRestaurant as Record<string, unknown>).id || "");
-    const primaryBoost = computeTargetedBoost(primaryRestId, boostCanonical, special_request);
+    const primaryBoost = computeTargetedBoost(
+      primaryRestId, boostCanonical, special_request,
+      String((primaryRestaurant as Record<string, unknown>).cuisine_type || ""),
+      intent?.target_cuisines || null,
+    );
 
     if (primaryBoost > 0) {
       const ruleDM = responseBody.donde_match as number;
@@ -2007,7 +2011,11 @@ Deno.serve(async (req: Request) => {
     for (const item of queue) {
       const qRest = (item.restaurant || item) as Record<string, unknown>;
       const qId = String(qRest.id || "");
-      const qBoost = computeTargetedBoost(qId, boostCanonical, special_request);
+      const qBoost = computeTargetedBoost(
+        qId, boostCanonical, special_request,
+        String(qRest.cuisine_type || ""),
+        intent?.target_cuisines || null,
+      );
       if (qBoost > 0) {
         const qRuleDM = Number(item.donde_match || 0);
         const qBoostedDM = Math.max(0, Math.min(99, qRuleDM + qBoost));
