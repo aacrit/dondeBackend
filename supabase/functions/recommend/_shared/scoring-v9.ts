@@ -1929,6 +1929,29 @@ function computeFoodQuality(
     }
   }
 
+  // Signature dishes count — more signature dishes = stronger food program signal
+  const sigDishes = dp?.signature_dishes;
+  if (sigDishes && typeof sigDishes === 'object') {
+    const dishCount = Array.isArray(sigDishes) ? sigDishes.length : Object.keys(sigDishes).length;
+    if (dishCount >= 5) {
+      score += 0.5;
+      details.sig_dishes = { score: 0.5, max: 0.5, signal: `${dishCount} signature dishes` };
+    } else if (dishCount >= 3) {
+      score += 0.3;
+      details.sig_dishes = { score: 0.3, max: 0.5, signal: `${dishCount} signature dishes` };
+    }
+  }
+
+  // Menu depth — deeper menus signal better food programs
+  const menuDepth = dp?.menu_depth;
+  if (menuDepth === 'deep') {
+    score += 0.4;
+    details.menu_depth = { score: 0.4, max: 0.4, signal: "Deep menu" };
+  } else if (menuDepth === 'moderate') {
+    score += 0.2;
+    details.menu_depth = { score: 0.2, max: 0.4, signal: "Moderate menu depth" };
+  }
+
   return { score: Math.min(10, Math.max(0, score)), details, confidence };
 }
 
@@ -1966,32 +1989,38 @@ function computeReputationQuality(
     score = Math.min(7, internalRep);
   }
 
-  // Review intelligence service quality (NEW in V9 — supplements single Google rating)
-  if (ri?.review_service_quality != null) {
-    score = (score * 2 + ri.review_service_quality) / 3;
-    details.review_service = { score: Math.round(ri.review_service_quality * 10) / 10, max: 10, signal: "Review service quality" };
+  // Composite of all RI quality scores for reputation (was only review_service_quality)
+  const riFood = ri?.review_food_quality || 0;
+  const riAmbiance = ri?.review_ambiance_quality || 0;
+  const riService = ri?.review_service_quality || 0;
+  const riValue = ri?.review_value_score || 0;
+  const riComposite = (riFood + riAmbiance + riService + riValue) / 4;
+  if (riComposite > 0) {
+    score = (score * 2 + riComposite) / 3;
+    details.ri_composite = { score: Math.round(riComposite * 10) / 10, max: 10, signal: `RI composite (food=${riFood}, ambiance=${riAmbiance}, svc=${riService}, val=${riValue})` };
     confidence = "high";
   }
 
-  // Awards and community bonus (0-1.5)
+  // Awards and community bonus (0-2.5) — raised cap from 1.5 to better differentiate acclaimed restaurants
   let bonus = 0;
   if (dp?.awards_recognition?.length) {
-    bonus += 0.4;
-    details.awards = { score: 0.4, max: 0.4, signal: dp.awards_recognition[0] };
+    // Scale by number of awards: 1 award = 0.5, 2+ = 0.8
+    bonus += dp.awards_recognition.length >= 2 ? 0.8 : 0.5;
+    details.awards = { score: bonus, max: 0.8, signal: dp.awards_recognition[0] };
   }
   if (dp?.chef_notable) {
-    bonus += 0.3;
-    details.chef = { score: 0.3, max: 0.3, signal: "Notable chef" };
+    bonus += 0.5;
+    details.chef = { score: 0.5, max: 0.5, signal: "Notable chef" };
   }
   if (dp?.cultural_authenticity != null && dp.cultural_authenticity >= 8) bonus += 0.3;
-  if (dp?.neighborhood_integration === "institution") bonus += 0.2;
-  else if (dp?.neighborhood_integration === "destination") bonus += 0.1;
+  if (dp?.neighborhood_integration === "institution") bonus += 0.3;
+  else if (dp?.neighborhood_integration === "destination") bonus += 0.2;
   if (candidate.trending_score != null && Number(candidate.trending_score) >= 7) {
-    bonus += 0.2;
-    details.trending = { score: 0.2, max: 0.2, signal: "Currently trending" };
+    bonus += 0.3;
+    details.trending = { score: 0.3, max: 0.3, signal: "Currently trending" };
   }
 
-  score += Math.min(1.5, bonus);
+  score += Math.min(2.5, bonus);
 
   return { score: Math.min(10, Math.max(0, score)), details, confidence };
 }
@@ -2025,7 +2054,7 @@ function computeVibeQuality(
     expectedNoise = [...expectedNoise, "Loud"];
   }
   scorePossible += 3;
-  let noisePoints = 1.5;
+  let noisePoints = 1.0; // Lowered default from 1.5 — missing data shouldn't inflate vibe
   if (candidate.noise_level) {
     noisePoints = expectedNoise.includes(candidate.noise_level) ? 3 : 0.5;
     hasData = true;
@@ -2035,7 +2064,7 @@ function computeVibeQuality(
 
   // Energy fit (0-2)
   scorePossible += 2;
-  let energyPoints = 1;
+  let energyPoints = 0.5; // Lowered default from 1.0 — missing data shouldn't inflate vibe
   if (dp?.energy_level != null) {
     const [eMin, eMax] = OCCASION_ENERGY[occasion] || [3, 7];
     if (dp.energy_level >= eMin && dp.energy_level <= eMax) energyPoints = 2;
@@ -2084,6 +2113,64 @@ function computeVibeQuality(
     }
   }
 
+  // Lighting fit for occasion (0-2)
+  const lighting = candidate.lighting_ambiance;
+  if (lighting) {
+    const LIGHTING_FIT: Record<string, string[]> = {
+      'Date Night': ['dim', 'warm'],
+      'Special Occasion': ['dim', 'warm'],
+      'Business Lunch': ['bright', 'moderate'],
+      'Quick Bite': ['bright'],
+      'Family Dinner': ['bright', 'moderate'],
+      'Group Hangout': ['moderate', 'warm'],
+    };
+    const idealLighting = LIGHTING_FIT[occasion] || [];
+    if (idealLighting.length > 0) {
+      const lightLower = lighting.toLowerCase();
+      const lightMatch = idealLighting.some(l => lightLower.includes(l));
+      const lightPoints = lightMatch ? 2.0 : 0.5;
+      score += lightPoints;
+      scorePossible += 2.0;
+      details.lighting = { score: Math.round(lightPoints * 10) / 10, max: 2.0, signal: `Lighting: ${lighting} (ideal: ${idealLighting.join("/")})` };
+      hasData = true;
+    }
+  }
+
+  // Dress code fit for occasion (0-1)
+  const dressCode = candidate.dress_code;
+  if (dressCode) {
+    const DRESS_FIT: Record<string, string[]> = {
+      'Date Night': ['Smart Casual', 'Business Casual', 'Formal'],
+      'Special Occasion': ['Smart Casual', 'Formal'],
+      'Business Lunch': ['Business Casual', 'Smart Casual'],
+      'Group Hangout': ['Casual', 'Smart Casual'],
+      'Family Dinner': ['Casual'],
+      'Quick Bite': ['Casual'],
+    };
+    const idealDress = DRESS_FIT[occasion] || [];
+    if (idealDress.length > 0) {
+      const dressMatch = idealDress.some(d => dressCode.toLowerCase().includes(d.toLowerCase()));
+      const dressPoints = dressMatch ? 1.0 : 0.3;
+      score += dressPoints;
+      scorePossible += 1.0;
+      details.dress = { score: Math.round(dressPoints * 10) / 10, max: 1.0, signal: `Dress code: ${dressCode}` };
+      hasData = true;
+    }
+  }
+
+  // Decor style bonus — small bonus when decor matches vibe intent keywords
+  const decorStyle = dp?.decor_style;
+  if (decorStyle && intent) {
+    const vibeKeywords = (intent.vibe_keywords || []).map((v: string) => v.toLowerCase());
+    const decorLower = decorStyle.toLowerCase();
+    const decorMatch = vibeKeywords.some((v: string) => decorLower.includes(v) || v.includes(decorLower));
+    if (decorMatch) {
+      score += 0.5;
+      scorePossible += 0.5;
+      details.decor = { score: 0.5, max: 0.5, signal: `Decor matches vibe: ${decorStyle}` };
+    }
+  }
+
   // Normalize to 0-10
   const normalized = scorePossible > 0 ? (score / scorePossible) * 10 : 5;
   const confidence: "high" | "medium" | "low" = (ri?.review_ambiance_quality != null && dp?.energy_level != null) ? "high" : hasData ? "medium" : "low";
@@ -2120,7 +2207,49 @@ function computeServiceQuality(
     if (clashes.includes(dp.service_style)) serviceStylePoints -= 2;
   }
   score += serviceStylePoints;
+  let scorePossible = 8; // occasion(6) + service_style(2)
   details.service = { score: Math.max(0, Math.round(serviceStylePoints * 10) / 10), max: 2, signal: dp?.service_style || "No service style data" };
+
+  // Incorporate review service quality into MAIN path (was only used in "Any" occasion fallback)
+  const ri = candidate.review_intelligence;
+  const riServiceQuality = ri?.review_service_quality || 0;
+  if (riServiceQuality > 0) {
+    score = (score * 0.6) + (riServiceQuality / 10 * scorePossible * 0.4);
+    details.ri_service = { score: Math.round(riServiceQuality * 10) / 10, max: 10, signal: `Review service quality: ${riServiceQuality}/10` };
+  }
+
+  // Meal pacing fit — quick for Business Lunch, leisurely for Date Night
+  const pacing = dp?.meal_pacing;
+  if (pacing) {
+    const PACING_FIT: Record<string, string[]> = {
+      'Business Lunch': ['quick'],
+      'Quick Bite': ['quick'],
+      'Date Night': ['leisurely', 'moderate'],
+      'Special Occasion': ['leisurely'],
+      'Family Dinner': ['moderate'],
+    };
+    const idealPacing = PACING_FIT[occasion] || [];
+    if (idealPacing.length > 0) {
+      const pacingLower = pacing.toLowerCase();
+      if (idealPacing.some(p => pacingLower.includes(p))) {
+        score += 1.0;
+        scorePossible += 1.0;
+        details.pacing = { score: 1.0, max: 1.0, signal: `Pacing: ${pacing} (good fit for ${occasion})` };
+      } else {
+        score += 0.2;
+        scorePossible += 1.0;
+        details.pacing = { score: 0.2, max: 1.0, signal: `Pacing: ${pacing} (mismatch for ${occasion})` };
+      }
+    }
+  }
+
+  // Group size sweet spot — bonus for group-oriented occasions
+  const groupSize = dp?.group_size_sweet_spot;
+  if (groupSize && (occasion === 'Group Hangout' || occasion === 'Family Dinner')) {
+    score += 0.5;
+    scorePossible += 0.5;
+    details.group_size = { score: 0.5, max: 0.5, signal: `Group sweet spot: ${groupSize}` };
+  }
 
   // Social dynamics (0-2)
   let socialScore = 0;
@@ -2164,7 +2293,6 @@ function computeServiceQuality(
     // causing score_fit grade failures on service-category test queries
     const anyScore = 5.5 + (serviceStylePoints - 1) + clampedSocial * 0.5;
     // Boost from review intelligence service quality and trending score
-    const ri = candidate.review_intelligence;
     const riServiceAdj = ri?.review_service_quality != null ? Math.max(0, (ri.review_service_quality - 6) * 0.4) : 0;
     const trendAdj = candidate.trending_score != null ? Math.max(0, (Number(candidate.trending_score) - 5) * 0.2) : 0;
     const finalAny = Math.min(8, Math.max(4, anyScore + riServiceAdj + trendAdj));
@@ -2391,6 +2519,41 @@ function computeConvenienceQuality(
         break;
       }
     }
+  }
+
+  // Transit accessibility — near L train is a big plus in Chicago
+  const transit = dp?.transit_accessibility;
+  if (transit) {
+    const transitLower = transit.toLowerCase();
+    if (transitLower.includes('l ') || transitLower.includes('l-') || transitLower.includes('train') || transitLower.includes('metro') || transitLower.includes('el ') || transitLower.includes('cta')) {
+      score += 1.0;
+      details.transit = { score: 1.0, max: 1.0, signal: `Near transit: ${transit}` };
+    } else if (transitLower.includes('bus')) {
+      score += 0.5;
+      details.transit = { score: 0.5, max: 1.0, signal: `Bus accessible: ${transit}` };
+    }
+    hasData = true;
+  }
+
+  // Seasonal relevance — bonus when current season matches restaurant strengths
+  const seasonal = dp?.seasonal_relevance;
+  if (seasonal && typeof seasonal === 'object') {
+    const month = new Date().getMonth(); // 0-11
+    const season = month >= 4 && month <= 9 ? 'summer' : 'winter';
+    const seasonScore = seasonal[season] ?? seasonal[season + '_score'];
+    if (typeof seasonScore === 'number' && seasonScore >= 7) {
+      score += 0.5;
+      details.seasonal = { score: 0.5, max: 0.5, signal: `In-season (${season}: ${seasonScore}/10)` };
+      hasData = true;
+    }
+  }
+
+  // Payment notes — cash-only is an inconvenience for most diners
+  const paymentNotes = dp?.payment_notes;
+  if (paymentNotes && typeof paymentNotes === 'string' && paymentNotes.toLowerCase().includes('cash only')) {
+    score -= 0.5;
+    details.payment = { score: 0, max: 0.5, signal: "Cash only — inconvenience penalty" };
+    hasData = true;
   }
 
   const confidence: "high" | "medium" | "low" = (clientTimeOfDay && dp?.reservation_difficulty) ? "high" : hasData ? "medium" : "low";
