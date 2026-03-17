@@ -1,0 +1,31 @@
+{
+  "model_type": "linear_adjustment",
+  "version": "0.0.0-placeholder",
+  "feature_names": [
+    "relevance_score",
+    "rel_dish",
+    "rel_cuisine",
+    "rel_vibe",
+    "rel_reputation",
+    "rel_semantic",
+    "rel_open_ended",
+    "food",
+    "vibe",
+    "service",
+    "reputation",
+    "convenience",
+    "data_completeness",
+    "quality_score",
+    "price_numeric",
+    "query_words",
+    "has_cuisine",
+    "has_dish",
+    "has_vibe",
+    "has_neighborhood",
+    "high_reviews",
+    "trending"
+  ],
+  "weights": {},
+  "bias": 0,
+  "training_metrics": null
+}

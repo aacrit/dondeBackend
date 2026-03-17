@@ -67,6 +67,7 @@ import type {
 import { getScoreTier } from "./_shared/types-v9.ts";
 import { buildReservationLinks, checkResyAvailability } from "./_shared/reservation-links.ts";
 import type { ReservationRow, ReservationLinks as ReservationLinksType } from "./_shared/reservation-links.ts";
+import { computeMLShadowScores, isMLModelLoaded } from "./_shared/ml-adjustment.ts";
 
 const API_VERSION = "11.0.0";
 
@@ -1967,6 +1968,28 @@ Deno.serve(async (req: Request) => {
         signalsUsed: personalization.signalsUsed,
         topCuisines: personalization.tasteSummary?.topCuisines || [],
         type: personalization.tasteSummary?.type || "new_user",
+      });
+    }
+
+    // ================================================================
+    // STEP 9.8: ML Shadow Scoring (Phase 1)
+    // Compute what the ML model WOULD adjust, log it, but do NOT apply it
+    // ================================================================
+    const mlShadowScores = computeMLShadowScores(
+      rerankedScored.slice(0, 10) as unknown as Record<string, unknown>[],
+      (intent || {}) as Record<string, unknown>,
+    );
+    (responseBody as Record<string, unknown>).ml_scoring = {
+      active: false,  // Shadow mode — adjustments are informational only
+      model_loaded: isMLModelLoaded(),
+      shadow_adjustments: mlShadowScores.filter(s => s.ml_adjustment !== 0),
+    };
+    if (mlShadowScores.some(s => s.ml_adjustment !== 0)) {
+      logInfo("ML shadow scoring", {
+        model_loaded: isMLModelLoaded(),
+        adjustments: mlShadowScores
+          .filter(s => s.ml_adjustment !== 0)
+          .map(s => ({ name: s.restaurant_name, rule_dm: s.rule_dm, adj: s.ml_adjustment, ml_dm: s.ml_dm })),
       });
     }
 
