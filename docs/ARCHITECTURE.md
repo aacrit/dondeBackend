@@ -1,17 +1,21 @@
 # Backend Architecture
 
-Last updated: 2026-03-15
+Last updated: 2026-03-17
 
 ## System Overview
 
 | Layer | Technology |
 |-------|-----------|
-| API | Supabase Edge Function (Deno/TS), V11 scoring engine (V18 tuning) |
+| API | Supabase Edge Function (Deno/TS), V11 scoring engine (V19+ tuning) |
 | AI | Claude Haiku 4.5 (recommendations, enrichment, intent classification) |
-| DB | Supabase PostgreSQL (17 tables, 62 migrations) |
+| ML | Linear/XGBoost scoring adjustment, A/B testing (50/50 split), `ml-adjustment.ts` |
+| DB | Supabase PostgreSQL (21 tables, 73 migrations, pgvector extension) |
 | Cache | DondeCache — persistent 3-level fuzzy query cache (exact/fingerprint/canonical) |
+| Vectors | pgvector HNSW indexes on `restaurant_embeddings` + `query_embeddings` (384-dim) |
 | Data | Google Places API (live fetch per request; only `google_place_id` stored per ToS §3.2.3) |
-| Pipelines | Node.js 20 + tsx scripts, GitHub Actions cron |
+| Reservations | Resy + OpenTable deep links via `restaurant_reservations` table |
+| Pipelines | Node.js 20 + tsx scripts (35 pipelines), GitHub Actions cron |
+| ML Training | `scripts/ml/` — Python XGBoost + TS inference, 1,050 training pairs |
 | CI/CD | 16 GitHub Actions workflows |
 
 ## File Tree
@@ -20,28 +24,41 @@ Last updated: 2026-03-15
 supabase/
   functions/recommend/
     index.ts                      # V11 entry point (filenames retained from V9)
-    _shared/                      # Active modules
+    _shared/                      # 19 TS modules + 1 JSON model
       types.ts                    # Core types (RestaurantProfile, DeepProfile, etc.)
       types-v9.ts                 # V11 types (V9Candidate, V9ScoreResult, V9ScoredCandidate, MatchNarrative, etc.)
-      scoring-v9.ts               # V11 scoring engine: Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)
+      scoring-v9.ts               # V11 scoring engine + MMR diversity + score decompression
       response-builder-v9.ts      # V11 response builder (scoring_v9, ranked_queue, match_narrative)
       intent-classifier-v5.ts     # Deterministic (~80%) + Claude fallback (~15%), semantic tags
       prompts-v5.ts               # Claude system/user prompt templates (5 literary voices, 9 occasions, 5 tone tiers)
       scoring.ts                  # Shared: keyword dicts, diversity, slop detection
       grading.ts                  # Score fit + blurb quality grading (mirrors cc-grading.js)
       query-cache.ts              # DondeCache — 3-level persistent cache (exact/fingerprint/canonical)
+      circuit-breaker.ts          # 3-state circuit breaker for Claude API (CLOSED/OPEN/HALF_OPEN)
+      ml-adjustment.ts            # ML scoring layer — 22-feature extraction + linear/tree inference + A/B
+      ml-model.json               # Pre-trained ML model weights (linear v1.0)
+      post-filters.ts             # Post-scoring neighborhood + price filters with graceful expansion
+      reservation-links.ts        # Resy + OpenTable deep link builder (Project Foxtrot)
       intent-classifier.ts        # V4 intent types (reused by V5 classifier)
-      claude.ts                   # Anthropic API client (raw fetch, prompt caching, retry)
+      claude.ts                   # Anthropic API client (raw fetch, prompt caching, retry, circuit breaker)
       google-places.ts            # Google Places API wrapper (1.5s timeout)
       supabase.ts                 # Anon + service role clients
-      cors.ts                     # CORS headers + JSON response helpers
+      cors.ts                     # CORS headers + security headers + JSON response helpers
       logger.ts                   # Structured JSON logging
     _archive/pre-v9/              # Deprecated V3-V8 scoring/types/filters/weights
 
 scripts/
   lib/                            # 6 shared pipeline libraries
     config.ts, claude.ts, google-places.ts, supabase.ts, batch.ts, types.ts
-  pipelines/                      # 31 pipeline scripts (see API-WORKFLOWS.md)
+  pipelines/                      # 35 pipeline scripts (see API-WORKFLOWS.md)
+  ml/                             # 17 ML training files (Python + TS + JSON datasets)
+    train-model.py                # XGBoost LambdaMART + GroupKFold
+    train-simple.py               # Zero-dep linear fallback
+    merge-training-data.py        # Feature merging + dedup
+    harvest-training-data.sh      # $0 training data harvester via CLI agents
+    model.json                    # Trained model output
+    training-data*.json           # 1,050 Opus-ranked training pairs (4 batches)
+  run-reservation-enrichment.sh   # Combined OpenTable + Resy pipeline runner
   package.json
 
 tests/
@@ -50,8 +67,11 @@ tests/
   benchmark-200.sh                # 200-case V11 benchmark
   regression-guard.sh             # V10 baseline regression guard
   compare-scores.sh               # A/B score comparison tool
+  scoring-engine-500.sh           # 500-case scoring engine stress test
+  uat-targeted-test.sh            # 30-case targeted UAT test suite
   TEST-FULL.md                    # 170-scenario agent-driven test spec
   GOLDEN_DATASET_RESULTS.md       # Latest golden dataset results
+  generated-queries.json          # 210 persona-driven test queries
 
 .github/workflows/                # 16 CI/CD workflows
 
@@ -64,13 +84,17 @@ tests/
 
 | Module | Purpose | Status |
 |--------|---------|--------|
-| `scoring-v9.ts` | Relevance × Quality engine with review intelligence, semantic matching, query-type-aware weights, match narrative | **Active (V11)** |
-| `types-v9.ts` | V9Candidate, V9ScoreResult, V9ScoredCandidate, V9Factors, MatchNarrative, ClaudeRecommendation | **Active (V11)** |
-| `response-builder-v9.ts` | Builds `scoring_v9` (relevance + quality + factors), `ranked_queue`, `match_narrative`, queue blurbs | **Active (V11)** |
+| `scoring-v9.ts` | Relevance x Quality engine + MMR diversity + score decompression + match narrative | **Active (V11/V19+)** |
+| `types-v9.ts` | V9Candidate, V9ScoreResult, V9ScoredCandidate, V9Factors, MatchNarrative, TasteProfile, PersonalizationResult | **Active (V11)** |
+| `response-builder-v9.ts` | Builds `scoring_v9`, `ranked_queue`, `match_narrative`, queue blurbs | **Active (V11)** |
 | `intent-classifier-v5.ts` | Deterministic intent classification + semantic tags, similar_to, mood, implicit_cuisines | **Active** |
 | `prompts-v5.ts` | Claude prompt templates — 5 literary personas, 9 occasion registers, 5 tone tiers | **Active** |
 | `grading.ts` | Server-side score fit + blurb quality grading (mirrors cc-grading.js) | **Active** |
 | `query-cache.ts` | DondeCache — 3-level persistent cache with fuzzy matching + quality gate | **Active** |
+| `circuit-breaker.ts` | 3-state circuit breaker for Claude API calls (CLOSED/OPEN/HALF_OPEN, 60s cooldown) | **Active** |
+| `ml-adjustment.ts` | ML scoring layer — 22-feature extraction, linear/tree inference, A/B testing (50/50) | **Active** |
+| `post-filters.ts` | Post-scoring neighborhood + price filters with 3-phase graceful expansion | **Active** |
+| `reservation-links.ts` | Resy + OpenTable deep link builder + Resy availability check | **Active** |
 | All V3-V8 modules | Archived to `_archive/pre-v9/` | **Archived** |
 
 ## Deployment
@@ -78,7 +102,7 @@ tests/
 | Target | Trigger | Method |
 |--------|---------|--------|
 | Edge Function | Push to any branch (when `supabase/functions/recommend/**` changes) | `deploy-edge-function.yml` |
-| Migrations | Manual | `supabase db push` or Dashboard SQL Editor |
+| Migrations (73) | Manual | `supabase db push` or Dashboard SQL Editor |
 | Pipelines | Cron (monthly) + manual dispatch | GitHub Actions |
 
 ## CI/CD Workflows

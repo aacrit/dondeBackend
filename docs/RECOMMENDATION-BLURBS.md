@@ -1,6 +1,6 @@
 # Recommendation Blurb Generation
 
-Last updated: 2026-03-15
+Last updated: 2026-03-17
 
 How DondeAI generates the recommendation text, match headlines, insider tips, and queue blurbs that users see in the app.
 
@@ -48,13 +48,21 @@ How DondeAI generates the recommendation text, match headlines, insider tips, an
            │                    │
            ▼                    ▼
 ┌──────────────────┐  ┌────────────────────────────────────────────────┐
-│ 6a. QUEUE BLURBS │  │ 6b. CLAUDE BLURB GENERATION                   │
-│ (items #2–#8)    │  │     (top pick only — single API call)          │
-│ Template-based   │  │     Model: claude-haiku-4-5-20251001           │
-│ No API call      │  │     System prompt: ~2000 tokens (cached)       │
+│ 5b. MMR RERANK   │  │ 5c. POST-SCORING FILTERS                      │
+│ Positions #2-5   │  │     Neighborhood + price hard filters          │
+│ Lambda=0.7       │  │     3-phase graceful expansion                 │
+│ Cuisine/NH/price │  │     Bypassed for "Anywhere"/"Any"              │
+└──────────────────┘  └────────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────┐  ┌────────────────────────────────────────────────┐
+│ 6a. QUEUE BLURBS │  │ 6b. CIRCUIT BREAKER → CLAUDE BLURB            │
+│ (items #2–#8)    │  │     If OPEN: skip Claude, use deterministic    │
+│ Template-based   │  │     If CLOSED/HALF_OPEN: Claude Haiku 4.5     │
+│ No API call      │  │     Budget-aware retries (60/40 split)         │
+│                  │  │     System prompt: ~2000 tokens (cached)       │
 │                  │  │     User prompt: ~2500 tokens                  │
-│                  │  │     Max output: 512 tokens                     │
-│                  │  │     Temperature: 0.7                           │
+│                  │  │     Max output: 512 tokens, Temperature: 0.7   │
 └──────────────────┘  └─────────────────────┬──────────────────────────┘
                                             │
                                             ▼
@@ -79,6 +87,15 @@ How DondeAI generates the recommendation text, match headlines, insider tips, an
                       │    Packages: recommendation, match_headline,   │
                       │    insider_tip, match_narrative, ranked_queue,  │
                       │    scoring_v9, deep_context                    │
+                      └─────────────────────┬──────────────────────────┘
+                                            │
+                                            ▼
+                      ┌────────────────────────────────────────────────┐
+                      │ 9b. ML SCORING + PERSONALIZATION + DECOMPRESS  │
+                      │     Shadow personalization (logged, not applied)│
+                      │     ML A/B test (50/50, +/-5 DM adjustments)   │
+                      │     Score decompression (post-grading)         │
+                      │     Telemetry: X-Donde-Timing header           │
                       └─────────────────────┬──────────────────────────┘
                                             │
                                             ▼
@@ -425,4 +442,8 @@ Claude-generated blurbs are cached as part of the full response. No separate blu
 | `supabase/functions/recommend/_shared/types-v9.ts` | TypeScript types for scoring, narratives, Claude output |
 | `supabase/functions/recommend/_shared/grading.ts` | Server-side score fit + blurb quality grading |
 | `supabase/functions/recommend/_shared/query-cache.ts` | DondeCache — persistent 3-level cache with fuzzy matching |
+| `supabase/functions/recommend/_shared/circuit-breaker.ts` | 3-state circuit breaker for Claude API calls |
+| `supabase/functions/recommend/_shared/ml-adjustment.ts` | ML scoring layer — A/B testing, 22-feature extraction |
+| `supabase/functions/recommend/_shared/post-filters.ts` | Post-scoring neighborhood + price filters |
+| `supabase/functions/recommend/_shared/reservation-links.ts` | Resy + OpenTable deep link builder |
 | `supabase/functions/recommend/_shared/google-places.ts` | Live Google Places enrichment |

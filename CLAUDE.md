@@ -1,10 +1,10 @@
 # DondeAI Backend
 
-Last updated: 2026-03-15
+Last updated: 2026-03-17
 
 > **Read this file first, then `docs/*.md` only as needed. Only open source files when modifying code.**
 
-AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines. ~2,720 restaurants (active, including 7 newly added iconic Chicago institutions), 2,719+ with deep profiles, 2,712 with review intelligence. 33 neighborhoods, 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification. 62 migrations (including comprehensive data quality audit fixes + DondeCache), 16 CI/CD workflows, 31 pipeline scripts. DondeCache persistent query cache with multi-level fuzzy matching. Codespace dev container with Claude Code + Supabase CLI.
+AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines + ML scoring layer. ~2,720 restaurants (active), 2,719+ with deep profiles, 2,712 with review intelligence. 33 neighborhoods, 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification. 73 migrations, 16 CI/CD workflows, 35 pipeline scripts, 17 ML training files. DondeCache persistent query cache with multi-level fuzzy matching. pgvector semantic retrieval. Circuit breaker for Claude API resilience. MMR diversity re-ranking. Shadow personalization (Learning Flywheel Phase 1). Post-scoring neighborhood + price filters. Score decompression. ML A/B testing (50/50 split). Reservation deep links (Resy + OpenTable). Codespace dev container with Claude Code + Supabase CLI.
 
 ## Documentation Index
 
@@ -21,6 +21,8 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `docs/TEAM-OPERATIONS.md` | Operations & CI team — hierarchy, communication protocol, workflows, 6 project proposals |
 | `docs/CEO-QUICK-REFERENCE.md` | CEO guide — one-command operations, report reading, decision framework, agent roster |
 | `docs/PROJECT-FOXTROT-RESERVATION-INTEGRATION.md` | Project Foxtrot — $0 reservation integration via deep links (Resy, OpenTable, Tock, Yelp) |
+| `docs/future-features/ROADMAP.md` | Feature roadmap and future plans |
+| `docs/future-features/LEARNING-FLYWHEEL.md` | Learning Flywheel multi-phase plan |
 | `_archive/VERSION-HISTORY.md` | Pre-V9 scoring evolution, V8 optimization, historical test results, case studies |
 
 ## Agents
@@ -103,7 +105,9 @@ CEO (Aacrit)
 | `tests/v10-scoring-benchmark.sh` | V10 scoring baseline benchmark |
 | `tests/TEST-FULL.md` | 170-scenario agent-driven test spec |
 | `tests/V9_E2E_100_RESULTS.md` | V9 E2E: 490 pass, 0 fail, 1 warn (99%) |
-| `tests/generated-queries.json` | Persona-driven test query repository (target: 1000 queries) |
+| `tests/generated-queries.json` | 210 persona-driven test queries (10 categories, 57% hard difficulty) |
+| `tests/scoring-engine-500.sh` | 500-case scoring engine stress test |
+| `tests/uat-targeted-test.sh` | 30-case targeted UAT test suite |
 
 **V10 scoring baseline (2026-03-05):** 50-case benchmark: 44P/4F/2W, avg DM 70. V9 baseline was 39P/4F/7W, avg DM 68.
 
@@ -123,13 +127,17 @@ CEO (Aacrit)
 
 **DondeCache (2026-03-14):** Persistent query cache with 3-level fuzzy matching (L1: exact key, L2: intent fingerprint, L3: canonical form). Quality gate: only B-/80+ responses cached. TTL: 3 days organic, 7 days prewarm. Query synonym normalization (60+ synonyms). Dish canonical normalization (50+ dishes). DB-trigger cache invalidation on restaurant/enrichment changes. New tables: `query_cache`, `warming_runs`. New columns on `user_queries`: `cache_hit`, `cache_hit_level`. New RPC: `get_cache_dashboard()`. Pipeline scripts: `cache-warmer.ts` (3 sources: popular/golden/manual, budget-gated), `cache-invalidator.ts` (TTL + engine version + enrichment invalidation), `query-miner.ts` (extracts canonical queries from user_queries). CI/CD: `cache-warmer.yml` (daily at midnight Chicago time + manual dispatch).
 
+**V19+ results (2026-03-16):** Golden dataset: 188P/0F/0W (100% pass rate), avg DM 80, $0 cost. Post-scoring filters, MMR diversity, score decompression, circuit breaker all verified.
+
+**ML pipeline (2026-03-17):** `scripts/ml/` directory — 17 files. 1,050 Opus-ranked training pairs from 210 queries. XGBoost LambdaMART + GroupKFold + linear fallback. `ml-model.json` deployed to Edge Function. A/B test: 50/50 split, adjustments capped at +/-5 DM points.
+
 **CLI test write-back:** `golden-dataset-test.sh` and `regression-guard.sh` persist results to `gauntlet_runs` + `gauntlet_results` Supabase tables when `SUPAB_URL` and `SUPAB_ANON_KEY` env vars are set. Run ID format: `cli-golden-*` / `cli-regression-*`. Source field: `cli`.
 
 **Zero-cost testing (`skip_claude` + `skip_google`):** Pass `"skip_claude": true` and `"skip_google": true` in request body to skip all Claude and Google Places API calls. Engine returns deterministic scores + fallback blurbs from restaurant profiles. Intent classification uses deterministic Tier 1 only. Google data (photos, hours, phone) will be null. Used by CEO Command Center "Scoring Only" mode (default). All CLI test scripts use both flags. Response includes `google_api_cost` field with per-request cost breakdown.
 
 ## Scoring Engine — V11 (Active)
 
-**Active files:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts` (filenames retained from V9, logic is V11)
+**Active files:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts` (filenames retained from V9, logic is V11). New modules: `circuit-breaker.ts`, `ml-adjustment.ts` + `ml-model.json`, `post-filters.ts`, `reservation-links.ts`.
 
 **Formula:** `DondeScore = Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)`
 
@@ -186,6 +194,17 @@ CEO (Aacrit)
 - Multi-word INTENT_MAP phrase cuisine supersession: "korean fried chicken" → Korean only, not Korean + American + Southern
 - Additional deterministic blurb openers for sports bar, karaoke, fondue, hot chicken, hand roll
 - Grading: 15+ additional blurb quality stop words for common query patterns
+
+**V19+ infrastructure enhancements (2026-03-16 to 2026-03-17):**
+- Circuit breaker (`circuit-breaker.ts`): 3-state (CLOSED/OPEN/HALF_OPEN) for Claude API. 3 consecutive failures open for 60s. Falls back to deterministic blurbs. Response field: `circuit_breaker: { state, skipped_claude, total_trips }`
+- MMR diversity re-ranking (`applyMMRDiversity()`): Maximal Marginal Relevance for queue positions #2-5. Lambda=0.7 (cuisine/neighborhood/price diversity). Discovery pick at position 4-5 when results are homogeneous
+- Score decompression (`decompressScore()`): Piecewise linear post-grading. Widens DM 72-86 band. Feature flag `SCORE_DECOMPRESSION_ENABLED`. Guarantees raw>=70 maps to >=70
+- Post-scoring filters (`post-filters.ts`): Neighborhood + price hard filters with graceful 3-phase expansion (exact -> adjacent -> best available). Bypassed for "Anywhere"/"Any"
+- Shadow personalization (Learning Flywheel Phase 1): `computeShadowPersonalization()` with cuisine/neighborhood/price/vibe affinity from `user_taste_profiles`. 200ms timeout. Response field: `personalization: { active, shadow_boost, signals_used, taste_summary }`
+- ML scoring layer (`ml-adjustment.ts` + `ml-model.json`): 22-feature extraction + linear/tree inference. A/B testing (50/50 split). Response field: `ml_scoring: { active, ab_group, model_loaded, adjustments }`
+- Performance telemetry: 9-marker timing via `X-Donde-Timing` header + `response_time_ms` in response. Claude timeout cascade fix (budget-aware retries, 60/40 split). Cache lookup 500ms timeout. Auth JWT 1000ms timeout
+- Reservation links (`reservation-links.ts`): Resy + OpenTable deep links from `restaurant_reservations` table. Resy real-time availability check via public API
+- Security hardening: CORS origin validation, security headers (HSTS, X-Content-Type-Options, X-Frame-Options), error response sanitization, RLS tightened on user_visits + maintenance_requests, SECURITY DEFINER functions secured with search_path
 
 **Self-healing**: When `cuisine_type` is NULL, falls back to `cuisine_signals` (29/2,719 restaurants — down from 1,806 after cuisine taxonomy fixes).
 
@@ -274,11 +293,17 @@ Timeout: 15s (AbortController on frontend)
   "tags": ["string"],
   "intent_boost": { "active", "reason", "boost_points", "base_score" },
   "google_api_cost": { "detail_calls": 5, "photo_refs": 25, "estimated_cost_usd": 0.20 },
+  "response_time_ms": "integer",
+  "circuit_breaker": { "state": "CLOSED|OPEN|HALF_OPEN", "skipped_claude": false, "total_trips": 0 },
+  "personalization": { "active": false, "shadow_boost": 0, "signals_used": 0, "taste_summary": {} },
+  "ml_scoring": { "active": true, "ab_group": "control|treatment", "model_loaded": true, "adjustments": [] },
   "timestamp": "ISO"
 }
 ```
 
 **Errors:** HTTP non-200 → `{success: false, recommendation: "error message"}` | 429 rate limit | 500 engine error
+
+**Response headers:** `X-Donde-Timing` — comma-separated key=value pairs for per-component timing (9 markers).
 
 **Health:** `GET /recommend` → `{status, version, engine, timestamp}`
 
@@ -303,6 +328,15 @@ cd scripts && npx tsx pipelines/enrichment-review-intelligence.ts  # V11 semanti
 cd scripts && npx tsx pipelines/query-miner.ts                    # Extract canonical queries from user_queries
 cd scripts && npx tsx pipelines/cache-warmer.ts --source popular --budget 5.00  # Pre-warm cache
 cd scripts && npx tsx pipelines/cache-invalidator.ts              # Cleanup expired/stale cache
+cd scripts && npx tsx pipelines/blurb-upgrader.ts --limit 50      # Upgrade deterministic blurbs via Claude Max CLI
+
+# Reservations (Project Foxtrot)
+cd scripts && npx tsx pipelines/reservation-enrichment.ts         # OpenTable + Resy deep link enrichment
+cd scripts && npx tsx pipelines/resy-enrichment.ts                # Resy venue validation via public API
+cd scripts && bash run-reservation-enrichment.sh                  # Combined OpenTable + Resy pipeline
+
+# Embeddings
+cd scripts && npx tsx pipelines/generate-embeddings.ts            # Generate pgvector embeddings (Ollama/OpenAI)
 
 # Migrations
 supabase db push
