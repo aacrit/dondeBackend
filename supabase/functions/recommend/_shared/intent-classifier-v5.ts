@@ -503,7 +503,11 @@ export async function classifyIntentV5(
     "beer", "craft beer", "brewery",
     "wine", "wine bar", "sake", "sake bar",
     // Venue-type words
-    "cafe", "coffee", "diner", "bistro", "pub",
+    // V21: Added "steakhouse", "izakaya", "brasserie", "brewpub", "taproom" — these are
+    // restaurant types, not dishes. "best steakhouse" should trigger cuisine path (Steak),
+    // not dish path, to avoid fine-dining restaurants winning via steak in dish catalog.
+    "cafe", "coffee", "diner", "bistro", "pub", "steakhouse", "izakaya",
+    "brasserie", "brewpub", "taproom", "churrasco", "rodizio",
     // Cuisine sub-type / regional aliases that map to a parent cuisine
     // These denote a cuisine category, not a specific dish.
     "somali", "eritrean", "nigerian", "ghanaian", "senegalese", "ugandan", "liberian",

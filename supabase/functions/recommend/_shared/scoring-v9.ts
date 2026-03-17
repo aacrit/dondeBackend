@@ -1103,13 +1103,14 @@ export function computeRelevance(
       // === V21: CUISINE-GATED REPUTATION (refined from V20) ===
       // When query has BOTH reputation keywords AND cuisine signals (e.g., "best Italian",
       // "best Indian food", "best Korean food"), restaurants MUST match the target cuisine.
-      // V21: Raised family-match threshold from 0.40 to 0.85 to prevent same-family
+      // V21: Raised family-match threshold from 0.40 to 0.90 to prevent same-family
       // cross-cuisine leakage (e.g., Chinese winning for "best Korean food" via East Asian family).
-      // Only exact matches (1.0), sub-cuisine matches (0.95), and RI-confirmed matches (0.95/0.88)
-      // pass the gate. Same-family partial matches (0.60) are now penalized.
+      // RI family matches score 0.88, which must NOT pass the gate for specific cuisine queries.
+      // Only exact matches (1.0), sub-cuisine matches (0.95), and RI-confirmed exact matches (0.95)
+      // pass. Family matches (0.88) and below are penalized.
       if (intent.target_cuisines?.length && intent.cuisine_importance === "high") {
         const cuisineRel = computeCuisineRelevance(candidate, intent);
-        if (cuisineRel >= 0.85) {
+        if (cuisineRel >= 0.90) {
           // Restaurant matches target cuisine (exact or very close) — rank by reputation within cuisine.
           // Return type "cuisine" so QUALITY_WEIGHTS uses food-heavy profile (0.35 vs 0.15).
           const finalScore = Math.max(repRelevance.score, cuisineRel);
