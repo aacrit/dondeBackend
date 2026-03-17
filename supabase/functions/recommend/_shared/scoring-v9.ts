@@ -1254,11 +1254,13 @@ export function computeRelevance(
         const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
         const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
         const nameL = (candidate.name || "").toLowerCase();
+        // V23: Tightened waterfront matching — "river" alone is too broad (matches "River North",
+        // "river of flavor"). Require more specific waterfront/water terms.
         const hasWaterfront =
-          tagStrs.some(t => t.includes("waterfront") || t.includes("lakefront") || t.includes("riverwalk") || t.includes("river view") || t.includes("lake view")) ||
-          wowFactors.some(w => w.includes("waterfront") || w.includes("lakefront") || w.includes("river") || w.includes("lake view")) ||
-          oneliner.includes("waterfront") || oneliner.includes("lakefront") || oneliner.includes("river") || oneliner.includes("lake view") ||
-          nameL.includes("river") || nameL.includes("lake") || nameL.includes("offshore") || nameL.includes("pier");
+          tagStrs.some(t => t.includes("waterfront") || t.includes("lakefront") || t.includes("riverwalk") || t.includes("river view") || t.includes("lake view") || t.includes("on the water")) ||
+          wowFactors.some(w => w.includes("waterfront") || w.includes("lakefront") || w.includes("riverwalk") || w.includes("river view") || w.includes("lake view") || w.includes("on the water")) ||
+          oneliner.includes("waterfront") || oneliner.includes("lakefront") || oneliner.includes("riverwalk") || oneliner.includes("river view") || oneliner.includes("lake view") || oneliner.includes("on the water") || oneliner.includes("on the river") ||
+          nameL.includes("river roast") || nameL.includes("lakefront") || nameL.includes("offshore") || nameL.includes("pier") || nameL.includes("castaways");
         if (!hasWaterfront) {
           const cappedScore = Math.min(0.35, repRelevance.score * 0.35);
           return { score: cappedScore, type: "reputation", details: `Reputation (no waterfront cap): ${repRelevance.score.toFixed(2)}` };
