@@ -80,6 +80,11 @@ export const CUISINE_KEYWORDS: Record<string, string[]> = {
   Malaysian: ["malaysian", "nasi lemak", "roti canai", "laksa", "char kway teow", "rendang", "satay", "hainanese chicken rice", "nasi goreng"],
   Georgian: ["georgian", "khachapuri", "khinkali", "lobio", "churchkhela", "pkhali", "badrijani"],
   "Central Asian": ["uzbek", "kazakh", "kyrgyz", "plov", "manti", "lagman", "samsa", "shashlik", "beshbarmak", "central asian"],
+  // Version Alpha: Missing cuisine keywords identified from 500-case deep analysis
+  Cantonese: ["cantonese", "cantonese food", "wonton noodle", "roast goose", "clay pot rice", "congee", "har gow", "siu mai", "cheung fun", "char siu", "lo mai gai", "egg tart"],
+  Oaxacan: ["oaxacan", "oaxaca", "tlayuda", "mole negro", "mole oaxaqueño", "chapulines", "mezcal", "tasajo", "memela"],
+  Honduran: ["honduran", "baleada", "pastelito", "catrachita", "sopa de caracol", "plato tipico hondureno"],
+  Guatemalan: ["guatemalan", "pepian", "kak'ik", "chiles rellenos", "rellenitos", "hilachas"],
 };
 
 export const TAG_KEYWORDS: Record<string, string[]> = {
@@ -1077,6 +1082,72 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "tiki": { tags: ["craft cocktails", "lively atmosphere"] },
   "tiki bar": { tags: ["craft cocktails", "lively atmosphere"] },
   "speakeasy bar": { tags: ["craft cocktails", "hidden gem"] },
+
+  // Version Alpha: 40+ missing INTENT_MAP entries from 500-case deep analysis
+  // Cuisine gaps (queries falling to open_ended)
+  "cantonese": { cuisines: ["Cantonese", "Chinese"] },
+  "cantonese food": { cuisines: ["Cantonese", "Chinese"] },
+  "cantonese restaurant": { cuisines: ["Cantonese", "Chinese"] },
+  "oaxacan": { cuisines: ["Oaxacan", "Mexican"] },
+  "oaxacan food": { cuisines: ["Oaxacan", "Mexican"] },
+  "oaxacan restaurant": { cuisines: ["Oaxacan", "Mexican"] },
+  "argentinian": { cuisines: ["Argentine"] },
+  "argentinian food": { cuisines: ["Argentine"] },
+  "argentinian restaurant": { cuisines: ["Argentine"] },
+  "empanadas": { cuisines: ["Argentine", "Colombian", "Mexican"] },
+  "empanada": { cuisines: ["Argentine", "Colombian", "Mexican"] },
+  "bone marrow": { cuisines: ["Steak", "French"] },
+  "burrata": { cuisines: ["Italian"] },
+  "truffle fries": { cuisines: ["French", "American"] },
+  "beef tartare": { cuisines: ["French", "Steak"] },
+  "pork belly": { cuisines: ["American", "Korean", "Chinese"] },
+  "oysters": { cuisines: ["Seafood"], tags: ["fine dining"] },
+  "croissant": { cuisines: ["French"], tags: ["brunch spot"] },
+  "eggs benedict": { cuisines: ["American", "Brunch"], tags: ["brunch spot"] },
+
+  // Constraint gaps (queries falling to open_ended)
+  "kosher": { tags: ["great value"] },
+  "kosher restaurant": { tags: ["great value"] },
+  "keto": { tags: ["great value"] },
+  "keto friendly": { tags: ["vegan friendly"] },
+  "paleo": { tags: ["farm-to-table"] },
+  "paleo options": { tags: ["farm-to-table"] },
+  "buffet": { tags: ["all you can eat"] },
+  "buffet restaurant": { tags: ["all you can eat"] },
+  "counter": { tags: ["counter service"] },
+  "delivery": { tags: ["great value"] },
+  "delivery nearby": { tags: ["great value"] },
+  "takeout": { tags: ["great value"] },
+  "dine in": { tags: ["great value"] },
+  "nut free": { tags: ["great value"] },
+  "nut free restaurant": { tags: ["great value"] },
+  "dairy free": { tags: ["vegan friendly"] },
+  "air conditioned": { tags: ["quiet"] },
+  "heated patio": { tags: ["outdoor patio"] },
+  "parking": { tags: ["great value"] },
+  "valet": { tags: ["fine dining"] },
+
+  // Vibe gaps
+  "waterfront": { tags: ["waterfront", "scenic view"] },
+  "waterfront dining": { tags: ["waterfront", "scenic view"] },
+  "scenic": { tags: ["scenic view", "rooftop"] },
+  "scenic views": { tags: ["scenic view", "rooftop"] },
+  "hipster": { tags: ["trendy", "hidden gem"] },
+  "hipster spot": { tags: ["trendy", "hidden gem"] },
+  "funky": { tags: ["trendy", "lively atmosphere"] },
+  "eclectic": { tags: ["trendy", "hidden gem"] },
+  "funky eclectic": { tags: ["trendy", "lively atmosphere", "hidden gem"] },
+  "arcade": { tags: ["lively atmosphere"] },
+  "arcade bar": { tags: ["lively atmosphere", "craft beer"] },
+  "activities": { tags: ["lively atmosphere"] },
+
+  // Service/occasion gaps
+  "networking": { tags: ["fine dining"] },
+  "networking dinner": { tags: ["fine dining"] },
+  "post-game": { tags: ["lively atmosphere", "craft beer"] },
+  "post game": { tags: ["lively atmosphere", "craft beer"] },
+  "pre-game": { tags: ["lively atmosphere"] },
+  "comfort food": { cuisines: ["American", "Southern/Soul Food"], tags: ["great value"] },
 };
 
 // --- Unmatched keyword extraction (for continuous learning) ---
