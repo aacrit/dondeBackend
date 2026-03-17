@@ -67,7 +67,7 @@ import type {
 import { getScoreTier } from "./_shared/types-v9.ts";
 import { buildReservationLinks, checkResyAvailability } from "./_shared/reservation-links.ts";
 import type { ReservationRow, ReservationLinks as ReservationLinksType } from "./_shared/reservation-links.ts";
-import { computeMLShadowScores, isMLModelLoaded } from "./_shared/ml-adjustment.ts";
+import { computeMLShadowScores, isMLModelLoaded, getMLABGroup, applyMLAdjustments } from "./_shared/ml-adjustment.ts";
 
 const API_VERSION = "11.0.0";
 
@@ -1972,23 +1972,54 @@ Deno.serve(async (req: Request) => {
     }
 
     // ================================================================
-    // STEP 9.8: ML Shadow Scoring (Phase 1)
-    // Compute what the ML model WOULD adjust, log it, but do NOT apply it
+    // STEP 9.8: ML Scoring — A/B Test (Phase 2)
+    // 50% of requests get ML-adjusted scores, 50% get pure rules.
+    // ML adjustments applied AFTER grading (grading uses raw rule scores)
+    // but BEFORE decompression (decompression amplifies the ML effect).
     // ================================================================
-    const mlShadowScores = computeMLShadowScores(
-      rerankedScored.slice(0, 10) as unknown as Record<string, unknown>[],
-      (intent || {}) as Record<string, unknown>,
-    );
+    const mlABGroup = getMLABGroup();
+    let mlAppliedAdjustments: { restaurant_id: string; restaurant_name: string; rule_dm: number; ml_adjustment: number; ml_dm: number }[] = [];
+
+    if (mlABGroup === "ml") {
+      // ACTIVE: Apply ML adjustments to the primary recommendation
+      const primaryDM = responseBody.donde_match as number;
+      const mlShadow = computeMLShadowScores(
+        rerankedScored.slice(0, 1) as unknown as Record<string, unknown>[],
+        (intent || {}) as Record<string, unknown>,
+      );
+      if (mlShadow.length > 0 && mlShadow[0].ml_adjustment !== 0) {
+        const adj = mlShadow[0];
+        responseBody.donde_match = adj.ml_dm;
+
+        // Also adjust queue items
+        const queueAdj = applyMLAdjustments(
+          (responseBody.ranked_queue || []) as Record<string, unknown>[],
+          (intent || {}) as Record<string, unknown>,
+        );
+
+        mlAppliedAdjustments = [adj, ...queueAdj];
+      }
+    } else {
+      // CONTROL: Compute shadow scores for logging only (no score changes)
+      const mlShadowScores = computeMLShadowScores(
+        rerankedScored.slice(0, 10) as unknown as Record<string, unknown>[],
+        (intent || {}) as Record<string, unknown>,
+      );
+      mlAppliedAdjustments = mlShadowScores.filter(s => s.ml_adjustment !== 0);
+    }
+
     (responseBody as Record<string, unknown>).ml_scoring = {
-      active: false,  // Shadow mode — adjustments are informational only
+      active: mlABGroup === "ml",
+      ab_group: mlABGroup,
       model_loaded: isMLModelLoaded(),
-      shadow_adjustments: mlShadowScores.filter(s => s.ml_adjustment !== 0),
+      adjustments: mlAppliedAdjustments,
     };
-    if (mlShadowScores.some(s => s.ml_adjustment !== 0)) {
-      logInfo("ML shadow scoring", {
+    if (mlAppliedAdjustments.length > 0) {
+      logInfo("ML scoring", {
+        ab_group: mlABGroup,
+        active: mlABGroup === "ml",
         model_loaded: isMLModelLoaded(),
-        adjustments: mlShadowScores
-          .filter(s => s.ml_adjustment !== 0)
+        adjustments: mlAppliedAdjustments
           .map(s => ({ name: s.restaurant_name, rule_dm: s.rule_dm, adj: s.ml_adjustment, ml_dm: s.ml_dm })),
       });
     }
