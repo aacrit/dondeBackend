@@ -27,7 +27,7 @@ import {
   populateCache,
   getNextFromCachedQueue,
 } from "./_shared/query-cache.ts";
-import type { UserFeedbackSignals } from "./_shared/scoring.ts";
+import type { UserFeedbackSignals } from "./_shared/types-v9.ts";
 import { applyPostScoringFilters } from "./_shared/post-filters.ts";
 // V9 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
@@ -67,7 +67,7 @@ import type {
 import { getScoreTier } from "./_shared/types-v9.ts";
 import { buildReservationLinks, checkResyAvailability } from "./_shared/reservation-links.ts";
 import type { ReservationRow, ReservationLinks as ReservationLinksType } from "./_shared/reservation-links.ts";
-import { computeMLShadowScores, isMLModelLoaded, getMLABGroup, applyMLAdjustments, computeTargetedBoost } from "./_shared/ml-adjustment.ts";
+import { isMLModelLoaded, computeTargetedBoost } from "./_shared/ml-adjustment.ts";
 
 const API_VERSION = "11.0.0";
 
@@ -1972,95 +1972,64 @@ Deno.serve(async (req: Request) => {
     }
 
     // ================================================================
-    // STEP 9.8: ML Scoring — Targeted Boost (Phase 3)
-    // 100% of requests get targeted boost (0% regression risk — boost-only).
-    // Combines: (1) teacher-validated per-query boosts (+5)
-    //           (2) cross-query consistent winner boosts (+2)
-    //           (3) legacy linear/tree model adjustments (fallback)
-    // Applied AFTER grading but BEFORE decompression.
+    // STEP 9.8: ML Scoring — Targeted Boost (Version Alpha)
+    // Boost-only: (1) teacher-validated per-query boosts (+5)
+    //             (2) cross-query consistent winner boosts (+2)
+    // Applied AFTER grading but BEFORE decompression. 0% regression risk.
     // ================================================================
-    const mlABGroup = getMLABGroup();
-    let mlAppliedAdjustments: { restaurant_id: string; restaurant_name: string; rule_dm: number; ml_adjustment: number; ml_dm: number }[] = [];
+    const mlAppliedAdjustments: { restaurant_id: string; restaurant_name: string; rule_dm: number; ml_adjustment: number; ml_dm: number }[] = [];
 
     // Compute canonical form for boost table lookup
     const boostCanonical = computeCanonicalForm(special_request, intent);
 
-    if (mlABGroup === "ml") {
-      // PRIMARY: Apply targeted boost to the primary recommendation
-      const primaryRestaurant = (rerankedScored[0] as Record<string, unknown>)?.profile
-        || (rerankedScored[0] as Record<string, unknown>)?.restaurant
-        || rerankedScored[0] || {};
-      const primaryRestId = String((primaryRestaurant as Record<string, unknown>).id || "");
-      const primaryBoost = computeTargetedBoost(primaryRestId, boostCanonical, special_request);
+    // Apply targeted boost to the primary recommendation
+    const primaryRestaurant = (rerankedScored[0] as Record<string, unknown>)?.profile
+      || (rerankedScored[0] as Record<string, unknown>)?.restaurant
+      || rerankedScored[0] || {};
+    const primaryRestId = String((primaryRestaurant as Record<string, unknown>).id || "");
+    const primaryBoost = computeTargetedBoost(primaryRestId, boostCanonical, special_request);
 
-      if (primaryBoost > 0) {
-        const ruleDM = responseBody.donde_match as number;
-        const boostedDM = Math.max(0, Math.min(99, ruleDM + primaryBoost));
-        responseBody.donde_match = boostedDM;
+    if (primaryBoost > 0) {
+      const ruleDM = responseBody.donde_match as number;
+      const boostedDM = Math.max(0, Math.min(99, ruleDM + primaryBoost));
+      responseBody.donde_match = boostedDM;
+      mlAppliedAdjustments.push({
+        restaurant_id: primaryRestId,
+        restaurant_name: String((primaryRestaurant as Record<string, unknown>).name || ""),
+        rule_dm: ruleDM,
+        ml_adjustment: primaryBoost,
+        ml_dm: boostedDM,
+      });
+    }
+
+    // Apply targeted boosts to queue items
+    const queue = (responseBody.ranked_queue || []) as Record<string, unknown>[];
+    for (const item of queue) {
+      const qRest = (item.restaurant || item) as Record<string, unknown>;
+      const qId = String(qRest.id || "");
+      const qBoost = computeTargetedBoost(qId, boostCanonical, special_request);
+      if (qBoost > 0) {
+        const qRuleDM = Number(item.donde_match || 0);
+        const qBoostedDM = Math.max(0, Math.min(99, qRuleDM + qBoost));
+        (item as Record<string, number>).donde_match = qBoostedDM;
         mlAppliedAdjustments.push({
-          restaurant_id: primaryRestId,
-          restaurant_name: String((primaryRestaurant as Record<string, unknown>).name || ""),
-          rule_dm: ruleDM,
-          ml_adjustment: primaryBoost,
-          ml_dm: boostedDM,
+          restaurant_id: qId,
+          restaurant_name: String(qRest.name || ""),
+          rule_dm: qRuleDM,
+          ml_adjustment: qBoost,
+          ml_dm: qBoostedDM,
         });
       }
-
-      // Also apply targeted boosts to queue items
-      const queue = (responseBody.ranked_queue || []) as Record<string, unknown>[];
-      for (const item of queue) {
-        const qRest = (item.restaurant || item) as Record<string, unknown>;
-        const qId = String(qRest.id || "");
-        const qBoost = computeTargetedBoost(qId, boostCanonical, special_request);
-        if (qBoost > 0) {
-          const qRuleDM = Number(item.donde_match || 0);
-          const qBoostedDM = Math.max(0, Math.min(99, qRuleDM + qBoost));
-          (item as Record<string, number>).donde_match = qBoostedDM;
-          mlAppliedAdjustments.push({
-            restaurant_id: qId,
-            restaurant_name: String(qRest.name || ""),
-            rule_dm: qRuleDM,
-            ml_adjustment: qBoost,
-            ml_dm: qBoostedDM,
-          });
-        }
-      }
-
-      // FALLBACK: If no targeted boosts applied, try legacy model adjustments
-      if (mlAppliedAdjustments.length === 0) {
-        const mlShadow = computeMLShadowScores(
-          rerankedScored.slice(0, 1) as unknown as Record<string, unknown>[],
-          (intent || {}) as Record<string, unknown>,
-        );
-        if (mlShadow.length > 0 && mlShadow[0].ml_adjustment !== 0) {
-          const adj = mlShadow[0];
-          responseBody.donde_match = adj.ml_dm;
-          const queueAdj = applyMLAdjustments(
-            queue as Record<string, unknown>[],
-            (intent || {}) as Record<string, unknown>,
-          );
-          mlAppliedAdjustments = [adj, ...queueAdj];
-        }
-      }
-    } else {
-      // CONTROL: Compute shadow scores for logging only (no score changes)
-      const mlShadowScores = computeMLShadowScores(
-        rerankedScored.slice(0, 10) as unknown as Record<string, unknown>[],
-        (intent || {}) as Record<string, unknown>,
-      );
-      mlAppliedAdjustments = mlShadowScores.filter(s => s.ml_adjustment !== 0);
     }
 
     (responseBody as Record<string, unknown>).ml_scoring = {
-      active: mlABGroup === "ml",
-      ab_group: mlABGroup,
+      active: true,
+      ab_group: "ml",
       model_loaded: isMLModelLoaded(),
       adjustments: mlAppliedAdjustments,
     };
     if (mlAppliedAdjustments.length > 0) {
       logInfo("ML scoring", {
-        ab_group: mlABGroup,
-        active: mlABGroup === "ml",
         model_loaded: isMLModelLoaded(),
         adjustments: mlAppliedAdjustments
           .map(s => ({ name: s.restaurant_name, rule_dm: s.rule_dm, adj: s.ml_adjustment, ml_dm: s.ml_dm })),
