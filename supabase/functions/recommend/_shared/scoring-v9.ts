@@ -1114,6 +1114,15 @@ export function computeRelevance(
         const cuisineRel = (intent.target_cuisines?.length ?? 0) > 0
           ? computeCuisineRelevance(candidate, intent) : 0.5;
         if (dishRel > 0) {
+          // V23: Cross-cuisine check for dish-gated reputation path.
+          // Dish match alone is not enough — "jerk chicken" at a Southern restaurant
+          // should not win over Jamaican restaurants. Check cuisine alignment.
+          if (cuisineRel < 0.40 && (intent.target_cuisines?.length ?? 0) > 0) {
+            // Dish found but WRONG cuisine — cap severely. Big Jones has "jerk" somehow
+            // but is Southern/Soul Food, not Caribbean/Jamaican.
+            const cappedScore = Math.min(0.45, dishRel * 0.50);
+            return { score: cappedScore, type: "dish", details: `Reputation+DishGated (wrong cuisine cap): rep=${repRelevance.score.toFixed(2)} dish=${dishRel.toFixed(2)} cuisine=${cuisineRel.toFixed(2)}` };
+          }
           const finalScore = Math.max(repRelevance.score, dishRel);
           return { score: finalScore, type: "dish", details: `Reputation+DishGated: rep=${repRelevance.score.toFixed(2)} dish=${dishRel.toFixed(2)}` };
         }
@@ -1205,6 +1214,121 @@ export function computeRelevance(
         if (!hasLateNight) {
           const cappedScore = Math.min(0.45, repRelevance.score * 0.40);
           return { score: cappedScore, type: "reputation", details: `Reputation (no late night cap): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+
+      // === V23: STRUCTURAL FEATURE CHECKS ===
+      // Like the rooftop check above, these verify the restaurant actually has
+      // the structural feature mentioned in the query. Without these,
+      // "best waterfront restaurant" returns Bavette's (no waterfront),
+      // "best speakeasy" returns Latin restaurants, etc.
+
+      // "waterfront" / "lakefront" / "riverwalk" — must have waterfront/lakefront/river data
+      if (specialLower.includes("waterfront") || specialLower.includes("lakefront") || specialLower.includes("riverwalk") || specialLower.includes("on the river") || specialLower.includes("on the lake")) {
+        const tagStrs = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+        const dp = candidate.deep_profile;
+        const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+        const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+        const nameL = (candidate.name || "").toLowerCase();
+        const hasWaterfront =
+          tagStrs.some(t => t.includes("waterfront") || t.includes("lakefront") || t.includes("riverwalk") || t.includes("river view") || t.includes("lake view")) ||
+          wowFactors.some(w => w.includes("waterfront") || w.includes("lakefront") || w.includes("river") || w.includes("lake view")) ||
+          oneliner.includes("waterfront") || oneliner.includes("lakefront") || oneliner.includes("river") || oneliner.includes("lake view") ||
+          nameL.includes("river") || nameL.includes("lake") || nameL.includes("offshore") || nameL.includes("pier");
+        if (!hasWaterfront) {
+          const cappedScore = Math.min(0.35, repRelevance.score * 0.35);
+          return { score: cappedScore, type: "reputation", details: `Reputation (no waterfront cap): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+
+      // "fireplace" — must have fireplace data
+      if (specialLower.includes("fireplace")) {
+        const tagStrs = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+        const dp = candidate.deep_profile;
+        const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+        const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+        const nameL = (candidate.name || "").toLowerCase();
+        const decor = (dp?.decor_style || "").toLowerCase();
+        const hasFireplace =
+          tagStrs.some(t => t.includes("fireplace") || t.includes("hearth")) ||
+          wowFactors.some(w => w.includes("fireplace") || w.includes("hearth")) ||
+          oneliner.includes("fireplace") || oneliner.includes("hearth") ||
+          decor.includes("fireplace") || decor.includes("hearth") ||
+          nameL.includes("fireplace") || nameL.includes("hearth");
+        if (!hasFireplace) {
+          const cappedScore = Math.min(0.35, repRelevance.score * 0.35);
+          return { score: cappedScore, type: "reputation", details: `Reputation (no fireplace cap): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+
+      // "private dining" — must have private dining data
+      if (specialLower.includes("private dining") || specialLower.includes("private room") || specialLower.includes("private event")) {
+        const tagStrs = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+        const dp = candidate.deep_profile;
+        const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+        const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+        const hasPrivateDining =
+          tagStrs.some(t => t.includes("private dining") || t.includes("private room") || t.includes("private event")) ||
+          wowFactors.some(w => w.includes("private dining") || w.includes("private room")) ||
+          oneliner.includes("private dining") || oneliner.includes("private room") ||
+          (dp?.group_size_sweet_spot && dp.group_size_sweet_spot.includes("large"));
+        if (!hasPrivateDining) {
+          const cappedScore = Math.min(0.40, repRelevance.score * 0.40);
+          return { score: cappedScore, type: "reputation", details: `Reputation (no private dining cap): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+
+      // "view" — must have scenic view, skyline, or elevated dining
+      if ((specialLower.includes("with a view") || specialLower.includes("great view") || specialLower.includes("scenic view") || specialLower.includes("skyline view")) && !specialLower.includes("rooftop")) {
+        const tagStrs = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+        const dp = candidate.deep_profile;
+        const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+        const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+        const nameL = (candidate.name || "").toLowerCase();
+        const hasView =
+          tagStrs.some(t => t.includes("view") || t.includes("skyline") || t.includes("scenic") || t.includes("rooftop") || t.includes("panoramic")) ||
+          wowFactors.some(w => w.includes("view") || w.includes("skyline") || w.includes("panoramic") || w.includes("overlooking")) ||
+          oneliner.includes("view") || oneliner.includes("skyline") || oneliner.includes("panoramic") ||
+          nameL.includes("signature room") || nameL.includes("cindy") || nameL.includes("offshore");
+        if (!hasView) {
+          const cappedScore = Math.min(0.35, repRelevance.score * 0.35);
+          return { score: cappedScore, type: "reputation", details: `Reputation (no view cap): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+
+      // "quiet" / "conversation" — must verify restaurant is actually quiet
+      if ((specialLower.includes("quiet") || specialLower.includes("conversation")) && !specialLower.includes("loud") && !specialLower.includes("lively")) {
+        const noiseLevel = (candidate.noise_level || "").toLowerCase();
+        const tagStrs = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+        const dp = candidate.deep_profile;
+        const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+        const isQuiet =
+          noiseLevel === "quiet" || noiseLevel === "moderate" ||
+          tagStrs.some(t => t.includes("quiet") || t.includes("intimate") || t.includes("conversation")) ||
+          wowFactors.some(w => w.includes("quiet") || w.includes("intimate") || w.includes("conversation"));
+        if (!isQuiet) {
+          const cappedScore = Math.min(0.50, repRelevance.score * 0.50);
+          return { score: cappedScore, type: "reputation", details: `Reputation (not quiet cap): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+
+      // "speakeasy" — must be an actual speakeasy/cocktail bar, not a restaurant
+      if (specialLower.includes("speakeasy")) {
+        const tagStrs = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+        const dp = candidate.deep_profile;
+        const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+        const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+        const cuisineType = (candidate.cuisine_type || "").toLowerCase();
+        const nameL = (candidate.name || "").toLowerCase();
+        const isSpeakeasy =
+          cuisineType.includes("cocktail") || cuisineType.includes("bar") ||
+          tagStrs.some(t => t.includes("speakeasy") || t.includes("cocktail bar") || t.includes("hidden bar")) ||
+          wowFactors.some(w => w.includes("speakeasy") || w.includes("hidden") || w.includes("cocktail")) ||
+          oneliner.includes("speakeasy") || oneliner.includes("hidden bar") || oneliner.includes("cocktail") ||
+          nameL.includes("speakeasy") || nameL.includes("drifter") || nameL.includes("blind");
+        if (!isSpeakeasy) {
+          const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
+          return { score: cappedScore, type: "reputation", details: `Reputation (not speakeasy cap): ${repRelevance.score.toFixed(2)}` };
         }
       }
 

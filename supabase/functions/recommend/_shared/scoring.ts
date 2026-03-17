@@ -226,7 +226,8 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "sancocho": { cuisines: ["Colombian"] },
 
   // --- Taiwanese dishes ---
-  "boba": { cuisines: ["Taiwanese", "Chinese"] },
+  // V23: Removed "Chinese" — boba is primarily Taiwanese
+  "boba": { cuisines: ["Taiwanese"] },
   "beef noodle soup": { cuisines: ["Taiwanese"] },
 
   // --- Persian dishes ---
