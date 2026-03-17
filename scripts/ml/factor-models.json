@@ -1,0 +1,301 @@
+{
+  "version": "1.0.0",
+  "created": "2026-03-17T13:21:01Z",
+  "description": "Per-factor linear adjustment models for DondeAI scoring engine",
+  "config": {
+    "clamp_range": [
+      -2.0,
+      2.0
+    ],
+    "learning_rate": 0.001,
+    "epochs": 200,
+    "holdout_fraction": 0.2,
+    "seed": 42
+  },
+  "vocabularies": {
+    "relevance_types": [
+      "cuisine",
+      "dish",
+      "open_ended",
+      "reputation",
+      "unknown",
+      "vibe"
+    ],
+    "categories": [
+      "Convenience",
+      "Food",
+      "Rep",
+      "Reputation",
+      "Service",
+      "Vibe",
+      "chicago_specific",
+      "convenience",
+      "cuisine",
+      "dish",
+      "edge_case",
+      "food",
+      "occasion",
+      "open_ended",
+      "reputation",
+      "service",
+      "vibe"
+    ]
+  },
+  "factors": {
+    "food": {
+      "weights": {
+        "other_vibe": -0.09032,
+        "other_service": -0.047504,
+        "other_reputation": -0.095229,
+        "other_convenience": -0.04663,
+        "rel_type_cuisine": -0.037469,
+        "rel_type_dish": -0.024277,
+        "rel_type_open_ended": -0.050608,
+        "rel_type_reputation": -0.026343,
+        "rel_type_unknown": 0.055577,
+        "rel_type_vibe": -0.026798,
+        "category_Convenience": 0.000866,
+        "category_Food": 0.011507,
+        "category_Rep": 0.006467,
+        "category_Reputation": -0.000514,
+        "category_Service": -0.00846,
+        "category_Vibe": -0.01106,
+        "category_chicago_specific": -0.002342,
+        "category_convenience": -0.007402,
+        "category_cuisine": -0.013265,
+        "category_dish": -0.004113,
+        "category_edge_case": 0.004508,
+        "category_food": -0.017343,
+        "category_occasion": -0.006324,
+        "category_open_ended": 0.00441,
+        "category_reputation": -0.005267,
+        "category_service": -0.014919,
+        "category_vibe": -0.008373,
+        "donde_match": -0.066392,
+        "score_fit_score": 0.004099
+      },
+      "bias": -0.093307,
+      "metrics": {
+        "train": {
+          "mae": 1.0803,
+          "rmse": 1.2652,
+          "directional_accuracy": 0.7854,
+          "n_test": 1701
+        },
+        "test": {
+          "mae": 1.102,
+          "rmse": 1.2918,
+          "directional_accuracy": 0.7723,
+          "n_test": 426
+        }
+      },
+      "n_features": 29,
+      "n_train": 1701,
+      "n_test": 426
+    },
+    "vibe": {
+      "weights": {
+        "other_food": -0.121797,
+        "other_service": -0.079526,
+        "other_reputation": -0.114286,
+        "other_convenience": -0.086141,
+        "rel_type_cuisine": -0.022937,
+        "rel_type_dish": -0.01784,
+        "rel_type_open_ended": -0.045108,
+        "rel_type_reputation": -0.009062,
+        "rel_type_unknown": -0.041175,
+        "rel_type_vibe": -0.026269,
+        "category_Convenience": 0.002129,
+        "category_Food": 0.014609,
+        "category_Rep": 0.006642,
+        "category_Reputation": 0.000838,
+        "category_Service": -0.007684,
+        "category_Vibe": -0.009211,
+        "category_chicago_specific": -0.001642,
+        "category_convenience": -0.023438,
+        "category_cuisine": -0.006127,
+        "category_dish": -0.001883,
+        "category_edge_case": 0.005095,
+        "category_food": -0.035222,
+        "category_occasion": -0.004765,
+        "category_open_ended": 0.004532,
+        "category_reputation": -0.009604,
+        "category_service": -0.030694,
+        "category_vibe": -0.027672,
+        "donde_match": -0.090824,
+        "score_fit_score": 0.011266
+      },
+      "bias": -0.145781,
+      "metrics": {
+        "train": {
+          "mae": 0.8678,
+          "rmse": 1.0363,
+          "directional_accuracy": 0.8877,
+          "n_test": 1701
+        },
+        "test": {
+          "mae": 0.8643,
+          "rmse": 1.0294,
+          "directional_accuracy": 0.8826,
+          "n_test": 426
+        }
+      },
+      "n_features": 29,
+      "n_train": 1701,
+      "n_test": 426
+    },
+    "service": {
+      "weights": {
+        "other_food": 0.215299,
+        "other_vibe": 0.225104,
+        "other_reputation": 0.187244,
+        "other_convenience": 0.156868,
+        "rel_type_cuisine": 0.042273,
+        "rel_type_dish": 0.019819,
+        "rel_type_open_ended": 0.064947,
+        "rel_type_reputation": 0.028758,
+        "rel_type_unknown": 0.027468,
+        "rel_type_vibe": 0.053251,
+        "category_Convenience": 0.003859,
+        "category_Food": 0.015591,
+        "category_Rep": 0.006728,
+        "category_Reputation": 0.002346,
+        "category_Service": -0.005561,
+        "category_Vibe": -0.007581,
+        "category_chicago_specific": 0.008343,
+        "category_convenience": 0.050621,
+        "category_cuisine": 0.021076,
+        "category_dish": 0.009337,
+        "category_edge_case": 0.006753,
+        "category_food": 0.030889,
+        "category_occasion": -0.000657,
+        "category_open_ended": 0.005354,
+        "category_reputation": 0.046185,
+        "category_service": 0.033217,
+        "category_vibe": 0.04831,
+        "donde_match": 0.185818,
+        "score_fit_score": 0.016683
+      },
+      "bias": 0.253126,
+      "metrics": {
+        "train": {
+          "mae": 0.8761,
+          "rmse": 0.9003,
+          "directional_accuracy": 0.98,
+          "n_test": 1701
+        },
+        "test": {
+          "mae": 0.8919,
+          "rmse": 0.9193,
+          "directional_accuracy": 0.9601,
+          "n_test": 426
+        }
+      },
+      "n_features": 29,
+      "n_train": 1701,
+      "n_test": 426
+    },
+    "reputation": {
+      "weights": {
+        "other_food": 0.015475,
+        "other_vibe": 0.032732,
+        "other_service": 0.021712,
+        "other_convenience": 0.035733,
+        "rel_type_cuisine": 0.005893,
+        "rel_type_dish": 0.010903,
+        "rel_type_open_ended": -0.03015,
+        "rel_type_reputation": -0.003219,
+        "rel_type_unknown": 0.032473,
+        "rel_type_vibe": 0.013056,
+        "category_Convenience": 0.003096,
+        "category_Food": 0.01601,
+        "category_Rep": 0.006608,
+        "category_Reputation": 0.001016,
+        "category_Service": -0.00581,
+        "category_Vibe": -0.008172,
+        "category_chicago_specific": 0.002342,
+        "category_convenience": 0.002414,
+        "category_cuisine": 0.004235,
+        "category_dish": 0.004798,
+        "category_edge_case": 0.005163,
+        "category_food": 0.009059,
+        "category_occasion": -0.003491,
+        "category_open_ended": 0.004544,
+        "category_reputation": 0.013,
+        "category_service": -0.001953,
+        "category_vibe": 0.014391,
+        "donde_match": 0.042602,
+        "score_fit_score": 0.01504
+      },
+      "bias": 0.045566,
+      "metrics": {
+        "train": {
+          "mae": 0.8713,
+          "rmse": 1.0903,
+          "directional_accuracy": 0.5591,
+          "n_test": 1701
+        },
+        "test": {
+          "mae": 0.903,
+          "rmse": 1.1171,
+          "directional_accuracy": 0.5798,
+          "n_test": 426
+        }
+      },
+      "n_features": 29,
+      "n_train": 1701,
+      "n_test": 426
+    },
+    "convenience": {
+      "weights": {
+        "other_food": 0.187942,
+        "other_vibe": 0.186035,
+        "other_service": 0.104306,
+        "other_reputation": 0.168251,
+        "rel_type_cuisine": 0.038187,
+        "rel_type_dish": 0.018702,
+        "rel_type_open_ended": 0.052323,
+        "rel_type_reputation": 0.028968,
+        "rel_type_unknown": 0.007452,
+        "rel_type_vibe": 0.049721,
+        "category_Convenience": 0.002285,
+        "category_Food": 0.015741,
+        "category_Rep": 0.006739,
+        "category_Reputation": 0.002588,
+        "category_Service": -0.00463,
+        "category_Vibe": -0.007379,
+        "category_chicago_specific": 0.007804,
+        "category_convenience": 0.036085,
+        "category_cuisine": 0.019582,
+        "category_dish": 0.008719,
+        "category_edge_case": 0.006865,
+        "category_food": 0.025341,
+        "category_occasion": 0.000261,
+        "category_open_ended": 0.005214,
+        "category_reputation": 0.041079,
+        "category_service": 0.027911,
+        "category_vibe": 0.039442,
+        "donde_match": 0.163994,
+        "score_fit_score": 0.016691
+      },
+      "bias": 0.211962,
+      "metrics": {
+        "train": {
+          "mae": 0.8157,
+          "rmse": 0.9079,
+          "directional_accuracy": 0.9636,
+          "n_test": 1701
+        },
+        "test": {
+          "mae": 0.7838,
+          "rmse": 0.8821,
+          "directional_accuracy": 0.9531,
+          "n_test": 426
+        }
+      },
+      "n_features": 29,
+      "n_train": 1701,
+      "n_test": 426
+    }
+  }
+}
