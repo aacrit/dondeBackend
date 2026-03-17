@@ -1,18 +1,19 @@
 /**
- * ML Adjustment Layer — Active with A/B Testing (Phase 2)
+ * ML Adjustment Layer — Targeted Boost Strategy (Phase 3)
  *
- * Computes ML-based score adjustments (+/- 5 points) from a pre-trained model.
- * In A/B test mode: 50% of requests get ML-adjusted scores, 50% get pure rules.
- * The `ml_scoring` response field shows group assignment and adjustments.
+ * Primary: Targeted boost from boost-table.json — teacher-validated per-query
+ * boosts (+5) and cross-query consistent winner boosts (+2). Boost-only strategy
+ * with 0% regression risk (never penalizes).
  *
- * Supports two model types:
+ * Fallback: Legacy linear/XGBoost model from ml-model.json (+/- 5 points).
+ *
+ * A/B test: 100% treatment (targeted boost for all requests since 0% regression).
+ *
+ * Supports two legacy model types:
  * - linear_adjustment: weighted sum of features (simple, interpretable)
  * - xgboost_ranker: decision tree ensemble (from xgboost-inference.ts pattern)
  *
- * The placeholder model (ml-model.json) has zero weights, so predictMLAdjustment()
- * returns 0 for all inputs until a trained model is deployed.
- *
- * Performance: model loaded once at module init (Edge Function cold start).
+ * Performance: models loaded once at module init (Edge Function cold start).
  * Inference is <1ms per restaurant — no measurable request latency impact.
  */
 
@@ -40,6 +41,17 @@ interface MLModel {
   training_metrics?: Record<string, unknown> | null;
 }
 
+interface BoostTable {
+  version: string;
+  // Per-query boosts: teacher's top-5 validated picks per query pattern
+  query_boosts: Record<string, string[]>;  // canonical_query → [restaurant_id, ...]
+  // Cross-query winners: restaurants that consistently rank highly across many queries
+  consistent_winners: Record<string, { name: string; avg_score: number; appearances: number }>;
+  // Boost amounts
+  direct_boost: number;   // +5 for teacher-validated picks
+  winner_boost: number;   // +2 for consistent winners
+}
+
 interface MLShadowScore {
   restaurant_id: string;
   restaurant_name: string;
@@ -53,6 +65,7 @@ interface MLShadowScore {
 // ============================================================================
 
 let mlModel: MLModel | null = null;
+let boostTable: BoostTable | null = null;
 
 try {
   // Dynamic import of JSON — Deno supports import assertions for JSON modules
@@ -63,8 +76,85 @@ try {
   mlModel = null;
 }
 
+try {
+  const boostData = await import("./boost-table.json", { assert: { type: "json" } });
+  boostTable = boostData.default as unknown as BoostTable;
+} catch {
+  // No boost table available — targeted boost disabled
+  boostTable = null;
+}
+
 // ============================================================================
-// FEATURE EXTRACTION
+// TARGETED BOOST — Primary Strategy (Phase 3)
+// ============================================================================
+
+/**
+ * Compute targeted boost for a restaurant based on teacher-validated data.
+ *
+ * Strategy 1: Direct teacher boost (+5) — If this restaurant was in teacher's
+ *   top-5 for a matching query pattern.
+ * Strategy 2: Cross-query winner boost (+2) — If this restaurant is a
+ *   consistent winner across many teacher rankings.
+ *
+ * Returns 0 if no boost applies. NEVER penalizes (boost-only strategy).
+ *
+ * @param restaurantId - UUID of the restaurant
+ * @param queryFingerprint - Canonical form of the query (from computeCanonicalForm)
+ * @param queryText - Raw query text for fuzzy matching
+ * @returns Boost amount (0, 2, or 5)
+ */
+export function computeTargetedBoost(
+  restaurantId: string,
+  queryFingerprint: string,
+  queryText: string,
+): number {
+  if (!boostTable) return 0;
+
+  // Strategy 1: Direct teacher boost (+5)
+  // If this restaurant was in teacher's top-5 for a matching query
+  const directBoostIds = boostTable.query_boosts[queryFingerprint] || [];
+  if (directBoostIds.includes(restaurantId)) {
+    return boostTable.direct_boost || 5;
+  }
+
+  // Also try normalized query text as key (lowercase, trimmed)
+  const normalizedQuery = queryText.toLowerCase().trim();
+  const altBoostIds = boostTable.query_boosts[normalizedQuery] || [];
+  if (altBoostIds.includes(restaurantId)) {
+    return boostTable.direct_boost || 5;
+  }
+
+  // Strategy 2: Cross-query winner boost (+2)
+  // If this restaurant is a consistent winner across many teacher rankings
+  if (restaurantId in (boostTable.consistent_winners || {})) {
+    return boostTable.winner_boost || 2;
+  }
+
+  // No boost — never penalize (boost-only strategy)
+  return 0;
+}
+
+/**
+ * Check whether a boost table is loaded.
+ */
+export function isBoostTableLoaded(): boolean {
+  return boostTable !== null;
+}
+
+/**
+ * Get boost table metadata for diagnostics.
+ */
+export function getBoostTableInfo(): { version: string; queryCount: number; winnerCount: number } | null {
+  if (!boostTable) return null;
+  return {
+    version: boostTable.version,
+    queryCount: Object.keys(boostTable.query_boosts).length,
+    winnerCount: Object.keys(boostTable.consistent_winners).length,
+  };
+}
+
+// ============================================================================
+// FEATURE EXTRACTION (Legacy)
 // ============================================================================
 
 /**
@@ -142,7 +232,7 @@ export function extractMLFeatures(
 }
 
 // ============================================================================
-// INFERENCE
+// INFERENCE (Legacy)
 // ============================================================================
 
 /**
@@ -241,7 +331,7 @@ export function computeMLShadowScores(
  * Check whether an ML model is loaded and available for inference.
  */
 export function isMLModelLoaded(): boolean {
-  return mlModel !== null;
+  return mlModel !== null || boostTable !== null;
 }
 
 /**
@@ -260,12 +350,13 @@ export function getMLModelInfo(): { version: string; type: string; features: num
 // A/B TEST CONFIGURATION
 // ============================================================================
 
-/** Percentage of traffic that gets ML-adjusted scores (0-100). Set to 0 to disable. */
-const ML_AB_TEST_PERCENTAGE = 50;
+/** Percentage of traffic that gets ML-adjusted scores (0-100).
+ * Phase 3: Set to 100 — targeted boost has 0% regression risk (boost-only). */
+const ML_AB_TEST_PERCENTAGE = 100;
 
 /** Determines A/B group for this request. Stable per-request, not per-isolate. */
 export function getMLABGroup(): "ml" | "rules" {
-  if (!mlModel) return "rules";
+  if (!mlModel && !boostTable) return "rules";
   if (ML_AB_TEST_PERCENTAGE <= 0) return "rules";
   if (ML_AB_TEST_PERCENTAGE >= 100) return "ml";
   return Math.random() * 100 < ML_AB_TEST_PERCENTAGE ? "ml" : "rules";

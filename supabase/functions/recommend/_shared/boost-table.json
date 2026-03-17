@@ -1,0 +1,7 @@
+{
+  "version": "0.0.0-placeholder",
+  "query_boosts": {},
+  "consistent_winners": {},
+  "direct_boost": 5,
+  "winner_boost": 2
+}
