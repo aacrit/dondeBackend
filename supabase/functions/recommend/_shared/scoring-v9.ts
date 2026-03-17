@@ -1103,6 +1103,30 @@ export function computeRelevance(
         }
       }
 
+      // === V23: SPEAKEASY PRE-CHECK (before cuisine gate) ===
+      // "speakeasy" maps to CUISINE_KEYWORDS["Cocktail Bar"], triggering cuisine-gated reputation.
+      // But the cuisine gate passes ANY restaurant with Cocktail Bar RI signal, including
+      // Latin American restaurants with cocktail programs. The speakeasy structural check
+      // must run BEFORE the cuisine gate to enforce the structural requirement.
+      if (specialLower.includes("speakeasy")) {
+        const tagStrs = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+        const dp = candidate.deep_profile;
+        const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+        const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+        const cuisineType = (candidate.cuisine_type || "").toLowerCase();
+        const nameL = (candidate.name || "").toLowerCase();
+        const isSpeakeasy =
+          cuisineType.includes("cocktail") || cuisineType.includes("bar") ||
+          tagStrs.some(t => t.includes("speakeasy") || t.includes("cocktail bar") || t.includes("hidden bar")) ||
+          wowFactors.some(w => w.includes("speakeasy") || w.includes("hidden") || w.includes("cocktail")) ||
+          oneliner.includes("speakeasy") || oneliner.includes("hidden bar") || oneliner.includes("cocktail") ||
+          nameL.includes("speakeasy") || nameL.includes("drifter") || nameL.includes("blind");
+        if (!isSpeakeasy) {
+          const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
+          return { score: cappedScore, type: "reputation", details: `Reputation (not speakeasy cap): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+
       // === V21: DISH-GATED REPUTATION — check BEFORE cuisine-only gate ===
       // Moved ahead of cuisine gate because dish queries like "best burger", "best deep dish pizza",
       // "best ramen" have dish_level_intent=true AND target_cuisines (e.g., American, Italian, Japanese).
