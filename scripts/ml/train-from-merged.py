@@ -157,7 +157,11 @@ def main():
 
         examples.append((features, delta, record))
 
-    # Also add records where rule engine ranked but teacher didn't (negative signal)
+    # Also add records where rule engine ranked but teacher didn't (mild negative signal)
+    # Key fix: use a MILD penalty (-2 not -5) since rule picks aren't necessarily wrong,
+    # they're just different from teacher. Teacher only ranked 5, rule engine may have
+    # valid alternatives. Also DOWNSAMPLE to balance with positive examples.
+    negative_examples = []
     for record in data:
         if not record.get("features"):
             continue
@@ -166,9 +170,17 @@ def main():
         if record.get("ideal_rank") is None and record.get("ideal_score") is None:
             features = extract_features(record)
             if features:
-                # Rule engine liked it, teacher didn't → should be penalized
-                delta = -5.0
-                examples.append((features, delta, record))
+                # Mild penalty: rule engine picked it but teacher didn't
+                delta = -2.0
+                negative_examples.append((features, delta, record))
+
+    # Downsample negatives to at most 2x the positive count for balance
+    import random
+    random.seed(42)
+    max_negatives = len(examples) * 2
+    if len(negative_examples) > max_negatives:
+        negative_examples = random.sample(negative_examples, max_negatives)
+    examples.extend(negative_examples)
 
     print(f"Training examples: {len(examples)}")
 
