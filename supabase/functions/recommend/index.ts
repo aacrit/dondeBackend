@@ -30,7 +30,7 @@ import type { UserFeedbackSignals } from "./_shared/scoring.ts";
 import { applyPostScoringFilters } from "./_shared/post-filters.ts";
 // V9 engine imports
 import { classifyIntentV5 } from "./_shared/intent-classifier-v5.ts";
-import { computeV9Score, reRankV9, NEIGHBORHOOD_ALIASES, expandQueryConcepts, applyMMRDiversity } from "./_shared/scoring-v9.ts";
+import { computeV9Score, reRankV9, NEIGHBORHOOD_ALIASES, expandQueryConcepts, applyMMRDiversity, decompressScore } from "./_shared/scoring-v9.ts";
 import { buildV5SystemPrompt, buildV5UserPrompt, buildBlurbOnlyPrompt, detectCultureTheme } from "./_shared/prompts-v5.ts";
 import type { CultureTheme } from "./_shared/prompts-v5.ts";
 import {
@@ -1764,10 +1764,6 @@ Deno.serve(async (req: Request) => {
     // ================================================================
     // STEP 9: Cache + Logging
     // ================================================================
-    // V6.2: Cache all responses (including "Try Another" with exclude list)
-    const storeCacheKey = getCacheKey(occasion, neighborhood, price_level, special_request, exclude);
-    setCacheResponse(storeCacheKey, responseBody);
-
     const chosenId = (responseBody.restaurant as Record<string, unknown>)?.id as string;
     const responseTimeMs = Date.now() - startTime;
     const unmatchedKw = extractUnmatchedKeywords(special_request);
@@ -1775,9 +1771,43 @@ Deno.serve(async (req: Request) => {
     // Use service client for reliable logging (anon key lacks RLS INSERT permission)
     // Generate UUID client-side since table lacks DEFAULT gen_random_uuid()
     const serviceForLog = createServiceClient();
-    // Compute score validation grades for live monitoring
+    // Compute score validation grades for live monitoring (uses raw scores)
     const scoreFitResult = computeScoreFitGrade(special_request, responseBody as Record<string, unknown>);
     const blurbQualityResult = computeBlurbQualityGrade(special_request, responseBody as Record<string, unknown>);
+
+    // ================================================================
+    // STEP 9.1: Score Decompression (post-grading)
+    // ================================================================
+    // Apply decompression AFTER grading so grading uses raw scores.
+    // The user sees decompressed scores that spread the 70-90 band wider.
+    {
+      const rawDM = responseBody.donde_match as number;
+      const decompressedDM = decompressScore(rawDM);
+      responseBody.donde_match = decompressedDM;
+
+      // Also decompress ranked_queue scores for consistency
+      const queue = responseBody.ranked_queue as Record<string, unknown>[] | undefined;
+      if (queue) {
+        for (const item of queue) {
+          if (typeof item.donde_match === "number") {
+            item.donde_match = decompressScore(item.donde_match);
+          }
+        }
+      }
+
+      if (rawDM !== decompressedDM) {
+        logInfo("Score decompression applied", {
+          raw: rawDM,
+          decompressed: decompressedDM,
+          delta: decompressedDM - rawDM,
+        });
+      }
+    }
+
+    // V6.2: Cache all responses with decompressed scores
+    const storeCacheKey = getCacheKey(occasion, neighborhood, price_level, special_request, exclude);
+    setCacheResponse(storeCacheKey, responseBody);
+
     // Only insert columns that exist in the current schema
     // user_id, dietary_restrictions, feedback columns may not exist yet
     const queryLogRow: Record<string, unknown> = {
