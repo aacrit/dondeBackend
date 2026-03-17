@@ -13,6 +13,7 @@
 import { corsPreflightResponse, jsonResponse, buildCorsHeaders } from "./_shared/cors.ts";
 import { createSupabaseClient, createServiceClient } from "./_shared/supabase.ts";
 import { callClaude, parseClaudeJson } from "./_shared/claude.ts";
+import { isCircuitOpen, recordSuccess, recordFailure, getCircuitState } from "./_shared/circuit-breaker.ts";
 import {
   ensureDiversity,
   extractUnmatchedKeywords,
@@ -338,7 +339,42 @@ Deno.serve(async (req: Request) => {
       const systemPrompt = buildV5SystemPrompt(scoreTier as "exceptional" | "great" | "good" | "decent" | "weak", cultureTheme, context?.occasion || "");
       const userPrompt = buildBlurbOnlyPrompt(restaurantData, context || {});
 
-      const rawText = await callClaude(userPrompt, systemPrompt, { maxTokens: 384, temperature: 0.7 });
+      // Circuit breaker: skip Claude if circuit is open
+      if (isCircuitOpen()) {
+        logWarn("Circuit breaker: skipping blurb endpoint Claude call", {
+          restaurant: restaurantData.name,
+          circuitState: getCircuitState().state,
+          totalTrips: getCircuitState().totalTrips,
+        });
+        return jsonResponse({
+          success: true,
+          recommendation: null,
+          match_headline: null,
+          insider_tip: null,
+          circuit_breaker: { state: getCircuitState().state, skipped_claude: true, total_trips: getCircuitState().totalTrips },
+        }, 200, requestOrigin);
+      }
+
+      let rawText: string;
+      try {
+        rawText = await callClaude(userPrompt, systemPrompt, { maxTokens: 384, temperature: 0.7 });
+        recordSuccess();
+      } catch (claudeErr) {
+        recordFailure();
+        logError("Blurb endpoint Claude call failed", {
+          error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
+          circuitState: getCircuitState().state,
+          consecutiveFailures: getCircuitState().consecutiveFailures,
+        });
+        return jsonResponse({
+          success: true,
+          recommendation: null,
+          match_headline: null,
+          insider_tip: null,
+          circuit_breaker: { state: getCircuitState().state, skipped_claude: true, total_trips: getCircuitState().totalTrips },
+        }, 200, requestOrigin);
+      }
+
       const parsed = parseClaudeJson<{ recommendation?: string; match_headline?: string; insider_tip?: string }>(rawText);
 
       // Clean em-dashes from output
@@ -368,6 +404,7 @@ Deno.serve(async (req: Request) => {
         recommendation: parsed.recommendation || null,
         match_headline: parsed.match_headline || null,
         insider_tip: parsed.insider_tip,
+        circuit_breaker: { state: getCircuitState().state, skipped_claude: false, total_trips: getCircuitState().totalTrips },
       }, 200, requestOrigin);
     } catch (err) {
       logError("Blurb endpoint error", { error: err instanceof Error ? err.message : String(err) });
@@ -1277,6 +1314,7 @@ Deno.serve(async (req: Request) => {
     // ================================================================
     let responseBody: Record<string, unknown>;
     let wasFallback = false;
+    let claudeCircuitBroke = false; // true when circuit breaker caused deterministic fallback
 
     try {
       // Build deep profiles for top 10 (Google data only available for top 5 already fetched)
@@ -1291,8 +1329,9 @@ Deno.serve(async (req: Request) => {
       // ================================================================
       let parsed: ClaudeRecommendation;
 
-      if (skip_claude) {
-        // Zero-cost mode: deterministic blurb from restaurant profile data
+      const circuitOpen = isCircuitOpen();
+      if (skip_claude || circuitOpen) {
+        // Zero-cost mode OR circuit breaker: deterministic blurb from restaurant profile data
         const chosen = rerankedScored[0];
         const fallbackBlurb = buildQueueBlurb(chosen.profile, chosen.matchNarrative, special_request);
         parsed = {
@@ -1302,7 +1341,16 @@ Deno.serve(async (req: Request) => {
           restaurant_index: 0,
           intent_boost: false,
         } as ClaudeRecommendation;
-        logInfo("skip_claude: using deterministic blurb", { restaurant: chosen.profile.name });
+        if (circuitOpen) {
+          claudeCircuitBroke = true;
+          logWarn("Circuit breaker: skipping Claude, using deterministic blurb", {
+            restaurant: chosen.profile.name,
+            circuitState: getCircuitState().state,
+            totalTrips: getCircuitState().totalTrips,
+          });
+        } else {
+          logInfo("skip_claude: using deterministic blurb", { restaurant: chosen.profile.name });
+        }
       } else {
       // Determine score tier for tone modulation
       const topScore = rerankedScored[0].dondeMatch;
@@ -1362,6 +1410,9 @@ Deno.serve(async (req: Request) => {
           throw new Error("Claude returned unparseable response");
         }
       }
+
+      // Circuit breaker: record success — Claude responded and parsed OK
+      recordSuccess();
 
       // ================================================================
       // STEP 7.5: Slop guardrail — retry once if banned patterns detected
@@ -1605,7 +1656,7 @@ Deno.serve(async (req: Request) => {
       // Fire parallel Claude calls for the top 2 queue items (positions #2 and #3).
       // Uses a shorter prompt (just voice + restaurant profile + user query).
       // Budget guard: only attempt if <10s elapsed. Falls back to deterministic on failure.
-      if (!skip_claude && rankedQueue.length >= 2 && (Date.now() - startTime) < 8000) {
+      if (!skip_claude && !isCircuitOpen() && rankedQueue.length >= 2 && (Date.now() - startTime) < 8000) {
         const queueUpgradeStart = Date.now();
         const upgradePromises: Promise<{ idx: number; blurb: string | null; headline: string | null; tip: string | null }>[] = [];
 
@@ -1699,7 +1750,15 @@ Deno.serve(async (req: Request) => {
 
     } catch (claudeError) {
       wasFallback = true;
-      logError("V9 Claude API failed, using fallback", { error: String(claudeError) });
+      claudeCircuitBroke = true;
+      // Circuit breaker: record failure so circuit opens after threshold
+      recordFailure();
+      logError("V9 Claude API failed, using fallback", {
+        error: String(claudeError),
+        circuitState: getCircuitState().state,
+        consecutiveFailures: getCircuitState().consecutiveFailures,
+        totalTrips: getCircuitState().totalTrips,
+      });
 
       const chosen = rerankedScored[0];
       let chosenGoogleData = chosen.googleData || null;
@@ -1883,6 +1942,14 @@ Deno.serve(async (req: Request) => {
 
     // Attach Google API cost stats to every response
     (responseBody as Record<string, unknown>).google_api_cost = getGoogleCallStats();
+
+    // Attach circuit breaker state for monitoring (prod-sentinel can track trips)
+    const cbState = getCircuitState();
+    (responseBody as Record<string, unknown>).circuit_breaker = {
+      state: cbState.state,
+      skipped_claude: claudeCircuitBroke,
+      total_trips: cbState.totalTrips,
+    };
 
     // Performance telemetry: finalize timings
     timings.response_build = Date.now() - stepStart;
