@@ -46,6 +46,63 @@ import {
 } from "./scoring.ts";
 
 // ==========================================
+// SCORE DECOMPRESSION
+// ==========================================
+
+/** Feature flag: when false, decompression is skipped entirely (raw scores returned) */
+const SCORE_DECOMPRESSION_ENABLED = true;
+
+/**
+ * Applies piecewise linear decompression to spread the compressed 70-90 DM band
+ * into a wider, more discriminative range. Improves score differentiation without
+ * changing ranking order (monotonic transformation).
+ *
+ * Key invariant: raw scores >= 70 always map to >= 70 (grading safety).
+ *
+ * The function maps via 5 segments:
+ *   [0, 60]   -> [0, 50]    push weak matches lower (slope 0.83)
+ *   [60, 70]  -> [50, 70]   steep ramp to grading threshold (slope 2.0)
+ *   [70, 78]  -> [70, 78]   preserve core band around current mean (slope 1.0)
+ *   [78, 88]  -> [78, 92]   amplify good-to-great spread (slope 1.4)
+ *   [88, 99]  -> [92, 99]   excellent matches shine (slope 0.64)
+ *
+ * Examples:
+ *   50 -> 42 (weak match pushed down)
+ *   60 -> 50 (borderline clearly below threshold)
+ *   65 -> 60 (approaching threshold)
+ *   70 -> 70 (grading anchor preserved)
+ *   78 -> 78 (current mean preserved)
+ *   80 -> 81 (good match gets mild boost)
+ *   85 -> 88 (great match stands out)
+ *   88 -> 92 (excellent match amplified)
+ *   90 -> 93 (outstanding match clearly visible)
+ *   95 -> 96 (near-perfect shines)
+ */
+export function decompressScore(rawScore: number): number {
+  if (!SCORE_DECOMPRESSION_ENABLED) return Math.round(rawScore);
+  if (rawScore <= 0) return 0;
+  if (rawScore >= 99) return 99;
+
+  // Piecewise linear segments: [inLow, inHigh] -> [outLow, outHigh]
+  const segments = [
+    { inLow: 0,  inHigh: 60, outLow: 0,  outHigh: 50 },
+    { inLow: 60, inHigh: 70, outLow: 50, outHigh: 70 },
+    { inLow: 70, inHigh: 78, outLow: 70, outHigh: 78 },
+    { inLow: 78, inHigh: 88, outLow: 78, outHigh: 92 },
+    { inLow: 88, inHigh: 99, outLow: 92, outHigh: 99 },
+  ];
+
+  for (const seg of segments) {
+    if (rawScore >= seg.inLow && rawScore <= seg.inHigh) {
+      const t = (rawScore - seg.inLow) / (seg.inHigh - seg.inLow);
+      return Math.round(seg.outLow + t * (seg.outHigh - seg.outLow));
+    }
+  }
+
+  return Math.round(rawScore);
+}
+
+// ==========================================
 // CONSTANTS
 // ==========================================
 
