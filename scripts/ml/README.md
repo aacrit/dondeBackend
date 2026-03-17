@@ -85,11 +85,49 @@ cp scripts/ml/candidates-batch.json scripts/ml/training-data.json
 
 ### Step 3: Train the model
 
+There are three training options depending on your environment:
+
+#### Option A: Python XGBoost (recommended)
+
+```bash
+# Install Python dependencies (one-time)
+cd scripts/ml && pip install -r requirements.txt
+
+# Train XGBoost LambdaMART ranker + linear fallback
+python train-model.py
+
+# Custom input/output paths
+python train-model.py --input merged-training-data.json --output model.json
+
+# Adjust cross-validation folds
+python train-model.py --folds 3
+
+# Train only the linear fallback (no xgboost dependency)
+python train-model.py --linear-only
+```
+
+Output: `model.json` (XGBoost) + `model-linear.json` (linear fallback)
+
+#### Option B: Python simple linear (zero-dependency fallback)
+
+```bash
+# Only requires numpy (no xgboost or sklearn)
+pip install numpy
+python train-simple.py
+
+# Works even without numpy (pure Python solver, slower)
+python train-simple.py --input training-data.json --output model-linear.json
+```
+
+Output: `model-linear.json`
+
+#### Option C: TypeScript (placeholder)
+
 ```bash
 # Install XGBoost (one-time)
 cd scripts && npm install xgboost
 
-# Train
+# Train (currently outputs placeholder model)
 cd scripts && npx tsx ml/distill-train.ts
 
 # Train with validation report
@@ -136,20 +174,90 @@ cd scripts && npx tsx ml/xgboost-inference.ts ml/model.json
 
 ## Model Architecture
 
-**Algorithm:** XGBoost Gradient Boosted Decision Trees
+### XGBoost Ranker (train-model.py)
+
+**Algorithm:** XGBoost LambdaMART (pairwise ranking)
 
 **Configuration:**
-- Objective: `reg:squarederror` (predict DondeMatch 0-99)
-- Trees: 200 boosting rounds
-- Max depth: 6
+- Objective: `rank:pairwise` (LambdaMART — learns relative ordering within query groups)
+- Trees: 100 boosting rounds (with early stopping at 20 rounds)
+- Max depth: 4
 - Learning rate: 0.1
 - Subsample: 0.8 (row sampling)
 - Column sample: 0.8 (feature sampling)
-- Min child weight: 3
+- Min child weight: 5
+- Eval metric: NDCG@5
+- Validation: 5-fold GroupKFold (no query leakage between train/val)
 
 **Inference:** Pure tree traversal in TypeScript — no ML library needed at runtime.
 
-**Model size:** ~50-200KB JSON (200 trees x depth 6 = ~12,800 nodes max)
+**Model size:** ~50-200KB JSON (100 trees x depth 4 = ~1,600 nodes max)
+
+### Linear Fallback (train-simple.py)
+
+**Algorithm:** Ordinary least squares linear regression with L2 regularization
+
+**Configuration:**
+- Features: same 22 features as XGBoost
+- Solver: numpy least-squares (or pure Python Gaussian elimination fallback)
+- Output: per-feature weight + bias term
+
+**Model size:** ~2KB JSON
+
+### Model JSON Format (XGBoost)
+
+```json
+{
+  "model_type": "xgboost_ranker",
+  "version": "1.0",
+  "created": "2026-03-16",
+  "n_trees": 100,
+  "n_features": 22,
+  "feature_names": ["relevance_score", "relevance_type_dish", ...],
+  "learning_rate": 0.1,
+  "base_score": 85.0,
+  "trees": [
+    {
+      "split": 0, "threshold": 0.85,
+      "children": [
+        {"leaf": 0.23},
+        {"split": 3, "threshold": 7.5, "children": [...]}
+      ]
+    }
+  ],
+  "training_metrics": {
+    "ndcg_at_5": 0.87,
+    "rmse": 3.2,
+    "mae": 2.1,
+    "n_training_pairs": 1050
+  }
+}
+```
+
+### Model JSON Format (Linear)
+
+```json
+{
+  "model_type": "linear_adjustment",
+  "version": "1.0",
+  "weights": {"relevance_score": 3.2, "food_score": 0.5, ...},
+  "bias": -2.1,
+  "training_metrics": {"rmse": 4.5, "mae": 3.1}
+}
+```
+
+### Deployment to Edge Function
+
+The trained model JSON is loaded by `xgboost-inference.ts`, which provides
+pure TypeScript tree traversal with zero external dependencies. To deploy:
+
+1. Train: `python train-model.py` (produces `model.json`)
+2. Copy: `cp scripts/ml/model.json supabase/functions/recommend/_shared/model.json`
+3. Import: `import { XGBoostModel } from "./xgboost-inference.ts"`
+4. Use: `const score = model.predict(features)` — returns DondeMatch 0-99
+
+The inference engine handles both XGBoost tree models and linear fallback models.
+With no trees loaded, it returns the base score (useful for A/B testing).
 
 ## Retraining
 
@@ -170,9 +278,13 @@ cd scripts && npx tsx ml/distill-train.ts --validate   # Train + validate
 
 | File | Description |
 |------|-------------|
+| `train-model.py` | **Python XGBoost training** — LambdaMART ranker with GroupKFold CV, exports JSON |
+| `train-simple.py` | **Python linear fallback** — numpy-only (or pure Python), zero heavy dependencies |
+| `requirements.txt` | Python dependencies: xgboost, scikit-learn, numpy, pandas |
 | `distill-prepare.sh` | Fetches candidate data from DondeAI API ($0 cost) |
-| `distill-train.ts` | Feature extraction + XGBoost training pipeline |
+| `distill-train.ts` | TypeScript feature extraction + training pipeline (placeholder) |
 | `xgboost-inference.ts` | Pure TypeScript tree traversal for fast prediction |
 | `training-data.json` | Accumulated training pairs (teacher labels) |
 | `candidates-batch.json` | Raw API candidate data (generated by prepare step) |
-| `model.json` | Trained XGBoost model (generated by train step) |
+| `model.json` | Trained XGBoost model (generated by train-model.py) |
+| `model-linear.json` | Linear fallback model (generated by train-simple.py or train-model.py) |
