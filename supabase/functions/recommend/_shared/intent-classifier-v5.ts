@@ -523,6 +523,17 @@ export async function classifyIntentV5(
     // Also multi-word cuisine phrases not matching any single key.
     "caribbean", "southern", "midwestern",
     "soul food", "southern food", "cajun food", "creole food", "jamaican food",
+    // V22: Middle Eastern sub-cuisine keywords that appear in CUISINE_KEYWORDS["Middle Eastern"]
+    // but are not top-level keys. Without this, "best Lebanese food" triggers dish_level_intent
+    // because "lebanese" is not in cuisineNamesLower, causing dish-gated cap at 0.55.
+    "lebanese", "turkish", "yemeni", "kurdish", "palestinian",
+    "lebanese food", "turkish food",
+    // V22: Other sub-cuisine keywords from various CUISINE_KEYWORDS entries not matching
+    // top-level keys (they appear as values inside other cuisine category keys)
+    "trinidadian", "jamaican",
+    "ecuadorian", "salvadoran",
+    "ukrainian", "irish", "swedish", "serbian", "bosnian", "portuguese", "british",
+    "georgian", "azerbaijani",
   ]);
   const matchedFoodItems = matchedKeywordStrings.filter(
     (kw) => !cuisineNamesLower.has(kw) && !NON_DISH_WORDS.has(kw),

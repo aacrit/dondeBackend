@@ -1620,10 +1620,23 @@ function computeCuisineRelevance(
   // V18: Restaurant name contains target cuisine — check before RI family matching.
   // This ensures "Nepal House" gets high relevance for "Nepalese" even when cuisine_type
   // is "Indian" and RI only provides a family match (0.88 instead of 0.95).
+  // V22: Fixed false positives from short stemmed fragments matching inside unrelated names.
+  // "Polish" → stem "pol" matched inside "Topolobampo". Now requires:
+  // 1. Full cuisine name match uses word-boundary regex (not substring)
+  // 2. Stemmed form must be >= 5 chars to prevent short-fragment false positives
   const restName = (candidate.name || "").toLowerCase();
   const nameMatchesTarget = targets.some(t => {
     const tLower = t.toLowerCase().replace(/\/.*$/, ""); // "Nepalese/Tibetan" → "nepalese"
-    return restName.includes(tLower) || restName.includes(tLower.replace(/ese$/, "").replace(/ian$/, "").replace(/ish$/, ""));
+    // Full cuisine name: use word boundary to prevent "pol" inside "topolobampo"
+    const fullWordRegex = new RegExp(`\\b${tLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
+    if (fullWordRegex.test(restName)) return true;
+    // Stemmed form: only try if result is long enough (>= 5 chars) to be meaningful
+    const stemmed = tLower.replace(/ese$/, "").replace(/ian$/, "").replace(/ish$/, "");
+    if (stemmed.length >= 5 && stemmed !== tLower) {
+      const stemRegex = new RegExp(`\\b${stemmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
+      return stemRegex.test(restName);
+    }
+    return false;
   });
   if (nameMatchesTarget) return 0.95; // Restaurant name confirms cuisine match
 
