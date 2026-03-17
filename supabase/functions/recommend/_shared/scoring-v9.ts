@@ -1075,27 +1075,12 @@ export function computeRelevance(
     if (intent) {
       const specialLower = specialRequest.toLowerCase();
 
-      // === V20: CUISINE-GATED REPUTATION (Change 1) ===
-      // When query has BOTH reputation keywords AND cuisine signals (e.g., "best Italian",
-      // "best Indian food", "best Korean food"), restaurants MUST match the target cuisine.
-      // Without this gate, "best Italian" returns non-Italian restaurants with high generic
-      // reputation scores (Big Jones, The Aviary) instead of actual Italian restaurants.
-      if (intent.target_cuisines?.length && intent.cuisine_importance === "high") {
-        const cuisineRel = computeCuisineRelevance(candidate, intent);
-        if (cuisineRel >= 0.40) {
-          // Restaurant matches target cuisine — rank by reputation within cuisine.
-          // Return type "cuisine" so QUALITY_WEIGHTS uses food-heavy profile (0.35 vs 0.15).
-          const finalScore = Math.max(repRelevance.score, cuisineRel);
-          return { score: finalScore, type: "cuisine", details: `Reputation+CuisineGated: rep=${repRelevance.score.toFixed(2)} cuisine=${cuisineRel.toFixed(2)}` };
-        }
-        // Restaurant does NOT match target cuisine — hard penalize.
-        // "Best Italian" should not return a Japanese restaurant regardless of reputation.
-        const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
-        return { score: cappedScore, type: "reputation", details: `Reputation (cuisine mismatch cap): rep=${repRelevance.score.toFixed(2)} cuisine=${cuisineRel.toFixed(2)}` };
-      }
-
-      // === V20: DISH-GATED REPUTATION (Change 1 extension) ===
-      // "best deep dish pizza" should return pizza places, not fine dining.
+      // === V21: DISH-GATED REPUTATION — check BEFORE cuisine-only gate ===
+      // Moved ahead of cuisine gate because dish queries like "best burger", "best deep dish pizza",
+      // "best ramen" have dish_level_intent=true AND target_cuisines (e.g., American, Italian, Japanese).
+      // If cuisine gate runs first, broad cuisine matches (American for burger, Italian for pizza)
+      // give fine-dining restaurants 1.0 relevance, bypassing dish verification entirely.
+      // Fix: dish path must run first so restaurants without the actual dish get penalized.
       if (intent.dish_level_intent) {
         const dishRel = computeDishRelevance(candidate, intent, specialRequest);
         const cuisineRel = (intent.target_cuisines?.length ?? 0) > 0
@@ -1105,12 +1090,42 @@ export function computeRelevance(
           return { score: finalScore, type: "dish", details: `Reputation+DishGated: rep=${repRelevance.score.toFixed(2)} dish=${dishRel.toFixed(2)}` };
         }
         if (cuisineRel >= 0.40) {
-          // Right cuisine but dish not found — capped
-          const cappedScore = Math.min(0.70, Math.max(repRelevance.score * 0.70, cuisineRel * 0.80));
+          // Right cuisine but dish not found — capped lower than before
+          // V21: Lowered cap from 0.70 to 0.55 so restaurants without the dish
+          // don't beat actual dish specialists (e.g., North Pond for "best burger")
+          const cappedScore = Math.min(0.55, Math.max(repRelevance.score * 0.55, cuisineRel * 0.60));
           return { score: cappedScore, type: "cuisine", details: `Reputation+CuisineOnly (no dish): rep=${repRelevance.score.toFixed(2)} cuisine=${cuisineRel.toFixed(2)}` };
         }
         // Wrong cuisine AND wrong dish — hard cap
         return { score: Math.min(0.25, repRelevance.score * 0.25), type: "reputation", details: `Reputation (dish+cuisine mismatch cap)` };
+      }
+
+      // === V21: CUISINE-GATED REPUTATION (refined from V20) ===
+      // When query has BOTH reputation keywords AND cuisine signals (e.g., "best Italian",
+      // "best Indian food", "best Korean food"), restaurants MUST match the target cuisine.
+      // V21: Raised family-match threshold from 0.40 to 0.85 to prevent same-family
+      // cross-cuisine leakage (e.g., Chinese winning for "best Korean food" via East Asian family).
+      // Only exact matches (1.0), sub-cuisine matches (0.95), and RI-confirmed matches (0.95/0.88)
+      // pass the gate. Same-family partial matches (0.60) are now penalized.
+      if (intent.target_cuisines?.length && intent.cuisine_importance === "high") {
+        const cuisineRel = computeCuisineRelevance(candidate, intent);
+        if (cuisineRel >= 0.85) {
+          // Restaurant matches target cuisine (exact or very close) — rank by reputation within cuisine.
+          // Return type "cuisine" so QUALITY_WEIGHTS uses food-heavy profile (0.35 vs 0.15).
+          const finalScore = Math.max(repRelevance.score, cuisineRel);
+          return { score: finalScore, type: "cuisine", details: `Reputation+CuisineGated: rep=${repRelevance.score.toFixed(2)} cuisine=${cuisineRel.toFixed(2)}` };
+        }
+        // V21: Family-match zone (0.40-0.84) — related cuisine but not exact.
+        // Allow through with penalty to preserve some family-match results,
+        // but prevent them from beating exact cuisine matches.
+        if (cuisineRel >= 0.40) {
+          const penalizedScore = Math.min(0.60, repRelevance.score * cuisineRel);
+          return { score: penalizedScore, type: "cuisine", details: `Reputation+CuisineFamily (penalized): rep=${repRelevance.score.toFixed(2)} cuisine=${cuisineRel.toFixed(2)}` };
+        }
+        // Restaurant does NOT match target cuisine — hard penalize.
+        // "Best Italian" should not return a Japanese restaurant regardless of reputation.
+        const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
+        return { score: cappedScore, type: "reputation", details: `Reputation (cuisine mismatch cap): rep=${repRelevance.score.toFixed(2)} cuisine=${cuisineRel.toFixed(2)}` };
       }
 
       // === V20: MICHELIN/AWARD STRUCTURAL CHECK (Change 2) ===
@@ -1161,6 +1176,18 @@ export function computeRelevance(
         if (!hasLateNight) {
           const cappedScore = Math.min(0.45, repRelevance.score * 0.40);
           return { score: cappedScore, type: "reputation", details: `Reputation (no late night cap): ${repRelevance.score.toFixed(2)}` };
+        }
+      }
+
+      // V21: "best restaurant" queries should penalize non-restaurant concepts
+      // (cocktail bars, breweries, coffee shops) that have high reputation scores.
+      // The Aviary is a cocktail bar, not a restaurant — shouldn't win "best restaurant in West Loop".
+      if (specialLower.includes("best restaurant") || specialLower.includes("top restaurant")) {
+        const cuisineType = (candidate.cuisine_type || "").toLowerCase();
+        const NON_RESTAURANT_CUISINES = ["cocktail bar", "brewery/beer bar", "coffee/cafe", "wine bar"];
+        if (NON_RESTAURANT_CUISINES.some(c => cuisineType.includes(c.toLowerCase()))) {
+          const cappedScore = Math.min(0.35, repRelevance.score * 0.35);
+          return { score: cappedScore, type: "reputation", details: `Reputation (non-restaurant cap): ${cuisineType}` };
         }
       }
 
