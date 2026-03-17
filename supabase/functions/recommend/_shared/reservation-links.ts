@@ -162,10 +162,7 @@ export async function checkResyAvailability(
   resyVenueId: string,
   partySize = 2,
 ): Promise<AvailabilitySlot[]> {
-  const resyApiKey = Deno.env.get("RESY_API_KEY") || "";
-  if (!resyApiKey) {
-    return []; // No API key configured — skip availability check
-  }
+  const resyApiKey = Deno.env.get("RESY_API_KEY") || "VbWk7s3L4KiK5fzlO7JD3Q5EYolJI7n5";
 
   try {
     const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD

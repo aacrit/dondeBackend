@@ -18,7 +18,7 @@
 
 import { createAdminClient } from '../lib/supabase.js';
 
-const RESY_API_KEY = process.env.RESY_API_KEY || '';
+const RESY_API_KEY = process.env.RESY_API_KEY || 'VbWk7s3L4KiK5fzlO7JD3Q5EYolJI7n5';
 const RATE_LIMIT_MS = 1200;
 const REQUEST_TIMEOUT_MS = 8000;
 
