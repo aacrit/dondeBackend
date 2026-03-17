@@ -1,6 +1,6 @@
 # Database Schema
 
-Last updated: 2026-03-15
+Last updated: 2026-03-17
 
 ## Overview
 
@@ -12,7 +12,11 @@ Last updated: 2026-03-15
 | `neighborhoods` | 33 | 1:N → restaurants | Chicago neighborhood lookup |
 | `tags` | ~15,500 | N:1 → restaurants | Restaurant tags (~5.7 per restaurant) |
 | `restaurant_popularity` | — | 1:1 with restaurants | Trending/recommendation counts |
+| `restaurant_reservations` | — | N:1 → restaurants | Resy + OpenTable deep links (Project Foxtrot) |
+| `restaurant_embeddings` | — | 1:1 with restaurants | pgvector 384-dim embeddings (HNSW index) |
+| `query_embeddings` | — | — | Cached query vectors for common searches |
 | `user_profiles` | — | 1:1 with auth.users | Authenticated user preferences |
+| `user_taste_profiles` | — | 1:1 with auth.users | Pre-computed taste affinities (Learning Flywheel) |
 | `user_searches` | — | N:1 → user_profiles | Server-side search history |
 | `user_favorites` | — | N:1 → user_profiles, restaurants | Saved bookmarks |
 | `user_queries` | — | N:1 → restaurants | Query logging + feedback + blurb audit + cache hit tracking |
@@ -35,15 +39,20 @@ restaurants (2,719 — all active)
   |--- 1:1 ---> restaurant_deep_profiles (2,719)
   |--- 1:1 ---> occasion_scores (2,719)
   |--- 1:1 ---> restaurant_popularity
+  |--- 1:1 ---> restaurant_embeddings (pgvector 384-dim)
+  |--- 1:N ---> restaurant_reservations (Resy, OpenTable)
   |--- 1:N ---> tags (~15,500)
   |--- 1:N ---> user_favorites
   |--- 1:N ---> user_queries
   |--- 1:N ---> query_cache (primary_restaurant_id)
 
-user_profiles
+user_profiles (auth.users)
+  |--- 1:1 ---> user_taste_profiles (Learning Flywheel)
   |--- 1:N ---> user_favorites
   |--- 1:N ---> user_searches
   |--- 1:N ---> user_queries
+
+query_embeddings (standalone, keyed by query_hash)
 ```
 
 ## restaurants (28 columns)
@@ -238,6 +247,98 @@ user_profiles
 
 **RLS:** service_role full access; anon SELECT only.
 
+## restaurant_reservations (Project Foxtrot)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | PK |
+| `restaurant_id` | uuid | FK -> restaurants, UNIQUE per platform |
+| `platform` | text | 'opentable', 'resy', 'direct', 'phone' |
+| `platform_id` | text | Platform-specific restaurant ID |
+| `platform_slug` | text | URL slug on platform |
+| `booking_url` | text | Full deep link URL |
+| `url_template` | text | URL with {date}, {covers}, {time} placeholders |
+| `is_verified` | boolean | HTTP HEAD validated |
+| `last_verified_at` | timestamptz | |
+| `priority` | integer | Display priority (lower = preferred): direct(10), resy(20), opentable(30), phone(50) |
+| `is_active` | boolean | |
+| `created_at` | timestamptz | |
+| `updated_at` | timestamptz | |
+
+**RLS:** Public read; service role write.
+
+## restaurant_embeddings (pgvector)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `restaurant_id` | uuid | PK, FK -> restaurants |
+| `embedding` | vector(384) | all-MiniLM-L6-v2 output |
+| `text_hash` | text | MD5 of source text (staleness detection) |
+| `model_version` | text | Default 'all-MiniLM-L6-v2' |
+| `created_at` | timestamptz | |
+| `updated_at` | timestamptz | |
+
+**Index:** HNSW (m=16, ef_construction=64) on `embedding` with `vector_cosine_ops`.
+
+## query_embeddings (pgvector)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `query_hash` | text | PK |
+| `canonical_query` | text | |
+| `embedding` | vector(384) | |
+| `model_version` | text | Default 'all-MiniLM-L6-v2' |
+| `hit_count` | integer | Default 0 |
+| `created_at` | timestamptz | |
+
+**Index:** HNSW on `embedding` with `vector_cosine_ops`.
+
+## user_taste_profiles (Learning Flywheel)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `user_id` | uuid | PK, FK -> auth.users |
+| `total_signals` | integer | |
+| `search_count` | integer | |
+| `feedback_count` | integer | |
+| `favorite_count` | integer | |
+| `visit_count` | integer | |
+| `cuisine_affinities` | jsonb | [{cuisine, score}] |
+| `cuisine_avoidances` | text[] | |
+| `noise_preference` | numeric(3,2) | -1 to +1 |
+| `energy_preference` | numeric(3,2) | -1 to +1 |
+| `formality_preference` | numeric(3,2) | -1 to +1 |
+| `weight_food` | numeric(3,2) | 0.7 to 1.3 (default 1.0) |
+| `weight_vibe` | numeric(3,2) | |
+| `weight_service` | numeric(3,2) | |
+| `weight_reputation` | numeric(3,2) | |
+| `weight_convenience` | numeric(3,2) | |
+| `price_affinity` | numeric(2,1) | 1.0 to 4.0 |
+| `neighborhood_affinities` | jsonb | [{neighborhood, score}] |
+| `discovery_score` | numeric(3,2) | 0-1 (higher = more adventurous) |
+| `computed_at` | timestamptz | |
+
+**RLS:** User can read own profile; service role can write.
+
+## RPC: semantic_candidates
+
+```sql
+semantic_candidates(
+  p_query_embedding vector(384),
+  p_neighborhood TEXT DEFAULT NULL,
+  p_limit INT DEFAULT 50,
+  p_threshold FLOAT DEFAULT 0.3
+)
+```
+
+Returns `restaurant_id`, `similarity`, `restaurant_name` via ANN vector search (HNSW). Optional neighborhood filter.
+
+## RPC: get_taste_dna / blend_taste_profiles / get_neighborhood_pulse
+
+- `get_taste_dna(p_user_id)` — Returns taste fingerprint visualization data
+- `blend_taste_profiles(p_user_ids)` — Blends multiple user profiles for group dining
+- `get_neighborhood_pulse(p_neighborhood, p_timeframe)` — Ambient city intelligence (trending restaurants, popular cuisines, activity level)
+
 ## RPC: get_cache_dashboard
 
 Returns JSONB with cache health metrics: `cache_size`, `total_queries_24h`, `cache_hits_24h`, `hit_rate_24h`, `savings_24h_dollars`, `avg_hit_latency_ms`, `avg_miss_latency_ms`, `top_uncached_queries`, `last_warming_run`.
@@ -278,4 +379,19 @@ get_ranked_restaurants(
 
 ## Migrations
 
-62 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-14). Applied via `supabase db push` or Dashboard SQL Editor. Recent additions: DondeCache persistent query cache + warming_runs tables + get_cache_dashboard RPC + cache invalidation triggers + cache_hit columns on user_queries (20260314000001), cuisine taxonomy fixes (4 migrations), deep audit fixes (6 migrations), comprehensive data quality audit, phase 1 free enrichment, gauntlet grading columns, cuisine type analytics fixes, auto-merge CI/CD, gauntlet tracking tables, maintenance requests, RLS hardening, source column on user_queries, recommendation_text persistence.
+73 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-17). Applied via `supabase db push` or Dashboard SQL Editor.
+
+Recent additions (2026-03-15 to 2026-03-17):
+- `20260315000001` — `user_taste_profiles` table + `compute_taste_profile` RPC (Learning Flywheel)
+- `20260315000002` — `get_neighborhood_pulse` RPC (ambient city intelligence)
+- `20260315000003` — `get_taste_dna` + `blend_taste_profiles` RPCs (Taste DNA visualization)
+- `20260316000001` — `restaurant_reservations` table (Project Foxtrot M1)
+- `20260316000002` — Yelp attributes columns on restaurants
+- `20260316100001` — Security hardening (RLS fixes, SECURITY DEFINER search_path)
+- `20260316100002` — Fix broken `get_neighborhood_pulse` RPC (dropped google_rating ref)
+- `20260316100003` — Fix `compute_taste_profile` JOIN bug (wrong table alias)
+- `20260316100004` — Fix 29 NULL cuisine_type restaurants
+- `20260316100005` — Merge alcohol_type from byob_policy
+- `20260316200001` — pgvector extension + `restaurant_embeddings` + `query_embeddings` + `semantic_candidates` RPC
+
+Earlier: DondeCache (20260314), cuisine taxonomy fixes (4), deep audit fixes (6), gauntlet grading, maintenance requests, RLS hardening.

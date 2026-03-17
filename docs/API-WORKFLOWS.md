@@ -1,6 +1,6 @@
 # API & Workflows
 
-Last updated: 2026-03-15
+Last updated: 2026-03-17
 
 ## Edge Function Request Flow (V11)
 
@@ -18,17 +18,24 @@ index.ts orchestration — single POST /recommend endpoint
 8. **Concept expansion** — V17/V18: Merge concept constraints, tags, and vibes into intent for scoring. Track `_originalVibeCount` before merging.
 9. **RPC candidates** — `get_candidates_v11` (composite scoring with `p_semantic_tags`, fallback to V10 → V9 RPC). Dynamic candidate pool: 100 for complex queries.
 10. **Dietary filter** — Safety-critical hard filter on dietary restrictions (never relaxed). No other hard filters — V11 relevance gating handles cuisine/dish/vibe/semantic.
-11. **V11 scoring** (`reRankV9`) — Relevance(0-1) x Quality(0-100) + OccasionBonus(+/-5). V18 quality floors. 6 weight profiles.
-12. **Diversity filter** — `ensureDiversity()` max 2 same cuisine in top results
-13. **Google Places fetch** — Top 5 candidates, 1.5s timeout, parallel
-14. **Post-Google re-score** — Re-compute all candidates with real Google data for reputation accuracy. Simple descending re-sort.
-15. **Build Ranked Queue** — Top 5 results packaged as `ranked_queue` items (template blurbs, no Claude call)
-16. **Claude recommendation** — System prompt (character voice + literary persona + occasion register + tone tier) + user prompt (candidates + reviews + deep profiles). Claude picks restaurant, writes 100-120 word blurb, optional intent boost.
-17. **Intent Boost guard rails** — If Claude elevates lower candidate: base >= 35, max boost +35, total <= 99.
-18. **Cuisine mismatch cap** — If high-importance cuisine mismatch: cap DondeMatch at 65 post-Claude.
-19. **Quality guardrails** — Slop detection (67 banned patterns), em dash stripping, word count check (100-120), "we/our" voice mandate.
-20. **Response build** — `buildV9SuccessResponse()` with `scoring_v9`, `match_narrative`, `ranked_queue`. Cache result. Fire-and-forget query log + score validation grading.
-21. **Persistent cache write-through** — Quality-gated (score fit >= 80 AND blurb quality >= 80). Stores response with intent fingerprint + canonical form for L2/L3 future hits.
+11. **V11 scoring** (`reRankV9`) — Relevance(0-1) x Quality(0-100) + OccasionBonus(+/-5). V18+ quality floors. 6 weight profiles.
+12. **Post-scoring filters** — `applyPostScoringFilters()`: neighborhood + price hard filters with 3-phase graceful expansion (exact -> adjacent -> best available). Bypassed for "Anywhere"/"Any".
+13. **Diversity filter** — `ensureDiversity()` max 2 same cuisine in top results
+14. **Google Places fetch** — Top 5 candidates, 1.5s timeout, parallel
+15. **Post-Google re-score** — Re-compute all candidates with real Google data for reputation accuracy. Simple descending re-sort.
+16. **MMR diversity re-ranking** — `applyMMRDiversity()` for queue positions #2-5. Lambda=0.7. Cuisine/neighborhood/price diversity. Discovery pick at position 4-5.
+17. **Build Ranked Queue** — Top 5 results packaged as `ranked_queue` items (template blurbs, no Claude call)
+18. **Circuit breaker check** — If Claude circuit is OPEN (3+ consecutive failures), skip Claude and use deterministic blurbs. Auto-recovers after 60s cooldown.
+19. **Claude recommendation** — System prompt (character voice + literary persona + occasion register + tone tier) + user prompt (candidates + reviews + deep profiles). Claude picks restaurant, writes 100-120 word blurb, optional intent boost. Budget-aware retries (60/40 split).
+20. **Intent Boost guard rails** — If Claude elevates lower candidate: base >= 35, max boost +35, total <= 99.
+21. **Cuisine mismatch cap** — If high-importance cuisine mismatch: cap DondeMatch at 65 post-Claude.
+22. **Quality guardrails** — Slop detection (67 banned patterns), em dash stripping, word count check (100-120), "we/our" voice mandate.
+23. **Shadow personalization** — `computeShadowPersonalization()` computes boost from `user_taste_profiles` (cuisine/neighborhood/vibe affinity). Logged but not applied to score. Response field: `personalization`.
+24. **ML scoring** — `applyMLAdjustments()` from `ml-adjustment.ts`. A/B test: 50% get ML-adjusted scores (+/-5 DM), 50% get pure rules. Response field: `ml_scoring`.
+25. **Score decompression** — `decompressScore()` piecewise linear mapping. Widens 72-86 DM band. Applied AFTER grading so grading uses raw scores.
+26. **Response build** — `buildV9SuccessResponse()` with `scoring_v9`, `match_narrative`, `ranked_queue`, `circuit_breaker`, `personalization`, `ml_scoring`, `response_time_ms`. Cache result. Fire-and-forget query log + score validation grading.
+27. **Telemetry header** — `X-Donde-Timing` header with per-component timing breakdown (9 markers).
+28. **Persistent cache write-through** — Quality-gated (score fit >= 80 AND blurb quality >= 80). Stores response with intent fingerprint + canonical form for L2/L3 future hits.
 
 **Fallback tiers:** JSON parse → regex recovery → fallback response (top restaurant, no AI text) → no-results → error
 
@@ -68,14 +75,15 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 
 | Version | Tests | Pass | Notes |
 |---------|-------|------|-------|
-| V18 (current) | 188 checks | 177P/0F/11W | Golden dataset, avg DM 77, avg SF 88, avg BQ 79 |
+| V19+ (current) | 188 checks | 188P/0F/0W | Golden dataset, avg DM 80, 100% pass rate, $0 cost |
+| V18 | 188 checks | 177P/0F/11W | Golden dataset, avg DM 77, avg SF 88, avg BQ 79 |
 | V16 | 188 checks | 177P/0F/11W | First pass of V16 fixes |
 | V11 | 188 checks | 142P/2F/44W | Semantic matching, avg DM 76 |
 | V10 (baseline) | 50 | 44P/4F/2W | Golden dataset, avg DM 70 |
 | V9.0 | 95 | 95/95 | Relevance x Quality, review intelligence, self-healing |
 | V7.3b (archived) | 88 | 67/88 | Geometric mean, V5 weights |
 
-## Pipeline Inventory (31 scripts in `scripts/pipelines/`)
+## Pipeline Inventory (35 scripts in `scripts/pipelines/`)
 
 ### Scheduled (GitHub Actions cron)
 
@@ -117,6 +125,20 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | `regenerate-occasion-scores.ts` | Full regeneration of all occasion scores |
 | `regenerate-tags.ts` | Full regeneration of all restaurant tags |
 | `query-miner.ts` | Extract canonical queries from user_queries for cache warming |
+| `blurb-upgrader.ts` | Upgrade deterministic cache blurbs to Claude-tailored blurbs via Claude Max CLI ($0) |
+| `reservation-enrichment.ts` | OpenTable + Resy deep link enrichment for all restaurants ($0) |
+| `resy-enrichment.ts` | Resy venue validation via public search API ($0) |
+| `generate-embeddings.ts` | Generate pgvector embeddings (Ollama/OpenAI-style APIs) |
+
+**ML Training Pipeline** (`scripts/ml/` — 17 files, separate from data pipelines):
+
+| Script | Purpose |
+|--------|---------|
+| `harvest-training-data.sh` | Harvest training data from golden dataset via CLI agents ($0) |
+| `merge-training-data.py` | Merge features + rankings into training-ready dataset |
+| `train-model.py` | XGBoost LambdaMART + GroupKFold cross-validation |
+| `train-simple.py` | Zero-dep linear fallback trainer |
+| `simulate-ab-test.py` | A/B test simulation framework |
 
 **Rate limits:** All Claude pipelines use 6s between batches (10 req/min). Batch size: 5-10 restaurants per call.
 

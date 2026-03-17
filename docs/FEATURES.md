@@ -1,8 +1,8 @@
 # Backend Features
 
-Last updated: 2026-03-15
+Last updated: 2026-03-17
 
-## Edge Function (V11 — active, V18 tuning, files retain V9 naming)
+## Edge Function (V11 — active, V19+ tuning, files retain V9 naming)
 
 ### Scoring Engine
 - [x] V11 Relevance × Quality scoring (5 factors: Food, Vibe, Service, Reputation, Convenience)
@@ -29,6 +29,15 @@ Last updated: 2026-03-15
 - [x] V18: _originalVibeCount for reputation vibe penalty guard
 - [x] V18: Skip vibe blending for high cuisine relevance (>=0.93)
 - [x] V18: Cross-cuisine synonym guard strengthened for dish queries
+- [x] V19+: MMR diversity re-ranking for queue positions #2-5 (Lambda=0.7)
+- [x] V19+: Score decompression (piecewise linear, widens 72-86 band, feature flag)
+- [x] V19+: Post-scoring neighborhood + price filters with 3-phase graceful expansion
+- [x] V19+: Circuit breaker for Claude API (3-state, 60s cooldown, deterministic fallback)
+- [x] V19+: Shadow personalization from user_taste_profiles (logged, not applied)
+- [x] V19+: ML scoring layer with A/B testing (50/50 split, +/-5 DM adjustments)
+- [x] V19+: Performance telemetry (9-marker X-Donde-Timing header + response_time_ms)
+- [x] V19+: Reservation deep links in API response (Resy + OpenTable, Project Foxtrot)
+- [x] V19+: Security hardening (CORS, headers, RLS, error sanitization, SECURITY DEFINER)
 
 ### Blurb Generation
 - [x] Claude Haiku 4.5 blurb generation (100-120 words, single API call)
@@ -76,6 +85,11 @@ Last updated: 2026-03-15
 - [x] Cache warmer (3 sources: popular/golden/manual, budget-gated, 3-worker pool)
 - [x] Cache invalidator (TTL expiry + engine version + enrichment invalidation)
 - [x] Query miner (canonical query extraction from user_queries)
+- [x] Blurb upgrader (Claude Max CLI blurb generation for cache entries, $0)
+- [x] Reservation enrichment (OpenTable HTTP validation + Resy public API, $0)
+- [x] Resy venue validation (search API, name matching, slug correction)
+- [x] pgvector embedding generation (Ollama/OpenAI-style APIs)
+- [x] ML training pipeline (Python XGBoost + TS inference, 17 files in scripts/ml/)
 
 ## Auth & User Features
 
@@ -91,17 +105,23 @@ Last updated: 2026-03-15
 
 ## Database
 
-- [x] 17 tables, 62 migrations
+- [x] 21 tables, 73 migrations
 - [x] RPC `get_candidates_v11` (composite scoring with semantic tags, fallback V10 → V9)
 - [x] RPC `get_candidates_v9` (full-text search + review intelligence)
 - [x] RPC `get_ranked_restaurants` (legacy, 49 return columns)
-- [x] RLS policies on auth tables
+- [x] RPC `semantic_candidates` (pgvector ANN search with neighborhood filter)
+- [x] RPC `get_taste_dna` + `blend_taste_profiles` (Taste DNA visualization)
+- [x] RPC `get_neighborhood_pulse` (ambient city intelligence)
+- [x] RPC `get_cache_dashboard` (cache health metrics for CEO dashboard)
+- [x] RLS policies on auth tables (hardened 2026-03-17)
 - [x] Google compliance (only `google_place_id` stored)
+- [x] pgvector extension + HNSW indexes (restaurant_embeddings, query_embeddings)
 - [x] restaurant_deep_profiles (38 enrichment fields)
 - [x] restaurant_popularity (trending scores)
+- [x] restaurant_reservations (Resy + OpenTable deep links, Project Foxtrot)
+- [x] user_taste_profiles (Learning Flywheel — cuisine/vibe/price/neighborhood affinities)
 - [x] Keyword dictionaries (28 cuisines, 19 tags, 3 boolean features)
 - [x] gauntlet_runs + gauntlet_results (test tracking)
 - [x] maintenance_requests (pipeline queue for CEO Command Center)
 - [x] query_cache + warming_runs (DondeCache persistent cache + warming tracking)
-- [x] RPC `get_cache_dashboard` (cache health metrics for CEO dashboard)
 - [x] DB triggers for cache invalidation on restaurant/enrichment changes
