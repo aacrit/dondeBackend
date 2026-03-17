@@ -1,17 +1,2179 @@
 {
   "metadata": {
-    "version": "1.0",
-    "total_queries": 0,
-    "last_generated": null,
+    "version": "2.0",
+    "total_queries": 210,
+    "last_generated": "2026-03-16T00:00:00Z",
+    "generator": "gen-test-queries agent",
     "distribution": {
-      "by_category": {},
-      "by_time_of_day": {},
-      "by_cultural_background": {},
-      "by_age_group": {},
-      "by_gender": {},
-      "by_occasion": {},
-      "by_religion": {}
+      "by_category": {
+        "cuisine": 30,
+        "dish": 25,
+        "vibe": 25,
+        "neighborhood": 25,
+        "constraint": 20,
+        "reputation": 20,
+        "compound": 25,
+        "edge_case": 15,
+        "seasonal": 10,
+        "underserved_cuisine": 15
+      },
+      "by_time_of_day": {
+        "breakfast": 15,
+        "brunch": 20,
+        "lunch": 35,
+        "happy_hour": 15,
+        "dinner": 85,
+        "late_night": 20,
+        "any": 20
+      },
+      "by_cultural_background": {
+        "Mexican-American": 20,
+        "Chinese-American": 18,
+        "Indian-American": 15,
+        "Polish-American": 10,
+        "African-American": 18,
+        "Korean-American": 12,
+        "Middle-Eastern": 12,
+        "Italian-American": 15,
+        "Japanese-American": 10,
+        "Filipino-American": 8,
+        "General": 72
+      },
+      "by_age_group": {
+        "college_student": 25,
+        "young_professional": 50,
+        "family_with_kids": 25,
+        "middle_aged_couple": 40,
+        "retirees": 20,
+        "mixed": 50
+      },
+      "by_gender": {
+        "male": 70,
+        "female": 70,
+        "non_binary": 20,
+        "mixed_group": 50
+      },
+      "by_occasion": {
+        "date_night": 25,
+        "birthday": 15,
+        "anniversary": 10,
+        "business_lunch": 15,
+        "family_gathering": 15,
+        "solo_dining": 20,
+        "friend_group": 25,
+        "bachelor_bachelorette": 5,
+        "graduation": 5,
+        "tourist_visiting": 15,
+        "casual": 60
+      },
+      "by_religion": {
+        "halal": 10,
+        "kosher": 5,
+        "vegetarian_hindu": 8,
+        "no_restrictions": 187
+      }
     }
   },
-  "queries": []
+  "queries": [
+    {
+      "id": 1,
+      "query": "authentic Thai food in Logan Square",
+      "persona": "28yo Thai-American food blogger, female",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Thai", "neighborhood:Logan Square"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 2,
+      "query": "real Mexican tacos al pastor not tourist stuff",
+      "persona": "35yo Mexican-American construction worker, male",
+      "category": "cuisine",
+      "subcategory": "authentic_cuisine",
+      "expected_signals": ["cuisine:Mexican", "dish:tacos al pastor"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 3,
+      "query": "best Indian food in Devon area",
+      "persona": "45yo Indian-American software engineer, male",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Indian", "neighborhood:Devon"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 4,
+      "query": "Polish pierogi like my babcia makes",
+      "persona": "55yo Polish-American retired teacher, female",
+      "category": "cuisine",
+      "subcategory": "nostalgic_cuisine",
+      "expected_signals": ["cuisine:Polish", "dish:pierogi"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 5,
+      "query": "authentic Cantonese dim sum",
+      "persona": "62yo Chinese-American retiree, male",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Chinese", "dish:dim sum"],
+      "difficulty": "medium",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 6,
+      "query": "real Szechuan food not Americanized",
+      "persona": "30yo Chinese-American data scientist, female",
+      "category": "cuisine",
+      "subcategory": "authentic_cuisine",
+      "expected_signals": ["cuisine:Chinese", "subcuisine:Szechuan"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 7,
+      "query": "best Korean BBQ with the tabletop grills",
+      "persona": "25yo Korean-American grad student, male",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Korean", "vibe:interactive"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 8,
+      "query": "Japanese ramen shop",
+      "persona": "22yo college student, non-binary",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Japanese", "dish:ramen"],
+      "difficulty": "easy",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 9,
+      "query": "Vietnamese pho near Argyle",
+      "persona": "40yo Vietnamese-American nurse, female",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Vietnamese", "dish:pho", "neighborhood:Uptown"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 10,
+      "query": "Greek food with live music",
+      "persona": "50yo Greek-American dentist, male",
+      "category": "cuisine",
+      "subcategory": "cuisine_with_vibe",
+      "expected_signals": ["cuisine:Greek", "vibe:live music"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 11,
+      "query": "Southern comfort food",
+      "persona": "38yo African-American teacher, female",
+      "category": "cuisine",
+      "subcategory": "cuisine_family",
+      "expected_signals": ["cuisine:Southern", "cuisine:American"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 12,
+      "query": "authentic Middle Eastern food",
+      "persona": "32yo Lebanese-American accountant, male",
+      "category": "cuisine",
+      "subcategory": "cuisine_region",
+      "expected_signals": ["cuisine:Middle Eastern", "cuisine:Lebanese"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 13,
+      "query": "Italian restaurant that does homemade pasta",
+      "persona": "48yo Italian-American lawyer, female",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Italian", "dish:pasta"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 14,
+      "query": "French bistro with a good wine list",
+      "persona": "55yo wine enthusiast retiree, male",
+      "category": "cuisine",
+      "subcategory": "cuisine_with_feature",
+      "expected_signals": ["cuisine:French", "constraint:wine"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 15,
+      "query": "Caribbean jerk spot",
+      "persona": "29yo Jamaican-American graphic designer, male",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Caribbean", "cuisine:Jamaican"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 16,
+      "query": "Brazilian steakhouse all you can eat",
+      "persona": "42yo Brazilian-American sales manager, male",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Brazilian", "constraint:all-you-can-eat"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 17,
+      "query": "Spanish tapas and sangria",
+      "persona": "33yo young professional, female",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Spanish", "dish:tapas"],
+      "difficulty": "medium",
+      "time_of_day": "happy_hour"
+    },
+    {
+      "id": 18,
+      "query": "Moroccan food with couscous",
+      "persona": "37yo Moroccan-American teacher, female",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Moroccan", "dish:couscous"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 19,
+      "query": "authentic Oaxacan mole",
+      "persona": "40yo Mexican-American chef, male",
+      "category": "cuisine",
+      "subcategory": "subcuisine",
+      "expected_signals": ["cuisine:Mexican", "dish:mole"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 20,
+      "query": "Peruvian ceviche",
+      "persona": "26yo Peruvian-American student, female",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Peruvian", "dish:ceviche"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 21,
+      "query": "Turkish kebab restaurant",
+      "persona": "44yo Turkish-American engineer, male",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Turkish", "dish:kebab"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 22,
+      "query": "soul food with mac and cheese",
+      "persona": "35yo African-American marketing manager, female",
+      "category": "cuisine",
+      "subcategory": "cuisine_with_dish",
+      "expected_signals": ["cuisine:Southern", "dish:mac and cheese"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 23,
+      "query": "Burmese restaurant",
+      "persona": "31yo foodie blogger, non-binary",
+      "category": "cuisine",
+      "subcategory": "rare_cuisine",
+      "expected_signals": ["cuisine:Burmese"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 24,
+      "query": "Puerto Rican food in Humboldt Park",
+      "persona": "52yo Puerto Rican-American barber, male",
+      "category": "cuisine",
+      "subcategory": "specific_cuisine",
+      "expected_signals": ["cuisine:Puerto Rican", "neighborhood:Humboldt Park"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 25,
+      "query": "Afghan cuisine",
+      "persona": "36yo Afghan-American doctor, female",
+      "category": "cuisine",
+      "subcategory": "rare_cuisine",
+      "expected_signals": ["cuisine:Afghan"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 26,
+      "query": "Cajun food with crawfish",
+      "persona": "30yo Louisiana transplant, male",
+      "category": "cuisine",
+      "subcategory": "cuisine_with_dish",
+      "expected_signals": ["cuisine:Cajun", "dish:crawfish"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 27,
+      "query": "Jamaican oxtail",
+      "persona": "45yo Jamaican-American bus driver, male",
+      "category": "cuisine",
+      "subcategory": "specific_dish_cuisine",
+      "expected_signals": ["cuisine:Jamaican", "dish:oxtail"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 28,
+      "query": "Neapolitan pizza with a wood fired oven",
+      "persona": "34yo Italian-American architect, male",
+      "category": "cuisine",
+      "subcategory": "subcuisine",
+      "expected_signals": ["cuisine:Italian", "dish:pizza"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 29,
+      "query": "best taco place in Pilsen",
+      "persona": "21yo Mexican-American college student, female",
+      "category": "cuisine",
+      "subcategory": "cuisine_neighborhood",
+      "expected_signals": ["cuisine:Mexican", "dish:tacos", "neighborhood:Pilsen"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 30,
+      "query": "Halal Chinese food",
+      "persona": "27yo Pakistani-American analyst, male",
+      "category": "cuisine",
+      "subcategory": "cuisine_with_restriction",
+      "expected_signals": ["cuisine:Chinese", "dietary:halal"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 31,
+      "query": "soup dumplings with chili oil",
+      "persona": "24yo Chinese-American software dev, female",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:soup dumplings", "cuisine:Chinese"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 32,
+      "query": "Nashville hot chicken sandwich",
+      "persona": "26yo African-American barista, male",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:hot chicken", "cuisine:American"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 33,
+      "query": "deep dish pizza that locals actually eat",
+      "persona": "19yo college freshman from NYC, male",
+      "category": "dish",
+      "subcategory": "iconic_dish",
+      "expected_signals": ["dish:deep dish pizza", "cuisine:Italian"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 34,
+      "query": "omakase under 150 dollars",
+      "persona": "32yo Japanese-American financial analyst, female",
+      "category": "dish",
+      "subcategory": "specific_dish_budget",
+      "expected_signals": ["dish:omakase", "cuisine:Japanese", "price:$$$"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 35,
+      "query": "birria tacos",
+      "persona": "23yo Mexican-American student, male",
+      "category": "dish",
+      "subcategory": "trending_dish",
+      "expected_signals": ["dish:birria tacos", "cuisine:Mexican"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 36,
+      "query": "beef Wellington",
+      "persona": "58yo British-American retiree, male",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:beef Wellington", "cuisine:British"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 37,
+      "query": "lobster roll",
+      "persona": "29yo New England transplant, female",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:lobster roll", "cuisine:Seafood"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 38,
+      "query": "bone marrow appetizer",
+      "persona": "34yo foodie, non-binary",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:bone marrow"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 39,
+      "query": "elote and street corn",
+      "persona": "22yo Mexican-American college student, female",
+      "category": "dish",
+      "subcategory": "street_food",
+      "expected_signals": ["dish:elote", "cuisine:Mexican"],
+      "difficulty": "hard",
+      "time_of_day": "any"
+    },
+    {
+      "id": 40,
+      "query": "Chicago style Italian beef sandwich",
+      "persona": "50yo born-and-raised Chicagoan, male",
+      "category": "dish",
+      "subcategory": "iconic_dish",
+      "expected_signals": ["dish:Italian beef", "cuisine:American"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 41,
+      "query": "poke bowl",
+      "persona": "27yo health-conscious young professional, female",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:poke bowl", "cuisine:Hawaiian"],
+      "difficulty": "easy",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 42,
+      "query": "bulgogi and japchae",
+      "persona": "38yo Korean-American accountant, female",
+      "category": "dish",
+      "subcategory": "multi_dish",
+      "expected_signals": ["dish:bulgogi", "dish:japchae", "cuisine:Korean"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 43,
+      "query": "shawarma plate",
+      "persona": "25yo Arab-American student, male",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:shawarma", "cuisine:Middle Eastern"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 44,
+      "query": "pad thai that isn't too sweet",
+      "persona": "31yo Thai-American designer, female",
+      "category": "dish",
+      "subcategory": "specific_dish_quality",
+      "expected_signals": ["dish:pad thai", "cuisine:Thai"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 45,
+      "query": "wagyu steak",
+      "persona": "45yo investment banker, male",
+      "category": "dish",
+      "subcategory": "premium_dish",
+      "expected_signals": ["dish:wagyu", "cuisine:Steakhouse"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 46,
+      "query": "al pastor burrito",
+      "persona": "20yo college student, male",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:burrito", "dish:al pastor", "cuisine:Mexican"],
+      "difficulty": "medium",
+      "time_of_day": "late_night"
+    },
+    {
+      "id": 47,
+      "query": "char siu pork buns",
+      "persona": "28yo Chinese-American nurse, female",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:char siu", "dish:pork buns", "cuisine:Chinese"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 48,
+      "query": "gnocchi with brown butter",
+      "persona": "36yo Italian-American homemaker, female",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:gnocchi", "cuisine:Italian"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 49,
+      "query": "chicken tikka masala",
+      "persona": "33yo Indian-American teacher, male",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:chicken tikka masala", "cuisine:Indian"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 50,
+      "query": "crab legs all you can eat",
+      "persona": "40yo African-American HR manager, female",
+      "category": "dish",
+      "subcategory": "dish_with_constraint",
+      "expected_signals": ["dish:crab legs", "cuisine:Seafood", "constraint:all-you-can-eat"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 51,
+      "query": "fish tacos with mango salsa",
+      "persona": "29yo surfer transplant from California, male",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:fish tacos", "cuisine:Mexican"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 52,
+      "query": "banh mi sandwich",
+      "persona": "24yo Vietnamese-American student, female",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:banh mi", "cuisine:Vietnamese"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 53,
+      "query": "lamb chops with chimichurri",
+      "persona": "47yo Argentine-American business owner, male",
+      "category": "dish",
+      "subcategory": "specific_dish",
+      "expected_signals": ["dish:lamb chops", "cuisine:Argentine"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 54,
+      "query": "croissant and espresso",
+      "persona": "30yo French-American pastry chef, female",
+      "category": "dish",
+      "subcategory": "breakfast_dish",
+      "expected_signals": ["dish:croissant", "dish:espresso", "cuisine:French"],
+      "difficulty": "medium",
+      "time_of_day": "breakfast"
+    },
+    {
+      "id": 55,
+      "query": "chicken and waffles",
+      "persona": "27yo African-American musician, male",
+      "category": "dish",
+      "subcategory": "brunch_dish",
+      "expected_signals": ["dish:chicken and waffles", "cuisine:Southern"],
+      "difficulty": "medium",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 56,
+      "query": "quiet romantic candlelit dinner",
+      "persona": "35yo young professional couple, mixed",
+      "category": "vibe",
+      "subcategory": "romantic",
+      "expected_signals": ["vibe:romantic", "vibe:quiet", "vibe:candlelit"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 57,
+      "query": "loud fun bar with great food",
+      "persona": "24yo group of college friends, mixed",
+      "category": "vibe",
+      "subcategory": "energetic",
+      "expected_signals": ["vibe:loud", "vibe:fun", "vibe:bar"],
+      "difficulty": "medium",
+      "time_of_day": "late_night"
+    },
+    {
+      "id": 58,
+      "query": "speakeasy with craft cocktails",
+      "persona": "30yo young professional, female",
+      "category": "vibe",
+      "subcategory": "hidden_bar",
+      "expected_signals": ["vibe:speakeasy", "vibe:cocktails"],
+      "difficulty": "medium",
+      "time_of_day": "late_night"
+    },
+    {
+      "id": 59,
+      "query": "rooftop restaurant with skyline view",
+      "persona": "28yo tourist from Dallas, male",
+      "category": "vibe",
+      "subcategory": "scenic",
+      "expected_signals": ["vibe:rooftop", "vibe:view"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 60,
+      "query": "chill coffee shop to work from",
+      "persona": "26yo remote worker, non-binary",
+      "category": "vibe",
+      "subcategory": "work_friendly",
+      "expected_signals": ["vibe:chill", "vibe:coffee", "vibe:work-friendly"],
+      "difficulty": "medium",
+      "time_of_day": "any"
+    },
+    {
+      "id": 61,
+      "query": "live jazz with dinner",
+      "persona": "52yo African-American couple, mixed",
+      "category": "vibe",
+      "subcategory": "entertainment",
+      "expected_signals": ["vibe:live jazz", "vibe:dinner"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 62,
+      "query": "hipster brunch spot",
+      "persona": "23yo art student, female",
+      "category": "vibe",
+      "subcategory": "trendy",
+      "expected_signals": ["vibe:hipster", "vibe:trendy"],
+      "difficulty": "medium",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 63,
+      "query": "upscale wine bar with small plates",
+      "persona": "42yo corporate executive, female",
+      "category": "vibe",
+      "subcategory": "upscale",
+      "expected_signals": ["vibe:upscale", "vibe:wine bar", "dish:small plates"],
+      "difficulty": "medium",
+      "time_of_day": "happy_hour"
+    },
+    {
+      "id": 64,
+      "query": "dark moody cocktail bar",
+      "persona": "29yo bartender on night off, male",
+      "category": "vibe",
+      "subcategory": "atmosphere",
+      "expected_signals": ["vibe:dark", "vibe:moody", "vibe:cocktail bar"],
+      "difficulty": "medium",
+      "time_of_day": "late_night"
+    },
+    {
+      "id": 65,
+      "query": "family friendly restaurant with a playground",
+      "persona": "36yo suburban mom with 3 kids, female",
+      "category": "vibe",
+      "subcategory": "family",
+      "expected_signals": ["vibe:family friendly", "constraint:playground"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 66,
+      "query": "outdoor garden patio with fairy lights",
+      "persona": "31yo Instagram influencer, female",
+      "category": "vibe",
+      "subcategory": "aesthetic",
+      "expected_signals": ["vibe:outdoor", "vibe:garden", "vibe:aesthetic"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 67,
+      "query": "sports bar with big screens for the Bears game",
+      "persona": "33yo group of Bears fans, male",
+      "category": "vibe",
+      "subcategory": "sports",
+      "expected_signals": ["vibe:sports bar", "vibe:big screens"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 68,
+      "query": "quiet place to read a book and eat alone",
+      "persona": "45yo introverted professor, female",
+      "category": "vibe",
+      "subcategory": "quiet_solo",
+      "expected_signals": ["vibe:quiet", "vibe:solo-friendly"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 69,
+      "query": "eclectic bohemian cafe",
+      "persona": "25yo artist, non-binary",
+      "category": "vibe",
+      "subcategory": "bohemian",
+      "expected_signals": ["vibe:eclectic", "vibe:bohemian", "vibe:cafe"],
+      "difficulty": "hard",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 70,
+      "query": "industrial chic restaurant",
+      "persona": "29yo interior designer, female",
+      "category": "vibe",
+      "subcategory": "design",
+      "expected_signals": ["vibe:industrial", "vibe:chic"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 71,
+      "query": "old school steakhouse with leather booths",
+      "persona": "60yo retired CEO, male",
+      "category": "vibe",
+      "subcategory": "classic",
+      "expected_signals": ["vibe:classic", "vibe:steakhouse", "cuisine:Steakhouse"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 72,
+      "query": "waterfront dining with boat views",
+      "persona": "38yo couple celebrating, mixed",
+      "category": "vibe",
+      "subcategory": "scenic",
+      "expected_signals": ["vibe:waterfront", "vibe:view"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 73,
+      "query": "punk rock dive bar with good food",
+      "persona": "22yo musician, male",
+      "category": "vibe",
+      "subcategory": "dive",
+      "expected_signals": ["vibe:dive bar", "vibe:punk"],
+      "difficulty": "hard",
+      "time_of_day": "late_night"
+    },
+    {
+      "id": 74,
+      "query": "cozy fireplace restaurant for winter",
+      "persona": "40yo couple, mixed",
+      "category": "vibe",
+      "subcategory": "seasonal_vibe",
+      "expected_signals": ["vibe:cozy", "vibe:fireplace"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 75,
+      "query": "trendy place to be seen at",
+      "persona": "25yo social media marketer, female",
+      "category": "vibe",
+      "subcategory": "scene",
+      "expected_signals": ["vibe:trendy", "vibe:scene"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 76,
+      "query": "minimalist Japanese aesthetic restaurant",
+      "persona": "33yo architect, male",
+      "category": "vibe",
+      "subcategory": "aesthetic",
+      "expected_signals": ["vibe:minimalist", "cuisine:Japanese"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 77,
+      "query": "retro diner with milkshakes",
+      "persona": "20yo college student, female",
+      "category": "vibe",
+      "subcategory": "nostalgic",
+      "expected_signals": ["vibe:retro", "vibe:diner", "dish:milkshakes"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 78,
+      "query": "swanky cocktail lounge for girls night",
+      "persona": "28yo group of 4 women, female",
+      "category": "vibe",
+      "subcategory": "upscale_social",
+      "expected_signals": ["vibe:swanky", "vibe:cocktail lounge", "vibe:group-friendly"],
+      "difficulty": "medium",
+      "time_of_day": "late_night"
+    },
+    {
+      "id": 79,
+      "query": "nostalgic Americana restaurant",
+      "persona": "55yo Midwest couple, mixed",
+      "category": "vibe",
+      "subcategory": "nostalgic",
+      "expected_signals": ["vibe:nostalgic", "cuisine:American"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 80,
+      "query": "hole in the wall gem with amazing food",
+      "persona": "27yo adventurous eater, male",
+      "category": "vibe",
+      "subcategory": "hidden_gem",
+      "expected_signals": ["vibe:hole in the wall", "reputation:hidden gem"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 81,
+      "query": "dinner in Wicker Park",
+      "persona": "30yo young professional, female",
+      "category": "neighborhood",
+      "subcategory": "general_neighborhood",
+      "expected_signals": ["neighborhood:Wicker Park"],
+      "difficulty": "easy",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 82,
+      "query": "best restaurants in West Loop",
+      "persona": "35yo foodie couple, mixed",
+      "category": "neighborhood",
+      "subcategory": "best_in_neighborhood",
+      "expected_signals": ["neighborhood:West Loop", "reputation:best"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 83,
+      "query": "Chinatown dim sum on Sunday",
+      "persona": "60yo Chinese-American retirees, mixed",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_cuisine",
+      "expected_signals": ["neighborhood:Chinatown", "dish:dim sum"],
+      "difficulty": "medium",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 84,
+      "query": "Logan Square brunch with avocado toast",
+      "persona": "24yo millennial, female",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_meal",
+      "expected_signals": ["neighborhood:Logan Square", "dish:avocado toast"],
+      "difficulty": "medium",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 85,
+      "query": "dinner near Wrigley Field before the game",
+      "persona": "42yo Cubs season ticket holder, male",
+      "category": "neighborhood",
+      "subcategory": "near_landmark",
+      "expected_signals": ["neighborhood:Lakeview", "constraint:pre-game"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 86,
+      "query": "Andersonville restaurant",
+      "persona": "38yo local couple, mixed",
+      "category": "neighborhood",
+      "subcategory": "general_neighborhood",
+      "expected_signals": ["neighborhood:Andersonville"],
+      "difficulty": "easy",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 87,
+      "query": "Hyde Park lunch spot near UChicago",
+      "persona": "22yo UChicago grad student, male",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_near_landmark",
+      "expected_signals": ["neighborhood:Hyde Park"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 88,
+      "query": "something to eat in Old Town",
+      "persona": "29yo tourist, female",
+      "category": "neighborhood",
+      "subcategory": "general_neighborhood",
+      "expected_signals": ["neighborhood:Old Town"],
+      "difficulty": "easy",
+      "time_of_day": "any"
+    },
+    {
+      "id": 89,
+      "query": "Bucktown date night restaurant",
+      "persona": "33yo couple, mixed",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_occasion",
+      "expected_signals": ["neighborhood:Bucktown", "occasion:date night"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 90,
+      "query": "Gold Coast fancy dinner",
+      "persona": "50yo corporate couple, mixed",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_price",
+      "expected_signals": ["neighborhood:Gold Coast", "price:$$$$"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 91,
+      "query": "Pilsen Mexican food",
+      "persona": "40yo Mexican-American family, mixed",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_cuisine",
+      "expected_signals": ["neighborhood:Pilsen", "cuisine:Mexican"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 92,
+      "query": "late night eats in River North",
+      "persona": "25yo nightclub crowd, mixed",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_time",
+      "expected_signals": ["neighborhood:River North", "time:late_night"],
+      "difficulty": "medium",
+      "time_of_day": "late_night"
+    },
+    {
+      "id": 93,
+      "query": "Lincoln Park brunch",
+      "persona": "27yo sorority alumni, female",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_meal",
+      "expected_signals": ["neighborhood:Lincoln Park"],
+      "difficulty": "easy",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 94,
+      "query": "Ravenswood restaurant with craft beer",
+      "persona": "34yo craft beer enthusiast, male",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_feature",
+      "expected_signals": ["neighborhood:Ravenswood", "constraint:craft beer"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 95,
+      "query": "Fulton Market dinner",
+      "persona": "31yo foodie, female",
+      "category": "neighborhood",
+      "subcategory": "general_neighborhood",
+      "expected_signals": ["neighborhood:Fulton Market"],
+      "difficulty": "easy",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 96,
+      "query": "Lakeview brunch spot with bottomless mimosas",
+      "persona": "26yo brunch squad, mixed",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_feature",
+      "expected_signals": ["neighborhood:Lakeview", "constraint:bottomless mimosas"],
+      "difficulty": "hard",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 97,
+      "query": "South Loop restaurant near the museums",
+      "persona": "50yo retirees visiting museums, mixed",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_near_landmark",
+      "expected_signals": ["neighborhood:South Loop"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 98,
+      "query": "Bridgeport neighborhood restaurant",
+      "persona": "45yo Bridgeport local, male",
+      "category": "neighborhood",
+      "subcategory": "general_neighborhood",
+      "expected_signals": ["neighborhood:Bridgeport"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 99,
+      "query": "Streeterville restaurant near Navy Pier",
+      "persona": "35yo tourist family, mixed",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_near_landmark",
+      "expected_signals": ["neighborhood:Streeterville"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 100,
+      "query": "Edgewater restaurant on the lake",
+      "persona": "55yo couple, mixed",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_feature",
+      "expected_signals": ["neighborhood:Edgewater", "vibe:waterfront"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 101,
+      "query": "Uptown dive bars with food",
+      "persona": "28yo musician, male",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_vibe",
+      "expected_signals": ["neighborhood:Uptown", "vibe:dive bar"],
+      "difficulty": "hard",
+      "time_of_day": "late_night"
+    },
+    {
+      "id": 102,
+      "query": "Rogers Park cheap eats",
+      "persona": "20yo Loyola student, female",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_budget",
+      "expected_signals": ["neighborhood:Rogers Park", "price:$"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 103,
+      "query": "Ukrainian Village dinner with friends",
+      "persona": "30yo group of 6 friends, mixed",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_occasion",
+      "expected_signals": ["neighborhood:Ukrainian Village", "occasion:friends"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 104,
+      "query": "Lincoln Square German food",
+      "persona": "65yo German-American retiree, male",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_cuisine",
+      "expected_signals": ["neighborhood:Lincoln Square", "cuisine:German"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 105,
+      "query": "Albany Park Middle Eastern food",
+      "persona": "38yo Iraqi-American engineer, male",
+      "category": "neighborhood",
+      "subcategory": "neighborhood_cuisine",
+      "expected_signals": ["neighborhood:Albany Park", "cuisine:Middle Eastern"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 106,
+      "query": "BYOB Italian restaurant",
+      "persona": "34yo couple saving money, mixed",
+      "category": "constraint",
+      "subcategory": "byob",
+      "expected_signals": ["constraint:BYOB", "cuisine:Italian"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 107,
+      "query": "outdoor pet-friendly patio for brunch",
+      "persona": "29yo dog owner, female",
+      "category": "constraint",
+      "subcategory": "pet_friendly",
+      "expected_signals": ["constraint:pet-friendly", "constraint:outdoor", "constraint:patio"],
+      "difficulty": "medium",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 108,
+      "query": "gluten-free options for celiac disease",
+      "persona": "32yo celiac patient, female",
+      "category": "constraint",
+      "subcategory": "dietary",
+      "expected_signals": ["dietary:gluten-free"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 109,
+      "query": "wheelchair accessible fine dining",
+      "persona": "55yo wheelchair user, male",
+      "category": "constraint",
+      "subcategory": "accessibility",
+      "expected_signals": ["constraint:wheelchair accessible", "vibe:fine dining"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 110,
+      "query": "restaurant with valet parking",
+      "persona": "48yo suburban couple driving in, mixed",
+      "category": "constraint",
+      "subcategory": "parking",
+      "expected_signals": ["constraint:valet parking"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 111,
+      "query": "halal restaurant for family dinner",
+      "persona": "40yo Pakistani-American family, mixed",
+      "category": "constraint",
+      "subcategory": "dietary_religious",
+      "expected_signals": ["dietary:halal", "occasion:family dinner"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 112,
+      "query": "kosher restaurant in Skokie area",
+      "persona": "50yo Orthodox Jewish family, mixed",
+      "category": "constraint",
+      "subcategory": "dietary_religious",
+      "expected_signals": ["dietary:kosher"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 113,
+      "query": "vegan fine dining with tasting menu",
+      "persona": "28yo vegan activist, non-binary",
+      "category": "constraint",
+      "subcategory": "dietary_premium",
+      "expected_signals": ["dietary:vegan", "vibe:fine dining", "constraint:tasting menu"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 114,
+      "query": "vegetarian Indian food",
+      "persona": "35yo Hindu vegetarian, female",
+      "category": "constraint",
+      "subcategory": "dietary_cuisine",
+      "expected_signals": ["dietary:vegetarian", "cuisine:Indian"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 115,
+      "query": "restaurant with private dining room for 20 people",
+      "persona": "45yo corporate event planner, female",
+      "category": "constraint",
+      "subcategory": "group_size",
+      "expected_signals": ["constraint:private dining room", "constraint:large group"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 116,
+      "query": "kid menu and high chairs",
+      "persona": "33yo mom with toddler, female",
+      "category": "constraint",
+      "subcategory": "family_feature",
+      "expected_signals": ["constraint:kid menu", "constraint:high chairs"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 117,
+      "query": "dairy-free dessert options",
+      "persona": "25yo lactose intolerant, female",
+      "category": "constraint",
+      "subcategory": "dietary",
+      "expected_signals": ["dietary:dairy-free", "dish:dessert"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 118,
+      "query": "nut-free restaurant safe for allergies",
+      "persona": "38yo parent of allergic child, male",
+      "category": "constraint",
+      "subcategory": "dietary_allergy",
+      "expected_signals": ["dietary:nut-free"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 119,
+      "query": "open late on weeknights after 10pm",
+      "persona": "30yo night shift nurse, female",
+      "category": "constraint",
+      "subcategory": "hours",
+      "expected_signals": ["constraint:open late", "time:late_night"],
+      "difficulty": "medium",
+      "time_of_day": "late_night"
+    },
+    {
+      "id": 120,
+      "query": "walk-in friendly no reservations needed",
+      "persona": "27yo spontaneous diner, male",
+      "category": "constraint",
+      "subcategory": "reservation",
+      "expected_signals": ["constraint:walk-in", "constraint:no reservations"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 121,
+      "query": "restaurant with free parking lot",
+      "persona": "42yo suburban family, mixed",
+      "category": "constraint",
+      "subcategory": "parking",
+      "expected_signals": ["constraint:free parking"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 122,
+      "query": "restaurant open for breakfast at 6am",
+      "persona": "50yo early riser, male",
+      "category": "constraint",
+      "subcategory": "hours",
+      "expected_signals": ["constraint:early opening", "time:breakfast"],
+      "difficulty": "hard",
+      "time_of_day": "breakfast"
+    },
+    {
+      "id": 123,
+      "query": "credit cards not accepted cash only",
+      "persona": "22yo cash-only diner, male",
+      "category": "constraint",
+      "subcategory": "payment",
+      "expected_signals": ["constraint:cash only"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 124,
+      "query": "restaurant with live entertainment on Friday nights",
+      "persona": "35yo couple, mixed",
+      "category": "constraint",
+      "subcategory": "entertainment",
+      "expected_signals": ["constraint:live entertainment", "time:friday night"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 125,
+      "query": "catering for office party 50 people",
+      "persona": "40yo office manager, female",
+      "category": "constraint",
+      "subcategory": "service_type",
+      "expected_signals": ["constraint:catering", "constraint:large group"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 126,
+      "query": "best restaurant in Chicago right now",
+      "persona": "30yo visiting foodie from NYC, male",
+      "category": "reputation",
+      "subcategory": "overall_best",
+      "expected_signals": ["reputation:best", "reputation:top-rated"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 127,
+      "query": "Michelin starred restaurants under 100 per person",
+      "persona": "28yo young professional, female",
+      "category": "reputation",
+      "subcategory": "michelin_budget",
+      "expected_signals": ["reputation:Michelin", "price:$$-$$$"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 128,
+      "query": "hidden gem nobody talks about",
+      "persona": "35yo adventurous foodie, male",
+      "category": "reputation",
+      "subcategory": "hidden_gem",
+      "expected_signals": ["reputation:hidden gem", "reputation:underrated"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 129,
+      "query": "celebrity chef restaurant",
+      "persona": "45yo food TV enthusiast, female",
+      "category": "reputation",
+      "subcategory": "celebrity_chef",
+      "expected_signals": ["reputation:celebrity chef", "reputation:notable"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 130,
+      "query": "James Beard nominated restaurant",
+      "persona": "38yo food journalist, male",
+      "category": "reputation",
+      "subcategory": "awards",
+      "expected_signals": ["reputation:James Beard"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 131,
+      "query": "most instagrammable restaurant in Chicago",
+      "persona": "22yo social media influencer, female",
+      "category": "reputation",
+      "subcategory": "social_media",
+      "expected_signals": ["reputation:instagrammable", "vibe:aesthetic"],
+      "difficulty": "hard",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 132,
+      "query": "best new restaurant that just opened",
+      "persona": "30yo trend-chaser, non-binary",
+      "category": "reputation",
+      "subcategory": "new_opening",
+      "expected_signals": ["reputation:new", "reputation:best"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 133,
+      "query": "where do Chicago chefs eat on their day off",
+      "persona": "25yo culinary school student, male",
+      "category": "reputation",
+      "subcategory": "industry_pick",
+      "expected_signals": ["reputation:chef favorite", "reputation:industry"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 134,
+      "query": "iconic Chicago restaurant everyone should try",
+      "persona": "55yo lifelong Chicagoan, female",
+      "category": "reputation",
+      "subcategory": "iconic",
+      "expected_signals": ["reputation:iconic", "reputation:classic"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 135,
+      "query": "most romantic restaurant for proposal",
+      "persona": "32yo man planning proposal, male",
+      "category": "reputation",
+      "subcategory": "occasion_best",
+      "expected_signals": ["reputation:most romantic", "occasion:proposal"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 136,
+      "query": "best cheap eats in Chicago",
+      "persona": "21yo broke college student, male",
+      "category": "reputation",
+      "subcategory": "best_budget",
+      "expected_signals": ["reputation:best", "price:$"],
+      "difficulty": "medium",
+      "time_of_day": "any"
+    },
+    {
+      "id": 137,
+      "query": "restaurant with longest wait on weekends",
+      "persona": "28yo willing to wait for quality, female",
+      "category": "reputation",
+      "subcategory": "popularity",
+      "expected_signals": ["reputation:popular", "reputation:waitlist"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 138,
+      "query": "place that Anthony Bourdain visited",
+      "persona": "40yo Bourdain fan, male",
+      "category": "reputation",
+      "subcategory": "media_mention",
+      "expected_signals": ["reputation:Anthony Bourdain", "reputation:featured"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 139,
+      "query": "best sushi in Chicago period",
+      "persona": "35yo sushi connoisseur, female",
+      "category": "reputation",
+      "subcategory": "best_cuisine_type",
+      "expected_signals": ["reputation:best", "cuisine:Japanese", "dish:sushi"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 140,
+      "query": "oldest restaurant in Chicago still open",
+      "persona": "60yo history buff, male",
+      "category": "reputation",
+      "subcategory": "historic",
+      "expected_signals": ["reputation:oldest", "reputation:historic"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 141,
+      "query": "Chicago magazine best of list restaurant",
+      "persona": "42yo suburban couple checking lists, mixed",
+      "category": "reputation",
+      "subcategory": "media_list",
+      "expected_signals": ["reputation:best of", "reputation:media"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 142,
+      "query": "food critic favorite that isn't overpriced",
+      "persona": "33yo budget-conscious foodie, male",
+      "category": "reputation",
+      "subcategory": "critic_pick_value",
+      "expected_signals": ["reputation:critic favorite", "price:$$"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 143,
+      "query": "best first date restaurant not too expensive",
+      "persona": "26yo nervous first date, male",
+      "category": "reputation",
+      "subcategory": "occasion_best",
+      "expected_signals": ["reputation:best", "occasion:date night", "price:$$"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 144,
+      "query": "Eater 38 or Chicago Tribune recommended",
+      "persona": "29yo food media follower, female",
+      "category": "reputation",
+      "subcategory": "media_list",
+      "expected_signals": ["reputation:Eater", "reputation:media recommended"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 145,
+      "query": "restaurant with the best view of the skyline",
+      "persona": "50yo tourist from London, male",
+      "category": "reputation",
+      "subcategory": "feature_best",
+      "expected_signals": ["reputation:best view", "vibe:skyline"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 146,
+      "query": "quiet BYOB Italian near Lincoln Park for our anniversary",
+      "persona": "38yo Italian-American couple, mixed",
+      "category": "compound",
+      "subcategory": "cuisine_constraint_neighborhood_occasion",
+      "expected_signals": ["vibe:quiet", "constraint:BYOB", "cuisine:Italian", "neighborhood:Lincoln Park", "occasion:anniversary"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 147,
+      "query": "late night Korean BBQ with group of 8 in Lincoln Park",
+      "persona": "25yo Korean-American friend group, mixed",
+      "category": "compound",
+      "subcategory": "cuisine_time_group_neighborhood",
+      "expected_signals": ["cuisine:Korean", "time:late_night", "constraint:large group", "neighborhood:Lincoln Park"],
+      "difficulty": "hard",
+      "time_of_day": "late_night"
+    },
+    {
+      "id": 148,
+      "query": "family-friendly Mexican restaurant with outdoor seating in Pilsen",
+      "persona": "36yo Mexican-American family, mixed",
+      "category": "compound",
+      "subcategory": "vibe_cuisine_constraint_neighborhood",
+      "expected_signals": ["vibe:family-friendly", "cuisine:Mexican", "constraint:outdoor seating", "neighborhood:Pilsen"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 149,
+      "query": "romantic Italian dinner with wine for under 100 per person in West Loop",
+      "persona": "32yo young professional couple, mixed",
+      "category": "compound",
+      "subcategory": "vibe_cuisine_price_neighborhood",
+      "expected_signals": ["vibe:romantic", "cuisine:Italian", "constraint:wine", "price:$$-$$$", "neighborhood:West Loop"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 150,
+      "query": "vegetarian sushi spot near Wicker Park that takes walk-ins",
+      "persona": "27yo vegetarian, female",
+      "category": "compound",
+      "subcategory": "dietary_cuisine_neighborhood_constraint",
+      "expected_signals": ["dietary:vegetarian", "cuisine:Japanese", "neighborhood:Wicker Park", "constraint:walk-in"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 151,
+      "query": "upscale steakhouse with private dining for business dinner downtown",
+      "persona": "50yo corporate VP, male",
+      "category": "compound",
+      "subcategory": "vibe_cuisine_constraint_neighborhood",
+      "expected_signals": ["vibe:upscale", "cuisine:Steakhouse", "constraint:private dining", "occasion:business", "neighborhood:Loop"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 152,
+      "query": "cheap Indian food delivery near Devon that is halal",
+      "persona": "23yo Indian-American student, male",
+      "category": "compound",
+      "subcategory": "price_cuisine_delivery_neighborhood_dietary",
+      "expected_signals": ["price:$", "cuisine:Indian", "constraint:delivery", "neighborhood:Devon", "dietary:halal"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 153,
+      "query": "brunch with outdoor seating dog friendly in Lincoln Park",
+      "persona": "30yo dog owner couple, mixed",
+      "category": "compound",
+      "subcategory": "meal_constraint_neighborhood",
+      "expected_signals": ["time:brunch", "constraint:outdoor seating", "constraint:dog-friendly", "neighborhood:Lincoln Park"],
+      "difficulty": "hard",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 154,
+      "query": "gluten free pizza that actually tastes good with valet parking",
+      "persona": "40yo celiac patient, female",
+      "category": "compound",
+      "subcategory": "dietary_dish_constraint",
+      "expected_signals": ["dietary:gluten-free", "dish:pizza", "constraint:valet parking"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 155,
+      "query": "birthday dinner for 12 people with prix fixe menu and cocktails",
+      "persona": "30yo birthday girl planning party, female",
+      "category": "compound",
+      "subcategory": "occasion_group_menu_drinks",
+      "expected_signals": ["occasion:birthday", "constraint:large group", "constraint:prix fixe", "vibe:cocktails"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 156,
+      "query": "spicy Thai food BYOB near Lakeview open past midnight",
+      "persona": "28yo Thai food lover, male",
+      "category": "compound",
+      "subcategory": "cuisine_constraint_neighborhood_time",
+      "expected_signals": ["cuisine:Thai", "constraint:BYOB", "neighborhood:Lakeview", "time:late_night"],
+      "difficulty": "hard",
+      "time_of_day": "late_night"
+    },
+    {
+      "id": 157,
+      "query": "first date wine bar small plates not too loud near downtown",
+      "persona": "25yo nervous first dater, female",
+      "category": "compound",
+      "subcategory": "occasion_vibe_cuisine_neighborhood",
+      "expected_signals": ["occasion:date night", "vibe:wine bar", "dish:small plates", "vibe:not loud", "neighborhood:downtown"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 158,
+      "query": "Sunday brunch bottomless mimosas near the lake with parking",
+      "persona": "32yo brunch group, mixed",
+      "category": "compound",
+      "subcategory": "meal_drink_location_constraint",
+      "expected_signals": ["time:brunch", "constraint:bottomless mimosas", "vibe:waterfront", "constraint:parking"],
+      "difficulty": "hard",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 159,
+      "query": "mom wants Italian dad wants steakhouse somewhere in between",
+      "persona": "18yo teenager mediating parents, non-binary",
+      "category": "compound",
+      "subcategory": "multi_preference",
+      "expected_signals": ["cuisine:Italian", "cuisine:Steakhouse"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 160,
+      "query": "graduation dinner for 6 not too expensive with good cocktails in River North",
+      "persona": "22yo new grad, female",
+      "category": "compound",
+      "subcategory": "occasion_group_price_drinks_neighborhood",
+      "expected_signals": ["occasion:graduation", "constraint:medium group", "price:$$-$$$", "vibe:cocktails", "neighborhood:River North"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 161,
+      "query": "bachelor party dinner loud fun good steaks in River North",
+      "persona": "29yo best man planning, male",
+      "category": "compound",
+      "subcategory": "occasion_vibe_cuisine_neighborhood",
+      "expected_signals": ["occasion:bachelor party", "vibe:loud", "vibe:fun", "cuisine:Steakhouse", "neighborhood:River North"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 162,
+      "query": "quick healthy lunch near the Loop under 15 dollars",
+      "persona": "28yo office worker, female",
+      "category": "compound",
+      "subcategory": "speed_health_neighborhood_price",
+      "expected_signals": ["constraint:quick", "dietary:healthy", "neighborhood:Loop", "price:$"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 163,
+      "query": "date night tasting menu with wine pairing under 200 total",
+      "persona": "35yo couple splurging, mixed",
+      "category": "compound",
+      "subcategory": "occasion_menu_drinks_price",
+      "expected_signals": ["occasion:date night", "constraint:tasting menu", "constraint:wine pairing", "price:$$$"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 164,
+      "query": "kid friendly restaurant with vegan options and outdoor seating in Wicker Park",
+      "persona": "34yo vegan mom, female",
+      "category": "compound",
+      "subcategory": "vibe_dietary_constraint_neighborhood",
+      "expected_signals": ["vibe:kid-friendly", "dietary:vegan", "constraint:outdoor seating", "neighborhood:Wicker Park"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 165,
+      "query": "after work happy hour craft cocktails small bites near Fulton Market",
+      "persona": "29yo tech worker, male",
+      "category": "compound",
+      "subcategory": "time_drinks_food_neighborhood",
+      "expected_signals": ["time:happy hour", "vibe:cocktails", "dish:small plates", "neighborhood:Fulton Market"],
+      "difficulty": "hard",
+      "time_of_day": "happy_hour"
+    },
+    {
+      "id": 166,
+      "query": "Michelin restaurant that won't break the bank with vegetarian options",
+      "persona": "30yo vegetarian foodie, female",
+      "category": "compound",
+      "subcategory": "reputation_price_dietary",
+      "expected_signals": ["reputation:Michelin", "price:$$", "dietary:vegetarian"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 167,
+      "query": "solo dining counter seat omakase experience",
+      "persona": "40yo solo traveling businessman, male",
+      "category": "compound",
+      "subcategory": "occasion_constraint_dish",
+      "expected_signals": ["occasion:solo", "constraint:counter seat", "dish:omakase"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 168,
+      "query": "bachelorette dinner Instagram worthy cocktails in Gold Coast",
+      "persona": "27yo maid of honor, female",
+      "category": "compound",
+      "subcategory": "occasion_aesthetic_drinks_neighborhood",
+      "expected_signals": ["occasion:bachelorette", "vibe:instagrammable", "vibe:cocktails", "neighborhood:Gold Coast"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 169,
+      "query": "early bird dinner special for seniors near Skokie",
+      "persona": "72yo retired couple, mixed",
+      "category": "compound",
+      "subcategory": "time_price_demographic_neighborhood",
+      "expected_signals": ["time:early dinner", "price:$$", "constraint:early bird special"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 170,
+      "query": "work lunch with client impressive but not over the top Loop area",
+      "persona": "35yo lawyer, female",
+      "category": "compound",
+      "subcategory": "occasion_vibe_neighborhood",
+      "expected_signals": ["occasion:business lunch", "vibe:impressive", "price:$$-$$$", "neighborhood:Loop"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 171,
+      "query": "sushi",
+      "persona": "any",
+      "category": "edge_case",
+      "subcategory": "single_word",
+      "expected_signals": ["cuisine:Japanese", "dish:sushi"],
+      "difficulty": "easy",
+      "time_of_day": "any"
+    },
+    {
+      "id": 172,
+      "query": "pizza",
+      "persona": "any",
+      "category": "edge_case",
+      "subcategory": "single_word",
+      "expected_signals": ["dish:pizza"],
+      "difficulty": "easy",
+      "time_of_day": "any"
+    },
+    {
+      "id": 173,
+      "query": "tacos",
+      "persona": "any",
+      "category": "edge_case",
+      "subcategory": "single_word",
+      "expected_signals": ["dish:tacos", "cuisine:Mexican"],
+      "difficulty": "easy",
+      "time_of_day": "any"
+    },
+    {
+      "id": 174,
+      "query": "hungry",
+      "persona": "any",
+      "category": "edge_case",
+      "subcategory": "vague",
+      "expected_signals": [],
+      "difficulty": "hard",
+      "time_of_day": "any"
+    },
+    {
+      "id": 175,
+      "query": "restraunt near me",
+      "persona": "any",
+      "category": "edge_case",
+      "subcategory": "misspelling",
+      "expected_signals": [],
+      "difficulty": "medium",
+      "time_of_day": "any"
+    },
+    {
+      "id": 176,
+      "query": "fire tacos no cap",
+      "persona": "18yo Gen Z student, male",
+      "category": "edge_case",
+      "subcategory": "slang",
+      "expected_signals": ["dish:tacos", "reputation:best"],
+      "difficulty": "hard",
+      "time_of_day": "any"
+    },
+    {
+      "id": 177,
+      "query": "something good idk",
+      "persona": "any",
+      "category": "edge_case",
+      "subcategory": "vague",
+      "expected_signals": [],
+      "difficulty": "hard",
+      "time_of_day": "any"
+    },
+    {
+      "id": 178,
+      "query": "I want to eat something really really really good tonight like the best food I have ever had in my entire life and I want it to be in a beautiful restaurant with amazing service and not too expensive but also not cheap and preferably Italian or maybe Japanese or actually anything that is really delicious",
+      "persona": "any",
+      "category": "edge_case",
+      "subcategory": "very_long_query",
+      "expected_signals": ["cuisine:Italian", "cuisine:Japanese", "vibe:beautiful", "reputation:best"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 179,
+      "query": "food",
+      "persona": "any",
+      "category": "edge_case",
+      "subcategory": "minimal",
+      "expected_signals": [],
+      "difficulty": "hard",
+      "time_of_day": "any"
+    },
+    {
+      "id": 180,
+      "query": "the place with the thing from tiktok",
+      "persona": "19yo Gen Z, female",
+      "category": "edge_case",
+      "subcategory": "vague_social_media",
+      "expected_signals": [],
+      "difficulty": "hard",
+      "time_of_day": "any"
+    },
+    {
+      "id": 181,
+      "query": "NOT italian NOT chinese NOT mexican",
+      "persona": "any",
+      "category": "edge_case",
+      "subcategory": "exclusion",
+      "expected_signals": [],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 182,
+      "query": "somewhere my picky 5 year old will eat at",
+      "persona": "32yo exhausted parent, female",
+      "category": "edge_case",
+      "subcategory": "natural_language",
+      "expected_signals": ["vibe:kid-friendly", "constraint:kid menu"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 183,
+      "query": "where should I propose",
+      "persona": "31yo nervous boyfriend, male",
+      "category": "edge_case",
+      "subcategory": "question_format",
+      "expected_signals": ["vibe:romantic", "occasion:proposal"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 184,
+      "query": "show me what you got",
+      "persona": "any",
+      "category": "edge_case",
+      "subcategory": "challenge",
+      "expected_signals": [],
+      "difficulty": "hard",
+      "time_of_day": "any"
+    },
+    {
+      "id": 185,
+      "query": "my wife is mad at me I need somewhere amazing",
+      "persona": "40yo husband in trouble, male",
+      "category": "edge_case",
+      "subcategory": "emotional_context",
+      "expected_signals": ["vibe:romantic", "reputation:amazing", "vibe:upscale"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 186,
+      "query": "patio season dinner spot",
+      "persona": "29yo summer lover, female",
+      "category": "seasonal",
+      "subcategory": "patio_season",
+      "expected_signals": ["vibe:patio", "constraint:outdoor seating"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 187,
+      "query": "Restaurant Week prix fixe deals",
+      "persona": "35yo deal-seeker, male",
+      "category": "seasonal",
+      "subcategory": "restaurant_week",
+      "expected_signals": ["constraint:prix fixe", "constraint:deal"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 188,
+      "query": "pre-Cubs game food near Wrigley",
+      "persona": "42yo Cubs fan, male",
+      "category": "seasonal",
+      "subcategory": "pre_game",
+      "expected_signals": ["neighborhood:Lakeview", "constraint:quick", "time:pre-game"],
+      "difficulty": "medium",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 189,
+      "query": "New Year's Eve dinner special",
+      "persona": "33yo couple celebrating, mixed",
+      "category": "seasonal",
+      "subcategory": "holiday",
+      "expected_signals": ["occasion:New Year's Eve", "constraint:special"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 190,
+      "query": "Valentine's Day romantic dinner reservation",
+      "persona": "30yo man planning surprise, male",
+      "category": "seasonal",
+      "subcategory": "holiday",
+      "expected_signals": ["occasion:Valentine's Day", "vibe:romantic", "constraint:reservation"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 191,
+      "query": "Thanksgiving dinner restaurant not cooking this year",
+      "persona": "48yo hosting-averse parent, female",
+      "category": "seasonal",
+      "subcategory": "holiday",
+      "expected_signals": ["occasion:Thanksgiving", "dish:Thanksgiving dinner"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 192,
+      "query": "outdoor heated patio for winter dinner",
+      "persona": "35yo winter diner, male",
+      "category": "seasonal",
+      "subcategory": "winter_outdoor",
+      "expected_signals": ["constraint:outdoor seating", "constraint:heated patio"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 193,
+      "query": "summer rooftop bar drinks and appetizers",
+      "persona": "27yo summer crowd, mixed",
+      "category": "seasonal",
+      "subcategory": "summer_rooftop",
+      "expected_signals": ["vibe:rooftop", "vibe:bar", "dish:appetizers"],
+      "difficulty": "medium",
+      "time_of_day": "happy_hour"
+    },
+    {
+      "id": 194,
+      "query": "Mother's Day brunch that takes reservations",
+      "persona": "30yo son planning, male",
+      "category": "seasonal",
+      "subcategory": "holiday",
+      "expected_signals": ["occasion:Mother's Day", "time:brunch", "constraint:reservation"],
+      "difficulty": "hard",
+      "time_of_day": "brunch"
+    },
+    {
+      "id": 195,
+      "query": "after the marathon food near Grant Park",
+      "persona": "28yo marathon runner, female",
+      "category": "seasonal",
+      "subcategory": "event",
+      "expected_signals": ["neighborhood:South Loop", "constraint:carb-heavy"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 196,
+      "query": "Ethiopian food with injera",
+      "persona": "30yo Ethiopian-American nurse, female",
+      "category": "underserved_cuisine",
+      "subcategory": "ethiopian",
+      "expected_signals": ["cuisine:Ethiopian", "dish:injera"],
+      "difficulty": "medium",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 197,
+      "query": "Senegalese restaurant",
+      "persona": "35yo Senegalese-American teacher, male",
+      "category": "underserved_cuisine",
+      "subcategory": "senegalese",
+      "expected_signals": ["cuisine:Senegalese", "cuisine:West African"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 198,
+      "query": "Peruvian lomo saltado or ceviche",
+      "persona": "28yo Peruvian-American, female",
+      "category": "underserved_cuisine",
+      "subcategory": "peruvian",
+      "expected_signals": ["cuisine:Peruvian", "dish:lomo saltado", "dish:ceviche"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 199,
+      "query": "Filipino food adobo or sisig",
+      "persona": "25yo Filipino-American student, male",
+      "category": "underserved_cuisine",
+      "subcategory": "filipino",
+      "expected_signals": ["cuisine:Filipino", "dish:adobo", "dish:sisig"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 200,
+      "query": "Georgian khachapuri and khinkali",
+      "persona": "32yo Georgian-American, female",
+      "category": "underserved_cuisine",
+      "subcategory": "georgian",
+      "expected_signals": ["cuisine:Georgian", "dish:khachapuri", "dish:khinkali"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 201,
+      "query": "Uzbek plov and lagman",
+      "persona": "40yo Uzbek-American, male",
+      "category": "underserved_cuisine",
+      "subcategory": "uzbek",
+      "expected_signals": ["cuisine:Uzbek", "dish:plov", "dish:lagman"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 202,
+      "query": "Eritrean restaurant",
+      "persona": "33yo Eritrean-American, male",
+      "category": "underserved_cuisine",
+      "subcategory": "eritrean",
+      "expected_signals": ["cuisine:Eritrean", "cuisine:East African"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 203,
+      "query": "Nigerian jollof rice",
+      "persona": "27yo Nigerian-American, female",
+      "category": "underserved_cuisine",
+      "subcategory": "nigerian",
+      "expected_signals": ["cuisine:Nigerian", "dish:jollof rice"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 204,
+      "query": "Haitian griot and plantains",
+      "persona": "35yo Haitian-American, male",
+      "category": "underserved_cuisine",
+      "subcategory": "haitian",
+      "expected_signals": ["cuisine:Haitian", "dish:griot"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 205,
+      "query": "Tibetan momos",
+      "persona": "29yo Tibetan-American, female",
+      "category": "underserved_cuisine",
+      "subcategory": "tibetan",
+      "expected_signals": ["cuisine:Tibetan", "dish:momos"],
+      "difficulty": "hard",
+      "time_of_day": "lunch"
+    },
+    {
+      "id": 206,
+      "query": "Somali food",
+      "persona": "38yo Somali-American, male",
+      "category": "underserved_cuisine",
+      "subcategory": "somali",
+      "expected_signals": ["cuisine:Somali", "cuisine:East African"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 207,
+      "query": "Nepalese momo and dal bhat",
+      "persona": "26yo Nepalese-American student, female",
+      "category": "underserved_cuisine",
+      "subcategory": "nepalese",
+      "expected_signals": ["cuisine:Nepalese", "dish:momo", "dish:dal bhat"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 208,
+      "query": "Sri Lankan kottu roti",
+      "persona": "30yo Sri Lankan-American, male",
+      "category": "underserved_cuisine",
+      "subcategory": "sri_lankan",
+      "expected_signals": ["cuisine:Sri Lankan", "dish:kottu roti"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 209,
+      "query": "Guyanese food roti and curry",
+      "persona": "34yo Guyanese-American, female",
+      "category": "underserved_cuisine",
+      "subcategory": "guyanese",
+      "expected_signals": ["cuisine:Guyanese", "dish:roti"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    },
+    {
+      "id": 210,
+      "query": "Trinidadian doubles and pelau",
+      "persona": "28yo Trinidadian-American, male",
+      "category": "underserved_cuisine",
+      "subcategory": "trinidadian",
+      "expected_signals": ["cuisine:Trinidadian", "dish:doubles", "dish:pelau"],
+      "difficulty": "hard",
+      "time_of_day": "dinner"
+    }
+  ]
 }
