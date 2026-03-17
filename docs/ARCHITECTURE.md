@@ -8,15 +8,15 @@ Last updated: 2026-03-17
 |-------|-----------|
 | API | Supabase Edge Function (Deno/TS), V11 scoring engine (V19+ tuning) |
 | AI | Claude Haiku 4.5 (recommendations, enrichment, intent classification) |
-| ML | Linear/XGBoost scoring adjustment, A/B testing (50/50 split), `ml-adjustment.ts` |
-| DB | Supabase PostgreSQL (21 tables, 73 migrations, pgvector extension) |
+| ML | Linear/XGBoost scoring + targeted boost + per-factor models, A/B testing (50/50), `ml-adjustment.ts` |
+| DB | Supabase PostgreSQL (21 tables, 74 migrations, pgvector extension) |
 | Cache | DondeCache — persistent 3-level fuzzy query cache (exact/fingerprint/canonical) |
 | Vectors | pgvector HNSW indexes on `restaurant_embeddings` + `query_embeddings` (384-dim) |
 | Data | Google Places API (live fetch per request; only `google_place_id` stored per ToS §3.2.3) |
 | Reservations | Resy + OpenTable deep links via `restaurant_reservations` table |
 | Pipelines | Node.js 20 + tsx scripts (35 pipelines), GitHub Actions cron |
-| ML Training | `scripts/ml/` — Python XGBoost + TS inference, 1,050 training pairs |
-| CI/CD | 16 GitHub Actions workflows |
+| ML Training | `scripts/ml/` — 21 files: Python XGBoost + TS inference, 1,050 training pairs, per-factor models |
+| CI/CD | 17 GitHub Actions workflows |
 
 ## File Tree
 
@@ -24,10 +24,10 @@ Last updated: 2026-03-17
 supabase/
   functions/recommend/
     index.ts                      # V11 entry point (filenames retained from V9)
-    _shared/                      # 19 TS modules + 1 JSON model
+    _shared/                      # 19 TS modules + 3 JSON data files
       types.ts                    # Core types (RestaurantProfile, DeepProfile, etc.)
       types-v9.ts                 # V11 types (V9Candidate, V9ScoreResult, V9ScoredCandidate, MatchNarrative, etc.)
-      scoring-v9.ts               # V11 scoring engine + MMR diversity + score decompression
+      scoring-v9.ts               # V11 scoring engine + MMR diversity + score decompression + factor improvements
       response-builder-v9.ts      # V11 response builder (scoring_v9, ranked_queue, match_narrative)
       intent-classifier-v5.ts     # Deterministic (~80%) + Claude fallback (~15%), semantic tags
       prompts-v5.ts               # Claude system/user prompt templates (5 literary voices, 9 occasions, 5 tone tiers)
@@ -35,8 +35,10 @@ supabase/
       grading.ts                  # Score fit + blurb quality grading (mirrors cc-grading.js)
       query-cache.ts              # DondeCache — 3-level persistent cache (exact/fingerprint/canonical)
       circuit-breaker.ts          # 3-state circuit breaker for Claude API (CLOSED/OPEN/HALF_OPEN)
-      ml-adjustment.ts            # ML scoring layer — 22-feature extraction + linear/tree inference + A/B
+      ml-adjustment.ts            # ML scoring layer — 22-feature extraction + linear/tree + targeted boost + A/B
       ml-model.json               # Pre-trained ML model weights (linear v1.0)
+      boost-table.json            # Targeted boost table — teacher-validated per-query restaurant boosts
+      factor-models.json          # Per-factor linear adjustment models (5 factors, deployed not yet wired)
       post-filters.ts             # Post-scoring neighborhood + price filters with graceful expansion
       reservation-links.ts        # Resy + OpenTable deep link builder (Project Foxtrot)
       intent-classifier.ts        # V4 intent types (reused by V5 classifier)
@@ -51,13 +53,21 @@ scripts/
   lib/                            # 6 shared pipeline libraries
     config.ts, claude.ts, google-places.ts, supabase.ts, batch.ts, types.ts
   pipelines/                      # 35 pipeline scripts (see API-WORKFLOWS.md)
-  ml/                             # 17 ML training files (Python + TS + JSON datasets)
+  ml/                             # 21 ML training files (Python + TS + JSON datasets)
     train-model.py                # XGBoost LambdaMART + GroupKFold
     train-simple.py               # Zero-dep linear fallback
+    train-factor-models.py        # Per-factor linear model trainer (5 factors)
     merge-training-data.py        # Feature merging + dedup
-    harvest-training-data.sh      # $0 training data harvester via CLI agents
-    model.json                    # Trained model output
-    training-data*.json           # 1,050 Opus-ranked training pairs (4 batches)
+    distill-prepare.sh            # $0 training data harvester via CLI agents
+    extract-features.sh           # Feature extraction from live API
+    distill-train.ts              # TS-based training orchestrator
+    xgboost-inference.ts          # TS XGBoost inference implementation
+    training-data*.json           # 1,050 Opus-ranked training pairs (4 batches, 210 queries)
+    factor-training-data.json     # 2,127 gauntlet results for per-factor training
+    factor-models.json            # Trained per-factor model output
+    features-dataset.json         # 2,315 feature extraction records
+    merged-training-data.json     # Merged training dataset (4,160 records)
+    ml-trace-report.json          # ML simulation trace report
   run-reservation-enrichment.sh   # Combined OpenTable + Resy pipeline runner
   package.json
 
@@ -71,9 +81,9 @@ tests/
   uat-targeted-test.sh            # 30-case targeted UAT test suite
   TEST-FULL.md                    # 170-scenario agent-driven test spec
   GOLDEN_DATASET_RESULTS.md       # Latest golden dataset results
-  generated-queries.json          # 210 persona-driven test queries
+  generated-queries.json          # 210 persona-driven test queries (targeting 1000)
 
-.github/workflows/                # 16 CI/CD workflows
+.github/workflows/                # 17 CI/CD workflows
 
 .devcontainer/
   devcontainer.json               # Codespace config (Node 20, port forwarding)
@@ -92,7 +102,10 @@ tests/
 | `grading.ts` | Server-side score fit + blurb quality grading (mirrors cc-grading.js) | **Active** |
 | `query-cache.ts` | DondeCache — 3-level persistent cache with fuzzy matching + quality gate | **Active** |
 | `circuit-breaker.ts` | 3-state circuit breaker for Claude API calls (CLOSED/OPEN/HALF_OPEN, 60s cooldown) | **Active** |
-| `ml-adjustment.ts` | ML scoring layer — 22-feature extraction, linear/tree inference, A/B testing (50/50) | **Active** |
+| `ml-adjustment.ts` | ML scoring layer — 22-feature extraction, linear/tree inference, targeted boost, A/B testing (50/50) | **Active** |
+| `ml-model.json` | Pre-trained linear model weights | **Active (data)** |
+| `boost-table.json` | Targeted boost table — teacher-validated per-query restaurant boosts | **Active (data)** |
+| `factor-models.json` | Per-factor linear adjustment models (5 factors, deployed not yet wired) | **Staged (data)** |
 | `post-filters.ts` | Post-scoring neighborhood + price filters with 3-phase graceful expansion | **Active** |
 | `reservation-links.ts` | Resy + OpenTable deep link builder + Resy availability check | **Active** |
 | All V3-V8 modules | Archived to `_archive/pre-v9/` | **Archived** |
@@ -125,6 +138,7 @@ tests/
 | `auto-migrate.yml` | On push (when `supabase/migrations/**` changes) | Auto-applies new migrations to Supabase |
 | `maintenance-worker.yml` | Every 5 min | Polls `maintenance_requests` table, executes pipeline operations |
 | `cache-warmer.yml` | Daily midnight Chicago (06:00 UTC) + manual dispatch | DondeCache pre-warming: mine queries → invalidate stale → warm cache |
+| `reservation-enrichment.yml` | Monthly + manual dispatch | Reservation deep link enrichment (OpenTable + Resy, $0) |
 
 ## Google API Compliance
 

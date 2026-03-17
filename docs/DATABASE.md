@@ -379,7 +379,7 @@ get_ranked_restaurants(
 
 ## Migrations
 
-73 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-17). Applied via `supabase db push` or Dashboard SQL Editor.
+74 SQL files in `supabase/migrations/` (2026-02-18 to 2026-03-17). Applied via `supabase db push` or Dashboard SQL Editor.
 
 Recent additions (2026-03-15 to 2026-03-17):
 - `20260315000001` — `user_taste_profiles` table + `compute_taste_profile` RPC (Learning Flywheel)
@@ -393,5 +393,6 @@ Recent additions (2026-03-15 to 2026-03-17):
 - `20260316100004` — Fix 29 NULL cuisine_type restaurants
 - `20260316100005` — Merge alcohol_type from byob_policy
 - `20260316200001` — pgvector extension + `restaurant_embeddings` + `query_embeddings` + `semantic_candidates` RPC
+- `20260317000001` — Fix `semantic_candidates` RPC: neighborhood_name -> neighborhoods JOIN
 
 Earlier: DondeCache (20260314), cuisine taxonomy fixes (4), deep audit fixes (6), gauntlet grading, maintenance requests, RLS hardening.

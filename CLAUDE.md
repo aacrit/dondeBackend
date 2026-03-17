@@ -4,7 +4,7 @@ Last updated: 2026-03-17
 
 > **Read this file first, then `docs/*.md` only as needed. Only open source files when modifying code.**
 
-AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines + ML scoring layer. ~2,720 restaurants (active), 2,719+ with deep profiles, 2,712 with review intelligence. 33 neighborhoods, 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification. 73 migrations, 16 CI/CD workflows, 35 pipeline scripts, 17 ML training files. DondeCache persistent query cache with multi-level fuzzy matching. pgvector semantic retrieval. Circuit breaker for Claude API resilience. MMR diversity re-ranking. Shadow personalization (Learning Flywheel Phase 1). Post-scoring neighborhood + price filters. Score decompression. ML A/B testing (50/50 split). Reservation deep links (Resy + OpenTable). Codespace dev container with Claude Code + Supabase CLI.
+AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines + ML scoring layer. ~2,720 restaurants (active), 2,719+ with deep profiles, 2,712 with review intelligence. 33 neighborhoods, 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification. 74 migrations, 17 CI/CD workflows, 35 pipeline scripts, 21 ML training files. DondeCache persistent query cache with multi-level fuzzy matching. pgvector semantic retrieval. Circuit breaker for Claude API resilience. MMR diversity re-ranking. Shadow personalization (Learning Flywheel Phase 1). Post-scoring neighborhood + price filters. Score decompression. ML scoring with targeted boost + per-factor models. Reservation deep links (Resy + OpenTable). Codespace dev container with Claude Code + Supabase CLI.
 
 ## Documentation Index
 
@@ -20,7 +20,7 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `docs/COO-EXECUTIVE-REPORT.md` | COO operational report — scorecard, strategic assessment, 90-day plan, risk register |
 | `docs/TEAM-OPERATIONS.md` | Operations & CI team — hierarchy, communication protocol, workflows, 6 project proposals |
 | `docs/CEO-QUICK-REFERENCE.md` | CEO guide — one-command operations, report reading, decision framework, agent roster |
-| `docs/PROJECT-FOXTROT-RESERVATION-INTEGRATION.md` | Project Foxtrot — $0 reservation integration via deep links (Resy, OpenTable, Tock, Yelp) |
+| `docs/PROJECT-FOXTROT-RESERVATION-INTEGRATION.md` | Project Foxtrot — $0 reservation integration via deep links (Resy, OpenTable) |
 | `docs/future-features/ROADMAP.md` | Feature roadmap and future plans |
 | `docs/future-features/LEARNING-FLYWHEEL.md` | Learning Flywheel multi-phase plan |
 | `_archive/VERSION-HISTORY.md` | Pre-V9 scoring evolution, V8 optimization, historical test results, case studies |
@@ -42,7 +42,7 @@ AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS
 | `donde-premium-advisor` | Product | Premium app audit ($50B caliber assessment) | Manual |
 | `donde-ciso` | Security | Security audit across 10 domains — severity-ranked findings | Manual or auto on security changes |
 | `uat-tester` | Frontend | UAT browser testing via Playwright — bugs, UX, accessibility | Manual |
-| `reservation-integration-specialist` | Integrations | Reservation platform APIs (Resy, OpenTable, Tock, Yelp) — $0 deep links, affiliates | Manual, Project Foxtrot |
+| `reservation-integration-specialist` | Integrations | Reservation platform APIs (Resy, OpenTable) — $0 deep links, affiliates | Manual, Project Foxtrot |
 | `payments-ordering-specialist` | Integrations | Ordering/delivery/payment APIs (Toast, DoorDash, UberEats, Square) — $0 integration paths | Manual |
 | `maps-location-specialist` | Integrations | Mapping/location APIs (Google Maps, Mapbox, Apple Maps, Foursquare) — cost optimization | Manual |
 | `social-reviews-specialist` | Integrations | Social/review APIs (Yelp Fusion, Instagram, TikTok, Reddit) — trending detection, social proof | Manual |
@@ -105,7 +105,7 @@ CEO (Aacrit)
 | `tests/v10-scoring-benchmark.sh` | V10 scoring baseline benchmark |
 | `tests/TEST-FULL.md` | 170-scenario agent-driven test spec |
 | `tests/V9_E2E_100_RESULTS.md` | V9 E2E: 490 pass, 0 fail, 1 warn (99%) |
-| `tests/generated-queries.json` | 210 persona-driven test queries (10 categories, 57% hard difficulty) |
+| `tests/generated-queries.json` | 210 persona-driven test queries (10 categories, targeting 1000) |
 | `tests/scoring-engine-500.sh` | 500-case scoring engine stress test |
 | `tests/uat-targeted-test.sh` | 30-case targeted UAT test suite |
 
@@ -129,7 +129,7 @@ CEO (Aacrit)
 
 **V19+ results (2026-03-16):** Golden dataset: 188P/0F/0W (100% pass rate), avg DM 80, $0 cost. Post-scoring filters, MMR diversity, score decompression, circuit breaker all verified.
 
-**ML pipeline (2026-03-17):** `scripts/ml/` directory — 17 files. 1,050 Opus-ranked training pairs from 210 queries. XGBoost LambdaMART + GroupKFold + linear fallback. `ml-model.json` deployed to Edge Function. A/B test: 50/50 split, adjustments capped at +/-5 DM points.
+**ML pipeline (2026-03-17):** `scripts/ml/` directory — 21 files. 1,050 Opus-ranked training pairs from 210 queries (4 batches). XGBoost LambdaMART + GroupKFold + linear fallback. Per-factor ML models trained on 2,127 gauntlet results (5 factors). Targeted boost strategy via `boost-table.json` — only boosts teacher-validated restaurants the engine already found. Deployed to Edge Function: `ml-model.json` (linear weights), `factor-models.json` (per-factor adjustments), `boost-table.json` (targeted boosts). ML scoring in `ml-adjustment.ts`: A/B testing (50/50 split), adjustments capped at +/-5 DM points.
 
 **CLI test write-back:** `golden-dataset-test.sh` and `regression-guard.sh` persist results to `gauntlet_runs` + `gauntlet_results` Supabase tables when `SUPAB_URL` and `SUPAB_ANON_KEY` env vars are set. Run ID format: `cli-golden-*` / `cli-regression-*`. Source field: `cli`.
 
@@ -137,7 +137,7 @@ CEO (Aacrit)
 
 ## Scoring Engine — V11 (Active)
 
-**Active files:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts` (filenames retained from V9, logic is V11). New modules: `circuit-breaker.ts`, `ml-adjustment.ts` + `ml-model.json`, `post-filters.ts`, `reservation-links.ts`.
+**Active files:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts` (filenames retained from V9, logic is V11). New modules: `circuit-breaker.ts`, `ml-adjustment.ts` + `ml-model.json` + `boost-table.json` + `factor-models.json`, `post-filters.ts`, `reservation-links.ts`.
 
 **Formula:** `DondeScore = Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)`
 
@@ -201,7 +201,10 @@ CEO (Aacrit)
 - Score decompression (`decompressScore()`): Piecewise linear post-grading. Widens DM 72-86 band. Feature flag `SCORE_DECOMPRESSION_ENABLED`. Guarantees raw>=70 maps to >=70
 - Post-scoring filters (`post-filters.ts`): Neighborhood + price hard filters with graceful 3-phase expansion (exact -> adjacent -> best available). Bypassed for "Anywhere"/"Any"
 - Shadow personalization (Learning Flywheel Phase 1): `computeShadowPersonalization()` with cuisine/neighborhood/price/vibe affinity from `user_taste_profiles`. 200ms timeout. Response field: `personalization: { active, shadow_boost, signals_used, taste_summary }`
-- ML scoring layer (`ml-adjustment.ts` + `ml-model.json`): 22-feature extraction + linear/tree inference. A/B testing (50/50 split). Response field: `ml_scoring: { active, ab_group, model_loaded, adjustments }`
+- ML scoring layer (`ml-adjustment.ts` + `ml-model.json` + `boost-table.json`): 22-feature extraction + linear/tree inference + targeted boost. A/B testing (50/50 split). Response field: `ml_scoring: { active, ab_group, model_loaded, adjustments }`
+- Per-factor ML models (`factor-models.json`): 5 separate linear adjustment models trained on 2,127 gauntlet results (Service 96%, Convenience 95%, Vibe 88%, Food 77%, Reputation 58% directional accuracy). Deployed but not yet wired into scoring loop
+- Factor scoring improvements (all 5 factors): Service: review_service_quality moved to main path + meal_pacing + group_size_sweet_spot. Vibe: + lighting_ambiance + dress_code + decor_style. Convenience: + transit_accessibility + seasonal_relevance + payment_notes (cash-only penalty). Food: + signature_dishes count + menu_depth. Reputation: composite 4 RI scores (was only service), raised bonus cap 1.5 to 2.5
+- ML ceiling breakers: Targeted boost via `boost-table.json` (teacher-validated per-query boosts). Larger candidate pool for ML queries. Zero-regression approach — only boost restaurants engine already found
 - Performance telemetry: 9-marker timing via `X-Donde-Timing` header + `response_time_ms` in response. Claude timeout cascade fix (budget-aware retries, 60/40 split). Cache lookup 500ms timeout. Auth JWT 1000ms timeout
 - Reservation links (`reservation-links.ts`): Resy + OpenTable deep links from `restaurant_reservations` table. Resy real-time availability check via public API
 - Security hardening: CORS origin validation, security headers (HSTS, X-Content-Type-Options, X-Frame-Options), error response sanitization, RLS tightened on user_visits + maintenance_requests, SECURITY DEFINER functions secured with search_path
@@ -210,11 +213,11 @@ CEO (Aacrit)
 
 | Factor | Key Signals |
 |--------|-------------|
-| Food | Review intelligence cuisine signals, dish catalog, menu highlights, dietary fit, dish synonyms |
-| Vibe | Noise, lighting, dress, energy, music, vibe keywords, crowd_profile, wow_factors |
-| Service | Occasion base, service style, pacing, social dynamics, crowd matching |
-| Reputation | Stretched Google rating, reviews, awards, chef_notable, neighborhood_integration |
-| Convenience | Timing, reservation, wait time, parking, practical constraints (BYOB, outdoor, walk-in) |
+| Food | Review intelligence cuisine signals, dish catalog, menu highlights, dietary fit, dish synonyms, signature_dishes count, menu_depth |
+| Vibe | Noise, lighting_ambiance, dress_code, decor_style, energy, music, vibe keywords, crowd_profile, wow_factors |
+| Service | Occasion base, service style, meal_pacing, group_size_sweet_spot, review_service_quality, social dynamics, crowd matching |
+| Reputation | Composite 4 RI scores (review_food_quality, review_service_quality, review_ambiance_quality, review_value_assessment), stretched Google rating, reviews, awards, chef_notable, neighborhood_integration |
+| Convenience | Timing, reservation, wait time, parking, transit_accessibility, seasonal_relevance, payment_notes (cash-only penalty), practical constraints (BYOB, outdoor, walk-in) |
 
 **V11 RPC** (`get_candidates_v11`): Composite scoring with `p_semantic_tags`. Falls back to V10 → V9 RPC if migration not applied.
 

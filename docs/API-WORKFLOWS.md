@@ -57,11 +57,11 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 
 | Factor | Key Signals |
 |--------|-------------|
-| Food | Review intelligence cuisine signals, dish catalog, menu highlights, dietary fit, dish synonyms |
-| Vibe | Noise, lighting, dress code, energy, music, vibe keywords, crowd_profile, wow_factors |
-| Service | Occasion base, service style, pacing, social dynamics, crowd matching |
-| Reputation | Stretched Google rating (3.5→0, 5.0→10), review count confidence, awards, chef_notable |
-| Convenience | Timing, reservation accessibility, wait time, parking, practical constraints |
+| Food | Review intelligence cuisine signals, dish catalog, menu highlights, dietary fit, dish synonyms, signature_dishes count, menu_depth |
+| Vibe | Noise, lighting_ambiance, dress_code, decor_style, energy, music, vibe keywords, crowd_profile, wow_factors |
+| Service | Occasion base, service style, meal_pacing, group_size_sweet_spot, review_service_quality, social dynamics, crowd matching |
+| Reputation | Composite 4 RI scores (food/service/ambiance/value), stretched Google rating (3.5->0, 5.0->10), review count, awards, chef_notable |
+| Convenience | Timing, reservation, wait time, parking, transit_accessibility, seasonal_relevance, payment_notes (cash-only penalty), practical constraints |
 
 **Quality floors (V18):** cuisine/dish >=74 (rel>=0.90), >=68 (rel>=0.70); neighborhood >=80 (rel>=0.90); vibe >=68 (rel>=0.75); reputation >=72 (rel>=0.80).
 
@@ -130,15 +130,20 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | `resy-enrichment.ts` | Resy venue validation via public search API ($0) |
 | `generate-embeddings.ts` | Generate pgvector embeddings (Ollama/OpenAI-style APIs) |
 
-**ML Training Pipeline** (`scripts/ml/` — 17 files, separate from data pipelines):
+**ML Training Pipeline** (`scripts/ml/` — 21 files, separate from data pipelines):
 
 | Script | Purpose |
 |--------|---------|
-| `harvest-training-data.sh` | Harvest training data from golden dataset via CLI agents ($0) |
+| `distill-prepare.sh` | Harvest training data from golden dataset via CLI agents ($0) |
+| `extract-features.sh` | Extract features from live API for training data |
 | `merge-training-data.py` | Merge features + rankings into training-ready dataset |
 | `train-model.py` | XGBoost LambdaMART + GroupKFold cross-validation |
 | `train-simple.py` | Zero-dep linear fallback trainer |
-| `simulate-ab-test.py` | A/B test simulation framework |
+| `train-factor-models.py` | Per-factor linear model trainer (5 factors, 2,127 gauntlet results) |
+| `distill-train.ts` | TS-based training orchestrator |
+| `xgboost-inference.ts` | TS XGBoost inference implementation |
+
+**ML Data Files** (in `scripts/ml/`): `training-data.json` (210 queries, 1,050 pairs), `training-data-batch{1-4}.json` (additional batches), `factor-training-data.json` (2,127 gauntlet results), `features-dataset.json` (2,315 records), `merged-training-data.json` (4,160 records), `factor-models.json`, `ml-trace-report.json`.
 
 **Rate limits:** All Claude pipelines use 6s between batches (10 req/min). Batch size: 5-10 restaurants per call.
 

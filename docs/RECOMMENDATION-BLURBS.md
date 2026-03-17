@@ -443,7 +443,7 @@ Claude-generated blurbs are cached as part of the full response. No separate blu
 | `supabase/functions/recommend/_shared/grading.ts` | Server-side score fit + blurb quality grading |
 | `supabase/functions/recommend/_shared/query-cache.ts` | DondeCache — persistent 3-level cache with fuzzy matching |
 | `supabase/functions/recommend/_shared/circuit-breaker.ts` | 3-state circuit breaker for Claude API calls |
-| `supabase/functions/recommend/_shared/ml-adjustment.ts` | ML scoring layer — A/B testing, 22-feature extraction |
+| `supabase/functions/recommend/_shared/ml-adjustment.ts` | ML scoring layer — A/B testing, targeted boost, 22-feature extraction |
 | `supabase/functions/recommend/_shared/post-filters.ts` | Post-scoring neighborhood + price filters |
 | `supabase/functions/recommend/_shared/reservation-links.ts` | Resy + OpenTable deep link builder |
 | `supabase/functions/recommend/_shared/google-places.ts` | Live Google Places enrichment |

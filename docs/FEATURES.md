@@ -34,7 +34,10 @@ Last updated: 2026-03-17
 - [x] V19+: Post-scoring neighborhood + price filters with 3-phase graceful expansion
 - [x] V19+: Circuit breaker for Claude API (3-state, 60s cooldown, deterministic fallback)
 - [x] V19+: Shadow personalization from user_taste_profiles (logged, not applied)
-- [x] V19+: ML scoring layer with A/B testing (50/50 split, +/-5 DM adjustments)
+- [x] V19+: ML scoring layer with targeted boost + A/B testing (50/50 split, +/-5 DM adjustments)
+- [x] V19+: Per-factor ML models trained on 2,127 gauntlet results (deployed, not yet wired)
+- [x] V19+: ML ceiling breakers: targeted boost-table.json, larger candidate pool for ML queries
+- [x] V19+: Factor scoring improvements: Service (review_service_quality + meal_pacing + group_size), Vibe (+ lighting + dress + decor), Convenience (+ transit + seasonal + cash-only), Food (+ signature_dishes + menu_depth), Reputation (composite 4 RI scores)
 - [x] V19+: Performance telemetry (9-marker X-Donde-Timing header + response_time_ms)
 - [x] V19+: Reservation deep links in API response (Resy + OpenTable, Project Foxtrot)
 - [x] V19+: Security hardening (CORS, headers, RLS, error sanitization, SECURITY DEFINER)
@@ -89,7 +92,7 @@ Last updated: 2026-03-17
 - [x] Reservation enrichment (OpenTable HTTP validation + Resy public API, $0)
 - [x] Resy venue validation (search API, name matching, slug correction)
 - [x] pgvector embedding generation (Ollama/OpenAI-style APIs)
-- [x] ML training pipeline (Python XGBoost + TS inference, 17 files in scripts/ml/)
+- [x] ML training pipeline (Python XGBoost + TS inference + per-factor models, 21 files in scripts/ml/)
 
 ## Auth & User Features
 
@@ -105,7 +108,7 @@ Last updated: 2026-03-17
 
 ## Database
 
-- [x] 21 tables, 73 migrations
+- [x] 21 tables, 74 migrations, 17 CI/CD workflows
 - [x] RPC `get_candidates_v11` (composite scoring with semantic tags, fallback V10 → V9)
 - [x] RPC `get_candidates_v9` (full-text search + review intelligence)
 - [x] RPC `get_ranked_restaurants` (legacy, 49 return columns)
