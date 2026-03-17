@@ -25,11 +25,14 @@ export const OCCASION_WEIGHTS: Record<string, Record<string, number>> = {
 // --- Keyword boosting ---
 
 export const CUISINE_KEYWORDS: Record<string, string[]> = {
-  Mexican: ["mexican", "taco", "burrito", "carnitas", "enchilada", "mole", "elote", "pozole", "tamale", "churro", "sopapilla", "quesadilla", "birria", "chilaquiles", "al pastor", "nachos", "margarita", "tequila", "horchata", "agua fresca", "cochinita pibil", "suadero", "barbacoa", "carne asada", "huarache", "gordita", "sope", "tlayuda", "mezcal"],
+  // V22: Added plural forms (tamales, enchiladas, churros, nachos already covered) to prevent
+  // "best tamales" from failing the deterministic classifier when only "tamale" existed.
+  Mexican: ["mexican", "taco", "tacos", "burrito", "burritos", "carnitas", "enchilada", "enchiladas", "mole", "elote", "pozole", "tamale", "tamales", "churro", "churros", "sopapilla", "quesadilla", "quesadillas", "birria", "chilaquiles", "al pastor", "nachos", "margarita", "tequila", "horchata", "agua fresca", "cochinita pibil", "suadero", "barbacoa", "carne asada", "huarache", "gordita", "sope", "tlayuda", "mezcal"],
   Italian: ["italian", "pasta", "pizza", "risotto", "carbonara", "lasagna", "ravioli", "parmigiana", "margherita", "giardiniera", "gnocchi", "tiramisu", "osso buco", "focaccia", "bruschetta", "arancini", "prosciutto", "cacio e pepe", "cannoli", "panna cotta", "cioppino", "panzanella", "crostini", "affogato", "limoncello", "caprese", "antipasto", "calzone", "flatbread", "gelato", "truffle pasta"],
   Japanese: ["japanese", "sushi", "ramen", "izakaya", "sake", "chirashi", "omakase", "tonkatsu", "yakitori", "udon", "tempura", "katsu", "sashimi", "gyoza", "matcha", "poke", "takoyaki", "okonomiyaki", "miso", "edamame", "katsudon", "tsukemen", "kakigori", "donburi", "onigiri", "natto", "shabu shabu", "sukiyaki", "teppanyaki", "hand rolls", "temaki", "hibachi", "japanese curry", "mochi", "mochi ice cream"],
   Thai: ["thai", "pad thai", "curry", "basil", "khao soi", "mango sticky rice", "som tum", "boat noodles", "larb", "massaman", "panang", "satay", "tom kha", "sticky rice", "pad see ew", "drunken noodles", "papaya salad"],
-  Chinese: ["chinese", "dim sum", "dumpling", "noodle", "mapo tofu", "xiao long bao", "dan dan noodles", "char siu", "lo mein", "kung pao", "wonton", "congee", "scallion pancakes", "bubble tea", "boba", "chow mein", "hot pot", "peking duck", "fried rice", "egg drop soup", "soup dumplings"],
+  // V22: Added "dumplings" plural, "noodles" plural, "wontons" plural
+  Chinese: ["chinese", "dim sum", "dumpling", "dumplings", "noodle", "noodles", "mapo tofu", "xiao long bao", "dan dan noodles", "char siu", "lo mein", "kung pao", "wonton", "wontons", "congee", "scallion pancakes", "bubble tea", "boba", "chow mein", "hot pot", "peking duck", "fried rice", "egg drop soup", "soup dumplings"],
   Korean: ["korean", "bibimbap", "kimchi", "bulgogi", "japchae", "tteokbokki", "galbi", "banchan", "budae jjigae", "soju", "bingsu", "dak galbi", "sundubu jjigae", "jajangmyeon", "kimbap", "chimaek", "corn dogs", "naengmyeon", "hoddeok", "mandu", "korean fried chicken"],
   Indian: ["indian", "curry", "tandoori", "naan", "masala", "biryani", "tikka", "samosa", "vindaloo", "idli", "dosa", "uttapam", "sambar", "rasam", "vada", "paneer", "dal", "chutney", "appam", "korma", "rogan josh", "butter chicken", "palak", "pongal", "upma", "chana masala", "chai", "lassi", "chaat", "pav bhaji", "chole", "paratha", "thali", "gulab jamun", "jalebi", "kulfi", "kheer", "raita", "panipuri", "bhel puri"],
   French: ["french", "bistro", "brasserie", "crepe", "coq au vin", "duck confit", "creme brulee", "bourguignon", "tartare", "souffle", "ratatouille", "escargot", "croissant", "croque monsieur", "fondue", "raclette", "macaron", "macarons", "amuse bouche"],
@@ -46,7 +49,8 @@ export const CUISINE_KEYWORDS: Record<string, string[]> = {
   Vegan: ["vegan", "plant-based", "plant based", "meatless"],
   "Cocktail Bar": ["cocktail bar", "speakeasy", "mixology", "cocktail lounge", "cocktail", "mojito", "martini", "whiskey", "bourbon", "mezcal", "old fashioned", "aperol", "absinthe", "negroni", "tiki", "tiki bar"],
   "Coffee/Cafe": ["coffee shop", "cafe", "espresso", "latte", "cappuccino", "cortado", "chai latte", "cold brew", "pour over", "drip coffee", "matcha latte", "americano", "mocha", "flat white", "nitro cold brew", "juice bar", "kombucha", "afternoon tea"],
-  "Caribbean/Jamaican": ["caribbean", "jamaican", "jamaican food", "jerk chicken", "jerk", "oxtail", "oxtail stew", "curry goat", "cuban", "ropa vieja", "cubano", "plantain", "rice and peas", "ackee", "saltfish", "patties"],
+  // V22: Added "haitian" to Caribbean family — Haitian cuisine belongs with Caribbean
+  "Caribbean/Jamaican": ["caribbean", "jamaican", "jamaican food", "haitian", "haitian food", "jerk chicken", "jerk", "oxtail", "oxtail stew", "curry goat", "cuban", "ropa vieja", "cubano", "plantain", "rice and peas", "ackee", "saltfish", "patties", "griyo", "griot", "diri kole", "pikliz", "tassot", "accra"],
   Polish: ["polish", "pierogi", "kielbasa", "bigos", "golabki", "potato pancake"],
   "Puerto Rican": ["puerto rican", "mofongo", "pernil", "tostones", "alcapurria", "arroz con gandules", "jibarito", "pastelillo"],
   "Southern/Soul Food": ["soul food", "southern", "southern food", "fried chicken", "collard greens", "cornbread", "gumbo", "jambalaya", "catfish", "cajun", "cajun food", "creole", "creole food", "grits", "po boy", "hush puppies", "crawfish", "hot chicken", "nashville hot", "muffuletta", "midwestern"],
@@ -72,6 +76,8 @@ export const CUISINE_KEYWORDS: Record<string, string[]> = {
   Moroccan: ["moroccan", "tagine", "couscous", "pastilla", "harira", "msemen", "rfissa", "zaalouk", "chermoula", "ras el hanout"],
   Pakistani: ["pakistani", "nihari", "haleem", "chapli kebab", "seekh kebab", "karahi", "biryani", "paya", "sajji", "bun kebab", "desi"],
   Cambodian: ["cambodian", "khmer", "amok", "lok lak", "num pang", "prahok", "bai sach chrouk", "kuy teav"],
+  // V23: Added Burmese cuisine — was completely missing, causing "best Burmese food" → Southern/Soul Food
+  Burmese: ["burmese", "myanmar", "mohinga", "tea leaf salad", "shan noodles", "burmese tofu", "laphet thoke", "nan gyi thoke", "mont di", "kyet thar hin"],
   Laotian: ["laotian", "lao", "sticky rice", "laap", "tam mak hoong", "ping kai", "khao piak sen", "jeow bong"],
   Irish: ["irish", "shepherd's pie", "boxty", "colcannon", "bangers and mash", "soda bread", "irish stew", "guinness"],
   Spanish: ["spanish", "paella", "patatas bravas", "croquetas", "gazpacho", "churros con chocolate", "jamon", "pimientos de padron", "tortilla española", "sangria"],
@@ -182,9 +188,17 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "ecuadorian": { cuisines: ["Ecuadorian"] },
   "salvadoran": { cuisines: ["Salvadoran"] },
   "argentine": { cuisines: ["Argentine"] },
-  "moroccan": { cuisines: ["Moroccan", "Mediterranean"] },
-  "pakistani": { cuisines: ["Pakistani", "Indian"] },
+  // V23: Removed "Mediterranean" — Moroccan food is specific. Mediterranean restaurants
+  // (avec, mfk.) should NOT win "best Moroccan food". Family matching handles the fallback.
+  "moroccan": { cuisines: ["Moroccan"] },
+  // V23: Removed "Indian" — Pakistani food is distinct (shared South Asian family handles fallback).
+  "pakistani": { cuisines: ["Pakistani"] },
   "cambodian": { cuisines: ["Cambodian"] },
+  // V23: Added Burmese to INTENT_MAP
+  "burmese": { cuisines: ["Burmese"] },
+  "burmese food": { cuisines: ["Burmese"] },
+  "myanmar": { cuisines: ["Burmese"] },
+  "myanmar food": { cuisines: ["Burmese"] },
   "laotian": { cuisines: ["Laotian"] },
   "irish": { cuisines: ["Irish"] },
   "malaysian": { cuisines: ["Malaysian"] },
@@ -385,6 +399,7 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "pozole": { cuisines: ["Mexican"] },
   "elote": { cuisines: ["Mexican"] },
   "tamale": { cuisines: ["Mexican"] },
+  "tamales": { cuisines: ["Mexican"] },  // V22: plural form
   "churro": { cuisines: ["Mexican"] },
   "sopapilla": { cuisines: ["Mexican"] },
   "carnitas": { cuisines: ["Mexican"] },
@@ -404,6 +419,7 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
 
   // Chinese
   "bao": { cuisines: ["Chinese"] },
+  "bao buns": { cuisines: ["Chinese"] },  // V22: explicit bigram
   "hotpot": { cuisines: ["Chinese"] },
   "hot pot": { cuisines: ["Chinese"] },
   "peking duck": { cuisines: ["Chinese"] },
@@ -654,8 +670,10 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "jamaican": { cuisines: ["Caribbean/Jamaican"] },
   "jamaican food": { cuisines: ["Caribbean/Jamaican"] },
   "filipino food": { cuisines: ["Filipino"] },
-  "taiwanese": { cuisines: ["Taiwanese", "Chinese"] },
-  "taiwanese food": { cuisines: ["Taiwanese", "Chinese"] },
+  // V23: Removed "Chinese" — Taiwanese food is distinct. Chinese restaurants should NOT
+  // win "best Taiwanese food". East Asian family handles fallback.
+  "taiwanese": { cuisines: ["Taiwanese"] },
+  "taiwanese food": { cuisines: ["Taiwanese"] },
   "new american": { cuisines: ["American"], tags: ["trendy"] },
   "new american cuisine": { cuisines: ["American"], tags: ["trendy", "farm-to-table"] },
   "scandinavian": { cuisines: ["American"], tags: ["farm-to-table"] },
@@ -882,8 +900,10 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   // --- Missing Cuisine-Type Mappings (to closest existing categories) ---
   "bangladeshi": { cuisines: ["Indian"] },
   "bangladeshi food": { cuisines: ["Indian"] },
-  "sri lankan": { cuisines: ["Indian"] },
-  "sri lankan food": { cuisines: ["Indian"] },
+  // V22: Sri Lankan is NOT Indian — separate cuisine with distinct flavors (coconut milk curries,
+  // hoppers, kottu roti). Map to South Asian family but keep as own target for exact matching.
+  "sri lankan": { cuisines: ["Indian", "Sri Lankan"] },
+  "sri lankan food": { cuisines: ["Indian", "Sri Lankan"] },
   "azerbaijani": { cuisines: ["Middle Eastern", "Georgian"] },
   "swedish": { cuisines: ["German"] },
   "kurdish": { cuisines: ["Middle Eastern"] },
@@ -903,8 +923,12 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "singaporean": { cuisines: ["Malaysian"] },
   "singaporean restaurant": { cuisines: ["Malaysian"] },
   "singaporean place": { cuisines: ["Malaysian"] },
-  "afghan": { cuisines: ["Middle Eastern", "Indian"] },
-  "afghan food": { cuisines: ["Middle Eastern", "Indian"] },
+  // V23: Removed "Indian" — Afghan food is distinct from Indian. Indian restaurants should NOT
+  // win "best Afghan food". Middle Eastern is the closest family match.
+  "afghan": { cuisines: ["Middle Eastern"] },
+  "afghan food": { cuisines: ["Middle Eastern"] },
+  "afghani": { cuisines: ["Middle Eastern"] },
+  "afghani food": { cuisines: ["Middle Eastern"] },
   "indonesian": { cuisines: ["Malaysian"] },
   "indonesian place": { cuisines: ["Malaysian"] },
   "indonesian food": { cuisines: ["Malaysian"] },

@@ -470,6 +470,14 @@ export async function classifyIntentV5(
     "colombian": "Colombian", "argentinian": "Argentine", "venezuelan": "Venezuelan",
     "peruvian": "Peruvian", "chilean": "Chilean",
     "liberian": "Liberian",
+    // V22: Haitian → Caribbean/Jamaican, Sri Lankan → distinct from Indian
+    "haitian": "Caribbean/Jamaican",
+    "sri lankan": "Sri Lankan",
+    // V23: Added Burmese, Afghan, Moroccan, Taiwanese as specific sub-cuisines
+    "burmese": "Burmese", "myanmar": "Burmese",
+    "afghan": "Afghan", "afghani": "Afghan",
+    "moroccan": "Moroccan",
+    "taiwanese": "Taiwanese",
   };
   for (const kw of matchedKeywordStrings) {
     const specific = SUBCUISINE_SPECIFIC[kw];
@@ -530,10 +538,13 @@ export async function classifyIntentV5(
     "lebanese food", "turkish food",
     // V22: Other sub-cuisine keywords from various CUISINE_KEYWORDS entries not matching
     // top-level keys (they appear as values inside other cuisine category keys)
-    "trinidadian", "jamaican",
-    "ecuadorian", "salvadoran",
+    "trinidadian", "jamaican", "haitian",
+    "ecuadorian", "salvadoran", "sri lankan",
     "ukrainian", "irish", "swedish", "serbian", "bosnian", "portuguese", "british",
     "georgian", "azerbaijani",
+    // V23: Additional sub-cuisine words that should not trigger dish_level_intent
+    "burmese", "myanmar", "afghan", "afghani",
+    "moroccan", "taiwanese",
   ]);
   const matchedFoodItems = matchedKeywordStrings.filter(
     (kw) => !cuisineNamesLower.has(kw) && !NON_DISH_WORDS.has(kw),

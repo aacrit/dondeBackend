@@ -105,14 +105,18 @@ export function decompressScore(rawScore: number): number {
 const CUISINE_FAMILIES: Record<string, string[]> = {
   Mediterranean: ["Greek", "Italian", "Middle Eastern", "Spanish", "Moroccan", "Levantine"],
   "East Asian": ["Japanese", "Chinese", "Korean", "Taiwanese", "Sichuan"],
-  "Southeast Asian": ["Thai", "Vietnamese", "Cambodian", "Laotian", "Malaysian", "Singaporean"],
+  // V23: Added Burmese to Southeast Asian family
+  "Southeast Asian": ["Thai", "Vietnamese", "Cambodian", "Laotian", "Malaysian", "Singaporean", "Burmese"],
   "Latin American": ["Mexican", "Peruvian", "Brazilian", "Puerto Rican", "Colombian", "Ecuadorian", "Venezuelan", "Salvadoran", "Argentine"],
-  Caribbean: ["Cuban", "Jamaican", "Trinidadian", "Caribbean/Jamaican"],
-  "South Asian": ["Indian", "Nepalese/Tibetan", "Pakistani"],
+  // V22: Added Haitian — distinct Caribbean cuisine (griyo, pikliz, diri kole)
+  Caribbean: ["Cuban", "Jamaican", "Trinidadian", "Caribbean/Jamaican", "Haitian"],
+  // V22: Added Sri Lankan — distinct from Indian (coconut milk, hoppers, kottu roti)
+  "South Asian": ["Indian", "Nepalese/Tibetan", "Pakistani", "Sri Lankan"],
   "East African": ["Ethiopian", "Eritrean", "Somali", "East African"],
   "West African": ["Nigerian", "Ghanaian", "Senegalese", "West African", "Liberian"],
   "Central Asian": ["Central Asian", "Georgian", "Azerbaijani"],
-  "Middle Eastern": ["Persian", "Yemeni", "Kurdish", "Palestinian", "Lebanese", "Turkish"],
+  // V23: Added Afghan — Central/South Asian influenced but closest to Middle Eastern family
+  "Middle Eastern": ["Persian", "Yemeni", "Kurdish", "Palestinian", "Lebanese", "Turkish", "Afghan"],
   European: ["Polish", "German", "French", "British", "Ukrainian", "Irish", "Swedish", "Serbian", "Bosnian", "Portuguese", "Spanish"],
   American: ["BBQ", "Southern", "Southern/Soul Food", "Cajun", "Creole", "Hawaiian"],
 };
@@ -1075,6 +1079,30 @@ export function computeRelevance(
     if (intent) {
       const specialLower = specialRequest.toLowerCase();
 
+      // === V23: NEIGHBORHOOD-GATED REPUTATION ===
+      // When query mentions a specific neighborhood (e.g., "best restaurant in Humboldt Park"),
+      // reputation path must verify the restaurant is in that neighborhood.
+      // Without this, Bavette's (River North) wins "best restaurant in Humboldt Park" because
+      // the reputation check fires first and never checks location.
+      {
+        const sortedAliases = Object.entries(NEIGHBORHOOD_ALIASES)
+          .sort((a, b) => b[0].length - a[0].length);
+        for (const [alias, canonical] of sortedAliases) {
+          if (specialLower.includes(alias)) {
+            const restNeighborhood = (candidate.neighborhood_name || "").toLowerCase();
+            const canonicalLower = canonical.toLowerCase();
+            if (restNeighborhood !== canonicalLower) {
+              // Wrong neighborhood — hard cap. "best restaurant in Humboldt Park"
+              // should NOT return restaurants from other neighborhoods.
+              const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
+              return { score: cappedScore, type: "reputation", details: `Reputation (neighborhood mismatch: ${canonical}): ${repRelevance.score.toFixed(2)}` };
+            }
+            // Right neighborhood — continue with normal reputation scoring
+            break;
+          }
+        }
+      }
+
       // === V21: DISH-GATED REPUTATION — check BEFORE cuisine-only gate ===
       // Moved ahead of cuisine gate because dish queries like "best burger", "best deep dish pizza",
       // "best ramen" have dish_level_intent=true AND target_cuisines (e.g., American, Italian, Japanese).
@@ -1240,6 +1268,27 @@ export function computeRelevance(
           const constraintRate = cHits / cTotal;
           const blended = Math.min(1.0, repRelevance.score * 0.65 + 0.35 * (0.80 + 0.20 * constraintRate));
           return { score: blended, type: "reputation", details: `Reputation+Constraint: ${repRelevance.score.toFixed(2)} (${cHits}/${cTotal})` };
+        }
+      }
+
+      // === V22: NEIGHBORHOOD-GATED REPUTATION ===
+      // "best restaurant in Little Italy" / "best restaurant in Edgewater" etc.
+      // The reputation path fires because "best" is a REPUTATION_KEYWORD, but the user
+      // is constraining to a SPECIFIC neighborhood. Without this check, reputation returns
+      // early and the neighborhood constraint is lost — the engine returns the best
+      // restaurant city-wide instead of the best restaurant in that neighborhood.
+      const specialLowerForHood = specialRequest.toLowerCase();
+      for (const [alias, canonical] of Object.entries(NEIGHBORHOOD_ALIASES)) {
+        if (specialLowerForHood.includes(alias)) {
+          const restNeighborhood = (candidate.neighborhood_name || "").toLowerCase();
+          const canonicalLower = canonical.toLowerCase();
+          if (restNeighborhood === canonicalLower) {
+            // Restaurant IS in the target neighborhood — full reputation score
+            return { score: repRelevance.score, type: "reputation", details: `Reputation+Neighborhood: ${repRelevance.score.toFixed(2)} in ${canonical}` };
+          }
+          // Restaurant is NOT in the target neighborhood — heavy penalty
+          const hoodPenalized = Math.min(0.40, repRelevance.score * 0.40);
+          return { score: hoodPenalized, type: "reputation", details: `Reputation (neighborhood mismatch): ${canonical}` };
         }
       }
     }
