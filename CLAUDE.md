@@ -1,10 +1,10 @@
 # DondeAI Backend
 
-Last updated: 2026-03-17
+Last updated: 2026-03-17 (final)
 
 > **Read this file first, then `docs/*.md` only as needed. Only open source files when modifying code.**
 
-AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines + ML scoring layer. ~2,720 restaurants (active), 2,719+ with deep profiles, 2,712 with review intelligence. 33 neighborhoods, 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification. 74 migrations, 17 CI/CD workflows, 35 pipeline scripts, 21 ML training files. DondeCache persistent query cache with multi-level fuzzy matching. pgvector semantic retrieval. Circuit breaker for Claude API resilience. MMR diversity re-ranking. Shadow personalization (Learning Flywheel Phase 1). Post-scoring neighborhood + price filters. Score decompression. ML scoring with targeted boost + per-factor models. Reservation deep links (Resy + OpenTable). Codespace dev container with Claude Code + Supabase CLI.
+AI restaurant recommendation engine for Chicago. Supabase Edge Function (Deno/TS) + PostgreSQL + data pipelines + ML scoring layer. ~2,720 restaurants (active), 2,719+ with deep profiles, 2,712 with review intelligence. 33 neighborhoods, 15 cultural themes. AI: Claude Haiku 4.5 for recommendations + intent classification. 74 migrations, 17 CI/CD workflows, 35 pipeline scripts, 24 ML training files. DondeCache persistent query cache with multi-level fuzzy matching. pgvector semantic retrieval. Circuit breaker for Claude API resilience. MMR diversity re-ranking. Shadow personalization (Learning Flywheel Phase 1). Post-scoring neighborhood + price filters. Score decompression. ML targeted boost at 100% traffic (654 keys, 7 winners, 550 unique restaurants, +5 direct / +2 winner, 0 regressions). Reservation deep links (Resy + OpenTable). Codespace dev container with Claude Code + Supabase CLI.
 
 ## Documentation Index
 
@@ -105,7 +105,7 @@ CEO (Aacrit)
 | `tests/v10-scoring-benchmark.sh` | V10 scoring baseline benchmark |
 | `tests/TEST-FULL.md` | 170-scenario agent-driven test spec |
 | `tests/V9_E2E_100_RESULTS.md` | V9 E2E: 490 pass, 0 fail, 1 warn (99%) |
-| `tests/generated-queries.json` | 210 persona-driven test queries (10 categories, targeting 1000) |
+| `tests/generated-queries.json` | 700 persona-driven test queries (13 categories: 210 original + 490 hard — cuisine, dish, compound, neighborhood, vibe, occasion, group, time, edge) |
 | `tests/scoring-engine-500.sh` | 500-case scoring engine stress test |
 | `tests/uat-targeted-test.sh` | 30-case targeted UAT test suite |
 
@@ -129,7 +129,11 @@ CEO (Aacrit)
 
 **V19+ results (2026-03-16):** Golden dataset: 188P/0F/0W (100% pass rate), avg DM 80, $0 cost. Post-scoring filters, MMR diversity, score decompression, circuit breaker all verified.
 
-**ML pipeline (2026-03-17):** `scripts/ml/` directory — 21 files. 1,050 Opus-ranked training pairs from 210 queries (4 batches). XGBoost LambdaMART + GroupKFold + linear fallback. Per-factor ML models trained on 2,127 gauntlet results (5 factors). Targeted boost strategy via `boost-table.json` — only boosts teacher-validated restaurants the engine already found. Deployed to Edge Function: `ml-model.json` (linear weights), `factor-models.json` (per-factor adjustments), `boost-table.json` (targeted boosts). ML scoring in `ml-adjustment.ts`: A/B testing (50/50 split), adjustments capped at +/-5 DM points.
+**ML pipeline (2026-03-17):** `scripts/ml/` directory — 24 files. ~3,050 teacher-ranked training pairs from 610 queries (7 batches, $0 cost). Test corpus expanded to 700 queries (210 original + 490 hard). XGBoost LambdaMART + GroupKFold + linear fallback. Per-factor ML models trained on 2,127 gauntlet results (5 factors). Targeted boost strategy via `boost-table.json` (654 keys, 7 consistent winners, 550 unique restaurants). Boost-only: +5 direct teacher-validated, +2 consistent winners, never penalizes. A/B test at 100% (safe — 0 regressions in 50-case study). Deployed to Edge Function: `ml-model.json`, `factor-models.json`, `boost-table.json`.
+
+**ML boost results (2026-03-17):** 50-case study: 26% of queries received ML boosts, 0 regressions. Key wins: french bistro (Brindille 89->94), Michelin star (goosefoot 93->98), Indian food (Thattu 91->96 + Indienne 89->94), halal food (Al-Diar 72->77), seafood (RPM Seafood 85->90).
+
+**Final golden dataset (2026-03-17):** 184P/0F/4W, avg DM 82, avg score fit 91, $0 cost. Regression guard: NO REGRESSION vs V10 baseline (+140 passes, +12 DM).
 
 **CLI test write-back:** `golden-dataset-test.sh` and `regression-guard.sh` persist results to `gauntlet_runs` + `gauntlet_results` Supabase tables when `SUPAB_URL` and `SUPAB_ANON_KEY` env vars are set. Run ID format: `cli-golden-*` / `cli-regression-*`. Source field: `cli`.
 
@@ -137,7 +141,7 @@ CEO (Aacrit)
 
 ## Scoring Engine — V11 (Active)
 
-**Active files:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts` (filenames retained from V9, logic is V11). New modules: `circuit-breaker.ts`, `ml-adjustment.ts` + `ml-model.json` + `boost-table.json` + `factor-models.json`, `post-filters.ts`, `reservation-links.ts`.
+**Active files:** `scoring-v9.ts` + `types-v9.ts` + `response-builder-v9.ts` (filenames retained from V9, logic is V11). New modules: `circuit-breaker.ts`, `ml-adjustment.ts` + `ml-model.json` + `boost-table.json` + `factor-models.json` (3 JSON models), `post-filters.ts`, `reservation-links.ts`. Total: 19 TS + 3 JSON in `_shared/`.
 
 **Formula:** `DondeScore = Relevance(0-1) × Quality(0-100) + OccasionBonus(±5)`
 
@@ -154,7 +158,7 @@ CEO (Aacrit)
 - Reduced confidence pull-to-center: CONFIDENCE_MEAN=55, confidenceFactor 0.80-1.0
 - Composite RPC scoring (v11): all signals scored simultaneously instead of sequential ORDER BY
 - Semantic tag search in RPC via `p_semantic_tags`
-- Dynamic candidate pool: 100 candidates for complex/semantic queries (was 50/80)
+- Dynamic candidate pool: standard 100, complex/semantic 150 (was 50/80/100)
 
 **V10 features retained:** Reputation relevance type, dish synonyms, word stemming, neighborhood aliases, confidence-weighted quality, practical constraint scoring.
 
@@ -201,10 +205,10 @@ CEO (Aacrit)
 - Score decompression (`decompressScore()`): Piecewise linear post-grading. Widens DM 72-86 band. Feature flag `SCORE_DECOMPRESSION_ENABLED`. Guarantees raw>=70 maps to >=70
 - Post-scoring filters (`post-filters.ts`): Neighborhood + price hard filters with graceful 3-phase expansion (exact -> adjacent -> best available). Bypassed for "Anywhere"/"Any"
 - Shadow personalization (Learning Flywheel Phase 1): `computeShadowPersonalization()` with cuisine/neighborhood/price/vibe affinity from `user_taste_profiles`. 200ms timeout. Response field: `personalization: { active, shadow_boost, signals_used, taste_summary }`
-- ML scoring layer (`ml-adjustment.ts` + `ml-model.json` + `boost-table.json`): 22-feature extraction + linear/tree inference + targeted boost. A/B testing (50/50 split). Response field: `ml_scoring: { active, ab_group, model_loaded, adjustments }`
+- ML scoring layer (`ml-adjustment.ts` + `ml-model.json` + `boost-table.json`): Targeted boost strategy (Phase 3). Boost table: 654 keys, 7 consistent winners, 550 unique restaurants. +5 direct teacher-validated picks, +2 consistent winners. Boost-only (never penalizes). A/B test at 100% (safe — 0 regressions). Legacy: 22-feature extraction + linear/tree inference. Response field: `ml_scoring: { active, ab_group, model_loaded, adjustments }`
 - Per-factor ML models (`factor-models.json`): 5 separate linear adjustment models trained on 2,127 gauntlet results (Service 96%, Convenience 95%, Vibe 88%, Food 77%, Reputation 58% directional accuracy). Deployed but not yet wired into scoring loop
 - Factor scoring improvements (all 5 factors): Service: review_service_quality moved to main path + meal_pacing + group_size_sweet_spot. Vibe: + lighting_ambiance + dress_code + decor_style. Convenience: + transit_accessibility + seasonal_relevance + payment_notes (cash-only penalty). Food: + signature_dishes count + menu_depth. Reputation: composite 4 RI scores (was only service), raised bonus cap 1.5 to 2.5
-- ML ceiling breakers: Targeted boost via `boost-table.json` (teacher-validated per-query boosts). Larger candidate pool for ML queries. Zero-regression approach — only boost restaurants engine already found
+- Candidate pool increased: standard 50->100, complex/semantic 100->150
 - Performance telemetry: 9-marker timing via `X-Donde-Timing` header + `response_time_ms` in response. Claude timeout cascade fix (budget-aware retries, 60/40 split). Cache lookup 500ms timeout. Auth JWT 1000ms timeout
 - Reservation links (`reservation-links.ts`): Resy + OpenTable deep links from `restaurant_reservations` table. Resy real-time availability check via public API
 - Security hardening: CORS origin validation, security headers (HSTS, X-Content-Type-Options, X-Frame-Options), error response sanitization, RLS tightened on user_visits + maintenance_requests, SECURITY DEFINER functions secured with search_path

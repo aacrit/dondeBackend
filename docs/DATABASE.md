@@ -1,6 +1,6 @@
 # Database Schema
 
-Last updated: 2026-03-17
+Last updated: 2026-03-17 (final)
 
 ## Overview
 

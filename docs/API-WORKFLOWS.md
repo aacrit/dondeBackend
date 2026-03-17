@@ -1,6 +1,6 @@
 # API & Workflows
 
-Last updated: 2026-03-17
+Last updated: 2026-03-17 (final)
 
 ## Edge Function Request Flow (V11)
 
@@ -16,7 +16,7 @@ index.ts orchestration — single POST /recommend endpoint
 6. **[Parallel]** Intent classification (`classifyIntentV5` — deterministic + LLM fallback with `semantic_tags`, `similar_to`, `mood`, `implicit_cuisines`) + user feedback fetch + user preference profile fetch
 7. **Persistent cache L2/L3** — After intent classification, try fingerprint match (L2) and canonical form match (L3). Fuzzy matching via synonym normalization + dish canonicalization.
 8. **Concept expansion** — V17/V18: Merge concept constraints, tags, and vibes into intent for scoring. Track `_originalVibeCount` before merging.
-9. **RPC candidates** — `get_candidates_v11` (composite scoring with `p_semantic_tags`, fallback to V10 → V9 RPC). Dynamic candidate pool: 100 for complex queries.
+9. **RPC candidates** — `get_candidates_v11` (composite scoring with `p_semantic_tags`, fallback to V10 → V9 RPC). Dynamic candidate pool: standard 100, complex/semantic 150.
 10. **Dietary filter** — Safety-critical hard filter on dietary restrictions (never relaxed). No other hard filters — V11 relevance gating handles cuisine/dish/vibe/semantic.
 11. **V11 scoring** (`reRankV9`) — Relevance(0-1) x Quality(0-100) + OccasionBonus(+/-5). V18+ quality floors. 6 weight profiles.
 12. **Post-scoring filters** — `applyPostScoringFilters()`: neighborhood + price hard filters with 3-phase graceful expansion (exact -> adjacent -> best available). Bypassed for "Anywhere"/"Any".
@@ -31,7 +31,7 @@ index.ts orchestration — single POST /recommend endpoint
 21. **Cuisine mismatch cap** — If high-importance cuisine mismatch: cap DondeMatch at 65 post-Claude.
 22. **Quality guardrails** — Slop detection (67 banned patterns), em dash stripping, word count check (100-120), "we/our" voice mandate.
 23. **Shadow personalization** — `computeShadowPersonalization()` computes boost from `user_taste_profiles` (cuisine/neighborhood/vibe affinity). Logged but not applied to score. Response field: `personalization`.
-24. **ML scoring** — `applyMLAdjustments()` from `ml-adjustment.ts`. A/B test: 50% get ML-adjusted scores (+/-5 DM), 50% get pure rules. Response field: `ml_scoring`.
+24. **ML scoring** — Targeted boost via `boost-table.json` (654 keys, +5 direct / +2 winner, boost-only). A/B at 100% (0 regressions). Legacy `applyMLAdjustments()` available as fallback. Response field: `ml_scoring`.
 25. **Score decompression** — `decompressScore()` piecewise linear mapping. Widens 72-86 DM band. Applied AFTER grading so grading uses raw scores.
 26. **Response build** — `buildV9SuccessResponse()` with `scoring_v9`, `match_narrative`, `ranked_queue`, `circuit_breaker`, `personalization`, `ml_scoring`, `response_time_ms`. Cache result. Fire-and-forget query log + score validation grading.
 27. **Telemetry header** — `X-Donde-Timing` header with per-component timing breakdown (9 markers).
@@ -75,7 +75,8 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 
 | Version | Tests | Pass | Notes |
 |---------|-------|------|-------|
-| V19+ (current) | 188 checks | 188P/0F/0W | Golden dataset, avg DM 80, 100% pass rate, $0 cost |
+| V19+ + ML boost (current) | 188 checks | 184P/0F/4W | Golden dataset, avg DM 82, avg SF 91, $0 cost |
+| V19+ (pre-boost) | 188 checks | 188P/0F/0W | Golden dataset, avg DM 80, 100% pass rate, $0 cost |
 | V18 | 188 checks | 177P/0F/11W | Golden dataset, avg DM 77, avg SF 88, avg BQ 79 |
 | V16 | 188 checks | 177P/0F/11W | First pass of V16 fixes |
 | V11 | 188 checks | 142P/2F/44W | Semantic matching, avg DM 76 |
@@ -130,7 +131,7 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | `resy-enrichment.ts` | Resy venue validation via public search API ($0) |
 | `generate-embeddings.ts` | Generate pgvector embeddings (Ollama/OpenAI-style APIs) |
 
-**ML Training Pipeline** (`scripts/ml/` — 21 files, separate from data pipelines):
+**ML Training Pipeline** (`scripts/ml/` — 24 files, separate from data pipelines):
 
 | Script | Purpose |
 |--------|---------|
@@ -142,8 +143,9 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | `train-factor-models.py` | Per-factor linear model trainer (5 factors, 2,127 gauntlet results) |
 | `distill-train.ts` | TS-based training orchestrator |
 | `xgboost-inference.ts` | TS XGBoost inference implementation |
+| `run-case-studies.sh` | 50-query boost case study trace analysis |
 
-**ML Data Files** (in `scripts/ml/`): `training-data.json` (210 queries, 1,050 pairs), `training-data-batch{1-4}.json` (additional batches), `factor-training-data.json` (2,127 gauntlet results), `features-dataset.json` (2,315 records), `merged-training-data.json` (4,160 records), `factor-models.json`, `ml-trace-report.json`.
+**ML Data Files** (in `scripts/ml/`): `training-data-batch{1-4,7}.json` (~3,050 teacher-ranked pairs from 610 queries, 7 batches, $0), `factor-training-data.json` (2,127 gauntlet results), `features-dataset.json` (2,315 records), `merged-training-data.json` (2,160 records), `factor-models.json`, `case-studies-results.json`, `ml-trace-report.json`.
 
 **Rate limits:** All Claude pipelines use 6s between batches (10 req/min). Batch size: 5-10 restaurants per call.
 
