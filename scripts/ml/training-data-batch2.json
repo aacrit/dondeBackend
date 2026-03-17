@@ -1,0 +1,2522 @@
+[
+  {
+    "query_id": 51,
+    "query": "mexican food",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "9a978039-930a-4646-8d52-ceea03dfe827",
+        "restaurant_name": "Topolobampo",
+        "score": 95,
+        "reasoning": "Cuisine: Mexican; in River North; excellent food quality (8.8/10); Michelin recognized; Price: $$$"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+        "restaurant_name": "XOCO",
+        "score": 91,
+        "reasoning": "Cuisine: Mexican; in River North; excellent food quality (8.8/10); James Beard recognized; Price: $$"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+        "restaurant_name": "Mi Tocaya Antojer\u00eda",
+        "score": 87,
+        "reasoning": "Cuisine: Mexican; in Logan Square; exceptional food quality (9.2/10); Michelin recognized; Price: $$"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "010c222c-f871-408e-a9d5-37cbee120284",
+        "restaurant_name": "Frontera Grill",
+        "score": 83,
+        "reasoning": "Cuisine: Mexican; in River North; James Beard recognized; Price: $$$; Known for: Anyone ready to understand what regional Mexican cuisine actually tastes like at"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "011e2db3-fd51-4c4a-bb79-9afda8d7eb2d",
+        "restaurant_name": "Flash Taco Wicker Park",
+        "score": 79,
+        "reasoning": "Cuisine: Mexican; in Wicker Park; exceptional food quality (9.5/10); Price: $; Known for: The post-bar crowd and budget-conscious taco purists who refuse to compromise on"
+      }
+    ]
+  },
+  {
+    "query_id": 52,
+    "query": "thai restaurant",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "aea8c27c-52c8-4300-9c1e-062c23a541bb",
+        "restaurant_name": "Ezankaya",
+        "score": 95,
+        "reasoning": "Cuisine: Thai; in Edgewater; exceptional food quality (9.2/10); Price: $$; Known for: Authentic Thai curry noodles and house-made desserts in a festive setting"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "67aa8a08-be6d-44f2-93e9-fcd32286aa5d",
+        "restaurant_name": "Tiparos Thai Cuisine & Sushi Bar",
+        "score": 91,
+        "reasoning": "Cuisine: Thai; in Old Town; exceptional food quality (9.2/10); Price: $; Known for: The indecisive diner who genuinely can't choose between Thai curry and a spicy t"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "3bc6bbac-31e3-4630-ac6f-37e82e3f5252",
+        "restaurant_name": "Anna's Thai Kitchen Restaurant",
+        "score": 87,
+        "reasoning": "Cuisine: Thai; in North Center; exceptional food quality (9.2/10); Price: $$; Known for: Weeknight regulars who want honest, authentic Thai without the downtown markup o"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "06bd6004-abb1-4354-9de9-624d54e6edc7",
+        "restaurant_name": "Busaba Garden Thai Cuisine",
+        "score": 83,
+        "reasoning": "Cuisine: Thai; in Lincoln Square; exceptional food quality (9.2/10); Price: $$; Known for: The couple looking for a quietly romantic outdoor dinner that feels like a neigh"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "f6c16145-1353-4e46-90bc-9488983abfba",
+        "restaurant_name": "Cilantro Authentic Thai Food",
+        "score": 79,
+        "reasoning": "Cuisine: Thai; in Rogers Park; exceptional food quality (9.2/10); Price: $$; Known for: Thai food purists tired of watered-down heat who want the real thing in a no-fri"
+      }
+    ]
+  },
+  {
+    "query_id": 53,
+    "query": "ethiopian cuisine",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "0b24fe2c-533c-49b4-ac2a-bcf666307db4",
+        "restaurant_name": "MAHARI",
+        "score": 95,
+        "reasoning": "Cuisine: Ethiopian; in Hyde Park; exceptional food quality (9.2/10); Price: $$; Known for: Groups who want a genuinely communal meal that sparks conversation and satisfies"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "213dcef1-6a9f-4a44-88c7-e9400463edd9",
+        "restaurant_name": "Dozzy's Grill",
+        "score": 91,
+        "reasoning": "Cuisine: Ethiopian; in Little Italy; exceptional food quality (9.5/10); Price: $; Known for: Anyone who wants a fast, honest meal steps from Taylor Street without the white "
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "027b814c-4395-4009-b544-408e638d1b53",
+        "restaurant_name": "Teranga African Restaurant",
+        "score": 87,
+        "reasoning": "Cuisine: Ethiopian; in Edgewater; exceptional food quality (9.2/10); Price: $$; Known for: The adventurous eater ready to discover West African cooking that Chicago rarely"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "5875920c-1e1b-4fb5-ba42-57aa05fd2cd6",
+        "restaurant_name": "Denden Restaurant",
+        "score": 83,
+        "reasoning": "Cuisine: Ethiopian; in Rogers Park; exceptional food quality (9.2/10); Price: $; Known for: The adventurous eater who wants deeply authentic Ethiopian cooking without the d"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "bb933c71-09bc-4e68-b83c-06adf8e156f0",
+        "restaurant_name": "Tesfa Ethiopian Cuisine",
+        "score": 79,
+        "reasoning": "Cuisine: Ethiopian; in Andersonville; exceptional food quality (9.0/10); Price: $; Known for: Groups ready to slow down, eat with their hands, and share something genuinely u"
+      }
+    ]
+  },
+  {
+    "query_id": 54,
+    "query": "japanese",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+        "restaurant_name": "Ky\u014dten",
+        "score": 95,
+        "reasoning": "Cuisine: Japanese; in Logan Square; exceptional food quality (9.0/10); Michelin recognized; Price: $$$$"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "d2c94510-decc-425d-ba3d-f40300123963",
+        "restaurant_name": "KAI ZAN CHICAGO",
+        "score": 91,
+        "reasoning": "Cuisine: Japanese; in Wicker Park; excellent food quality (8.5/10); Michelin recognized; Price: $$$"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "1b9806f3-554b-4604-a0c7-b63d724aa999",
+        "restaurant_name": "Momotaro",
+        "score": 87,
+        "reasoning": "Cuisine: Japanese; in West Loop; Michelin recognized; Price: $$$; Known for: A special-occasion dinner for anyone who wants Michelin-recognized Japanese cook"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "c0867d79-2a79-4f89-828f-1175334fd397",
+        "restaurant_name": "Tamu Sushi",
+        "score": 83,
+        "reasoning": "Cuisine: Japanese; in West Loop; exceptional food quality (9.5/10); Price: $$; Known for: Sushi purists and curious first-timers ready to hand the reins to a chef who ear"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "46dd4e80-109f-49ae-b9bb-becf31408c2a",
+        "restaurant_name": "Sushi by Scratch Restaurants: Chicago",
+        "score": 79,
+        "reasoning": "Cuisine: Japanese; in West Loop; exceptional food quality (9.5/10); Price: $$; Known for: Sushi obsessives who want a true omakase moment without the four-figure price ta"
+      }
+    ]
+  },
+  {
+    "query_id": 55,
+    "query": "italian place",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "e1bcc212-c00b-4447-9363-24437c75ecf8",
+        "restaurant_name": "Nella Pizza e Pasta",
+        "score": 95,
+        "reasoning": "Cuisine: Italian; in Hyde Park; exceptional food quality (9.2/10); Michelin recognized; Price: $$"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "9f75f685-0b83-43db-a9d5-e5e21ab84701",
+        "restaurant_name": "Monteverde Restaurant & Pastificio",
+        "score": 91,
+        "reasoning": "Cuisine: Italian; in West Loop; excellent food quality (8.5/10); Michelin recognized; Price: $$$"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "93ee73b8-7f7c-46da-af70-7cb6a07cf8a9",
+        "restaurant_name": "Osteria Langhe",
+        "score": 87,
+        "reasoning": "Cuisine: Italian; in Logan Square; excellent food quality (8.5/10); Michelin recognized; Price: $$$"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "66f8e3b7-0ef5-4ae0-85c2-8a89d265d48c",
+        "restaurant_name": "Trattoria RNB Private Dining & Events",
+        "score": 83,
+        "reasoning": "Cuisine: Italian; in West Loop; exceptional food quality (9.5/10); Price: $$$; Known for: The milestone dinner or confidential business meal that demands a private room a"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "91988d28-8a7f-4900-b279-1e2e09372443",
+        "restaurant_name": "Ignotz's Ristorante",
+        "score": 79,
+        "reasoning": "Cuisine: Italian; in Pilsen; exceptional food quality (9.2/10); Price: $$; Known for: The unhurried date night where BYOB wine and candlelight do all the work."
+      }
+    ]
+  },
+  {
+    "query_id": 56,
+    "query": "indian food",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "70e4b943-6380-4e48-b608-c322b099c953",
+        "restaurant_name": "Indienne",
+        "score": 95,
+        "reasoning": "Cuisine: Indian; in River North; exceptional food quality (9.0/10); Michelin recognized; Price: $$$$"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "53ec9f33-2886-48de-a8b8-cfe67be1fed2",
+        "restaurant_name": "Indian Garden Restaurant",
+        "score": 91,
+        "reasoning": "Cuisine: Indian; in River North; exceptional food quality (9.2/10); Price: $$; Known for: Out-of-town guests and River North diners who want approachable Indian food with"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "51275957-4a3c-406b-8384-f8a6918ed37d",
+        "restaurant_name": "Essence of India",
+        "score": 87,
+        "reasoning": "Cuisine: Indian; in Lincoln Square; exceptional food quality (9.2/10); Price: $$; Known for: Neighborhood regulars and Indian food devotees who want a long, leisurely dinner"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+        "restaurant_name": "Thattu",
+        "score": 83,
+        "reasoning": "Cuisine: Indian; in Avondale; exceptional food quality (9.2/10); Price: $$; Known for: The curious eater ready to discover South Indian regional cooking at its most un"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "57d3cbab-3173-4790-a3c2-73a17d623ced",
+        "restaurant_name": "Dhanteraz Indian Fusion",
+        "score": 79,
+        "reasoning": "Cuisine: Indian; in Avondale; exceptional food quality (9.2/10); Price: $$; Known for: The adventurous dinner spot for open-minded eaters who want Indian spice in form"
+      }
+    ]
+  },
+  {
+    "query_id": 57,
+    "query": "french bistro",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "bf676e24-7352-430c-af3b-41b6d9e07dd8",
+        "restaurant_name": "Brindille",
+        "score": 95,
+        "reasoning": "Cuisine: French; in River North; excellent food quality (8.8/10); Michelin recognized; Price: $$$$"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "54ba6fd5-d5c4-4aeb-846c-d19edf81afa6",
+        "restaurant_name": "La Cr\u00eaperie Chicago Restaurant",
+        "score": 91,
+        "reasoning": "Cuisine: French; in Lincoln Park; exceptional food quality (9.5/10); Price: $$; Known for: The romantic weeknight dinner for couples who want Paris without the flight."
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "6c11cb1a-b787-4d1c-8f6b-dec4dd24438a",
+        "restaurant_name": "Francois Frankie Le Carousel Bar",
+        "score": 87,
+        "reasoning": "Cuisine: French; in Loop; exceptional food quality (9.5/10); Price: $$$; Known for: Anyone craving a transportive, unhurried cocktail hour that feels nothing like t"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "e40aca51-42ec-48dc-9699-044ef991f5fb",
+        "restaurant_name": "Le Colonial Chicago",
+        "score": 83,
+        "reasoning": "Cuisine: French; in Gold Coast; exceptional food quality (9.2/10); Price: $$$; Known for: French-Vietnamese elegance with lush Gold Coast ambiance and balcony views"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "ee8b86c5-8a3e-41b3-b14a-0833e7420fa6",
+        "restaurant_name": "Dear Margaret",
+        "score": 79,
+        "reasoning": "Cuisine: French; in Lakeview; exceptional food quality (9.2/10); Price: $$; Known for: The date-night refuge for Lakeview locals who want Paris without the flight."
+      }
+    ]
+  },
+  {
+    "query_id": 58,
+    "query": "korean bbq",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "2e3f3948-6b72-4c99-87c0-f90d22a8fdab",
+        "restaurant_name": "Chicago Kalbi BBQ",
+        "score": 95,
+        "reasoning": "Cuisine: Korean; in Lincoln Square; excellent food quality (8.5/10); Price: $$; Known for: The interactive group dinner for people who want to cook their own meal and some"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "248100e1-e0b3-4f82-92b1-b88d22b14938",
+        "restaurant_name": "SoJu BBQ",
+        "score": 91,
+        "reasoning": "Cuisine: Korean; in West Loop; Price: $$; Known for: Groups who want dinner to feel like an event, not just a meal."
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "f66f5a60-edb2-448a-8524-388477ff53e7",
+        "restaurant_name": "Daebak Korean BBQ",
+        "score": 87,
+        "reasoning": "Cuisine: Korean; in Wicker Park; excellent food quality (8.2/10); Price: $$; Known for: Groups who want dinner to be a full-on interactive experience, not just a meal."
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "8c4901e7-6bd2-4c48-b360-7a318ad5d915",
+        "restaurant_name": "To Korean Cuisine",
+        "score": 83,
+        "reasoning": "Cuisine: Korean; in Lakeview; exceptional food quality (9.0/10); Price: $$; Known for: Groups who want a generous, deeply authentic Korean home-cooking experience with"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "b8da1f82-ad55-41c5-8cfa-4e217247343a",
+        "restaurant_name": "KFire Korean BBQ - Old Town",
+        "score": 79,
+        "reasoning": "Cuisine: Korean; in Old Town; Price: $$; Known for: Groups who want dinner to feel like an event, not just a meal."
+      }
+    ]
+  },
+  {
+    "query_id": 59,
+    "query": "chinese dim sum",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "1997b64f-adf0-4941-b95e-2a1bb015973d",
+        "restaurant_name": "D Cuisine",
+        "score": 95,
+        "reasoning": "Cuisine: Chinese; in Lincoln Park; Price: $$; Known for: Date night couples who want authentic dim sum craftsmanship without leaving the "
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "2561b00d-255d-4d94-b7e4-7eb305689bb9",
+        "restaurant_name": "Minghin Cuisine - South Loop",
+        "score": 91,
+        "reasoning": "Cuisine: Chinese; in Loop; excellent food quality (8.8/10); Price: $$; Known for: Weekend dim sum with a big, hungry group who wants to order everything on the ca"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "6db7c61b-555d-4a1e-b384-d624dd19f590",
+        "restaurant_name": "Triple Crown Restaurant",
+        "score": 87,
+        "reasoning": "Cuisine: Chinese; in Chinatown; excellent food quality (8.8/10); Price: $$; Known for: Night owls and dim sum devotees who want Cantonese classics done right at any ho"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "dffebeae-d3c6-4784-b171-56a28acbb33f",
+        "restaurant_name": "MingHin Cuisine - Lakeshore East",
+        "score": 83,
+        "reasoning": "Cuisine: Chinese; in Loop; excellent food quality (8.5/10); Price: $$; Known for: Downtown workers and weekend visitors who want real dim sum without the Chinatow"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "ce0d96e0-77de-4819-a5eb-cb61c46e728d",
+        "restaurant_name": "Golden Bull Restaurant",
+        "score": 79,
+        "reasoning": "Cuisine: Chinese; in Chinatown; exceptional food quality (9.0/10); Price: $$; Known for: Multigenerational families who want a proper Cantonese banquet without the banqu"
+      }
+    ]
+  },
+  {
+    "query_id": 60,
+    "query": "mediterranean",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+        "restaurant_name": "avec Restaurant",
+        "score": 95,
+        "reasoning": "Cuisine: Mediterranean; in West Loop; Michelin recognized; Price: $$$; Known for: Wine-curious diners who want a James Beard-pedigreed meal that still feels like "
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "4496ab73-9264-4869-8d54-8876d39c06c1",
+        "restaurant_name": "Aba",
+        "score": 91,
+        "reasoning": "Cuisine: Mediterranean; in West Loop; exceptional food quality (9.2/10); Price: $$$; Known for: The date night spot where the rooftop view does half the work for you."
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "31749258-4217-4d42-9a2b-77f94cce8516",
+        "restaurant_name": "Bereket Turkish Mediterranean restaurant (Halal Certified)",
+        "score": 87,
+        "reasoning": "Cuisine: Mediterranean; in Loop; exceptional food quality (9.2/10); Price: $$; Known for: The downtown worker or tourist who wants a real, unhurried Turkish meal without "
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "7286be49-7949-4d9c-8486-216e4b24e4a0",
+        "restaurant_name": "Sila's mediterranean Restaurant #2",
+        "score": 83,
+        "reasoning": "Cuisine: Mediterranean; in Loop; exceptional food quality (9.2/10); Price: $$; Known for: The downtown lunch spot for Loop professionals who refuse to settle for a sad de"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "f6172bdb-e5a0-4f44-9c2b-5de47b160a21",
+        "restaurant_name": "Bocadillo Market",
+        "score": 79,
+        "reasoning": "Cuisine: Mediterranean; in Bucktown; exceptional food quality (9.2/10); Price: $$; Known for: The Bucktown regular who wants a proper lunch without a reservation or a perform"
+      }
+    ]
+  },
+  {
+    "query_id": 61,
+    "query": "vietnamese pho",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "25750901-f85f-431e-ab94-88b3febbac27",
+        "restaurant_name": "Ocean Grill & Bar",
+        "score": 95,
+        "reasoning": "Cuisine: Vietnamese; in Chinatown; exceptional food quality (9.2/10); Price: $$; Known for: Date night couples craving Vietnamese seafood in a quietly intimate setting away"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "408628a7-8a76-4e01-afd8-e371193fb777",
+        "restaurant_name": "LC Ph\u1edf Restaurant",
+        "score": 91,
+        "reasoning": "Cuisine: Vietnamese; in Lincoln Square; excellent food quality (8.5/10); Price: $; Known for: The no-nonsense pho loyalist who wants authenticity over atmosphere every time."
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "a747f2da-d6e9-4d59-9123-cd938c7900ce",
+        "restaurant_name": "Phodega",
+        "score": 87,
+        "reasoning": "Cuisine: Vietnamese; in Ukrainian Village; exceptional food quality (9.2/10); Price: $$; Known for: The solo lunch spot for noodle devotees who want serious pho without the Chinato"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "814d5d3b-9ba4-445a-870f-0fd41c3bcf90",
+        "restaurant_name": "Green Apple PHOever",
+        "score": 83,
+        "reasoning": "Cuisine: Vietnamese; in Loop; excellent food quality (8.5/10); Price: $; Known for: The downtown worker who refuses to settle for a mediocre lunch and needs a genui"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "6145fcb6-8d4b-4762-be9d-98b8bf3a49eb",
+        "restaurant_name": "3 Asian Sisters",
+        "score": 79,
+        "reasoning": "Cuisine: Vietnamese; in Lincoln Park; Price: $; Known for: Anyone in Lincoln Park who needs a restorative bowl of real pho without the neig"
+      }
+    ]
+  },
+  {
+    "query_id": 62,
+    "query": "brazilian steakhouse",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "b06195b4-ad43-4b93-9069-8a1e3018746a",
+        "restaurant_name": "Sinh\u00e1",
+        "score": 95,
+        "reasoning": "Cuisine: Brazilian; in Little Italy; exceptional food quality (9.0/10); Price: $$; Known for: The adventurous couple ready to explore Brazilian regional cooking far beyond th"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "9c9f1ebb-c075-43db-bc76-f5cadc7ef45d",
+        "restaurant_name": "Brazilian Bowl",
+        "score": 91,
+        "reasoning": "Cuisine: Brazilian; in Lincoln Park; excellent food quality (8.5/10); Price: $; Known for: Quick, colorful, and genuinely Brazilian \u2014 perfect for Lincoln Park lunch regula"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "c0ba99d2-a6d5-4add-829b-01f61a6b4216",
+        "restaurant_name": "Carnivale Chicago",
+        "score": 87,
+        "reasoning": "Cuisine: Brazilian; in West Loop; Price: $$; Known for: Groups ready to eat, drink, and dance their way through a full Brazilian feast i"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "35bf9a58-4882-4c9d-ac9b-0157eb8711f7",
+        "restaurant_name": "Fogo de Ch\u00e3o Brazilian Steakhouse",
+        "score": 83,
+        "reasoning": "Cuisine: Brazilian; in River North; excellent food quality (8.2/10); Price: $$$; Known for: The meat lover ready to surrender an entire evening to tableside pageantry and s"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "f4f9991b-dd6a-4a9f-831e-c87502e40cee",
+        "restaurant_name": "Brasil Legal Cafe",
+        "score": 79,
+        "reasoning": "Cuisine: Brazilian; in Logan Square; exceptional food quality (9.0/10); Price: $; Known for: The sunny, casual pit stop for curious eaters who want authentic Brazilian stree"
+      }
+    ]
+  },
+  {
+    "query_id": 63,
+    "query": "peruvian",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "b4e1b793-0801-46bf-9fde-08680413dd2b",
+        "restaurant_name": "Kayao Restaurant",
+        "score": 95,
+        "reasoning": "Cuisine: Peruvian; in Old Town; exceptional food quality (9.2/10); Price: $$; Known for: The adventurous eater ready to discover why Lima is the world's most underrated "
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "a317ac75-c951-426a-af0f-76306e7311c0",
+        "restaurant_name": "Taste of Peru",
+        "score": 91,
+        "reasoning": "Cuisine: Peruvian; in Rogers Park; exceptional food quality (9.2/10); Price: $$; Known for: Food adventurers craving honest, immigrant-kitchen Peruvian cooking far from the"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "4aba89b8-c5c7-4564-af15-e42622779d35",
+        "restaurant_name": "Peru Criollo",
+        "score": 87,
+        "reasoning": "Cuisine: Peruvian; in Irving Park; exceptional food quality (9.0/10); Price: $$; Known for: The curious eater ready to discover authentic Peruvian home cooking beyond the t"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "092617a5-3003-412b-898c-b4c561b507f5",
+        "restaurant_name": "D'Candela Restaurant",
+        "score": 83,
+        "reasoning": "Cuisine: Peruvian; in Irving Park; excellent food quality (8.5/10); Price: $$; Known for: The neighborhood regular who wants honest Peruvian cooking without the downtown "
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "8d89f0e4-a227-4dfc-820a-d633fd218eb5",
+        "restaurant_name": "The Dearborn",
+        "score": 79,
+        "reasoning": "Cuisine: Peruvian; in Loop; excellent food quality (8.2/10); Price: $$; Known for: The after-work spot for Loop professionals who refuse to settle for mediocre coc"
+      }
+    ]
+  },
+  {
+    "query_id": 64,
+    "query": "greek restaurant",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "5174edec-1317-427e-8e22-2a222c5a8eaa",
+        "restaurant_name": "Ithaki Estiatorio",
+        "score": 95,
+        "reasoning": "Cuisine: Greek; in West Loop; exceptional food quality (9.2/10); Price: $$; Known for: Anyone craving an unhurried, elegant Mediterranean dinner that genuinely transpo"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "c3083e48-50e1-4612-9009-24cc355b23fb",
+        "restaurant_name": "Athenian Room",
+        "score": 91,
+        "reasoning": "Cuisine: Greek; in Lincoln Park; exceptional food quality (9.2/10); Price: $$; Known for: Old-school Greek comfort food for anyone who believes the best restaurants never"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "b55306fe-dfb5-440b-9261-02f93cee2948",
+        "restaurant_name": "Avli River North",
+        "score": 87,
+        "reasoning": "Cuisine: Greek; in River North; exceptional food quality (9.0/10); Price: $$; Known for: Anyone craving elevated Greek food with tableside drama and happy hour deals wor"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "8510aa08-20bf-4e74-b4e9-0d0a0aa713c1",
+        "restaurant_name": "Serena's Grill (Gold Coast, Chicago)",
+        "score": 83,
+        "reasoning": "Cuisine: Greek; in Gold Coast; exceptional food quality (9.0/10); Price: $; Known for: Gold Coast regulars who want a no-nonsense, affordable meal without the neighbor"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "cd612012-826d-44b9-a703-0e34db8f9887",
+        "restaurant_name": "9 Muses Bar & Grill",
+        "score": 79,
+        "reasoning": "Cuisine: Greek; in West Loop; exceptional food quality (9.0/10); Price: $$; Known for: Loud, fire-kissed Greek feasting for groups who want to share everything and lin"
+      }
+    ]
+  },
+  {
+    "query_id": 65,
+    "query": "middle eastern",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+        "restaurant_name": "Galit",
+        "score": 95,
+        "reasoning": "Cuisine: Middle Eastern; in Lincoln Park; excellent food quality (8.2/10); Michelin recognized; Price: $$$"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "014cb37a-d992-4113-9f63-9360b20e501f",
+        "restaurant_name": "Suda's",
+        "score": 91,
+        "reasoning": "Cuisine: Middle Eastern; in Lincoln Park; exceptional food quality (9.5/10); Price: $$; Known for: Anyone craving an unhurried Middle Eastern feast with a table full of people to "
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "444151dc-012b-4e30-97f5-50e649303bff",
+        "restaurant_name": "Avaspi",
+        "score": 87,
+        "reasoning": "Cuisine: Middle Eastern; in Lakeview; exceptional food quality (9.2/10); Price: $$; Known for: Lakeview locals and savvy visitors who want serious Mediterranean food without t"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "b5ed4916-6bf2-475a-8dd0-3ce7045c155d",
+        "restaurant_name": "Oda Mediterranean",
+        "score": 83,
+        "reasoning": "Cuisine: Middle Eastern; in Andersonville; exceptional food quality (9.2/10); Price: $$; Known for: Date-night seekers who want craft cocktails and something more interesting than "
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "18773ec4-8d25-42fe-af8d-f0bd4ff825ef",
+        "restaurant_name": "Turkish Doner",
+        "score": 79,
+        "reasoning": "Cuisine: Middle Eastern; in Uptown; exceptional food quality (9.2/10); Price: $; Known for: Street food purists hunting for the real Turkish doner experience Chicago rarely"
+      }
+    ]
+  },
+  {
+    "query_id": 66,
+    "query": "polish food",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "8031cbb2-a86c-4921-8e68-a8a9ae983414",
+        "restaurant_name": "Staropolska Restaurant",
+        "score": 95,
+        "reasoning": "Cuisine: Polish; in Avondale; exceptional food quality (9.2/10); Price: $$; Known for: Anyone craving honest, no-shortcuts Polish comfort food in a room that time forg"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "78797b47-5035-4cc4-8b4e-2d57a83fa8ec",
+        "restaurant_name": "Pierogi Kitchen",
+        "score": 91,
+        "reasoning": "Cuisine: Polish; in Wicker Park; exceptional food quality (9.2/10); Price: $$; Known for: Comfort food lovers who want handmade Polish tradition with a Wicker Park edge."
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "adbf5e72-ccae-46ac-a056-9d1fa412c116",
+        "restaurant_name": "Jim's Original",
+        "score": 87,
+        "reasoning": "Cuisine: Polish; in West Loop; excellent food quality (8.5/10); James Beard recognized; Price: $"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "77265d50-5a38-4ce4-8f41-face50d6e915",
+        "restaurant_name": "Lutnia Polish Restaurant",
+        "score": 83,
+        "reasoning": "Cuisine: Polish; in Irving Park; exceptional food quality (9.0/10); Price: $$; Known for: Old-world comfort food seekers and Polish diaspora craving a taste of home done "
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "afffd4fc-0695-4e36-8a28-05a2fab30d85",
+        "restaurant_name": "Kurowski Sausage Shop",
+        "score": 79,
+        "reasoning": "Cuisine: Polish; in Avondale; exceptional food quality (9.0/10); Price: $; Known for: Old-school Polish food lovers and curious carnivores hunting the most authentic "
+      }
+    ]
+  },
+  {
+    "query_id": 67,
+    "query": "southern comfort food",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "65d31bb9-b3d0-4e04-803c-a07b68ecc925",
+        "restaurant_name": "Virtue Restaurant",
+        "score": 95,
+        "reasoning": "Cuisine: Southern/Soul Food; in Hyde Park; excellent food quality (8.2/10); James Beard recognized; Price: $$$"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "29f16b77-fd63-42ef-a2e3-8f017f71ed1e",
+        "restaurant_name": "CMB Catering",
+        "score": 91,
+        "reasoning": "Cuisine: Southern/Soul Food; in Logan Square; exceptional food quality (9.5/10); Price: $$; Known for: Logan Square event planners and grab-and-go regulars who need reliable, unfussy "
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "1f671d30-9121-43f1-b328-9f6d5de5716f",
+        "restaurant_name": "etc.",
+        "score": 87,
+        "reasoning": "Cuisine: Southern/Soul Food; in Loop; exceptional food quality (9.2/10); Price: $$; Known for: The Loop escape for downtown workers who want a real meal, not just a quick bite"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "1781953b-66ba-4639-87cf-1c645535f565",
+        "restaurant_name": "Brown's Soul Food",
+        "score": 83,
+        "reasoning": "Cuisine: Southern/Soul Food; in Humboldt Park; exceptional food quality (9.2/10); Price: $$; Known for: Sunday-dinner comfort food for anyone craving something deeply homemade and unhu"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "8eb973bd-fdf5-4c72-a5cf-7c340d6ae8d3",
+        "restaurant_name": "Hot Chi Chicken - Lakeview",
+        "score": 79,
+        "reasoning": "Cuisine: Southern/Soul Food; in Lincoln Park; exceptional food quality (9.2/10); Price: $$; Known for: Spice chasers and fried chicken devotees who want to test their limits on a week"
+      }
+    ]
+  },
+  {
+    "query_id": 68,
+    "query": "seafood restaurant",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "fdcf51d0-ba44-453d-91ec-36bc6a61f166",
+        "restaurant_name": "Calumet Fisheries",
+        "score": 95,
+        "reasoning": "Cuisine: Seafood; in Woodlawn; excellent food quality (8.8/10); James Beard recognized; Price: $$"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "b097e932-4a4c-40d6-bda7-38f2db3655be",
+        "restaurant_name": "RPM Seafood",
+        "score": 91,
+        "reasoning": "Cuisine: Seafood; in River North; exceptional food quality (9.2/10); Price: $$$$; Known for: The special-occasion dinner where you want riverfront drama and genuinely except"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "92e96527-0d1a-4b68-9111-b8e181ec2ac7",
+        "restaurant_name": "Bar Mar",
+        "score": 87,
+        "reasoning": "Cuisine: Seafood; in Loop; exceptional food quality (9.2/10); Price: $$$; Known for: The downtown date night where the seafood tower does all the talking."
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "79ba7593-91fe-49e6-9bcf-f2b41504284f",
+        "restaurant_name": "Lure Fishbar - Chicago",
+        "score": 83,
+        "reasoning": "Cuisine: Seafood; in River North; exceptional food quality (9.2/10); Price: $$$; Known for: Seafood lovers who want a serious raw bar and fresh sushi without the white-tabl"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "bef14503-b995-4cc8-8080-8cead661be2a",
+        "restaurant_name": "Oh My Crab",
+        "score": 79,
+        "reasoning": "Cuisine: Seafood; in Andersonville; exceptional food quality (9.2/10); Price: $$; Known for: Fresh seafood boils and impeccably cooked fish in a welcoming Lincoln Square nei"
+      }
+    ]
+  },
+  {
+    "query_id": 69,
+    "query": "steak dinner",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "b1ba5f97-d529-4223-8d3f-7c876cf614c8",
+        "restaurant_name": "North Center Prime",
+        "score": 95,
+        "reasoning": "Cuisine: Steak; in North Center; exceptional food quality (9.5/10); Price: $$; Known for: The neighborhood steakhouse for North Siders who want serious beef without the d"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "467b3c87-5829-41b2-91fc-6cd077f77613",
+        "restaurant_name": "Bavette's Bar & Boeuf",
+        "score": 91,
+        "reasoning": "Cuisine: Steak; in River North; exceptional food quality (9.2/10); Price: $$$$; Known for: The date night that feels like a scene from a classic film, complete with prime "
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "437ce574-8ad9-4ae3-9c9c-e92ef5e044f4",
+        "restaurant_name": "Bazaar Meat",
+        "score": 87,
+        "reasoning": "Cuisine: Steak; in West Loop; Michelin recognized; Price: $$$$; Known for: Carnivorous special-occasion diners who want Jos\u00e9 Andr\u00e9s-level theatrics with wo"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "5826ea42-cae1-44ed-995c-58a0d7bfbaa0",
+        "restaurant_name": "Hawksmoor Chicago",
+        "score": 83,
+        "reasoning": "Cuisine: Steak; in River North; Michelin recognized; Price: $$$; Known for: The power dinner or slow date night where you want serious beef and even more se"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "256ec2f5-e5cf-423f-bb00-156c606e5f40",
+        "restaurant_name": "Artango Bar & Steakhouse",
+        "score": 79,
+        "reasoning": "Cuisine: Steak; in Lincoln Square; exceptional food quality (9.2/10); Price: $$$; Known for: Date-night seekers who want wood-fired Argentine beef and live tango in one unex"
+      }
+    ]
+  },
+  {
+    "query_id": 70,
+    "query": "brunch spot",
+    "category": "Cuisine",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "c6843a52-7f5c-43cb-a7f4-c42397c03a12",
+        "restaurant_name": "Honeymoon Cafe",
+        "score": 95,
+        "reasoning": "Cuisine: Chinese; in Uptown; exceptional food quality (9.2/10); Price: $$; Known for: The slow-morning brunch crowd who wants great coffee, no rush, and a window seat"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "9d125e57-70f4-45bf-a844-b6f5721c3da7",
+        "restaurant_name": "B'Gabs Comfort Cafe",
+        "score": 91,
+        "reasoning": "Cuisine: American; in Hyde Park; exceptional food quality (9.2/10); Price: $$; Known for: The unhurried weekend brunch crowd that wants soul-warming food without a wait l"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "a81f31c3-6d39-4d32-9f7c-736fd30b1076",
+        "restaurant_name": "Ann Sather Restaurant",
+        "score": 87,
+        "reasoning": "Cuisine: Brunch; in Lincoln Park; exceptional food quality (9.2/10); Price: $; Known for: The unhurried Sunday brunch spot for anyone who believes cinnamon rolls are a fo"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "4ca45bb1-bcef-49fb-a69c-640192209f64",
+        "restaurant_name": "A Taste of Heaven",
+        "score": 83,
+        "reasoning": "Cuisine: Coffee/Cafe; in Andersonville; exceptional food quality (9.0/10); Price: $$; Known for: Andersonville regulars and anyone craving an unhurried weekend brunch in a genui"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "deee6d91-d320-49d2-bbf7-d3098c2f6c45",
+        "restaurant_name": "Breakfast House & Coffee Bar - Lakeview",
+        "score": 79,
+        "reasoning": "Cuisine: Brunch; in Lakeview; exceptional food quality (9.0/10); Price: $$; Known for: Coffee-serious brunch lovers who want a proper morning ritual, not just a mimosa"
+      }
+    ]
+  },
+  {
+    "query_id": 71,
+    "query": "deep dish pizza",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "478f15fe-ac23-4135-967c-00bdad321487",
+        "restaurant_name": "Chicago's Pizza - Lakeview",
+        "score": 95,
+        "reasoning": "Cuisine: Italian; in Lakeview; exceptional food quality (9.2/10); Price: $; Known for: Deep-dish purists and late-night pizza seekers who want the real thing without t"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "b1c158df-7ca2-4cad-b69c-6b3242017623",
+        "restaurant_name": "Bacino's",
+        "score": 91,
+        "reasoning": "Cuisine: Italian; in Lincoln Park; exceptional food quality (9.0/10); Price: $$; Known for: The deep-dish devotee who wants a cozy booth and zero tourist crowds."
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "9dfdce18-37f9-4030-b630-688360df089f",
+        "restaurant_name": "Pizano's Pizza & Pasta",
+        "score": 87,
+        "reasoning": "Cuisine: Italian; in Loop; Price: $$; Known for: Out-of-towners and locals alike who want the definitive Chicago deep-dish withou"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "435cda74-ac0e-49c2-a141-217cb70575f9",
+        "restaurant_name": "J.B. Alberto's Pizza",
+        "score": 83,
+        "reasoning": "Cuisine: Italian; in Rogers Park; exceptional food quality (9.2/10); Price: $; Known for: Chicago thin-crust loyalists and Rogers Park regulars who take their tavern-styl"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "15b3807b-1039-46ba-a1ee-1224bbe6903a",
+        "restaurant_name": "Giordano's Pizza Rogers Park",
+        "score": 79,
+        "reasoning": "Cuisine: Italian; in Rogers Park; Price: $$; Known for: The classic Chicago deep dish pilgrimage for families and first-timers who want "
+      }
+    ]
+  },
+  {
+    "query_id": 72,
+    "query": "soup dumplings",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "37d3ebc8-9a0f-44b8-bf01-0713222c8402",
+        "restaurant_name": "Liuzhou Spicy Rice Noodle",
+        "score": 95,
+        "reasoning": "Cuisine: Chinese; in Chinatown; exceptional food quality (9.2/10); Price: $; Known for: The adventurous noodle obsessive chasing something genuinely hard to find in Chi"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "03d185fb-4f00-4326-af51-ff258b015d58",
+        "restaurant_name": "Shang Noodle Chicago Streeterville",
+        "score": 91,
+        "reasoning": "Cuisine: Chinese; in River North; Price: $$; Known for: The weekday lunch spot for anyone who wants authentic Shanghai noodles without a"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "42367f05-40d2-4320-9b2c-b7f27ade0c11",
+        "restaurant_name": "Union Dumpling House",
+        "score": 87,
+        "reasoning": "Cuisine: Chinese; in Lincoln Square; Price: $$; Known for: Dumpling obsessives who want handmade technique and an open kitchen without a tr"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "978bfcd2-4d50-4fe7-aa89-d7067395409e",
+        "restaurant_name": "Legend Dumpling + Bao",
+        "score": 83,
+        "reasoning": "Cuisine: Chinese; in Chinatown; exceptional food quality (9.0/10); Price: $; Known for: Dumpling purists who want Chinatown's most handmade, broth-filled xiao long bao "
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "29f1a46c-22bb-430e-b36f-d355f0c62fb0",
+        "restaurant_name": "Four Seasons Dumpling",
+        "score": 79,
+        "reasoning": "Cuisine: Chinese; in Bridgeport; excellent food quality (8.8/10); Price: $$; Known for: Dumpling obsessives and frugal foodies who know Bridgeport holds Chicago's best-"
+      }
+    ]
+  },
+  {
+    "query_id": 73,
+    "query": "birria tacos",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "1d36a77d-6d33-4116-a297-67af2bd84392",
+        "restaurant_name": "Birrieria Zaragoza",
+        "score": 95,
+        "reasoning": "Cuisine: Mexican; in Uptown; exceptional food quality (9.5/10); Price: $; Known for: The taco pilgrimage for anyone serious about finding Chicago's most authentic Ja"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "736081d8-4119-44cf-bb86-6274bb76e9c2",
+        "restaurant_name": "EL TRAGON TAQUERIA",
+        "score": 91,
+        "reasoning": "Cuisine: Mexican; in Old Town; exceptional food quality (9.2/10); Price: $; Known for: California-quality tacos and quesabirria from a gas station plaza gem"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "444d72af-a4c3-4384-aece-ed4041925334",
+        "restaurant_name": "EL TACONAZO EL TIO & BIRRIA",
+        "score": 87,
+        "reasoning": "Cuisine: Mexican; in Logan Square; exceptional food quality (9.0/10); Price: $; Known for: Late-night birria devotees who want consomm\u00e9-dipped tacos and a BYOB table with "
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "0c1494fb-5285-4c66-97ca-9a576aa0f711",
+        "restaurant_name": "Taqueria Mazamitla",
+        "score": 83,
+        "reasoning": "Cuisine: Mexican; in Avondale; exceptional food quality (9.0/10); Price: $; Known for: Taco purists and Avondale regulars who know that the best meals come without a r"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "33535cc7-b5a4-4435-8609-5479fe146176",
+        "restaurant_name": "Taquer\u00eda el Malec\u00f3n",
+        "score": 79,
+        "reasoning": "Cuisine: Mexican; in Avondale; exceptional food quality (9.0/10); Price: $; Known for: Authentic Avondale taqueria for taco purists who know the difference between a t"
+      }
+    ]
+  },
+  {
+    "query_id": 74,
+    "query": "pad thai",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "b715e567-58d0-4d95-97eb-0f9bcac2ef41",
+        "restaurant_name": "Vegan Plate",
+        "score": 95,
+        "reasoning": "Cuisine: Thai; in Lincoln Park; exceptional food quality (9.2/10); Price: $$; Known for: Plant-based eaters who want a proper sit-down meal without compromising on atmos"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "98de82c6-220b-4e3c-980a-8243dfc3e0a3",
+        "restaurant_name": "Jin Thai",
+        "score": 91,
+        "reasoning": "Cuisine: Thai; in Andersonville; exceptional food quality (9.2/10); Price: $$; Known for: The neighborhood BYOB ritual for Andersonville regulars who bring their own wine"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "f6c16145-1353-4e46-90bc-9488983abfba",
+        "restaurant_name": "Cilantro Authentic Thai Food",
+        "score": 87,
+        "reasoning": "Cuisine: Thai; in Rogers Park; exceptional food quality (9.2/10); Price: $$; Known for: Thai food purists tired of watered-down heat who want the real thing in a no-fri"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "3bc6bbac-31e3-4630-ac6f-37e82e3f5252",
+        "restaurant_name": "Anna's Thai Kitchen Restaurant",
+        "score": 83,
+        "reasoning": "Cuisine: Thai; in North Center; exceptional food quality (9.2/10); Price: $$; Known for: Weeknight regulars who want honest, authentic Thai without the downtown markup o"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "06bd6004-abb1-4354-9de9-624d54e6edc7",
+        "restaurant_name": "Busaba Garden Thai Cuisine",
+        "score": 79,
+        "reasoning": "Cuisine: Thai; in Lincoln Square; exceptional food quality (9.2/10); Price: $$; Known for: The couple looking for a quietly romantic outdoor dinner that feels like a neigh"
+      }
+    ]
+  },
+  {
+    "query_id": 75,
+    "query": "ramen",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "7154bd2b-97fd-4540-a2c0-d3c84f5804ea",
+        "restaurant_name": "Menya Goku",
+        "score": 95,
+        "reasoning": "Cuisine: Japanese; in North Center; exceptional food quality (9.2/10); Price: $$; Known for: Solo ramen devotees who take their broth seriously and prefer a counter stool to"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "07d1ce40-278a-46b9-acc0-f8e3c0cd5a8a",
+        "restaurant_name": "Ukai Sushi & Ramen",
+        "score": 91,
+        "reasoning": "Cuisine: Japanese; in Lincoln Park; excellent food quality (8.8/10); Price: $$; Known for: The reliable neighborhood Japanese spot where you can get a serious bowl of rame"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "e3a11d7e-264a-4768-844e-58981da0e292",
+        "restaurant_name": "KOHOKU-KU RAMEN CHICAGO",
+        "score": 87,
+        "reasoning": "Cuisine: Japanese; in Edgewater; excellent food quality (8.2/10); Price: $$; Known for: The ramen purist who'd rather find the real thing off the beaten path than wait "
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "eb412f6a-8bd0-4b38-88c3-6ab6fc81fab5",
+        "restaurant_name": "Shinya Ramen House - Midnight Diner",
+        "score": 83,
+        "reasoning": "Cuisine: Japanese; in Bridgeport; excellent food quality (8.0/10); Price: $; Known for: Night-shift workers and insomniacs who refuse to settle for bad food after midni"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "4087f2aa-ff83-4ec5-9156-5e72b1af2460",
+        "restaurant_name": "Ramen Wasabi - Fulton Market",
+        "score": 79,
+        "reasoning": "Cuisine: Japanese; in West Loop; Price: $$; Known for: West Loop lunch regulars who refuse to sacrifice quality for a fast, affordable "
+      }
+    ]
+  },
+  {
+    "query_id": 76,
+    "query": "tandoori chicken",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "07ab779a-bd0f-4006-ab76-7968ebe69695",
+        "restaurant_name": "Cumin Restaurant - Lakeview",
+        "score": 95,
+        "reasoning": "Cuisine: Indian; in Lincoln Park; exceptional food quality (9.2/10); Price: $$; Known for: A date-night destination for couples who want genuine Indian-Nepali depth withou"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "53ec9f33-2886-48de-a8b8-cfe67be1fed2",
+        "restaurant_name": "Indian Garden Restaurant",
+        "score": 91,
+        "reasoning": "Cuisine: Indian; in River North; exceptional food quality (9.2/10); Price: $$; Known for: Out-of-town guests and River North diners who want approachable Indian food with"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "ead6e858-cf9f-42c9-aa6f-fd00fbd341c2",
+        "restaurant_name": "Basant Modern Indian Restaurant",
+        "score": 87,
+        "reasoning": "Cuisine: Indian; in North Center; excellent food quality (8.8/10); Price: $$; Known for: The North Side regular craving serious Indian cooking without trekking to the De"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "a07d187b-25d8-4bc7-a524-87f7328769a5",
+        "restaurant_name": "Maharaj Indian Grill",
+        "score": 83,
+        "reasoning": "Cuisine: Indian; in Loop; Price: $$; Known for: Downtown workers and Loop visitors who want a proper sit-down Indian meal withou"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "0f77675b-31f2-4c95-a3c7-cd8301c9e914",
+        "restaurant_name": "Cumin Restaurant - Wicker Park",
+        "score": 79,
+        "reasoning": "Cuisine: Indian; in Wicker Park; Price: $$; Known for: Anyone craving deeply spiced Indian-Nepali cooking in a cozy, unhurried Wicker P"
+      }
+    ]
+  },
+  {
+    "query_id": 77,
+    "query": "al pastor tacos",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "29525f40-3602-4ea1-878d-0841b471ee7f",
+        "restaurant_name": "Los 3 Panchos",
+        "score": 95,
+        "reasoning": "Cuisine: Mexican; in Lincoln Park; excellent food quality (8.5/10); Price: $; Known for: Late-night taco purists who want spit-roasted al pastor at street-food prices, n"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "64095d10-6893-4021-ab22-a689760bb11e",
+        "restaurant_name": "Big Star Wrigleyville",
+        "score": 91,
+        "reasoning": "Cuisine: Mexican; in Lakeview; excellent food quality (8.5/10); Price: $$; Known for: Cubs fans and patio lovers who refuse to settle for bad game-day food."
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "fd508671-9659-45e0-bbc1-5b813b17dd40",
+        "restaurant_name": "Martinez Mexican Bar & Grill",
+        "score": 87,
+        "reasoning": "Cuisine: Mexican; in Bridgeport; Price: $; Known for: Bridgeport locals and anyone craving no-frills, high-authenticity Mexican food w"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "011e2db3-fd51-4c4a-bb79-9afda8d7eb2d",
+        "restaurant_name": "Flash Taco Wicker Park",
+        "score": 83,
+        "reasoning": "Cuisine: Mexican; in Wicker Park; exceptional food quality (9.5/10); Price: $; Known for: The post-bar crowd and budget-conscious taco purists who refuse to compromise on"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "a2ab00ad-c178-48d3-9373-150facc04c09",
+        "restaurant_name": "Jarabe - Taqueria",
+        "score": 79,
+        "reasoning": "Cuisine: Mexican; in West Loop; exceptional food quality (9.5/10); Price: $; Known for: The midday taco run for anyone who knows that the best meal in the West Loop som"
+      }
+    ]
+  },
+  {
+    "query_id": 78,
+    "query": "lobster roll",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "79ba7593-91fe-49e6-9bcf-f2b41504284f",
+        "restaurant_name": "Lure Fishbar - Chicago",
+        "score": 95,
+        "reasoning": "Cuisine: Seafood; in River North; exceptional food quality (9.2/10); Price: $$$; Known for: Seafood lovers who want a serious raw bar and fresh sushi without the white-tabl"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "4fcffb57-7d8c-4d76-b212-6f97f7c2e5b1",
+        "restaurant_name": "Legal Sea Foods - Chicago",
+        "score": 91,
+        "reasoning": "Cuisine: Seafood; in River North; exceptional food quality (9.0/10); Price: $$$; Known for: Business lunches and out-of-town guests who want reliably excellent seafood with"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "ffa27e40-2016-44c2-b2f2-6cdc28147a88",
+        "restaurant_name": "The Hampton Social - Streeterville",
+        "score": 87,
+        "reasoning": "Cuisine: Seafood; in River North; excellent food quality (8.8/10); Price: $$; Known for: Date nights and birthday celebrations that call for lobster rolls, live music, a"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "181d70d6-7257-478e-8cee-9c2d4fd47003",
+        "restaurant_name": "Brown Bag Seafood Co. - Loop",
+        "score": 83,
+        "reasoning": "Cuisine: Seafood; in Loop; excellent food quality (8.8/10); Price: $$; Known for: Loop workers who refuse to settle for a sad desk lunch when a lobster roll exist"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "6b784476-8e60-46cc-acb4-b3fac7388a29",
+        "restaurant_name": "Brown Bag Seafood Co. - Old Town",
+        "score": 79,
+        "reasoning": "Cuisine: Seafood; in Old Town; excellent food quality (8.8/10); Price: $$; Known for: The quick lunch that genuinely tastes like you're eating on a New England dock."
+      }
+    ]
+  },
+  {
+    "query_id": 79,
+    "query": "sushi omakase",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "951aecd6-c1da-4521-a53c-43560ee077a5",
+        "restaurant_name": "Omakase Shoji & Izakaya",
+        "score": 95,
+        "reasoning": "Cuisine: Japanese; in Wicker Park; excellent food quality (8.5/10); Price: $$$; Known for: The date night that starts as a sushi experience and ends as a sake-fueled izaka"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "1b9806f3-554b-4604-a0c7-b63d724aa999",
+        "restaurant_name": "Momotaro",
+        "score": 91,
+        "reasoning": "Cuisine: Japanese; in West Loop; Michelin recognized; Price: $$$; Known for: A special-occasion dinner for anyone who wants Michelin-recognized Japanese cook"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "f7cdb372-0574-42b2-b2a4-4073cd919a4f",
+        "restaurant_name": "Sushi Payce",
+        "score": 87,
+        "reasoning": "Cuisine: Japanese; in Lincoln Park; excellent food quality (8.2/10); Price: $$; Known for: Date-night sushi lovers who want intimacy and craft over flash and noise."
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "961caf60-065c-48dd-b99d-815ae38991d5",
+        "restaurant_name": "Mako",
+        "score": 83,
+        "reasoning": "Cuisine: Japanese; in West Loop; Michelin recognized; Price: $$$$; Known for: The once-a-year splurge dinner for sushi purists who want Japan-level counter in"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "4519942c-650d-48a5-a03b-d94ecb6020b1",
+        "restaurant_name": "The Sit Down Cafe & Sushi Bar",
+        "score": 79,
+        "reasoning": "Cuisine: Japanese; in Hyde Park; Price: $$; Known for: U of C date nights where you want great sushi, a strong cocktail, and zero prete"
+      }
+    ]
+  },
+  {
+    "query_id": 80,
+    "query": "fried chicken",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "e55527d2-7266-4344-9124-3402da2cf97f",
+        "restaurant_name": "DixiePura Kitchen",
+        "score": 95,
+        "reasoning": "Cuisine: Korean; in Bronzeville; exceptional food quality (9.2/10); Price: $$; Known for: Soul food devotees and Bronzeville locals who want the real thing, unhurried and"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "1781953b-66ba-4639-87cf-1c645535f565",
+        "restaurant_name": "Brown's Soul Food",
+        "score": 91,
+        "reasoning": "Cuisine: Southern/Soul Food; in Humboldt Park; exceptional food quality (9.2/10); Price: $$; Known for: Sunday-dinner comfort food for anyone craving something deeply homemade and unhu"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "91c95323-6c4c-437c-a8d8-620b23789b16",
+        "restaurant_name": "Rica Arepa LAKEVIEW | Venezuelan Restaurant",
+        "score": 87,
+        "reasoning": "Cuisine: Latin American; in Lakeview; exceptional food quality (9.0/10); Price: $$; Known for: Anyone craving a from-scratch Venezuelan meal that feels like a home kitchen, no"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "ef601578-b74b-470e-bf8b-cdf7e1856cda",
+        "restaurant_name": "Soul Prime",
+        "score": 83,
+        "reasoning": "Cuisine: Southern/Soul Food; in Lincoln Park; exceptional food quality (9.0/10); Price: $$; Known for: The date night spot where soulful comfort food meets genuine cocktail craft in L"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "0c19c811-5dbe-4ffc-bebc-51d6aef20605",
+        "restaurant_name": "Spilt Milk",
+        "score": 79,
+        "reasoning": "Cuisine: American; in Logan Square; exceptional food quality (9.0/10); Price: $$; Known for: Logan Square regulars who want something fast, unpretentious, and a little more "
+      }
+    ]
+  },
+  {
+    "query_id": 81,
+    "query": "brisket",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "538c8099-f428-42bb-abf0-5b159e8e1e36",
+        "restaurant_name": "Milt's Barbecue for the Perplexed",
+        "score": 95,
+        "reasoning": "Cuisine: BBQ; in Lincoln Park; Price: $$; Known for: Kosher-observant diners and BBQ purists who refuse to believe those two things a"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "2cb77a30-7933-48a0-bfb4-5d9f166e4a84",
+        "restaurant_name": "Offset BBQ",
+        "score": 91,
+        "reasoning": "Cuisine: BBQ; in Humboldt Park; Price: $$; Known for: BBQ obsessives willing to travel to Humboldt Park for brisket that earns the tri"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "f9e01550-19ee-4eaa-b233-934ee12f40cb",
+        "restaurant_name": "Heffer BBQ",
+        "score": 87,
+        "reasoning": "Cuisine: BBQ; in Pilsen; exceptional food quality (9.0/10); Price: $$; Known for: BBQ purists who want serious smoked meat in one of Chicago's most visually elect"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "c3861224-217a-4765-b999-8ba22bc1b151",
+        "restaurant_name": "Bub City",
+        "score": 83,
+        "reasoning": "Cuisine: BBQ; in River North; exceptional food quality (9.0/10); Price: $$; Known for: Groups craving live country music, serious whiskey, and fall-off-the-bone ribs u"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "c6438a76-b363-4e91-9343-ed37d7638655",
+        "restaurant_name": "The Perch Kitchen and Tap",
+        "score": 79,
+        "reasoning": "Cuisine: American; in Wicker Park; excellent food quality (8.8/10); Price: $$; Known for: For groups who want serious craft beer and a burger worth talking about, without"
+      }
+    ]
+  },
+  {
+    "query_id": 82,
+    "query": "pho bo",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "25750901-f85f-431e-ab94-88b3febbac27",
+        "restaurant_name": "Ocean Grill & Bar",
+        "score": 95,
+        "reasoning": "Cuisine: Vietnamese; in Chinatown; exceptional food quality (9.2/10); Price: $$; Known for: Date night couples craving Vietnamese seafood in a quietly intimate setting away"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "408628a7-8a76-4e01-afd8-e371193fb777",
+        "restaurant_name": "LC Ph\u1edf Restaurant",
+        "score": 91,
+        "reasoning": "Cuisine: Vietnamese; in Lincoln Square; excellent food quality (8.5/10); Price: $; Known for: The no-nonsense pho loyalist who wants authenticity over atmosphere every time."
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "b412b5fa-76ac-4b6f-a9d3-b10a3482b60c",
+        "restaurant_name": "Hai Yen Restaurant",
+        "score": 87,
+        "reasoning": "Cuisine: Vietnamese; in Uptown; Price: $; Known for: Authentic Vietnamese comfort food for anyone who lets the neighborhood regulars "
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "a747f2da-d6e9-4d59-9123-cd938c7900ce",
+        "restaurant_name": "Phodega",
+        "score": 83,
+        "reasoning": "Cuisine: Vietnamese; in Ukrainian Village; exceptional food quality (9.2/10); Price: $$; Known for: The solo lunch spot for noodle devotees who want serious pho without the Chinato"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "814d5d3b-9ba4-445a-870f-0fd41c3bcf90",
+        "restaurant_name": "Green Apple PHOever",
+        "score": 79,
+        "reasoning": "Cuisine: Vietnamese; in Loop; excellent food quality (8.5/10); Price: $; Known for: The downtown worker who refuses to settle for a mediocre lunch and needs a genui"
+      }
+    ]
+  },
+  {
+    "query_id": 83,
+    "query": "ceviche",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "010c222c-f871-408e-a9d5-37cbee120284",
+        "restaurant_name": "Frontera Grill",
+        "score": 95,
+        "reasoning": "Cuisine: Mexican; in River North; James Beard recognized; Price: $$$; Known for: Anyone ready to understand what regional Mexican cuisine actually tastes like at"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+        "restaurant_name": "Mi Tocaya Antojer\u00eda",
+        "score": 91,
+        "reasoning": "Cuisine: Mexican; in Logan Square; exceptional food quality (9.2/10); Michelin recognized; Price: $$"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "9a978039-930a-4646-8d52-ceea03dfe827",
+        "restaurant_name": "Topolobampo",
+        "score": 87,
+        "reasoning": "Cuisine: Mexican; in River North; excellent food quality (8.8/10); Michelin recognized; Price: $$$"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "e4174e17-ac10-46ae-aaba-40d0d3db73cf",
+        "restaurant_name": "El Nuevo Langostino Inc",
+        "score": 83,
+        "reasoning": "Cuisine: Seafood; in North Center; exceptional food quality (9.2/10); Price: $$; Known for: Fresh ceviche and tilapia with family-style service and tropical cocktails"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "92e96527-0d1a-4b68-9111-b8e181ec2ac7",
+        "restaurant_name": "Bar Mar",
+        "score": 79,
+        "reasoning": "Cuisine: Seafood; in Loop; exceptional food quality (9.2/10); Price: $$$; Known for: The downtown date night where the seafood tower does all the talking."
+      }
+    ]
+  },
+  {
+    "query_id": 84,
+    "query": "gyro",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "e0f660f7-a836-463f-806c-7b2842c99064",
+        "restaurant_name": "Falafel & Grill - Lakeview",
+        "score": 95,
+        "reasoning": "Cuisine: Middle Eastern; in Lakeview; Price: $; Known for: Crispy falafel wraps and juicy lamb gyros at a no-frills counter spot"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "5888a4bf-f9c4-4238-b2ee-7152555daac0",
+        "restaurant_name": "BenjYehuda - Madison (Ogilvie Train Station)",
+        "score": 91,
+        "reasoning": "Cuisine: Mediterranean; in West Loop; Price: $; Known for: Commuters and downtown workers who refuse to settle for sad train station food o"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "e7e2aa3d-e72c-4df5-8d81-c5617aefacfe",
+        "restaurant_name": "Sinya Mediterranean",
+        "score": 87,
+        "reasoning": "Cuisine: Mediterranean; in North Center; exceptional food quality (9.0/10); Price: $$; Known for: Authentic Mediterranean flavors in a laid-back setting"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "58cbf5d4-3f60-46e6-aabd-b8d5b450c3cc",
+        "restaurant_name": "L\u00ddRA",
+        "score": 83,
+        "reasoning": "Cuisine: Mediterranean; in West Loop; exceptional food quality (9.0/10); Price: $$$$; Known for: The romantic splurge dinner for couples who want theater, beauty, and genuinely "
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "a5475098-e6d9-45c4-b50a-5314eb48d75c",
+        "restaurant_name": "Mezze Mediterranean Grill",
+        "score": 79,
+        "reasoning": "Cuisine: Mediterranean; in Hyde Park; exceptional food quality (9.0/10); Price: $$; Known for: Chef-owner Mediterranean fare and housemade everything in Bronzeville"
+      }
+    ]
+  },
+  {
+    "query_id": 85,
+    "query": "pierogi",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "78797b47-5035-4cc4-8b4e-2d57a83fa8ec",
+        "restaurant_name": "Pierogi Kitchen",
+        "score": 95,
+        "reasoning": "Cuisine: Polish; in Wicker Park; exceptional food quality (9.2/10); Price: $$; Known for: Comfort food lovers who want handmade Polish tradition with a Wicker Park edge."
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "4aa44fc5-ef13-433e-8bcd-1b80c5d19d49",
+        "restaurant_name": "Shokolad Pastry & Cafe",
+        "score": 91,
+        "reasoning": "Cuisine: Ukrainian; in Wicker Park; exceptional food quality (9.0/10); Price: $; Known for: The pastry-obsessed Wicker Park caf\u00e9 for anyone who wants European baking techni"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "1e0c3868-3540-4fb4-8cd8-49182f2da02b",
+        "restaurant_name": "KASIA'S DELI, INC.",
+        "score": 87,
+        "reasoning": "Cuisine: Polish; in Wicker Park; excellent food quality (8.5/10); Price: $; Known for: Anyone craving honest, budget-friendly Eastern European comfort food untouched b"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "866beceb-9f96-479e-9c6c-a0e9cab93813",
+        "restaurant_name": "POLOMBIA",
+        "score": 83,
+        "reasoning": "Cuisine: Polish; in West Loop; excellent food quality (8.0/10); Price: $$; Known for: West Loop diners craving something soulful and unexpected between the sushi bars"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+        "restaurant_name": "Daisies",
+        "score": 79,
+        "reasoning": "Cuisine: American; in Logan Square; excellent food quality (8.8/10); Michelin recognized; Price: $$"
+      }
+    ]
+  },
+  {
+    "query_id": 86,
+    "query": "dosa",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "cb1ad33e-905e-4e31-bb1a-4293a9395cdf",
+        "restaurant_name": "Tuk Tuk Indian Street Food",
+        "score": 95,
+        "reasoning": "Cuisine: Indian; in Little Italy; Price: $$; Known for: Adventurous eaters on Taylor Street ready to trade marinara for tamarind and nev"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "bee8bb9e-75c6-465a-98eb-0d2934c6d2d8",
+        "restaurant_name": "Nadu",
+        "score": 91,
+        "reasoning": "Cuisine: Indian; in Lincoln Park; excellent food quality (8.0/10); Price: $$; Known for: The curious diner who thinks they know Indian food and is ready to discover how "
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "be9c60fe-37d0-4993-95c4-6433a36f64f1",
+        "restaurant_name": "Hyderabadi Thaal",
+        "score": 87,
+        "reasoning": "Cuisine: Indian; in Chinatown; exceptional food quality (9.2/10); Price: $$; Known for: Adventurous eaters craving deeply authentic Hyderabadi cooking far off the beate"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "575dcc8f-acfb-4455-b5fe-86b8a69097f9",
+        "restaurant_name": "Klay Oven Kitchen",
+        "score": 83,
+        "reasoning": "Cuisine: Indian; in West Loop; Price: $; Known for: The West Loop weeknight dinner for anyone who wants serious tandoor cooking with"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "ac456584-838b-4a1a-ad26-6c533ab9334d",
+        "restaurant_name": "India House Restaurant Chicago",
+        "score": 79,
+        "reasoning": "Cuisine: Indian; in River North; Price: $$; Known for: A reliable, full-service Indian dinner that won't disappoint a table of people w"
+      }
+    ]
+  },
+  {
+    "query_id": 87,
+    "query": "bibimbap",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "651df180-39a8-47ac-a4bb-ef0ddbdddf63",
+        "restaurant_name": "TAK Korean Bistro & Karaoke",
+        "score": 95,
+        "reasoning": "Cuisine: Korean; in Loop; excellent food quality (8.5/10); Price: $$; Known for: The after-work crew ready to trade conference rooms for karaoke booths and fried"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "b759969a-c2cd-4dac-8af7-0c6a907e5d4a",
+        "restaurant_name": "Jeong",
+        "score": 91,
+        "reasoning": "Cuisine: Korean; in Bucktown; exceptional food quality (9.2/10); Price: $$; Known for: The curious diner ready to experience Korean cuisine as serious, soulful fine di"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "8c4901e7-6bd2-4c48-b360-7a318ad5d915",
+        "restaurant_name": "To Korean Cuisine",
+        "score": 87,
+        "reasoning": "Cuisine: Korean; in Lakeview; exceptional food quality (9.0/10); Price: $$; Known for: Groups who want a generous, deeply authentic Korean home-cooking experience with"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "86d36142-974e-42d1-be6f-dd1bb591c6cc",
+        "restaurant_name": "Kimchi Pop 2 by Chef Son",
+        "score": 83,
+        "reasoning": "Cuisine: Korean; in Uptown; exceptional food quality (9.0/10); Price: $$; Known for: Chef-driven Korean street food that punches way above its fast-casual price tag."
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "a939f5ce-6cf2-42db-bb30-abb6de842eaa",
+        "restaurant_name": "MISTER TIGER",
+        "score": 79,
+        "reasoning": "Cuisine: Korean; in Bucktown; exceptional food quality (9.0/10); Price: $$; Known for: Groups who want bar food that punches above its weight in a room that's actually"
+      }
+    ]
+  },
+  {
+    "query_id": 88,
+    "query": "mole negro",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "a531385e-0ea6-476f-964b-2157cfba5779",
+        "restaurant_name": "Mis Moles Restaurant",
+        "score": 95,
+        "reasoning": "Cuisine: Mexican; in Avondale; exceptional food quality (9.2/10); Price: $; Known for: Curious eaters ready to discover why mole is one of the world's most complex and"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "693f359a-63ba-4391-8de5-7184b45726c9",
+        "restaurant_name": "El Xangarrito Mex Restaurant",
+        "score": 91,
+        "reasoning": "Cuisine: Mexican; in Lincoln Square; exceptional food quality (9.0/10); Price: $$; Known for: Chef Noe's rich mole and stuffed enchiladas in a intimate hole-in-the-wall"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "01901119-9bec-4f8b-8b8e-35ee363f16a9",
+        "restaurant_name": "Puebla Restaurant & Taquer\u00eda",
+        "score": 87,
+        "reasoning": "Cuisine: Mexican; in Logan Square; excellent food quality (8.5/10); Price: $$; Known for: Anyone ready to discover that authentic Mexican cooking goes far deeper than the"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "9a978039-930a-4646-8d52-ceea03dfe827",
+        "restaurant_name": "Topolobampo",
+        "score": 83,
+        "reasoning": "Cuisine: Mexican; in River North; excellent food quality (8.8/10); Michelin recognized; Price: $$$"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "4349eadb-49ed-4304-ac2d-00c692cbb55e",
+        "restaurant_name": "Yvolina's Tamales",
+        "score": 79,
+        "reasoning": "Cuisine: Mexican; in Pilsen; exceptional food quality (9.0/10); Price: $; Known for: Tamale purists and Pilsen locals who know that hand-wrapped masa beats everythin"
+      }
+    ]
+  },
+  {
+    "query_id": 89,
+    "query": "banh mi",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "6145fcb6-8d4b-4762-be9d-98b8bf3a49eb",
+        "restaurant_name": "3 Asian Sisters",
+        "score": 95,
+        "reasoning": "Cuisine: Vietnamese; in Lincoln Park; Price: $; Known for: Anyone in Lincoln Park who needs a restorative bowl of real pho without the neig"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "25750901-f85f-431e-ab94-88b3febbac27",
+        "restaurant_name": "Ocean Grill & Bar",
+        "score": 91,
+        "reasoning": "Cuisine: Vietnamese; in Chinatown; exceptional food quality (9.2/10); Price: $$; Known for: Date night couples craving Vietnamese seafood in a quietly intimate setting away"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "a747f2da-d6e9-4d59-9123-cd938c7900ce",
+        "restaurant_name": "Phodega",
+        "score": 87,
+        "reasoning": "Cuisine: Vietnamese; in Ukrainian Village; exceptional food quality (9.2/10); Price: $$; Known for: The solo lunch spot for noodle devotees who want serious pho without the Chinato"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "bc392b73-3039-42cb-ae24-575b23532b39",
+        "restaurant_name": "4 Seasons",
+        "score": 83,
+        "reasoning": "Cuisine: Vietnamese; in Bridgeport; exceptional food quality (9.2/10); Price: $; Known for: The no-frills Bridgeport lunch counter for locals who know exactly what they're "
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "a5592ff9-af8d-49eb-b9e0-bc847d8c6f16",
+        "restaurant_name": "Little Vietnam Restaurant",
+        "score": 79,
+        "reasoning": "Cuisine: Vietnamese; in Edgewater; exceptional food quality (9.0/10); Price: $; Known for: Authentic pho and banh mi near Bryn Mawr station with affordable lunch specials"
+      }
+    ]
+  },
+  {
+    "query_id": 90,
+    "query": "butter chicken",
+    "category": "Dish",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "70e4b943-6380-4e48-b608-c322b099c953",
+        "restaurant_name": "Indienne",
+        "score": 95,
+        "reasoning": "Cuisine: Indian; in River North; exceptional food quality (9.0/10); Michelin recognized; Price: $$$$"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "1984b535-322b-408d-ad38-1b1c389beb62",
+        "restaurant_name": "Nepal House (South Loop)",
+        "score": 91,
+        "reasoning": "Cuisine: Indian; in South Loop; exceptional food quality (9.0/10); Price: $$; Known for: The curious diner craving a slow, warming meal that transports them somewhere en"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "0f77675b-31f2-4c95-a3c7-cd8301c9e914",
+        "restaurant_name": "Cumin Restaurant - Wicker Park",
+        "score": 87,
+        "reasoning": "Cuisine: Indian; in Wicker Park; Price: $$; Known for: Anyone craving deeply spiced Indian-Nepali cooking in a cozy, unhurried Wicker P"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "79f6ae2b-5c56-4c71-8bfe-b431b1f0bc2c",
+        "restaurant_name": "Chicago Curry House - Indian - Nepali Cuisine.",
+        "score": 83,
+        "reasoning": "Cuisine: Indian; in South Loop; Price: $$; Known for: South Loop residents who want genuine subcontinental cooking without trekking to"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "51275957-4a3c-406b-8384-f8a6918ed37d",
+        "restaurant_name": "Essence of India",
+        "score": 79,
+        "reasoning": "Cuisine: Indian; in Lincoln Square; exceptional food quality (9.2/10); Price: $$; Known for: Neighborhood regulars and Indian food devotees who want a long, leisurely dinner"
+      }
+    ]
+  },
+  {
+    "query_id": 91,
+    "query": "cozy date spot",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "858a2d5d-e106-42af-b239-fce5250f105c",
+        "restaurant_name": "Orso's",
+        "score": 95,
+        "reasoning": "Cuisine: Italian; in Old Town; exceptional food quality (9.0/10); Price: $$; Known for: The date night that feels genuinely romantic without trying too hard or spending"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "b2159361-eb31-4505-b661-1e679ef567e4",
+        "restaurant_name": "Antico",
+        "score": 91,
+        "reasoning": "Cuisine: Italian; in Wicker Park; exceptional food quality (9.2/10); Price: $$$; Known for: The most romantic Italian dinner in Wicker Park, best enjoyed when you have nowh"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "c2285135-b218-4681-9e7b-aba6cfedbe3b",
+        "restaurant_name": "La Serre",
+        "score": 87,
+        "reasoning": "Cuisine: French; in West Loop; exceptional food quality (9.0/10); Price: $$$; Known for: Special occasion dinners for couples who want candlelit French bistro craft over"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "9dc41d69-d954-4726-acb4-a92cd667c41f",
+        "restaurant_name": "Tutto Fresco",
+        "score": 83,
+        "reasoning": "Cuisine: Italian; in Lakeview; exceptional food quality (9.2/10); Price: $$$; Known for: The date night restaurant for couples who want romance without a reservation thr"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "a8c44566-1db6-485d-9547-397b8372fc8d",
+        "restaurant_name": "Gavroche",
+        "score": 79,
+        "reasoning": "Cuisine: French; in Old Town; exceptional food quality (9.2/10); Price: $$$; Known for: The romantic date night or solo diner who wants Paris-in-Chicago without a trans"
+      }
+    ]
+  },
+  {
+    "query_id": 92,
+    "query": "lively Saturday night",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "491f2703-5c42-4d70-bedb-4e57e0c4efcc",
+        "restaurant_name": "Twisted Cantina",
+        "score": 95,
+        "reasoning": "Cuisine: Mexican; in Pilsen; Price: $$; Known for: Groups who want great cocktails, shareable bites, and a Pilsen night that stays "
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "a57c28b3-03ec-4be9-a2df-5f725b4f2da9",
+        "restaurant_name": "Double Fun",
+        "score": 91,
+        "reasoning": "Cuisine: Cocktail Bar; in Gold Coast; Price: $$; Known for: The Gold Coast night out that skips the stuffiness and gets straight to the fun."
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "d00a46c3-a84f-485f-a069-29a013797ba5",
+        "restaurant_name": "STK Steakhouse",
+        "score": 87,
+        "reasoning": "Cuisine: Steak; in River North; exceptional food quality (9.0/10); Price: $$$; Known for: The group dinner that naturally becomes a night out without anyone having to sug"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "90a87ef6-f3f0-40fa-bb81-d076d2b9d6e1",
+        "restaurant_name": "Soul Vibez - Chicago",
+        "score": 83,
+        "reasoning": "Cuisine: Southern/Soul Food; in River North; exceptional food quality (9.0/10); Price: $$; Known for: Groups who want bold Caribbean flavors and a high-energy room that actually deli"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "9531de7c-5b1e-4bfe-a055-973f956bb39c",
+        "restaurant_name": "Bandit",
+        "score": 79,
+        "reasoning": "Cuisine: American; in West Loop; Price: $$; Known for: Brunch crews who want loud, fun, and unlimited mimosas over quiet and refined."
+      }
+    ]
+  },
+  {
+    "query_id": 93,
+    "query": "quiet work lunch",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "8f916127-c8ab-4b69-ab0c-3098f4095707",
+        "restaurant_name": "Grill on 21",
+        "score": 95,
+        "reasoning": "Cuisine: Steak; in Loop; excellent food quality (8.0/10); Price: $$; Known for: Business lunches where the food needs to be good enough to disappear into the ba"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "a7e9759d-e993-4f84-9aec-d63700ccc3a2",
+        "restaurant_name": "Kinzie Chophouse",
+        "score": 91,
+        "reasoning": "Cuisine: Steak; in River North; Price: $$$; Known for: The classic Chicago steakhouse dinner for people who want substance over scene."
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "cd9828c1-151d-4ab4-9a6a-f755060ee8a2",
+        "restaurant_name": "Prime & Provisions Steakhouse",
+        "score": 87,
+        "reasoning": "Cuisine: Steak; in Loop; exceptional food quality (9.2/10); Price: $$$$; Known for: The power-dinner steakhouse for Loop professionals who need the room, the beef, "
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "29f79ecb-843c-4bb1-9a66-e9b094f6d2fa",
+        "restaurant_name": "Shaw's Crab House",
+        "score": 83,
+        "reasoning": "Cuisine: Seafood; in River North; exceptional food quality (9.2/10); Price: $$$; Known for: The classic Chicago seafood institution for oyster lovers who want zero gimmicks"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "7286be49-7949-4d9c-8486-216e4b24e4a0",
+        "restaurant_name": "Sila's mediterranean Restaurant #2",
+        "score": 79,
+        "reasoning": "Cuisine: Mediterranean; in Loop; exceptional food quality (9.2/10); Price: $$; Known for: The downtown lunch spot for Loop professionals who refuse to settle for a sad de"
+      }
+    ]
+  },
+  {
+    "query_id": 94,
+    "query": "dark moody bar",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "e44d1151-b2f7-40ce-80eb-29e96e12fca3",
+        "restaurant_name": "Le Bar Chicago",
+        "score": 95,
+        "reasoning": "Cuisine: French; in River North; Price: $$$$; Known for: The sophisticated nightcap spot for River North skeptics who want conversation o"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "526c4d9c-d1d0-4748-8925-6d20e79d08a2",
+        "restaurant_name": "Cara Cara Club",
+        "score": 91,
+        "reasoning": "Cuisine: Cocktail Bar; in Logan Square; excellent food quality (8.5/10); Price: $$; Known for: The late-night Logan Square haunt for creative types who want serious cocktails "
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "06ebf2b4-dc52-4a53-9b2d-30e9f0c589f9",
+        "restaurant_name": "SIFR",
+        "score": 87,
+        "reasoning": "Cuisine: Middle Eastern; in River North; excellent food quality (8.8/10); Price: $$; Known for: The sophisticated date-night escape for cocktail nerds who want substance over R"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "28a2a43b-957d-4727-8e57-b2ee4ff3e07d",
+        "restaurant_name": "Gilt Bar",
+        "score": 83,
+        "reasoning": "Cuisine: American; in River North; excellent food quality (8.5/10); Price: $$$; Known for: A moody, intimate date night for people who prefer craft cocktails over club mus"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "d13af77b-9bc4-4057-b5f3-e54edc521ea0",
+        "restaurant_name": "Black Barrel LOUNGE!",
+        "score": 79,
+        "reasoning": "Cuisine: American; in Old Town; Price: $$; Known for: The Old Town group celebration spot that actually delivers on atmosphere once th"
+      }
+    ]
+  },
+  {
+    "query_id": 95,
+    "query": "rooftop with views",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "cd80eb62-faaf-4930-9cfe-796c63ffa318",
+        "restaurant_name": "Shanghai Terrace",
+        "score": 95,
+        "reasoning": "Cuisine: Chinese; in River North; excellent food quality (8.5/10); Price: $$$$; Known for: The splurge-worthy anniversary dinner where the duck carving becomes the main ev"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "bdfbb1b6-6547-47a2-8d84-9d9c5427ee48",
+        "restaurant_name": "Beer Garden at Millennium Hall",
+        "score": 91,
+        "reasoning": "Cuisine: American; in Loop; Price: $$; Known for: The rare downtown outdoor escape for Loop workers and tourists who want skyline "
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "07ec36b8-4127-4aae-b5f8-ef9ebf59b77d",
+        "restaurant_name": "Miller Lite Beer Garden Grove",
+        "score": 87,
+        "reasoning": "Cuisine: Mexican; in Streeterville; Price: $$; Known for: Summer afternoon drinking with Chicago's skyline as your backdrop and zero dress"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "4ff9dc21-fc53-468a-9704-fd90a7b0311b",
+        "restaurant_name": "Broken Shaker at Freehand Chicago",
+        "score": 83,
+        "reasoning": "Cuisine: Brunch; in River North; excellent food quality (8.5/10); James Beard recognized; Price: $$"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "4496ab73-9264-4869-8d54-8876d39c06c1",
+        "restaurant_name": "Aba",
+        "score": 79,
+        "reasoning": "Cuisine: Mediterranean; in West Loop; exceptional food quality (9.2/10); Price: $$$; Known for: The date night spot where the rooftop view does half the work for you."
+      }
+    ]
+  },
+  {
+    "query_id": 96,
+    "query": "casual neighborhood joint",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "2091d2e8-f2f3-415f-a3da-36a8297bc74a",
+        "restaurant_name": "Cafe Urbano",
+        "score": 95,
+        "reasoning": "Cuisine: Mexican; in Irving Park; exceptional food quality (9.2/10); Price: $; Known for: The everyday Irving Park spot for working-neighborhood regulars who want authent"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "fb90ca66-ffb1-44d3-943e-fee4686cf9cc",
+        "restaurant_name": "First Sip Cafe",
+        "score": 91,
+        "reasoning": "Cuisine: Coffee/Cafe; in Uptown; excellent food quality (8.5/10); Price: $; Known for: Uptown locals who want a reliable, no-fuss morning coffee stop without the speci"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "4e557059-b7c1-4e01-ab16-74748370e3ae",
+        "restaurant_name": "Mella Caf\u00e9",
+        "score": 87,
+        "reasoning": "Cuisine: Ethiopian; in Andersonville; exceptional food quality (9.0/10); Price: $$; Known for: A relaxed weekend brunch crowd that wants warm atmosphere, global flavors, and z"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "aa213e45-6a85-44cd-97be-9023b809f3cc",
+        "restaurant_name": "Me Dee Cafe",
+        "score": 83,
+        "reasoning": "Cuisine: Thai; in Ravenswood; Price: $; Known for: Ravenswood locals who need a dependable morning spot that feels like it was made"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "3a9729e8-1a4b-46a3-a1ed-cb8ee52637df",
+        "restaurant_name": "South Of The Border Restaurant & Bar",
+        "score": 79,
+        "reasoning": "Cuisine: Mexican; in Rogers Park; Price: $; Known for: Anyone who wants real-deal Mexican food and a cold drink without spending more t"
+      }
+    ]
+  },
+  {
+    "query_id": 97,
+    "query": "elegant fine dining",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "9dbaea89-059d-4641-8b2e-b3e903082fca",
+        "restaurant_name": "Boka",
+        "score": 95,
+        "reasoning": "Cuisine: American; in Lincoln Park; Michelin recognized; Price: $$$$; Known for: The special occasion dinner that earns its Michelin star without making you feel"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "b1a81a36-2ea8-413a-9762-a94c1ce8c185",
+        "restaurant_name": "Gaylord Fine Indian Cuisine",
+        "score": 91,
+        "reasoning": "Cuisine: Indian; in Gold Coast; exceptional food quality (9.0/10); Price: $$; Known for: The Gold Coast dinner date that wants refined Indian cooking in a room that actu"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "c5478690-8eb8-4af5-b99c-a7224e58b6db",
+        "restaurant_name": "Ever Restaurant",
+        "score": 87,
+        "reasoning": "Cuisine: American; in West Loop; exceptional food quality (9.5/10); Michelin recognized; Price: $$$$"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "a5691f01-c23d-414d-be19-4e2fafb4528b",
+        "restaurant_name": "goosefoot\u00ae",
+        "score": 83,
+        "reasoning": "Cuisine: American; in Lincoln Square; exceptional food quality (9.5/10); Michelin recognized; Price: $$$$"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "70e4b943-6380-4e48-b608-c322b099c953",
+        "restaurant_name": "Indienne",
+        "score": 79,
+        "reasoning": "Cuisine: Indian; in River North; exceptional food quality (9.0/10); Michelin recognized; Price: $$$$"
+      }
+    ]
+  },
+  {
+    "query_id": 98,
+    "query": "buzzing energy",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "46b87a25-98b6-406a-b963-28a56b631679",
+        "restaurant_name": "Bar Sol",
+        "score": 95,
+        "reasoning": "Cuisine: Mexican; in Streeterville; excellent food quality (8.5/10); Price: $$; Known for: The after-work crowd that wants pitchers of sangria and zero pretension in an un"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "90a87ef6-f3f0-40fa-bb81-d076d2b9d6e1",
+        "restaurant_name": "Soul Vibez - Chicago",
+        "score": 91,
+        "reasoning": "Cuisine: Southern/Soul Food; in River North; exceptional food quality (9.0/10); Price: $$; Known for: Groups who want bold Caribbean flavors and a high-energy room that actually deli"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "da48aa3c-e71a-426d-a9c1-dff175431a95",
+        "restaurant_name": "Royal Africana Lounge",
+        "score": 87,
+        "reasoning": "Cuisine: Ethiopian; in Edgewater; Price: $$; Known for: The curious diner who wants a genuine West African feast in a room buzzing with "
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "9e57f419-12eb-4a13-8b0a-b2130543d29d",
+        "restaurant_name": "Aztec Dave's Cantina",
+        "score": 83,
+        "reasoning": "Cuisine: Mexican; in Wicker Park; excellent food quality (8.8/10); Price: $$; Known for: The group of friends who need great cocktails, shareable snacks, and a room loud"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "da4ea06f-7c8c-41e8-9baa-1007d36d8eef",
+        "restaurant_name": "Fiya",
+        "score": 79,
+        "reasoning": "Cuisine: Mediterranean; in Andersonville; excellent food quality (8.5/10); Price: $$; Known for: Groups who want to share a dozen dishes and stay for another round of wine."
+      }
+    ]
+  },
+  {
+    "query_id": 99,
+    "query": "intimate romantic",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "378048b4-632a-45f0-81e1-27e4724f7b63",
+        "restaurant_name": "Chez Jo\u00ebl",
+        "score": 95,
+        "reasoning": "Cuisine: French; in Little Italy; excellent food quality (8.5/10); Price: $$; Known for: The couple who wants a genuinely romantic dinner that feels like a discovery, no"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "e3b7ce23-0896-4937-a9f4-68c1544698b4",
+        "restaurant_name": "The Oakville Grill & Cellar",
+        "score": 91,
+        "reasoning": "Cuisine: American; in West Loop; excellent food quality (8.2/10); Price: $$; Known for: Couples and wine lovers who want an unhurried, candlelit steakhouse evening with"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "12bbfe3b-6bd0-4305-ac29-be838bd550f2",
+        "restaurant_name": "Il Vicinato Ristorante",
+        "score": 87,
+        "reasoning": "Cuisine: Italian; in Pilsen; Price: $$; Known for: The intimate date night restaurant for anyone who wants Italian cooking that act"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "951dbb4a-9a06-426b-8778-212321c1cf52",
+        "restaurant_name": "Mano a Mano",
+        "score": 83,
+        "reasoning": "Cuisine: Italian; in Logan Square; Price: $$; Known for: Couples and pasta lovers who want handmade Italian done with quiet confidence in"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "543261ca-3c4a-4bd7-82f6-c5dbea230c5c",
+        "restaurant_name": "Ciccio Mio",
+        "score": 79,
+        "reasoning": "Cuisine: Italian; in River North; exceptional food quality (9.0/10); Price: $$$; Known for: Anyone planning a slow, romantic dinner where the pasta matters more than the sc"
+      }
+    ]
+  },
+  {
+    "query_id": 100,
+    "query": "trendy hot spot",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "1b9806f3-554b-4604-a0c7-b63d724aa999",
+        "restaurant_name": "Momotaro",
+        "score": 95,
+        "reasoning": "Cuisine: Japanese; in West Loop; Michelin recognized; Price: $$$; Known for: A special-occasion dinner for anyone who wants Michelin-recognized Japanese cook"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "d8e3c9f0-9b73-41c7-9637-58c03c9039bd",
+        "restaurant_name": "BeatsSneaks&Eats",
+        "score": 91,
+        "reasoning": "Cuisine: American; in Bronzeville; exceptional food quality (9.5/10); Price: $$; Known for: Culture-forward sneakerheads and music fans who want their lunch to match their "
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "78797b47-5035-4cc4-8b4e-2d57a83fa8ec",
+        "restaurant_name": "Pierogi Kitchen",
+        "score": 87,
+        "reasoning": "Cuisine: Polish; in Wicker Park; exceptional food quality (9.2/10); Price: $$; Known for: Comfort food lovers who want handmade Polish tradition with a Wicker Park edge."
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "94b8d054-0b86-4b8a-a8ed-c5af43ca782d",
+        "restaurant_name": "Diego Chicago Restaurant | Dinner, Late Night, Weekend Brunch",
+        "score": 83,
+        "reasoning": "Cuisine: Mexican; in West Loop; exceptional food quality (9.0/10); Price: $$; Known for: Latin flavors and late-night energy perfect for any occasion"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "333c2e0c-e1b2-4181-843a-752396002a65",
+        "restaurant_name": "Smash Jibarito",
+        "score": 79,
+        "reasoning": "Cuisine: Puerto Rican; in Wicker Park; exceptional food quality (9.0/10); Price: $$; Known for: Adventurous eaters ready to experience Chicago's most underrated sandwich invent"
+      }
+    ]
+  },
+  {
+    "query_id": 101,
+    "query": "laid back patio",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "0f37b11e-1a60-40c3-b76c-e55e6544e495",
+        "restaurant_name": "Park & Field",
+        "score": 95,
+        "reasoning": "Cuisine: American; in Logan Square; Price: $$; Known for: Neighborhood regulars and first-time visitors who want to eat and drink like a L"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "722c0822-e2a4-4580-8a3f-0a74714eaa1f",
+        "restaurant_name": "The Leavitt Street Inn & Tavern",
+        "score": 91,
+        "reasoning": "Cuisine: American; in Logan Square; Price: $$; Known for: Locals who want a real neighborhood bar with a fireplace, a patio, and no attitu"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "db3c6d83-361d-45c3-99d6-1e89112b2c94",
+        "restaurant_name": "Don Pez Fish Tacos",
+        "score": 87,
+        "reasoning": "Cuisine: Mexican; in Lincoln Park; Price: $$; Known for: Anyone craving a Baja beach afternoon without leaving Chicago's North Side."
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "66fa273b-d822-4cd2-80be-dad95b0399c0",
+        "restaurant_name": "Jay's Backyard BBQ",
+        "score": 83,
+        "reasoning": "Cuisine: BBQ; in Humboldt Park; Price: $$; Known for: The summer evening group dinner that wants cookout soul without the cleanup."
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "e63ac7e2-3a50-45ba-b1ea-83a35fd4ae3d",
+        "restaurant_name": "Lucky Dorr Patio & Tap",
+        "score": 79,
+        "reasoning": "Cuisine: American; in Lakeview; Price: $; Known for: Casual patio drinks and bar snacks for Lakeview locals who'd rather skip the Wri"
+      }
+    ]
+  },
+  {
+    "query_id": 102,
+    "query": "speakeasy vibe",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "0d96e77c-c363-4074-88bf-0bc0576a4917",
+        "restaurant_name": "Club X Speakeasy",
+        "score": 95,
+        "reasoning": "Cuisine: Cocktail Bar; in Loop; excellent food quality (8.5/10); Price: $$; Known for: The after-work escape for Loop professionals who want atmosphere with their whis"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "ceb9c679-babd-46c8-ac03-f34e31184b19",
+        "restaurant_name": "Brando's Speakeasy",
+        "score": 91,
+        "reasoning": "Cuisine: American; in Loop; Price: $$$; Known for: Cocktail lovers who want genuine craft and old-school atmosphere without leaving"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "6dadd943-3afd-4580-b8e3-f35d90bb76fc",
+        "restaurant_name": "Bar S\u00f3tano",
+        "score": 87,
+        "reasoning": "Cuisine: Mexican; in River North; exceptional food quality (9.2/10); Price: $$$; Known for: The underground mezcal bar for serious cocktail drinkers who want depth and atmo"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "bfc5cc4d-ed59-4954-b7c8-22459dc68983",
+        "restaurant_name": "Three Dots and a Dash",
+        "score": 83,
+        "reasoning": "Cuisine: Cocktail Bar; in River North; excellent food quality (8.0/10); Price: $$$; Known for: The date night that feels like stumbling into a secret world beneath the city st"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "64d39ce0-0fb4-4a26-8349-50e354bdfbc7",
+        "restaurant_name": "The Bamboo Room at Three Dots and a Dash",
+        "score": 79,
+        "reasoning": "Cuisine: Cocktail Bar; in River North; excellent food quality (8.0/10); Price: $$; Known for: The tiki obsessive who wants a secret-within-a-secret drinking experience beneat"
+      }
+    ]
+  },
+  {
+    "query_id": 103,
+    "query": "cozy winter spot",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "09520ec8-4cf1-4f52-b45a-b9073519ed98",
+        "restaurant_name": "Tank Kitchen & Bar",
+        "score": 95,
+        "reasoning": "Cuisine: Vietnamese; in Irving Park; exceptional food quality (9.0/10); Price: $$; Known for: Irving Park locals and anyone craving a genuinely unpretentious dinner with a re"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "7ebd0378-3e7f-4f3a-ab07-8efc52c2e78d",
+        "restaurant_name": "Monti's",
+        "score": 91,
+        "reasoning": "Cuisine: American; in Lincoln Square; excellent food quality (8.5/10); Price: $$; Known for: Date night for people who want warmth and a fireplace without the fuss of a rese"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "66694a0f-0115-46db-88e9-0da1d0719c24",
+        "restaurant_name": "Noble Fat",
+        "score": 87,
+        "reasoning": "Cuisine: Coffee/Cafe; in Lincoln Park; Price: $$; Known for: The indulgent date-night spot for Lincoln Park locals who want warmth over white"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "fec1369d-29b4-4700-857f-b4385389b0a5",
+        "restaurant_name": "Q'bo Latin Cafe Inc.",
+        "score": 83,
+        "reasoning": "Cuisine: Latin American; in North Center; exceptional food quality (9.5/10); Price: $$; Known for: The date-night couple in North Center who wants warmth, sofrito, and a fireplace"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "edee9af3-a349-46e4-99b1-bed2e90ca23f",
+        "restaurant_name": "DeNucci's Lincoln Park",
+        "score": 79,
+        "reasoning": "Cuisine: Italian; in Lincoln Park; exceptional food quality (9.0/10); Price: $$; Known for: Anyone craving a cozy, fireplace-lit Italian dinner that feels genuinely homemad"
+      }
+    ]
+  },
+  {
+    "query_id": 104,
+    "query": "upscale lounge",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "e40aca51-42ec-48dc-9699-044ef991f5fb",
+        "restaurant_name": "Le Colonial Chicago",
+        "score": 95,
+        "reasoning": "Cuisine: French; in Gold Coast; exceptional food quality (9.2/10); Price: $$$; Known for: French-Vietnamese elegance with lush Gold Coast ambiance and balcony views"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "e44d1151-b2f7-40ce-80eb-29e96e12fca3",
+        "restaurant_name": "Le Bar Chicago",
+        "score": 91,
+        "reasoning": "Cuisine: French; in River North; Price: $$$$; Known for: The sophisticated nightcap spot for River North skeptics who want conversation o"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "7c3907c6-8ec5-4650-abc0-8c92506aded8",
+        "restaurant_name": "Offshore Rooftop",
+        "score": 87,
+        "reasoning": "Cuisine: American; in Streeterville; excellent food quality (8.0/10); Price: $$; Known for: Out-of-towners and locals alike who want Chicago's lakefront skyline with a cock"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "107f782b-8fd8-409f-845e-7f47a992731d",
+        "restaurant_name": "Mesler Kitchen | Bar | Lounge",
+        "score": 83,
+        "reasoning": "Cuisine: American; in Hyde Park; Price: $$; Known for: Date night when you want Hyde Park sophistication without leaving the neighborho"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "adfbe950-c6bd-4467-8c06-067ebe407746",
+        "restaurant_name": "The J. Parker",
+        "score": 79,
+        "reasoning": "Cuisine: American; in Lincoln Park; Price: $$; Known for: Out-of-towners and locals alike who want Chicago's lakefront laid out beneath th"
+      }
+    ]
+  },
+  {
+    "query_id": 105,
+    "query": "chill brunch",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "88f270c9-33f8-4f03-8512-2a7aa515a795",
+        "restaurant_name": "The Brunchery",
+        "score": 95,
+        "reasoning": "Cuisine: Brunch; in Lincoln Park; Price: $$; Known for: Lincoln Park locals and lazy weekend couples who want craft cocktails and seriou"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "ea1ccf92-6db2-4c3c-9387-69cf11a5f4d1",
+        "restaurant_name": "Early Morning Delight",
+        "score": 91,
+        "reasoning": "Cuisine: Brunch; in North Center; exceptional food quality (9.2/10); Price: $$; Known for: Families and neighborhood regulars who want a genuinely unhurried weekend breakf"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "4ca45bb1-bcef-49fb-a69c-640192209f64",
+        "restaurant_name": "A Taste of Heaven",
+        "score": 87,
+        "reasoning": "Cuisine: Coffee/Cafe; in Andersonville; exceptional food quality (9.0/10); Price: $$; Known for: Andersonville regulars and anyone craving an unhurried weekend brunch in a genui"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "b5faafb2-dbba-4df0-8e05-89a971a8ca1e",
+        "restaurant_name": "Chicago Waffles Lincoln Square",
+        "score": 83,
+        "reasoning": "Cuisine: Brunch; in Lincoln Square; exceptional food quality (9.0/10); Price: $$; Known for: The laid-back weekend brunch spot for Lincoln Square locals who want great waffl"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "e039f4b6-452d-4440-b1f9-43ad0f48f6c6",
+        "restaurant_name": "Jujin Broadway Breakfast & Coffee",
+        "score": 79,
+        "reasoning": "Cuisine: Brunch; in Lincoln Park; exceptional food quality (9.0/10); Price: $; Known for: Lincoln Park locals who want a quiet, unhurried breakfast without the weekend br"
+      }
+    ]
+  },
+  {
+    "query_id": 106,
+    "query": "funky eclectic",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "f98d7372-7f5c-461e-8a6e-af8284f474d8",
+        "restaurant_name": "Dorothy's Bistro",
+        "score": 95,
+        "reasoning": "Cuisine: BBQ; in Logan Square; excellent food quality (8.8/10); Price: $$; Known for: The creative solo dinner or low-key first date for people with genuinely adventu"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "641a291c-f664-4d53-9ebd-e4a2aff45c7f",
+        "restaurant_name": "Feed Your Head",
+        "score": 91,
+        "reasoning": "Cuisine: Vegan; in River North; excellent food quality (8.5/10); Price: $$; Known for: The quick, creative lunch escape when River North's steakhouse scene feels like "
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "f28ea713-4696-4d63-8ff9-480f2f0f1b56",
+        "restaurant_name": "Pick Me Up Cafe",
+        "score": 87,
+        "reasoning": "Cuisine: Brunch; in Uptown; excellent food quality (8.0/10); Price: $; Known for: The all-hours sanctuary for night owls, artists, and anyone who needs breakfast "
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "4294b367-8871-45d2-8c74-b09a4339b9b8",
+        "restaurant_name": "Creepies",
+        "score": 83,
+        "reasoning": "Cuisine: French; in West Loop; Price: $$; Known for: The after-show destination for West Loop night owls who want something creative,"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+        "restaurant_name": "Longman & Eagle",
+        "score": 79,
+        "reasoning": "Cuisine: American; in Logan Square; excellent food quality (8.0/10); Michelin recognized; Price: $$"
+      }
+    ]
+  },
+  {
+    "query_id": 107,
+    "query": "classic old school",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "a99539a5-e2b9-459c-b349-2899c35894e9",
+        "restaurant_name": "Club Lago",
+        "score": 95,
+        "reasoning": "Cuisine: Italian; in River North; exceptional food quality (9.0/10); Price: $$; Known for: The old-school Italian dinner for anyone who wants a legendary martini and a roo"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "29f79ecb-843c-4bb1-9a66-e9b094f6d2fa",
+        "restaurant_name": "Shaw's Crab House",
+        "score": 91,
+        "reasoning": "Cuisine: Seafood; in River North; exceptional food quality (9.2/10); Price: $$$; Known for: The classic Chicago seafood institution for oyster lovers who want zero gimmicks"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "a81f31c3-6d39-4d32-9f7c-736fd30b1076",
+        "restaurant_name": "Ann Sather Restaurant",
+        "score": 87,
+        "reasoning": "Cuisine: Brunch; in Lincoln Park; exceptional food quality (9.2/10); Price: $; Known for: The unhurried Sunday brunch spot for anyone who believes cinnamon rolls are a fo"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "9c960d06-28cc-4d74-947c-b92c0793c924",
+        "restaurant_name": "Jim's Original",
+        "score": 83,
+        "reasoning": "Cuisine: American; in Logan Square; Price: $; Known for: Night owls and Chicago history buffs chasing the city's most legendary late-nigh"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "931a9ec2-d41d-466b-bcfe-9c1954901a7a",
+        "restaurant_name": "Great Sea Restaurant",
+        "score": 79,
+        "reasoning": "Cuisine: Chinese; in Lincoln Square; Price: $$; Known for: The family that wants a proper Chinese banquet experience far from the Chinatown"
+      }
+    ]
+  },
+  {
+    "query_id": 108,
+    "query": "hip modern",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "ca494bec-0948-49a5-a03e-b5525c34a298",
+        "restaurant_name": "Chicago French Press at Roosevelt Collection",
+        "score": 95,
+        "reasoning": "Cuisine: Coffee/Cafe; in South Loop; excellent food quality (8.5/10); Price: $$; Known for: South Loop regulars who want a proper specialty coffee without trekking to anoth"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "3e64c838-580b-4c04-b8c7-dd6a0e78bc2f",
+        "restaurant_name": "Beatrix - West Loop",
+        "score": 91,
+        "reasoning": "Cuisine: Coffee/Cafe; in West Loop; excellent food quality (8.5/10); Price: $$; Known for: The all-day worker or date-nighter who wants healthy food without the sacrifice "
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "3d32adbd-a0cb-4c01-bc4a-007c697a58bf",
+        "restaurant_name": "Bocaditos Chicago",
+        "score": 87,
+        "reasoning": "Cuisine: Mexican; in West Loop; excellent food quality (8.5/10); Price: $$; Known for: The group that wants great cocktails, shareable bites, and a room that actually "
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "2250d6d2-c0f4-4439-9aaf-90c940b0acfa",
+        "restaurant_name": "Blowfish Sushi & Ramen Chicago",
+        "score": 83,
+        "reasoning": "Cuisine: Japanese; in Edgewater; excellent food quality (8.8/10); Price: $$; Known for: Bold ramen and fresh sushi in minimalist digs with BYO wine policy"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "6b8818c0-aade-4dd1-8b96-e68dd3fbc915",
+        "restaurant_name": "Ila's Chicago",
+        "score": 79,
+        "reasoning": "Cuisine: Italian; in River North; excellent food quality (8.2/10); Price: $$; Known for: The discerning diner craving a thoughtful, intimate meal in the middle of River "
+      }
+    ]
+  },
+  {
+    "query_id": 109,
+    "query": "warm rustic",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "ae72b9f4-751a-4ee1-b3f7-1b64bfabf334",
+        "restaurant_name": "Unico Restaurante",
+        "score": 95,
+        "reasoning": "Cuisine: Italian; in Pilsen; excellent food quality (8.8/10); Price: $$; Known for: Date night for couples who want rustic Italian warmth without leaving the charac"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "d67d0bd4-8b2e-441d-a3ac-50d117949470",
+        "restaurant_name": "Table, Donkey and Stick",
+        "score": 91,
+        "reasoning": "Cuisine: Alpine/European; in Logan Square; excellent food quality (8.8/10); Price: $$; Known for: The cozy date-night spot for people who want European comfort food without booki"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "68e92828-3f69-4c8d-a638-34fb0b42480c",
+        "restaurant_name": "Farm Bar Ravenswood",
+        "score": 87,
+        "reasoning": "Cuisine: Brunch; in North Center; excellent food quality (8.8/10); Price: $$; Known for: The unpretentious farm-to-table local for Ravenswood regulars who care where the"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "4733ab19-87e7-4106-9b7b-3c834a555688",
+        "restaurant_name": "Franco's Ristorante",
+        "score": 83,
+        "reasoning": "Cuisine: Italian; in Bridgeport; excellent food quality (8.5/10); Price: $$; Known for: Traditional Italian pasta and wood-fired pizza from a friendly neighborhood favo"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "5174edec-1317-427e-8e22-2a222c5a8eaa",
+        "restaurant_name": "Ithaki Estiatorio",
+        "score": 79,
+        "reasoning": "Cuisine: Greek; in West Loop; exceptional food quality (9.2/10); Price: $$; Known for: Anyone craving an unhurried, elegant Mediterranean dinner that genuinely transpo"
+      }
+    ]
+  },
+  {
+    "query_id": 110,
+    "query": "sophisticated cocktails",
+    "category": "Vibe",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "dafedb5b-4d47-4855-a1ad-afad33ab8858",
+        "restaurant_name": "Sojourn Cocktail Lounge",
+        "score": 95,
+        "reasoning": "Cuisine: Brunch; in Lincoln Square; excellent food quality (8.5/10); Price: $$; Known for: The serious cocktail lover who wants a bartender worth talking to and a drink wo"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "8cdc9574-3afd-44b8-9eab-8091288463ad",
+        "restaurant_name": "Billy Sunday",
+        "score": 91,
+        "reasoning": "Cuisine: Cocktail Bar; in Logan Square; excellent food quality (8.5/10); Price: $$; Known for: Serious cocktail lovers who want a bartender who actually wants to talk spirits."
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "4ff9dc21-fc53-468a-9704-fd90a7b0311b",
+        "restaurant_name": "Broken Shaker at Freehand Chicago",
+        "score": 87,
+        "reasoning": "Cuisine: Brunch; in River North; excellent food quality (8.5/10); James Beard recognized; Price: $$"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "6dadd943-3afd-4580-b8e3-f35d90bb76fc",
+        "restaurant_name": "Bar S\u00f3tano",
+        "score": 83,
+        "reasoning": "Cuisine: Mexican; in River North; exceptional food quality (9.2/10); Price: $$$; Known for: The underground mezcal bar for serious cocktail drinkers who want depth and atmo"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "368a3201-cc45-485b-9bba-3b52d6462348",
+        "restaurant_name": "Mercadito",
+        "score": 79,
+        "reasoning": "Cuisine: Mexican; in River North; exceptional food quality (9.2/10); Price: $$; Known for: The high-energy Latin cocktail bar for groups who want serious drinks and zero p"
+      }
+    ]
+  }
+]

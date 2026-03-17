@@ -1,0 +1,2102 @@
+[
+  {
+    "query_id": 111,
+    "query": "romantic Italian near river north with cocktails",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "4a9b0956-7658-47af-aabb-d12c3a66e733",
+        "restaurant_name": "Nonnina",
+        "score": 95,
+        "reasoning": "Romantic Italian (10/10 romantic rating) in River North with intimate atmosphere and cocktail program"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "1ad9f24c-209f-4e80-af5e-5adf7a2317a5",
+        "restaurant_name": "Volare Ristorante Italiano",
+        "score": 92,
+        "reasoning": "Romantic Italian in River North with exceptional date atmosphere (9/9 rom/date) and cocktails"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "8dafc32f-640e-449e-a789-e566d82f0cc5",
+        "restaurant_name": "Prosecco",
+        "score": 90,
+        "reasoning": "Elegant Italian in River North known for its cocktails and romantic ambiance"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "04f426fe-0419-4780-8c40-8010789fbf2a",
+        "restaurant_name": "RPM Italian",
+        "score": 88,
+        "reasoning": "Upscale Italian in River North, chef-notable, strong cocktail program, date-worthy"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "8277a8d3-9184-47c5-89e1-58e5c5dd11a4",
+        "restaurant_name": "the Albert",
+        "score": 85,
+        "reasoning": "Stylish Italian in River North with cocktails and romantic setting"
+      }
+    ]
+  },
+  {
+    "query_id": 112,
+    "query": "casual Mexican with outdoor seating BYOB",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "01901119-9bec-4f8b-8b8e-35ee363f16a9",
+        "restaurant_name": "Puebla Restaurant & Taquer\u00eda",
+        "score": 92,
+        "reasoning": "Authentic Mexican in Logan Square with full BYOB policy, casual and affordable"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "04928210-56f4-4e79-8c9c-4a74e6ed7dfb",
+        "restaurant_name": "La Lunita",
+        "score": 90,
+        "reasoning": "Logan Square Mexican with full BYOB, casual neighborhood vibe"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "0aa1ccde-a9c0-4da8-b579-19ddceabbd36",
+        "restaurant_name": "Los Arcos",
+        "score": 88,
+        "reasoning": "Andersonville Mexican with full BYOB, casual affordable setting"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "30d95fd9-d8c3-4d32-9ef9-77b574acb8d1",
+        "restaurant_name": "Pilsen Yards",
+        "score": 85,
+        "reasoning": "Casual Mexican in Pilsen with outdoor seating, neighborhood patio spot"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "2a3d315d-23d4-4c02-98ff-c738640f5a9d",
+        "restaurant_name": "La Palapa",
+        "score": 83,
+        "reasoning": "Pilsen Mexican with casual vibe, authentic food in neighborhood setting"
+      }
+    ]
+  },
+  {
+    "query_id": 113,
+    "query": "upscale Japanese for business dinner",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "370ce82e-10b0-46b0-9db9-fb05b5f02104",
+        "restaurant_name": "Roka Akor - Chicago",
+        "score": 95,
+        "reasoning": "Upscale Japanese in River North, chef-notable, highest business score (8), romantic (9)"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "e5622ae5-9995-490d-8888-a1a3b3777877",
+        "restaurant_name": "Miru",
+        "score": 93,
+        "reasoning": "Upscale Japanese in Loop, $$$$, high business score (7), impressive setting"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "1b9806f3-554b-4604-a0c7-b63d724aa999",
+        "restaurant_name": "Momotaro",
+        "score": 90,
+        "reasoning": "Chef-notable Japanese in West Loop, romantic (9), business-ready (6), Instagram-worthy"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "961caf60-065c-48dd-b99d-815ae38991d5",
+        "restaurant_name": "Mako",
+        "score": 88,
+        "reasoning": "High-end Japanese omakase in West Loop, $$$$, chef-notable, intimate impressive setting"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "7cad2cf1-b19f-4480-8585-ae8c93cf0688",
+        "restaurant_name": "Nomonomo Sushi",
+        "score": 85,
+        "reasoning": "Upscale omakase in Logan Square, chef-notable, romantic (9), business dinner-worthy"
+      }
+    ]
+  },
+  {
+    "query_id": 114,
+    "query": "family friendly Indian with vegetarian options",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "f90aba3b-a844-4f3c-aefe-fef9e5740326",
+        "restaurant_name": "Himalayan Sherpa Kitchen",
+        "score": 93,
+        "reasoning": "Indian in West Loop with family score 8, kid-friendliness 7, full vegetarian/vegan/GF options"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "089617a7-2cc1-4bbb-9b60-5f79af8504c5",
+        "restaurant_name": "Superkhana International",
+        "score": 90,
+        "reasoning": "Modern Indian in Logan Square, family-friendly group vibe (7), all dietary options"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+        "restaurant_name": "Thattu",
+        "score": 87,
+        "reasoning": "Indian in Avondale with vegetarian options, authentic cultural experience"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "7a0911d9-a4eb-4ae1-910b-d3cfcc90c4b3",
+        "restaurant_name": "ROOP Chicago Innovative Indian Restaurant & Cocktail Bar",
+        "score": 84,
+        "reasoning": "Innovative Indian in West Loop with full vegetarian menu and creative approach"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+        "restaurant_name": "Galit",
+        "score": 80,
+        "reasoning": "Middle Eastern chef-notable spot with extensive vegetarian options, family-friendly setting"
+      }
+    ]
+  },
+  {
+    "query_id": 115,
+    "query": "late night Korean after a concert",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "9775705e-3ec1-44ed-aa79-a5b716981087",
+        "restaurant_name": "Kimchi Pop by Chef Son",
+        "score": 92,
+        "reasoning": "Korean in Wicker Park, casual late-night-ready, affordable, post-concert perfect"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "0b7e74f6-f7b0-4e72-816d-ab1c8f38238d",
+        "restaurant_name": "Iron Age Korean Steakhouse",
+        "score": 88,
+        "reasoning": "Korean BBQ in Wicker Park, lively group energy, good for post-concert gathering"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "0d08fc73-070d-4a9d-ac6a-8f62586221db",
+        "restaurant_name": "Bonchon",
+        "score": 85,
+        "reasoning": "Korean fried chicken in Chinatown, casual late-night comfort food"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "e691bcc9-e29c-4b7a-b5af-eef7e3bcf854",
+        "restaurant_name": "Parachute HiFi",
+        "score": 82,
+        "reasoning": "Chef-notable Korean in Avondale, creative date-worthy Korean cuisine"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "b759969a-c2cd-4dac-8af7-0c6a907e5d4a",
+        "restaurant_name": "Jeong",
+        "score": 80,
+        "reasoning": "Chef-notable Korean in Bucktown, intimate authentic Korean experience"
+      }
+    ]
+  },
+  {
+    "query_id": 116,
+    "query": "quiet French bistro for anniversary",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "bf676e24-7352-430c-af3b-41b6d9e07dd8",
+        "restaurant_name": "Brindille",
+        "score": 96,
+        "reasoning": "French fine dining in River North, quiet noise level, 10/10 romantic, 9/9 date, perfect anniversary"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "df3859ff-915c-4fab-8395-3d9911a6b822",
+        "restaurant_name": "Le Bouchon",
+        "score": 92,
+        "reasoning": "Classic French bistro in Logan Square, romantic (9), intimate atmosphere"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "a8c44566-1db6-485d-9547-397b8372fc8d",
+        "restaurant_name": "Gavroche",
+        "score": 90,
+        "reasoning": "French bistro in Old Town, romantic (9), quintessential anniversary ambiance"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "e9195214-f68b-4c13-9caa-01b5851470b7",
+        "restaurant_name": "Bistronomic",
+        "score": 87,
+        "reasoning": "French in River North, refined yet approachable, romantic dining"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "13c7942f-70a1-4c44-8ec5-6f06147e61fd",
+        "restaurant_name": "La Pharmacie",
+        "score": 85,
+        "reasoning": "French in Edgewater, romantic (8), date-friendly (9), charming bistro setting"
+      }
+    ]
+  },
+  {
+    "query_id": 117,
+    "query": "lively group dinner Mediterranean",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "f14ed695-f84b-4f0e-88ee-a0966eecef98",
+        "restaurant_name": "Ema",
+        "score": 93,
+        "reasoning": "Mediterranean in River North with shareable plates, lively atmosphere, great for groups"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "6aa5d56a-0ee2-493d-b1a5-730d79c4df17",
+        "restaurant_name": "Cafe Ba-Ba-Reeba!",
+        "score": 90,
+        "reasoning": "Mediterranean tapas in Lincoln Park, group-friendly (8), lively energy"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "437abbbb-4662-41e8-a09f-ac20be76dc68",
+        "restaurant_name": "Lil' Ba-Ba-Reeba!",
+        "score": 88,
+        "reasoning": "Mediterranean tapas in River North, group-friendly, lively shared plates"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+        "restaurant_name": "avec Restaurant",
+        "score": 86,
+        "reasoning": "Mediterranean in West Loop, group score 8, communal dining, chef-notable"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "7b9b9084-5775-48c2-bb73-57b08a9344a7",
+        "restaurant_name": "Boqueria Fulton Market",
+        "score": 84,
+        "reasoning": "Mediterranean in West Loop, shareable Spanish plates, group-friendly setting"
+      }
+    ]
+  },
+  {
+    "query_id": 118,
+    "query": "solo lunch affordable sushi",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "1679eca3-79b1-49c0-9d5f-6c257ab9ff35",
+        "restaurant_name": "Kyoten Next Door",
+        "score": 92,
+        "reasoning": "Affordable Japanese in Logan Square, chef-notable, solo-friendly (counter seating), high quality"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "62fad1ff-b433-4cb2-a794-cc25e5234991",
+        "restaurant_name": "Gari Sushi Chicago",
+        "score": 89,
+        "reasoning": "Affordable sushi in Logan Square, casual counter-friendly, solo dining score high"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "7cb0c4e8-58af-497a-a2f6-00662fa46cc5",
+        "restaurant_name": "Atsumeru",
+        "score": 87,
+        "reasoning": "Affordable sushi in Wicker Park, intimate setting, solo-friendly"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "0935c4a4-0677-46e1-86b3-790919b1b795",
+        "restaurant_name": "Oiistar",
+        "score": 84,
+        "reasoning": "Casual Japanese in Wicker Park, affordable $$, lively but solo-friendly"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "d2c94510-decc-425d-ba3d-f40300123963",
+        "restaurant_name": "KAI ZAN CHICAGO",
+        "score": 82,
+        "reasoning": "BYOB Japanese in Wicker Park, intimate chef-notable sushi, great solo counter experience"
+      }
+    ]
+  },
+  {
+    "query_id": 119,
+    "query": "birthday dinner Italian 8 people",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "2247d52b-93a9-4db9-916b-623c5bfec5f0",
+        "restaurant_name": "Quartino Ristorante",
+        "score": 93,
+        "reasoning": "Italian in River North, group score 8, celebration-friendly, handles large parties"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "2c2581d7-8309-4017-8b5c-9b7ccdcfc8cb",
+        "restaurant_name": "Formento's",
+        "score": 90,
+        "reasoning": "Italian in West Loop, group score 9, celebratory atmosphere, private options"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "4f532c98-e6b9-42c7-8f58-0e227213192f",
+        "restaurant_name": "Piccolo Sogno",
+        "score": 88,
+        "reasoning": "Italian in West Loop, group score 8, romantic yet celebratory, beautiful space"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "6aa5d56a-0ee2-493d-b1a5-730d79c4df17",
+        "restaurant_name": "Cafe Ba-Ba-Reeba!",
+        "score": 85,
+        "reasoning": "Mediterranean tapas in Lincoln Park, group score 8, birthday-perfect shared plates"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "9f75f685-0b83-43db-a9d5-e5e21ab84701",
+        "restaurant_name": "Monteverde Restaurant & Pastificio",
+        "score": 83,
+        "reasoning": "Chef-notable Italian in West Loop, group score 5 but impressive enough for birthday celebration"
+      }
+    ]
+  },
+  {
+    "query_id": 120,
+    "query": "date night thai with ambiance",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "79167b30-02b7-4a2b-9019-eb28508fef3c",
+        "restaurant_name": "Herb",
+        "score": 95,
+        "reasoning": "Upscale Thai in Andersonville, romantic 9, date 9, beautiful ambiance, Instagram 8"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "73d4cebe-56c4-4453-a254-d7568508204d",
+        "restaurant_name": "Silom 12",
+        "score": 91,
+        "reasoning": "Thai in Wicker Park, romantic 8, date 8, stylish ambiance, Instagram 8"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "e2ac1b35-2515-4c6f-9d33-728cdbbb4638",
+        "restaurant_name": "Crying Tiger",
+        "score": 87,
+        "reasoning": "Thai in River North, romantic 7, date 8, Instagram 8, great date energy"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b",
+        "restaurant_name": "Giant",
+        "score": 83,
+        "reasoning": "Mediterranean/American chef-notable in Logan Square, romantic 9, exceptional ambiance though not Thai"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "37551c29-c388-40b3-9eb0-49b410c43489",
+        "restaurant_name": "Penumbra",
+        "score": 80,
+        "reasoning": "American in Logan Square, romantic 9, exceptional ambiance, creative menu"
+      }
+    ]
+  },
+  {
+    "query_id": 121,
+    "query": "healthy lunch quick service downtown",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+        "restaurant_name": "XOCO",
+        "score": 90,
+        "reasoning": "Mexican quick service in River North, counter service, healthy options, Rick Bayless"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "00dba57a-e925-4787-8cc6-1926d98ad4c6",
+        "restaurant_name": "PLANTA Queen",
+        "score": 87,
+        "reasoning": "Vegan in River North, health-focused, trendy plant-based, downtown location"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "8d89f0e4-a227-4dfc-820a-d633fd218eb5",
+        "restaurant_name": "The Dearborn",
+        "score": 84,
+        "reasoning": "Loop location, business lunch-ready, healthy options available"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "9531de7c-5b1e-4bfe-a055-973f956bb39c",
+        "restaurant_name": "Bandit",
+        "score": 82,
+        "reasoning": "West Loop American, quick-service friendly, healthy options"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "adaeb395-ffb5-4abb-b809-6b5da137a656",
+        "restaurant_name": "Lula Cafe",
+        "score": 80,
+        "reasoning": "Logan Square American, chef-notable, healthy creative options"
+      }
+    ]
+  },
+  {
+    "query_id": 122,
+    "query": "cozy pub with craft beer and good food",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "28973783-b70c-4aba-af6b-7f6b29d2bb18",
+        "restaurant_name": "Hopleaf",
+        "score": 93,
+        "reasoning": "Belgian-style pub in Andersonville with exceptional craft beer list and elevated pub food"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+        "restaurant_name": "Longman & Eagle",
+        "score": 90,
+        "reasoning": "Gastropub in Logan Square, chef-notable, craft cocktails/beer, hole-in-wall 8, great food"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "207151a9-b7ff-4fdf-b676-4ce3a52b1420",
+        "restaurant_name": "The Publican",
+        "score": 87,
+        "reasoning": "Beer-focused American in West Loop, chef-notable, craft beer temple, excellent food"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "78b648a7-9ccc-4752-9823-42618ee64a5f",
+        "restaurant_name": "Big Jones",
+        "score": 84,
+        "reasoning": "Southern gastropub in Andersonville, cozy, great food, neighborhood gem"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "86de1c95-3dbd-4a38-9382-d190e097efe5",
+        "restaurant_name": "The Loyalist",
+        "score": 82,
+        "reasoning": "West Loop American pub-vibe spot, quality food, casual craft drinks"
+      }
+    ]
+  },
+  {
+    "query_id": 123,
+    "query": "upscale brunch champagne river north",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "04f426fe-0419-4780-8c40-8010789fbf2a",
+        "restaurant_name": "RPM Italian",
+        "score": 92,
+        "reasoning": "Upscale Italian in River North with brunch, champagne program, impressive setting"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "28a2a43b-957d-4727-8e57-b2ee4ff3e07d",
+        "restaurant_name": "Gilt Bar",
+        "score": 89,
+        "reasoning": "Upscale American in River North with cocktails and brunch, elegant atmosphere"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "bfc5cc4d-ed59-4954-b7c8-22459dc68983",
+        "restaurant_name": "Three Dots and a Dash",
+        "score": 86,
+        "reasoning": "Cocktail bar in River North with brunch offerings and champagne cocktails"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "989ff6ee-7838-4c9b-a22f-86870da5e5a5",
+        "restaurant_name": "Sunda New Asian",
+        "score": 84,
+        "reasoning": "Upscale Asian fusion in River North, brunch-friendly, Instagram 9, champagne drinks"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "b097e932-4a4c-40d6-bda7-38f2db3655be",
+        "restaurant_name": "RPM Seafood",
+        "score": 82,
+        "reasoning": "Upscale seafood in River North, $$$$, brunch-worthy, champagne pairing"
+      }
+    ]
+  },
+  {
+    "query_id": 124,
+    "query": "casual seafood outdoor summer",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "01a17f90-438d-4bef-bd6c-6cb266ffd5ba",
+        "restaurant_name": "Half Shell",
+        "score": 93,
+        "reasoning": "Casual seafood in Lincoln Park with outdoor seating, perfect summer spot"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "056fe6ec-8751-44c0-827b-501f816282fa",
+        "restaurant_name": "Brown Bag Seafood Co. - Lakeview",
+        "score": 90,
+        "reasoning": "Casual seafood counter in Lakeview, outdoor-friendly, perfect for summer"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "29f79ecb-843c-4bb1-9a66-e9b094f6d2fa",
+        "restaurant_name": "Shaw's Crab House",
+        "score": 87,
+        "reasoning": "Classic seafood in River North, outdoor options, iconic summer dining"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "78b648a7-9ccc-4752-9823-42618ee64a5f",
+        "restaurant_name": "Big Jones",
+        "score": 84,
+        "reasoning": "Southern seafood options in Andersonville with outdoor seating"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "ea45ab08-0b54-4e2b-a2c9-ec10ebf4e8b6",
+        "restaurant_name": "Green Street Smoked Meats",
+        "score": 82,
+        "reasoning": "BBQ/casual in West Loop with outdoor patio, summer favorite"
+      }
+    ]
+  },
+  {
+    "query_id": 125,
+    "query": "business lunch steakhouse private room",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "3778e68a-a800-442a-8515-5772b032d97b",
+        "restaurant_name": "Chicago Cut Steakhouse",
+        "score": 95,
+        "reasoning": "Prime steakhouse in River North, business 9, group 7, private room, power lunch iconic"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "8fc55f1c-d086-423f-9f97-4bc427e7310f",
+        "restaurant_name": "Gibsons Bar & Steakhouse",
+        "score": 93,
+        "reasoning": "Iconic steakhouse in Gold Coast, business 9, private rooms, power lunch institution"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "5b3e45c0-cfbe-4ca4-aba0-47376ec0effd",
+        "restaurant_name": "Morton's The Steakhouse",
+        "score": 90,
+        "reasoning": "Classic steakhouse in Loop, business 9, private dining rooms, corporate standard"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "2c63ffe5-0f58-4ec6-925a-332dc8725011",
+        "restaurant_name": "Mastro's Steakhouse",
+        "score": 88,
+        "reasoning": "Upscale steakhouse in River North, business 8, private rooms, impressive setting"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "f7e93371-75c4-4fc9-9c0f-e092f696566d",
+        "restaurant_name": "RPM Steak",
+        "score": 86,
+        "reasoning": "Modern steakhouse in River North, business 9, private options, chef-notable"
+      }
+    ]
+  },
+  {
+    "query_id": 126,
+    "query": "vegan friendly trendy dinner",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "00dba57a-e925-4787-8cc6-1926d98ad4c6",
+        "restaurant_name": "PLANTA Queen",
+        "score": 93,
+        "reasoning": "Fully vegan restaurant in River North, trendy, Instagram 9, stylish plant-based"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "f716e828-6427-41b8-87d8-49f634d38f41",
+        "restaurant_name": "Girl & The Goat",
+        "score": 88,
+        "reasoning": "Trendy New American in West Loop, vegan-accommodating, Instagram-worthy, chef-notable"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+        "restaurant_name": "avec Restaurant",
+        "score": 85,
+        "reasoning": "Mediterranean in West Loop with vegan options, trendy chef-notable, communal vibes"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+        "restaurant_name": "Daisies",
+        "score": 83,
+        "reasoning": "Chef-notable American in Logan Square with vegan options, trendy neighborhood spot"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "adaeb395-ffb5-4abb-b809-6b5da137a656",
+        "restaurant_name": "Lula Cafe",
+        "score": 80,
+        "reasoning": "Creative American in Logan Square with strong vegan/vegetarian options, trendy local"
+      }
+    ]
+  },
+  {
+    "query_id": 127,
+    "query": "pre-theater quick elegant dinner",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "5619ed80-b5d8-4d75-9999-c54e39916718",
+        "restaurant_name": "Gibsons Italia",
+        "score": 92,
+        "reasoning": "Elegant Italian in Loop near theaters, business 9, efficient service, impressive"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "1a1a7478-c92d-4568-972d-017c86048980",
+        "restaurant_name": "Ocean Prime",
+        "score": 89,
+        "reasoning": "Elegant American in Loop, near theaters, business-ready, quick upscale service"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "d3e6a0cf-4e97-4cb0-a950-c7c8661126c4",
+        "restaurant_name": "Cindy's Rooftop",
+        "score": 86,
+        "reasoning": "Rooftop in Loop, elegant setting, quick plates, near theater district"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "8d89f0e4-a227-4dfc-820a-d633fd218eb5",
+        "restaurant_name": "The Dearborn",
+        "score": 84,
+        "reasoning": "Loop location perfect for pre-theater, elegant American, efficient service"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "467b3c87-5829-41b2-91fc-6cd077f77613",
+        "restaurant_name": "Bavette's Bar & Boeuf",
+        "score": 82,
+        "reasoning": "Elegant steakhouse in River North, romantic atmosphere, efficient for pre-theater"
+      }
+    ]
+  },
+  {
+    "query_id": 128,
+    "query": "sunday family brunch kids friendly",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "cbfe5faa-be09-4d6a-a949-58f48f7000bb",
+        "restaurant_name": "Wildberry Pancakes and Cafe",
+        "score": 93,
+        "reasoning": "Brunch specialist in River North, family 9, group 8, kid-friendly, brunch icon"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "8e9ad899-f6b9-4f7e-be1a-7a98a22bb10f",
+        "restaurant_name": "The Original Pancake House",
+        "score": 90,
+        "reasoning": "Classic brunch in Gold Coast, family 9, kid-friendly, reliable family tradition"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "adaeb395-ffb5-4abb-b809-6b5da137a656",
+        "restaurant_name": "Lula Cafe",
+        "score": 87,
+        "reasoning": "Creative American brunch in Logan Square, chef-notable, family-friendly Sunday tradition"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "6aa5d56a-0ee2-493d-b1a5-730d79c4df17",
+        "restaurant_name": "Cafe Ba-Ba-Reeba!",
+        "score": 84,
+        "reasoning": "Mediterranean in Lincoln Park, family-friendly tapas brunch, group 8"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "78b648a7-9ccc-4752-9823-42618ee64a5f",
+        "restaurant_name": "Big Jones",
+        "score": 82,
+        "reasoning": "Southern brunch in Andersonville, family-friendly, warm welcoming atmosphere"
+      }
+    ]
+  },
+  {
+    "query_id": 129,
+    "query": "romantic sushi quiet intimate",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+        "restaurant_name": "Ky\u014dten",
+        "score": 95,
+        "reasoning": "Intimate omakase in Logan Square, romantic 9, chef-notable, $$$$, quiet counter experience"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "961caf60-065c-48dd-b99d-815ae38991d5",
+        "restaurant_name": "Mako",
+        "score": 93,
+        "reasoning": "Intimate Japanese in West Loop, romantic 9, $$$$, chef-notable, quiet refined"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "88a83b85-a3a4-495e-86a0-95565b9992dc",
+        "restaurant_name": "SH\u014c Omakase",
+        "score": 90,
+        "reasoning": "Intimate omakase in Old Town, $$$$, quiet romantic counter experience"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "c195508b-4fa3-4962-bbbb-e9df20d55d6f",
+        "restaurant_name": "OMAKASE YUME",
+        "score": 88,
+        "reasoning": "Intimate omakase in West Loop, $$$$, quiet exclusive sushi experience"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "7cad2cf1-b19f-4480-8585-ae8c93cf0688",
+        "restaurant_name": "Nomonomo Sushi",
+        "score": 86,
+        "reasoning": "Intimate omakase in Logan Square, romantic 9, chef-notable, quiet elegant"
+      }
+    ]
+  },
+  {
+    "query_id": 130,
+    "query": "group celebration cocktails small plates",
+    "category": "Multi",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+        "restaurant_name": "avec Restaurant",
+        "score": 93,
+        "reasoning": "Mediterranean small plates in West Loop, group 8, chef-notable, cocktails, communal celebration"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "f14ed695-f84b-4f0e-88ee-a0966eecef98",
+        "restaurant_name": "Ema",
+        "score": 90,
+        "reasoning": "Mediterranean small plates in River North, group-friendly, cocktails, celebratory energy"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "f716e828-6427-41b8-87d8-49f634d38f41",
+        "restaurant_name": "Girl & The Goat",
+        "score": 88,
+        "reasoning": "Small plates in West Loop, group-friendly, creative cocktails, celebration-worthy"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "bfc5cc4d-ed59-4954-b7c8-22459dc68983",
+        "restaurant_name": "Three Dots and a Dash",
+        "score": 86,
+        "reasoning": "Cocktail bar in River North with small plates, group 7, celebration perfect, Instagram 9"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "7b9b9084-5775-48c2-bb73-57b08a9344a7",
+        "restaurant_name": "Boqueria Fulton Market",
+        "score": 84,
+        "reasoning": "Spanish small plates in West Loop, shared dining, cocktails, group celebration"
+      }
+    ]
+  },
+  {
+    "query_id": 131,
+    "query": "surprise me",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 95,
+        "reasoning": "Filipino Michelin-recognized in Ukrainian Village, chef-notable, unique cuisine, high quality"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+        "restaurant_name": "Schwa Restaurant",
+        "score": 92,
+        "reasoning": "Avant-garde American BYOB in Wicker Park, chef-notable, hole-in-wall 8, romantic 9, surprise factor"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "f716e828-6427-41b8-87d8-49f634d38f41",
+        "restaurant_name": "Girl & The Goat",
+        "score": 89,
+        "reasoning": "Iconic New American in West Loop, chef-notable, creative menu, always delivers"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b",
+        "restaurant_name": "Giant",
+        "score": 86,
+        "reasoning": "Chef-notable in Logan Square, romantic 9, Instagram 9, hole-in-wall 8, unexpected gem"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
+        "restaurant_name": "Moody Tongue",
+        "score": 84,
+        "reasoning": "Michelin brewery restaurant in Chinatown, chef-notable, creative beer-food pairing"
+      }
+    ]
+  },
+  {
+    "query_id": 132,
+    "query": "something I haven't tried",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 94,
+        "reasoning": "Filipino cuisine rarely found at this quality level, Michelin-recognized, unique experience"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "98c1ca4d-842e-416b-aca2-ae3548ff9209",
+        "restaurant_name": "Tanta Cocina Peruana",
+        "score": 90,
+        "reasoning": "Peruvian cuisine by Gaston Acurio in River North, globally acclaimed, unique flavors"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+        "restaurant_name": "Galit",
+        "score": 87,
+        "reasoning": "Middle Eastern fine dining in Lincoln Park, chef-notable, unique flavor combinations"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "089617a7-2cc1-4bbb-9b60-5f79af8504c5",
+        "restaurant_name": "Superkhana International",
+        "score": 84,
+        "reasoning": "Modern Indian with creative twist in Logan Square, unique subcontinental approach"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "0648cd00-97b2-423a-8c9a-62792f47ac93",
+        "restaurant_name": "Taxim",
+        "score": 82,
+        "reasoning": "Greek in Wicker Park with creative authentic dishes, under-explored cuisine depth"
+      }
+    ]
+  },
+  {
+    "query_id": 133,
+    "query": "dealer's choice",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
+        "restaurant_name": "Alinea",
+        "score": 95,
+        "reasoning": "World-class New American in Lincoln Park, chef-notable, Instagram 10, once-in-a-lifetime"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+        "restaurant_name": "avec Restaurant",
+        "score": 91,
+        "reasoning": "Mediterranean in West Loop, chef-notable, communal dining, always excellent"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "9f75f685-0b83-43db-a9d5-e5e21ab84701",
+        "restaurant_name": "Monteverde Restaurant & Pastificio",
+        "score": 88,
+        "reasoning": "Chef-notable Italian in West Loop, handmade pasta, romantic 9, crowd-pleaser"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "f716e828-6427-41b8-87d8-49f634d38f41",
+        "restaurant_name": "Girl & The Goat",
+        "score": 86,
+        "reasoning": "Iconic New American in West Loop, chef-notable, creative, never disappoints"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 84,
+        "reasoning": "Filipino gem in Ukrainian Village, chef-notable, unique and delightful"
+      }
+    ]
+  },
+  {
+    "query_id": 134,
+    "query": "chef's recommendation",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
+        "restaurant_name": "Alinea",
+        "score": 96,
+        "reasoning": "Grant Achatz's molecular gastronomy temple, the ultimate chef's restaurant"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+        "restaurant_name": "Schwa Restaurant",
+        "score": 93,
+        "reasoning": "Michael Carlson's BYOB masterpiece, where chefs eat, hole-in-wall 8"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "ae50d9d1-a003-4c8e-a1ff-051b8cbcf2c0",
+        "restaurant_name": "Smyth",
+        "score": 90,
+        "reasoning": "John Shields/Karen Urie's farm-to-table, Michelin-starred, chef-notable"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "c5478690-8eb8-4af5-b99c-a7224e58b6db",
+        "restaurant_name": "Ever Restaurant",
+        "score": 88,
+        "reasoning": "Curtis Duffy's fine dining in West Loop, Michelin-starred, chef's chef restaurant"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 86,
+        "reasoning": "Tim Flores/Genie Kwon's Filipino in Ukrainian Village, James Beard nominees"
+      }
+    ]
+  },
+  {
+    "query_id": 135,
+    "query": "wildcard pick",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "a696496a-9403-4d10-b764-aec906e8619e",
+        "restaurant_name": "Duck Duck Goat",
+        "score": 92,
+        "reasoning": "Chinese by Stephanie Izard in West Loop, creative unexpected twist on Chinese food"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "a1a05d19-80c2-4120-8f58-862663de1d5c",
+        "restaurant_name": "Cabra",
+        "score": 89,
+        "reasoning": "Rooftop Peruvian in West Loop, stunning views, unexpected cuisine at altitude"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
+        "restaurant_name": "Moody Tongue",
+        "score": 86,
+        "reasoning": "Michelin brewery restaurant, unique beer-food pairing concept, wildcard pick"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 84,
+        "reasoning": "Filipino bakery-turned-fine-dining, completely unexpected genre shift"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "98c1ca4d-842e-416b-aca2-ae3548ff9209",
+        "restaurant_name": "Tanta Cocina Peruana",
+        "score": 82,
+        "reasoning": "Peruvian in River North, globally unexpected flavors in Chicago setting"
+      }
+    ]
+  },
+  {
+    "query_id": 136,
+    "query": "hidden gem",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b",
+        "restaurant_name": "Giant",
+        "score": 94,
+        "reasoning": "Chef-notable in Logan Square, hole-in-wall 8, romantic 9, Instagram 9, true hidden gem"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+        "restaurant_name": "Daisies",
+        "score": 91,
+        "reasoning": "Chef-notable American in Logan Square, hole-in-wall 7, neighborhood secret"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+        "restaurant_name": "Longman & Eagle",
+        "score": 88,
+        "reasoning": "Michelin-starred pub in Logan Square, hole-in-wall whiskey bar, neighborhood institution"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "87338807-f9f2-483f-a997-2bd205e52321",
+        "restaurant_name": "Spacca Napoli Pizzeria",
+        "score": 86,
+        "reasoning": "Authentic Neapolitan pizza in Andersonville, hole-in-wall gem, cultural authenticity"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+        "restaurant_name": "Mi Tocaya Antojer\u00eda",
+        "score": 84,
+        "reasoning": "Creative Mexican in Logan Square, chef-notable, neighborhood hidden treasure"
+      }
+    ]
+  },
+  {
+    "query_id": 137,
+    "query": "something adventurous",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 94,
+        "reasoning": "Filipino fine dining, adventurous cuisine most haven't explored at this level"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "98c1ca4d-842e-416b-aca2-ae3548ff9209",
+        "restaurant_name": "Tanta Cocina Peruana",
+        "score": 90,
+        "reasoning": "Peruvian by world-famous Gaston Acurio, adventurous ceviche and anticuchos"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "089617a7-2cc1-4bbb-9b60-5f79af8504c5",
+        "restaurant_name": "Superkhana International",
+        "score": 87,
+        "reasoning": "Modern Indian fusion in Logan Square, adventurous subcontinental creativity"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "a1a05d19-80c2-4120-8f58-862663de1d5c",
+        "restaurant_name": "Cabra",
+        "score": 85,
+        "reasoning": "Rooftop Peruvian with creative dishes, adventurous flavor combinations"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "a696496a-9403-4d10-b764-aec906e8619e",
+        "restaurant_name": "Duck Duck Goat",
+        "score": 83,
+        "reasoning": "Chinese by Stephanie Izard, adventurous creative Chinese-American fusion"
+      }
+    ]
+  },
+  {
+    "query_id": 138,
+    "query": "off the beaten path",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b",
+        "restaurant_name": "Giant",
+        "score": 93,
+        "reasoning": "Logan Square gem, hole-in-wall 8, off the typical tourist path, exceptional quality"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+        "restaurant_name": "Daisies",
+        "score": 90,
+        "reasoning": "Logan Square chef-notable, neighborhood feel, off main dining corridors"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "78b648a7-9ccc-4752-9823-42618ee64a5f",
+        "restaurant_name": "Big Jones",
+        "score": 87,
+        "reasoning": "Southern in Andersonville, high cultural authenticity, off beaten path location"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "87338807-f9f2-483f-a997-2bd205e52321",
+        "restaurant_name": "Spacca Napoli Pizzeria",
+        "score": 85,
+        "reasoning": "Neapolitan pizza in Andersonville, authentic import, away from downtown crowds"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+        "restaurant_name": "Mi Tocaya Antojer\u00eda",
+        "score": 83,
+        "reasoning": "Creative Mexican in Logan Square, away from River North/West Loop hype"
+      }
+    ]
+  },
+  {
+    "query_id": 139,
+    "query": "local secret",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+        "restaurant_name": "Schwa Restaurant",
+        "score": 94,
+        "reasoning": "BYOB fine dining in Wicker Park, hole-in-wall 8, locals-only vibe, no signage"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b",
+        "restaurant_name": "Giant",
+        "score": 91,
+        "reasoning": "Logan Square local secret, hole-in-wall 8, neighborhood devotees only"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+        "restaurant_name": "Longman & Eagle",
+        "score": 88,
+        "reasoning": "Logan Square whiskey bar/restaurant, local institution, Michelin-starred but feels secret"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "d2c94510-decc-425d-ba3d-f40300123963",
+        "restaurant_name": "KAI ZAN CHICAGO",
+        "score": 86,
+        "reasoning": "BYOB sushi in Wicker Park, chef-notable, local favorite, intimate"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+        "restaurant_name": "Daisies",
+        "score": 84,
+        "reasoning": "Logan Square neighborhood secret, chef-notable, devoted local following"
+      }
+    ]
+  },
+  {
+    "query_id": 140,
+    "query": "best kept secret",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+        "restaurant_name": "Schwa Restaurant",
+        "score": 94,
+        "reasoning": "BYOB fine dining, hole-in-wall 8, deliberately hidden, Chicago's ultimate secret"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b",
+        "restaurant_name": "Giant",
+        "score": 91,
+        "reasoning": "Logan Square gem, hole-in-wall 8, romantic 9, genuinely under-known for its quality"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "961878b7-f7c8-4ed3-8664-deac3fb76528",
+        "restaurant_name": "mfk. Restaurant",
+        "score": 88,
+        "reasoning": "Mediterranean seafood in Lincoln Park, chef-notable, hole-in-wall 8, intimate secret"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+        "restaurant_name": "Longman & Eagle",
+        "score": 86,
+        "reasoning": "Gastropub in Logan Square, Michelin-starred but still feels undiscovered"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+        "restaurant_name": "Daisies",
+        "score": 84,
+        "reasoning": "Chef-notable in Logan Square, neighborhood devotion, quality exceeds reputation"
+      }
+    ]
+  },
+  {
+    "query_id": 141,
+    "query": "what's hot right now",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "f716e828-6427-41b8-87d8-49f634d38f41",
+        "restaurant_name": "Girl & The Goat",
+        "score": 93,
+        "reasoning": "Perennially hot New American, chef-notable, Instagram 8, always buzzing"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 91,
+        "reasoning": "Filipino phenomenon, Michelin recognition, current food scene darling"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "9f75f685-0b83-43db-a9d5-e5e21ab84701",
+        "restaurant_name": "Monteverde Restaurant & Pastificio",
+        "score": 88,
+        "reasoning": "Handmade pasta destination, chef-notable, Instagram 9, consistently trending"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "4496ab73-9264-4869-8d54-8876d39c06c1",
+        "restaurant_name": "Aba",
+        "score": 86,
+        "reasoning": "Mediterranean in West Loop, Instagram 9, currently hot date spot"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "a1a05d19-80c2-4120-8f58-862663de1d5c",
+        "restaurant_name": "Cabra",
+        "score": 84,
+        "reasoning": "Rooftop Peruvian, Instagram-worthy, currently trendy West Loop hotspot"
+      }
+    ]
+  },
+  {
+    "query_id": 142,
+    "query": "most unique restaurant",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
+        "restaurant_name": "Alinea",
+        "score": 96,
+        "reasoning": "Molecular gastronomy pioneer, multi-sensory dining, genuinely one-of-a-kind"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "cac354a4-eca2-41b6-9022-43b62453f3f4",
+        "restaurant_name": "The Aviary",
+        "score": 93,
+        "reasoning": "Cocktail laboratory by Alinea team, unique drink-as-art concept"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+        "restaurant_name": "Schwa Restaurant",
+        "score": 90,
+        "reasoning": "BYOB fine dining with punk rock spirit, chefs serve you, utterly unique"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 87,
+        "reasoning": "Filipino bakery by day, tasting menu by night, dual-concept uniqueness"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
+        "restaurant_name": "Moody Tongue",
+        "score": 85,
+        "reasoning": "Michelin-starred brewery restaurant, unique beer-gastronomy concept"
+      }
+    ]
+  },
+  {
+    "query_id": 143,
+    "query": "something different",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 93,
+        "reasoning": "Filipino fine dining, completely different from typical Chicago options"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "98c1ca4d-842e-416b-aca2-ae3548ff9209",
+        "restaurant_name": "Tanta Cocina Peruana",
+        "score": 90,
+        "reasoning": "Peruvian by Gaston Acurio, different flavor profile than most Chicago dining"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "a696496a-9403-4d10-b764-aec906e8619e",
+        "restaurant_name": "Duck Duck Goat",
+        "score": 87,
+        "reasoning": "Chinese reimagined by Top Chef winner, different take on familiar food"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+        "restaurant_name": "Galit",
+        "score": 85,
+        "reasoning": "Modern Middle Eastern, different creative approach to regional cuisine"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "089617a7-2cc1-4bbb-9b60-5f79af8504c5",
+        "restaurant_name": "Superkhana International",
+        "score": 83,
+        "reasoning": "Modern Indian fusion, different subcontinental perspective in Logan Square"
+      }
+    ]
+  },
+  {
+    "query_id": 144,
+    "query": "foodie's choice",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
+        "restaurant_name": "Alinea",
+        "score": 96,
+        "reasoning": "Ultimate foodie destination, molecular gastronomy, bucket-list restaurant"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+        "restaurant_name": "Schwa Restaurant",
+        "score": 93,
+        "reasoning": "Chef's chef restaurant, BYOB fine dining, foodie credentials impeccable"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "ae50d9d1-a003-4c8e-a1ff-051b8cbcf2c0",
+        "restaurant_name": "Smyth",
+        "score": 90,
+        "reasoning": "Farm-to-table Michelin fine dining, foodie pilgrimage worthy"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 88,
+        "reasoning": "Filipino Michelin star, foodie scene darling, innovative cuisine"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "f716e828-6427-41b8-87d8-49f634d38f41",
+        "restaurant_name": "Girl & The Goat",
+        "score": 86,
+        "reasoning": "Stephanie Izard's flagship, foodie icon, creative small plates"
+      }
+    ]
+  },
+  {
+    "query_id": 145,
+    "query": "underground favorite",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+        "restaurant_name": "Schwa Restaurant",
+        "score": 94,
+        "reasoning": "Literally underground vibes, no sign, BYOB, hole-in-wall 8, chefs serve"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b",
+        "restaurant_name": "Giant",
+        "score": 91,
+        "reasoning": "Logan Square neighborhood spot, hole-in-wall 8, underground foodie circle favorite"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+        "restaurant_name": "Longman & Eagle",
+        "score": 88,
+        "reasoning": "Whiskey bar/restaurant, Michelin-starred but underground feel, Logan Square"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "d2c94510-decc-425d-ba3d-f40300123963",
+        "restaurant_name": "KAI ZAN CHICAGO",
+        "score": 86,
+        "reasoning": "BYOB sushi, intimate chef-notable, underground favorite among sushi lovers"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+        "restaurant_name": "Mi Tocaya Antojer\u00eda",
+        "score": 84,
+        "reasoning": "Logan Square Mexican, underground creative scene, devoted following"
+      }
+    ]
+  },
+  {
+    "query_id": 146,
+    "query": "underrated spot",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "78b648a7-9ccc-4752-9823-42618ee64a5f",
+        "restaurant_name": "Big Jones",
+        "score": 93,
+        "reasoning": "Southern in Andersonville, exceptional quality, underrated vs hype spots"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+        "restaurant_name": "Daisies",
+        "score": 90,
+        "reasoning": "Chef-notable in Logan Square, quality exceeds its modest profile"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+        "restaurant_name": "Longman & Eagle",
+        "score": 87,
+        "reasoning": "Logan Square Michelin gastropub, less hyped than peers, exceptional value"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "0648cd00-97b2-423a-8c9a-62792f47ac93",
+        "restaurant_name": "Taxim",
+        "score": 85,
+        "reasoning": "Greek in Wicker Park, deeply underrated creative Mediterranean"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "87338807-f9f2-483f-a997-2bd205e52321",
+        "restaurant_name": "Spacca Napoli Pizzeria",
+        "score": 83,
+        "reasoning": "Authentic Neapolitan in Andersonville, underrated vs downtown pizza hype"
+      }
+    ]
+  },
+  {
+    "query_id": 147,
+    "query": "best new restaurant",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 93,
+        "reasoning": "Recent Michelin recognition, one of Chicago's most exciting newer additions"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "37551c29-c388-40b3-9eb0-49b410c43489",
+        "restaurant_name": "Penumbra",
+        "score": 90,
+        "reasoning": "Newer American in Logan Square, romantic 9, Instagram 8, generating buzz"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "a1a05d19-80c2-4120-8f58-862663de1d5c",
+        "restaurant_name": "Cabra",
+        "score": 87,
+        "reasoning": "Newer Peruvian rooftop in West Loop, exciting addition to Chicago dining"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "9439bc31-d31e-4521-953d-cee8d0d36fe3",
+        "restaurant_name": "Rose Mary",
+        "score": 85,
+        "reasoning": "Newer Mediterranean in West Loop, group-friendly, trendy opening"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "bafcf349-a7d8-4e0b-8695-43ee588e2d02",
+        "restaurant_name": "Alla Vita",
+        "score": 83,
+        "reasoning": "Newer Italian in West Loop, romantic 8, neighborhood-changing addition"
+      }
+    ]
+  },
+  {
+    "query_id": 148,
+    "query": "most creative menu",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
+        "restaurant_name": "Alinea",
+        "score": 96,
+        "reasoning": "Molecular gastronomy, the most creative menu in Chicago by far"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "f716e828-6427-41b8-87d8-49f634d38f41",
+        "restaurant_name": "Girl & The Goat",
+        "score": 92,
+        "reasoning": "Stephanie Izard's creative small plates, innovative flavor combinations"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+        "restaurant_name": "Schwa Restaurant",
+        "score": 89,
+        "reasoning": "Wildly creative BYOB fine dining, unexpected preparations"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "a696496a-9403-4d10-b764-aec906e8619e",
+        "restaurant_name": "Duck Duck Goat",
+        "score": 86,
+        "reasoning": "Creative Chinese reimagined, inventive takes on classics"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
+        "restaurant_name": "Moody Tongue",
+        "score": 84,
+        "reasoning": "Creative beer-food pairings, Michelin brewery innovation"
+      }
+    ]
+  },
+  {
+    "query_id": 149,
+    "query": "hole in the wall gem",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+        "restaurant_name": "Schwa Restaurant",
+        "score": 95,
+        "reasoning": "Hole-in-wall 8, BYOB fine dining, no signage, chefs serve, legendary status"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b",
+        "restaurant_name": "Giant",
+        "score": 92,
+        "reasoning": "Hole-in-wall 8, chef-notable, romantic 9, exceptional quality in modest setting"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "961878b7-f7c8-4ed3-8664-deac3fb76528",
+        "restaurant_name": "mfk. Restaurant",
+        "score": 89,
+        "reasoning": "Hole-in-wall 8, chef-notable Mediterranean seafood, tiny intimate Lincoln Park spot"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "87338807-f9f2-483f-a997-2bd205e52321",
+        "restaurant_name": "Spacca Napoli Pizzeria",
+        "score": 86,
+        "reasoning": "Authentic Neapolitan in Andersonville, neighborhood gem, quality over flash"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+        "restaurant_name": "Longman & Eagle",
+        "score": 84,
+        "reasoning": "Hole-in-wall pub exterior hiding Michelin quality, Logan Square icon"
+      }
+    ]
+  },
+  {
+    "query_id": 150,
+    "query": "something unexpected",
+    "category": "Discovery",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 94,
+        "reasoning": "Filipino bakery-turned-tasting-menu, genuinely unexpected concept"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
+        "restaurant_name": "Moody Tongue",
+        "score": 91,
+        "reasoning": "Michelin-starred brewery, unexpected marriage of beer and fine dining"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "cac354a4-eca2-41b6-9022-43b62453f3f4",
+        "restaurant_name": "The Aviary",
+        "score": 88,
+        "reasoning": "Cocktail laboratory, unexpected drink-as-art experience"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "a696496a-9403-4d10-b764-aec906e8619e",
+        "restaurant_name": "Duck Duck Goat",
+        "score": 86,
+        "reasoning": "Unexpected Chinese from a Top Chef winner known for goat"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+        "restaurant_name": "Schwa Restaurant",
+        "score": 84,
+        "reasoning": "Unexpected BYOB fine dining in punk rock setting"
+      }
+    ]
+  },
+  {
+    "query_id": 151,
+    "query": "dinner before a Bulls game",
+    "category": "Contextual",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "a0d1f11a-ce41-486c-83b6-b0860c262ae3",
+        "restaurant_name": "Greek Islands",
+        "score": 92,
+        "reasoning": "Greek in West Loop/Greektown, near United Center, lively, quick pre-game"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "5c6e4cf0-ee14-4f5a-8eb0-6d95a06745d6",
+        "restaurant_name": "Athena Greek Restaurant",
+        "score": 89,
+        "reasoning": "Greek in West Loop/Greektown, walking distance to United Center, energetic"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "ea45ab08-0b54-4e2b-a2c9-ec10ebf4e8b6",
+        "restaurant_name": "Green Street Smoked Meats",
+        "score": 86,
+        "reasoning": "BBQ in West Loop, casual pre-game energy, quick service"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "86de1c95-3dbd-4a38-9382-d190e097efe5",
+        "restaurant_name": "The Loyalist",
+        "score": 84,
+        "reasoning": "American in West Loop near United Center, casual pre-game burger spot"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "207151a9-b7ff-4fdf-b676-4ce3a52b1420",
+        "restaurant_name": "The Publican",
+        "score": 82,
+        "reasoning": "American beer hall in West Loop, lively pre-game atmosphere, group-friendly"
+      }
+    ]
+  },
+  {
+    "query_id": 152,
+    "query": "birthday dinner for 8",
+    "category": "Contextual",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "2c2581d7-8309-4017-8b5c-9b7ccdcfc8cb",
+        "restaurant_name": "Formento's",
+        "score": 93,
+        "reasoning": "Italian in West Loop, group 9, celebration-ready, private options for large party"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+        "restaurant_name": "avec Restaurant",
+        "score": 90,
+        "reasoning": "Mediterranean in West Loop, group 8, communal celebration, chef-notable"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "f716e828-6427-41b8-87d8-49f634d38f41",
+        "restaurant_name": "Girl & The Goat",
+        "score": 88,
+        "reasoning": "New American in West Loop, group-friendly, celebration-worthy, iconic"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "2247d52b-93a9-4db9-916b-623c5bfec5f0",
+        "restaurant_name": "Quartino Ristorante",
+        "score": 86,
+        "reasoning": "Italian in River North, group 8, handles large parties, celebratory"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "989ff6ee-7838-4c9b-a22f-86870da5e5a5",
+        "restaurant_name": "Sunda New Asian",
+        "score": 84,
+        "reasoning": "Asian fusion in River North, group 8, Instagram 9, birthday celebration energy"
+      }
+    ]
+  },
+  {
+    "query_id": 153,
+    "query": "rehearsal dinner spot",
+    "category": "Contextual",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "4f532c98-e6b9-42c7-8f58-0e227213192f",
+        "restaurant_name": "Piccolo Sogno",
+        "score": 94,
+        "reasoning": "Italian in West Loop, romantic 9, group 8, garden setting, rehearsal-perfect"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "2c2581d7-8309-4017-8b5c-9b7ccdcfc8cb",
+        "restaurant_name": "Formento's",
+        "score": 91,
+        "reasoning": "Italian in West Loop, group 9, private dining, elegant rehearsal setting"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "9f75f685-0b83-43db-a9d5-e5e21ab84701",
+        "restaurant_name": "Monteverde Restaurant & Pastificio",
+        "score": 88,
+        "reasoning": "Chef-notable Italian in West Loop, romantic 9, impressive for rehearsal dinner"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "1a1a7478-c92d-4568-972d-017c86048980",
+        "restaurant_name": "Ocean Prime",
+        "score": 86,
+        "reasoning": "Elegant American in Loop, private rooms, polished rehearsal dinner venue"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "5619ed80-b5d8-4d75-9999-c54e39916718",
+        "restaurant_name": "Gibsons Italia",
+        "score": 84,
+        "reasoning": "Elegant Italian in Loop, private dining, business 9, rehearsal-worthy"
+      }
+    ]
+  },
+  {
+    "query_id": 154,
+    "query": "client entertainment dinner",
+    "category": "Contextual",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "8fc55f1c-d086-423f-9f97-4bc427e7310f",
+        "restaurant_name": "Gibsons Bar & Steakhouse",
+        "score": 95,
+        "reasoning": "Iconic steakhouse in Gold Coast, business 9, the Chicago power dinner spot"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "3778e68a-a800-442a-8515-5772b032d97b",
+        "restaurant_name": "Chicago Cut Steakhouse",
+        "score": 93,
+        "reasoning": "Prime steakhouse in River North, business 9, impressive client venue"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "f7e93371-75c4-4fc9-9c0f-e092f696566d",
+        "restaurant_name": "RPM Steak",
+        "score": 90,
+        "reasoning": "Modern steakhouse in River North, business 9, chef-notable, impressive"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "467b3c87-5829-41b2-91fc-6cd077f77613",
+        "restaurant_name": "Bavette's Bar & Boeuf",
+        "score": 87,
+        "reasoning": "Elegant steakhouse in River North, romantic 9 but equally impressive for clients"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "a5f0c788-06fb-4280-bda1-ab3c2a5bb819",
+        "restaurant_name": "Maple & Ash",
+        "score": 85,
+        "reasoning": "Steakhouse in Old Town, $$$$, chef-notable, sophisticated client venue"
+      }
+    ]
+  },
+  {
+    "query_id": 155,
+    "query": "post-work drinks and food",
+    "category": "Contextual",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "28a2a43b-957d-4727-8e57-b2ee4ff3e07d",
+        "restaurant_name": "Gilt Bar",
+        "score": 92,
+        "reasoning": "American cocktail-forward in River North, post-work crowd, elevated drinks and food"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "1f305b24-59a6-4bf7-b20c-18d3bb4c9489",
+        "restaurant_name": "MONEYGUN",
+        "score": 89,
+        "reasoning": "American in West Loop, post-work energy, cocktails and food, Loop-adjacent"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "86de1c95-3dbd-4a38-9382-d190e097efe5",
+        "restaurant_name": "The Loyalist",
+        "score": 86,
+        "reasoning": "American in West Loop, casual post-work, good food and drinks"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "9531de7c-5b1e-4bfe-a055-973f956bb39c",
+        "restaurant_name": "Bandit",
+        "score": 84,
+        "reasoning": "American in West Loop, post-work friendly, good drinks and bites"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "207151a9-b7ff-4fdf-b676-4ce3a52b1420",
+        "restaurant_name": "The Publican",
+        "score": 82,
+        "reasoning": "Beer hall in West Loop, post-work gathering, great beer and food"
+      }
+    ]
+  },
+  {
+    "query_id": 156,
+    "query": "quick lunch between meetings",
+    "category": "Contextual",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+        "restaurant_name": "XOCO",
+        "score": 92,
+        "reasoning": "Rick Bayless quick-service Mexican in River North, fast counter, quality lunch"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "8d89f0e4-a227-4dfc-820a-d633fd218eb5",
+        "restaurant_name": "The Dearborn",
+        "score": 89,
+        "reasoning": "Loop American, business-friendly lunch, efficient service, professional setting"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "64b9cb63-84aa-4e57-adfb-751c2f90879b",
+        "restaurant_name": "Portillo's - River North",
+        "score": 86,
+        "reasoning": "Iconic Chicago fast food in River North, quick service, classic Chicago lunch"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "d3e6a0cf-4e97-4cb0-a950-c7c8661126c4",
+        "restaurant_name": "Cindy's Rooftop",
+        "score": 84,
+        "reasoning": "Loop rooftop, quick elegant bites, Millennium Park views between meetings"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "9368db6f-71d4-4279-92c1-65d9c0bd44b0",
+        "restaurant_name": "Billy Goat Tavern (The Original)",
+        "score": 82,
+        "reasoning": "Iconic Chicago quick lunch spot in River North, famous burgers, fast"
+      }
+    ]
+  },
+  {
+    "query_id": 157,
+    "query": "graduation celebration",
+    "category": "Contextual",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "f716e828-6427-41b8-87d8-49f634d38f41",
+        "restaurant_name": "Girl & The Goat",
+        "score": 92,
+        "reasoning": "Iconic New American in West Loop, celebration-worthy, group-friendly, impressive"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "010c222c-f871-408e-a9d5-37cbee120284",
+        "restaurant_name": "Frontera Grill",
+        "score": 89,
+        "reasoning": "Rick Bayless Mexican in River North, celebration atmosphere, group-friendly 8"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+        "restaurant_name": "avec Restaurant",
+        "score": 86,
+        "reasoning": "Mediterranean in West Loop, communal celebration, chef-notable, group 8"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "2247d52b-93a9-4db9-916b-623c5bfec5f0",
+        "restaurant_name": "Quartino Ristorante",
+        "score": 84,
+        "reasoning": "Italian in River North, group 8, celebratory, handles large graduation parties"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "989ff6ee-7838-4c9b-a22f-86870da5e5a5",
+        "restaurant_name": "Sunda New Asian",
+        "score": 82,
+        "reasoning": "Asian fusion in River North, group 8, Instagram 9, celebration energy"
+      }
+    ]
+  },
+  {
+    "query_id": 158,
+    "query": "bachelorette dinner",
+    "category": "Contextual",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "bfc5cc4d-ed59-4954-b7c8-22459dc68983",
+        "restaurant_name": "Three Dots and a Dash",
+        "score": 93,
+        "reasoning": "Tiki cocktail bar in River North, group 7, Instagram 9, energy 9, bachelorette perfect"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "bb483dc7-9247-4348-b41e-b7d0513bcc89",
+        "restaurant_name": "Selva Rooftop Lounge",
+        "score": 90,
+        "reasoning": "Rooftop Mexican in West Loop, group 9, Instagram 9, energy 9, party atmosphere"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "989ff6ee-7838-4c9b-a22f-86870da5e5a5",
+        "restaurant_name": "Sunda New Asian",
+        "score": 87,
+        "reasoning": "Asian fusion in River North, group 8, Instagram 9, energy 9, celebration spot"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "d468793c-39b4-46eb-8cd2-cf53f4c229a9",
+        "restaurant_name": "RAISED | An Urban Rooftop Bar",
+        "score": 85,
+        "reasoning": "Rooftop cocktail bar in Loop, group 9, Instagram 9, energy 9, views and cocktails"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "20d83c38-b619-4dd7-a11b-b99ef564941f",
+        "restaurant_name": "Storyville Chicago",
+        "score": 83,
+        "reasoning": "Southern in River North, lively energy, cocktails, group-friendly bachelorette"
+      }
+    ]
+  },
+  {
+    "query_id": 159,
+    "query": "reunion with old friends",
+    "category": "Contextual",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "207151a9-b7ff-4fdf-b676-4ce3a52b1420",
+        "restaurant_name": "The Publican",
+        "score": 92,
+        "reasoning": "Beer hall in West Loop, group 9, lively communal tables, perfect for catching up"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "010c222c-f871-408e-a9d5-37cbee120284",
+        "restaurant_name": "Frontera Grill",
+        "score": 89,
+        "reasoning": "Mexican in River North, group 8, lively energy 9, great reunion atmosphere"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+        "restaurant_name": "avec Restaurant",
+        "score": 86,
+        "reasoning": "Mediterranean in West Loop, group 8, communal dining, conversation-friendly"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "0ac78c55-46bc-4ba0-b014-0da713a3a0ad",
+        "restaurant_name": "Urbanbelly",
+        "score": 84,
+        "reasoning": "Vietnamese in Wicker Park, group 9, lively energy 8, casual reunion spot"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "6aa5d56a-0ee2-493d-b1a5-730d79c4df17",
+        "restaurant_name": "Cafe Ba-Ba-Reeba!",
+        "score": 82,
+        "reasoning": "Tapas in Lincoln Park, group 8, shared plates perfect for reunions"
+      }
+    ]
+  },
+  {
+    "query_id": 160,
+    "query": "first date impressive",
+    "category": "Contextual",
+    "ideal_ranking": [
+      {
+        "rank": 1,
+        "restaurant_id": "aabee827-aa8f-4c85-a654-6b72bec1a379",
+        "restaurant_name": "North Pond",
+        "score": 95,
+        "reasoning": "American in Lincoln Park, romantic 10, date 8, stunning setting, most romantic in Chicago"
+      },
+      {
+        "rank": 2,
+        "restaurant_id": "9dbaea89-059d-4641-8b2e-b3e903082fca",
+        "restaurant_name": "Boka",
+        "score": 92,
+        "reasoning": "American in Lincoln Park, romantic 9, date 8, chef-notable, impressive without pretention"
+      },
+      {
+        "rank": 3,
+        "restaurant_id": "9f75f685-0b83-43db-a9d5-e5e21ab84701",
+        "restaurant_name": "Monteverde Restaurant & Pastificio",
+        "score": 89,
+        "reasoning": "Italian in West Loop, romantic 9, date 9, chef-notable, impressive pasta"
+      },
+      {
+        "rank": 4,
+        "restaurant_id": "4496ab73-9264-4869-8d54-8876d39c06c1",
+        "restaurant_name": "Aba",
+        "score": 87,
+        "reasoning": "Mediterranean in West Loop, romantic 8, date 9, Instagram 9, trendy impressive"
+      },
+      {
+        "rank": 5,
+        "restaurant_id": "f69605de-88d7-4cd0-97ae-6b970b52c462",
+        "restaurant_name": "Kasama",
+        "score": 85,
+        "reasoning": "Filipino in Ukrainian Village, date 9, chef-notable, unique impressive pick"
+      }
+    ]
+  }
+]
