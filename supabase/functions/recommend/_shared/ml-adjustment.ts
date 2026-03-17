@@ -1,9 +1,9 @@
 /**
- * ML Adjustment Layer — Shadow Mode (Phase 1)
+ * ML Adjustment Layer — Active with A/B Testing (Phase 2)
  *
- * Computes ML-based score adjustments (+/- 5 points) from a pre-trained model,
- * but does NOT apply them to live DondeMatch scores. Adjustments are logged in
- * the response under `ml_scoring` for analysis.
+ * Computes ML-based score adjustments (+/- 5 points) from a pre-trained model.
+ * In A/B test mode: 50% of requests get ML-adjusted scores, 50% get pure rules.
+ * The `ml_scoring` response field shows group assignment and adjustments.
  *
  * Supports two model types:
  * - linear_adjustment: weighted sum of features (simple, interpretable)
@@ -254,4 +254,61 @@ export function getMLModelInfo(): { version: string; type: string; features: num
     type: mlModel.model_type,
     features: mlModel.feature_names.length,
   };
+}
+
+// ============================================================================
+// A/B TEST CONFIGURATION
+// ============================================================================
+
+/** Percentage of traffic that gets ML-adjusted scores (0-100). Set to 0 to disable. */
+const ML_AB_TEST_PERCENTAGE = 50;
+
+/** Determines A/B group for this request. Stable per-request, not per-isolate. */
+export function getMLABGroup(): "ml" | "rules" {
+  if (!mlModel) return "rules";
+  if (ML_AB_TEST_PERCENTAGE <= 0) return "rules";
+  if (ML_AB_TEST_PERCENTAGE >= 100) return "ml";
+  return Math.random() * 100 < ML_AB_TEST_PERCENTAGE ? "ml" : "rules";
+}
+
+/**
+ * Apply ML adjustments to actual DondeMatch scores.
+ * Only call this for requests in the "ml" A/B group.
+ * Adjustments are clamped to +/- 5 points.
+ *
+ * @returns Array of adjustments that were applied
+ */
+export function applyMLAdjustments(
+  scoredCandidates: Record<string, unknown>[],
+  intent: Record<string, unknown>,
+): MLShadowScore[] {
+  if (!mlModel) return [];
+
+  const results: MLShadowScore[] = [];
+
+  for (const candidate of scoredCandidates) {
+    const restaurant = (candidate.profile || candidate.restaurant || candidate) as Record<string, unknown>;
+    const scoringResult = candidate as Record<string, unknown>;
+
+    const features = extractMLFeatures(restaurant, scoringResult, intent);
+    const adjustment = predictMLAdjustment(features);
+
+    if (adjustment !== 0) {
+      const ruleDM = Number(candidate.dondeMatch || 0);
+      const mlDM = Math.max(0, Math.min(99, ruleDM + adjustment));
+
+      // Actually modify the score
+      (candidate as Record<string, number>).dondeMatch = mlDM;
+
+      results.push({
+        restaurant_id: String(restaurant.id || ""),
+        restaurant_name: String(restaurant.name || ""),
+        rule_dm: ruleDM,
+        ml_adjustment: adjustment,
+        ml_dm: mlDM,
+      });
+    }
+  }
+
+  return results;
 }
