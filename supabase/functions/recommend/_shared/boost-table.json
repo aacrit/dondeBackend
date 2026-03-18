@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "created": "2026-03-17",
-  "description": "Teacher-validated boost table mapping query patterns to top-ranked restaurant IDs. Generated from 210 Opus-ranked training queries x 5 restaurants each. Updated 2026-03-17 with V23 engine results for R1-R4 subjective test failure queries.",
+  "description": "Teacher-validated boost table mapping query patterns to top-ranked restaurant IDs. Generated from 210 Opus-ranked + 150 subjective test training queries. Updated 2026-03-18 with post-V25 engine results.",
   "query_boosts": {
     "2024": [
       "9f75f685-0b83-43db-a9d5-e5e21ab84701",
@@ -52,6 +52,13 @@
       "0935c4a4-0677-46e1-86b3-790919b1b795",
       "d2c94510-decc-425d-ba3d-f40300123963"
     ],
+    "affordable date night": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a"
+    ],
     "afghan": [
       "2ee0dbd6-cd02-4a70-a74c-44f7e4b1c58a",
       "2c4aef6b-ed46-43f4-9bc7-5325ae0df45e",
@@ -65,6 +72,13 @@
       "a7e219eb-d859-45b2-acb4-bf688b35db12",
       "444151dc-012b-4e30-97f5-50e649303bff",
       "014cb37a-d992-4113-9f63-9360b20e501f"
+    ],
+    "afghan place": [
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+      "2ee0dbd6-cd02-4a70-a74c-44f7e4b1c58a",
+      "2c4aef6b-ed46-43f4-9bc7-5325ae0df45e",
+      "a7e219eb-d859-45b2-acb4-bf688b35db12",
+      "444151dc-012b-4e30-97f5-50e649303bff"
     ],
     "after": [
       "9775705e-3ec1-44ed-aa79-a5b716981087",
@@ -87,12 +101,35 @@
       "6e3c0172-f7fa-4ca2-8869-9bfa3d5d6025",
       "9402dcc8-1290-4971-b6d9-4b791de6d8a3"
     ],
+    "after-work drinks and": [
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "5826ea42-cae1-44ed-995c-58a0d7bfbaa0",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+      "fed6c5d4-7ba5-44c6-98d4-45dabb4abc29",
+      "e7abfe57-4df8-4f0c-bbab-70bdedf13ae3"
+    ],
+    "after-work drinks and food": [
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "5826ea42-cae1-44ed-995c-58a0d7bfbaa0",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+      "fed6c5d4-7ba5-44c6-98d4-45dabb4abc29",
+      "e7abfe57-4df8-4f0c-bbab-70bdedf13ae3"
+    ],
+    "after-work drinks and place": [
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "5826ea42-cae1-44ed-995c-58a0d7bfbaa0",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+      "fed6c5d4-7ba5-44c6-98d4-45dabb4abc29",
+      "e7abfe57-4df8-4f0c-bbab-70bdedf13ae3"
+    ],
     "al pastor tacos": [
-      "29525f40-3602-4ea1-878d-0841b471ee7f",
-      "64095d10-6893-4021-ab22-a689760bb11e",
-      "fd508671-9659-45e0-bbc1-5b813b17dd40",
-      "011e2db3-fd51-4c4a-bb79-9afda8d7eb2d",
-      "a2ab00ad-c178-48d3-9373-150facc04c09"
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "dccb3ad6-2819-42db-90ff-2b65651752a9",
+      "197eb49c-bd49-43dc-9840-a5f366c4ffa8"
+    ],
+    "albany park": [
+      "2d8865e8-051c-4caa-bacf-2645f011dd56"
     ],
     "ambiance": [
       "79167b30-02b7-4a2b-9019-eb28508fef3c",
@@ -109,11 +146,9 @@
       "2e27c604-528d-471c-8be7-f2dd8d8affe3"
     ],
     "andersonville": [
-      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
-      "81efd970-8bec-47c5-9803-f14d77d0346c",
-      "bc392b73-3039-42cb-ae24-575b23532b39",
-      "9de474ed-79fd-46a5-bcbd-7192fadbbbb8",
-      "829cc1d1-10f9-4e59-9114-f89c95a6368e"
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "d5b5f9a9-ecba-4e0b-9488-2892039b31fa"
     ],
     "anniversary": [
       "bf676e24-7352-430c-af3b-41b6d9e07dd8",
@@ -128,6 +163,34 @@
       "6e470c4e-f0b5-45fb-8802-0a132d2bd8dd",
       "6df3e0b0-931f-4043-ae7d-508a8c00833d",
       "ce608e25-a99e-4612-9b40-afefc03b13b2"
+    ],
+    "arepa": [
+      "c7ab8834-52a7-48e4-bef6-8f4148cce095",
+      "fec1369d-29b4-4700-857f-b4385389b0a5",
+      "4ca97567-d30e-480a-9ada-801b7c6b77af",
+      "46123301-10de-48dc-be60-70d0925fb9f1",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40"
+    ],
+    "argyle street vietnamese": [
+      "fa940ceb-fda0-49c0-8eea-74a17ac35cfe",
+      "efc492ac-f98a-446d-8093-b72254944c6e",
+      "fffe8e62-8873-4cfc-9325-2eb77ebcf39b",
+      "124c4472-5595-4c69-b891-460dcd302f23",
+      "746c8149-f4eb-4d75-9de1-bfafffe4dbbd"
+    ],
+    "authentic mexican": [
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "cf284235-49af-4e54-aea6-e9f0c6eb9c77",
+      "d3fc8604-45fd-40ca-9542-af89ac35f93b"
+    ],
+    "authentic mexican food": [
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "cf284235-49af-4e54-aea6-e9f0c6eb9c77",
+      "d3fc8604-45fd-40ca-9542-af89ac35f93b"
     ],
     "available": [
       "9a978039-930a-4646-8d52-ceea03dfe827",
@@ -192,6 +255,13 @@
       "81135ff7-acde-47f6-88e6-5377a52270ce",
       "ce4cb9b6-d555-4771-87d8-945d78acae32"
     ],
+    "bagel": [
+      "57fe5e6e-71d1-4ff6-9236-84dd17a61a5c",
+      "88c33ca7-0e3c-48a9-8321-3a1b92a64caf",
+      "c81bb7a4-b004-4e54-9159-1d31b7774620",
+      "626a66c4-1708-45a3-9b52-7bbf2c7b1c99",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379"
+    ],
     "banh": [
       "6145fcb6-8d4b-4762-be9d-98b8bf3a49eb",
       "25750901-f85f-431e-ab94-88b3febbac27",
@@ -205,6 +275,13 @@
       "a747f2da-d6e9-4d59-9123-cd938c7900ce",
       "bc392b73-3039-42cb-ae24-575b23532b39",
       "a5592ff9-af8d-49eb-b9e0-bc847d8c6f16"
+    ],
+    "bao buns": [
+      "978bfcd2-4d50-4fe7-aa89-d7067395409e",
+      "a696496a-9403-4d10-b764-aec906e8619e",
+      "e5caa0a5-3695-4aa1-8019-b4e60ca89b9c",
+      "6f321743-c930-45a9-af47-3c1308d39e5e",
+      "4f1bc5e3-fbc3-416e-bb82-7154f71bc126"
     ],
     "barbecue": [
       "2d8865e8-051c-4caa-bacf-2645f011dd56"
@@ -247,6 +324,13 @@
       "86de1c95-3dbd-4a38-9382-d190e097efe5",
       "207151a9-b7ff-4fdf-b676-4ce3a52b1420"
     ],
+    "best affordable date night": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a"
+    ],
     "best afghan food": [
       "2ee0dbd6-cd02-4a70-a74c-44f7e4b1c58a",
       "2c4aef6b-ed46-43f4-9bc7-5325ae0df45e",
@@ -254,8 +338,73 @@
       "444151dc-012b-4e30-97f5-50e649303bff",
       "014cb37a-d992-4113-9f63-9360b20e501f"
     ],
+    "best after-work drinks and food": [
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "5826ea42-cae1-44ed-995c-58a0d7bfbaa0",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+      "fed6c5d4-7ba5-44c6-98d4-45dabb4abc29",
+      "e7abfe57-4df8-4f0c-bbab-70bdedf13ae3"
+    ],
+    "best al pastor tacos": [
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "dccb3ad6-2819-42db-90ff-2b65651752a9",
+      "197eb49c-bd49-43dc-9840-a5f366c4ffa8"
+    ],
+    "best arepa": [
+      "c7ab8834-52a7-48e4-bef6-8f4148cce095",
+      "fec1369d-29b4-4700-857f-b4385389b0a5",
+      "4ca97567-d30e-480a-9ada-801b7c6b77af",
+      "46123301-10de-48dc-be60-70d0925fb9f1",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40"
+    ],
+    "best argyle street vietnamese": [
+      "fa940ceb-fda0-49c0-8eea-74a17ac35cfe",
+      "efc492ac-f98a-446d-8093-b72254944c6e",
+      "fffe8e62-8873-4cfc-9325-2eb77ebcf39b",
+      "124c4472-5595-4c69-b891-460dcd302f23",
+      "746c8149-f4eb-4d75-9de1-bfafffe4dbbd"
+    ],
+    "best bagel": [
+      "57fe5e6e-71d1-4ff6-9236-84dd17a61a5c",
+      "88c33ca7-0e3c-48a9-8321-3a1b92a64caf",
+      "c81bb7a4-b004-4e54-9159-1d31b7774620",
+      "626a66c4-1708-45a3-9b52-7bbf2c7b1c99",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379"
+    ],
+    "best banh mi": [
+      "bc392b73-3039-42cb-ae24-575b23532b39",
+      "a747f2da-d6e9-4d59-9123-cd938c7900ce",
+      "a5592ff9-af8d-49eb-b9e0-bc847d8c6f16"
+    ],
+    "best bao buns": [
+      "978bfcd2-4d50-4fe7-aa89-d7067395409e",
+      "a696496a-9403-4d10-b764-aec906e8619e",
+      "e5caa0a5-3695-4aa1-8019-b4e60ca89b9c",
+      "6f321743-c930-45a9-af47-3c1308d39e5e",
+      "4f1bc5e3-fbc3-416e-bb82-7154f71bc126"
+    ],
     "best bbq": [
       "2d8865e8-051c-4caa-bacf-2645f011dd56"
+    ],
+    "best bibimbap": [
+      "9775705e-3ec1-44ed-aa79-a5b716981087",
+      "a939f5ce-6cf2-42db-bb30-abb6de842eaa",
+      "571914b4-b1f9-40f6-9cb0-5bbf3dd7e6f1"
+    ],
+    "best breakfast spot": [
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "adaeb395-ffb5-4abb-b809-6b5da137a656",
+      "64933aab-e3cc-4526-92c6-5ada43e62074",
+      "6383d580-9941-46ee-bc6b-c412ac073001",
+      "8c613356-7cfa-4b2f-9e22-789cab534478"
+    ],
+    "best brunch": [
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "f69605de-88d7-4cd0-97ae-6b970b52c462",
+      "64933aab-e3cc-4526-92c6-5ada43e62074",
+      "adaeb395-ffb5-4abb-b809-6b5da137a656",
+      "a81f31c3-6d39-4d32-9f7c-736fd30b1076"
     ],
     "best burger": [
       "7f994f20-5d90-48f3-9592-2d8ecf2e7a94",
@@ -264,12 +413,38 @@
       "9132b647-b257-4e2b-8d9c-3af98ad8c9b2",
       "7b7e66d1-ef58-4338-b9dd-419d48d5372b"
     ],
+    "best burmese food": [
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "70e4b943-6380-4e48-b608-c322b099c953"
+    ],
+    "best cambodian food": [
+      "47d903b3-751d-4e60-90db-21d6e770eb25",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "70e4b943-6380-4e48-b608-c322b099c953",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a"
+    ],
     "best carnitas": [
       "dccb3ad6-2819-42db-90ff-2b65651752a9",
       "9b8915d9-7e7f-4e21-ba41-c5ef36419027",
       "c05d9155-710a-4c54-b1ca-d54d517c8256",
       "d37f1557-9812-4f06-85aa-af67ae6ac367",
       "56b00697-6b77-4f10-b50f-73e3904d200b"
+    ],
+    "best ceviche": [
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209",
+      "b4e1b793-0801-46bf-9fde-08680413dd2b",
+      "4aba89b8-c5c7-4564-af15-e42622779d35"
+    ],
+    "best cheap eats in chicago": [
+      "cf284235-49af-4e54-aea6-e9f0c6eb9c77",
+      "2d8865e8-051c-4caa-bacf-2645f011dd56",
+      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
+      "9368db6f-71d4-4279-92c1-65d9c0bd44b0",
+      "dccb3ad6-2819-42db-90ff-2b65651752a9"
     ],
     "best chef chicago": [
       "010c222c-f871-408e-a9d5-37cbee120284",
@@ -292,6 +467,19 @@
       "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
       "9b93a778-14af-4fd0-b85c-ecc4e61dd972"
     ],
+    "best chinatown dim sum": [
+      "6db7c61b-555d-4a1e-b384-d624dd19f590",
+      "a592173f-baf2-492e-a1e9-650ac9b5f142",
+      "6a75caec-8f62-428b-888a-4ddb7ae8c6b3",
+      "4612b3d7-8420-42ab-bf11-73d3c774c701"
+    ],
+    "best chinese food": [
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5f168511-2560-4a6b-80a0-0544c1d355b4",
+      "a3886539-39be-4470-a086-f49428f423e3",
+      "a20e281f-6e78-4a42-ada4-06f579a2e91f",
+      "6db7c61b-555d-4a1e-b384-d624dd19f590"
+    ],
     "best cocktail bar": [
       "cac354a4-eca2-41b6-9022-43b62453f3f4",
       "b9835c6f-c309-4255-b035-6483ec7e76b7",
@@ -306,12 +494,34 @@
       "e1bcc212-c00b-4447-9363-24437c75ecf8",
       "7f994f20-5d90-48f3-9592-2d8ecf2e7a94"
     ],
+    "best colombian food": [
+      "40d5a483-0aca-4385-ad1f-d7f0178313a0",
+      "5e94686b-48a6-445d-b6bf-8a94ad984b3e",
+      "a08e8dd4-b712-4100-b2b5-142b551d7d91"
+    ],
+    "best cookie": [
+      "5def94ee-eb26-495c-9e2d-47ec8c2c0067",
+      "7598d294-fb2f-4901-bd0f-fbd21c474fd3",
+      "5022a833-b38f-452f-b235-824f80fc3c5c",
+      "c872345e-6a4c-4238-905d-e7333be55dc5",
+      "f3f4ae32-8a1b-44d3-8dcd-b651d351bf96"
+    ],
     "best craft cocktail bar": [
       "cac354a4-eca2-41b6-9022-43b62453f3f4",
       "b9835c6f-c309-4255-b035-6483ec7e76b7",
       "64d39ce0-0fb4-4a26-8349-50e354bdfbc7",
       "e7abfe57-4df8-4f0c-bbab-70bdedf13ae3",
       "355e2020-141e-4951-9719-615e0b7fb818"
+    ],
+    "best croissant": [
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "52454c47-242c-4f58-aaca-49fffb0115d6",
+      "62821d69-e8ca-4bf5-ada0-a62637e0ae1e"
+    ],
+    "best cuban food": [
+      "fbe57f23-62af-47af-9950-ee38022f7099",
+      "127e8cd1-6ebe-4079-bf31-ad7373ccf5be",
+      "3a0af69a-b59b-4545-b9da-d55aa28b43c0"
     ],
     "best deep dish pizza": [
       "87338807-f9f2-483f-a997-2bd205e52321",
@@ -320,8 +530,92 @@
       "b1c158df-7ca2-4cad-b69c-6b3242017623",
       "d82244e3-2109-49fd-80b2-363ba49341a0"
     ],
+    "best dessert restaurant": [
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b"
+    ],
+    "best devon avenue indian": [
+      "3cc86d87-23ba-41fa-bb31-57d1ad8e5176",
+      "8eb544cc-c9e4-4d44-aad2-a570585ba1bb"
+    ],
+    "best dim sum": [
+      "6db7c61b-555d-4a1e-b384-d624dd19f590",
+      "a696496a-9403-4d10-b764-aec906e8619e",
+      "1997b64f-adf0-4941-b95e-2a1bb015973d",
+      "a592173f-baf2-492e-a1e9-650ac9b5f142"
+    ],
+    "best donut": [
+      "010a46dc-8fa2-4d0a-aea0-715a1ce6160d",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "c5478690-8eb8-4af5-b99c-a7224e58b6db",
+      "adaeb395-ffb5-4abb-b809-6b5da137a656"
+    ],
+    "best dumplings": [
+      "a20e281f-6e78-4a42-ada4-06f579a2e91f",
+      "03ace4f8-bb00-476e-8112-dc5e580b56dd",
+      "f6262d7d-1689-4e6e-9067-e568864936ab"
+    ],
+    "best elote": [
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "dccb3ad6-2819-42db-90ff-2b65651752a9",
+      "e102e7b5-a712-4557-bbbf-07b596018a6c",
+      "736081d8-4119-44cf-bb86-6274bb76e9c2",
+      "6dadd943-3afd-4580-b8e3-f35d90bb76fc"
+    ],
+    "best empanadas": [
+      "8c613356-7cfa-4b2f-9e22-789cab534478",
+      "aea37b7c-8f13-4bc6-8675-567b7b2a789b",
+      "7e74e77d-9e1d-459d-ab36-ecdae38cc9fb",
+      "00154d0f-b258-495c-b71f-59c472eb7902",
+      "577a6345-2cf5-4ea5-a131-db51f245990b"
+    ],
+    "best eritrean food": [
+      "31731a30-4f2b-426b-9fbf-168dafcaed2c",
+      "7a8e7341-1fbe-494a-88d3-b3978c2d8d8c",
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8"
+    ],
+    "best ethiopian food": [
+      "31731a30-4f2b-426b-9fbf-168dafcaed2c",
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "7a8e7341-1fbe-494a-88d3-b3978c2d8d8c"
+    ],
+    "best falafel": [
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+      "b5ed4916-6bf2-475a-8dd0-3ce7045c155d",
+      "696d262d-3707-41f9-984f-d5dbf3533123",
+      "16cc349e-16f1-4232-b899-a0695a5eef08"
+    ],
+    "best filipino food": [
+      "f69605de-88d7-4cd0-97ae-6b970b52c462",
+      "1d931ad0-07a8-47f7-8190-b61a7f3d56c3",
+      "8f1fe3e3-2e7c-49db-b8e1-f6748f89a6da"
+    ],
+    "best fine dining experience": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379"
+    ],
     "best fireplace restaurant": [
       "27449dcd-81a3-4474-a42b-948e9c44074c"
+    ],
+    "best fish tacos": [
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "cafb4e51-4eec-450d-bdd4-4a27c50b14df"
+    ],
+    "best fried chicken": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "207151a9-b7ff-4fdf-b676-4ce3a52b1420"
     ],
     "best gelato": [
       "a9f05920-2ac7-4f0a-b1cd-eff21d152902",
@@ -330,14 +624,93 @@
       "87338807-f9f2-483f-a997-2bd205e52321",
       "9f75f685-0b83-43db-a9d5-e5e21ab84701"
     ],
+    "best gluten free restaurant": [
+      "59a76549-2cac-4331-8bad-eba51ea9f483",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
+    ],
+    "best greek food": [
+      "5174edec-1317-427e-8e22-2a222c5a8eaa",
+      "c3083e48-50e1-4612-9009-24cc355b23fb",
+      "b55306fe-dfb5-440b-9261-02f93cee2948"
+    ],
+    "best gyoza": [
+      "1b9806f3-554b-4604-a0c7-b63d724aa999",
+      "943db1dc-f921-4573-b5b4-3c6ce0b54f99",
+      "da8a2b59-56e2-4c05-8f4a-ffd5c5c92965",
+      "6ff38dd8-3d87-430d-9420-f56efaaea1c6",
+      "73c60e5a-43d8-4660-ad94-4db030a5bf3e"
+    ],
+    "best gyro": [
+      "c3083e48-50e1-4612-9009-24cc355b23fb",
+      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
+      "98a7729d-ad0c-4475-b51c-65ad7c6eca86",
+      "bbc91090-9444-4d80-86d0-c95d61fe3432",
+      "7286be49-7949-4d9c-8486-216e4b24e4a0"
+    ],
     "best haitian food": [
       "7fdb5731-29b0-42df-aadb-de04fe153eeb",
       "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e"
     ],
+    "best happy hour": [
+      "dccb3ad6-2819-42db-90ff-2b65651752a9",
+      "41dd73c7-e9c3-4804-b0d7-6c3fe966001b",
+      "fd9ecfe0-8cd4-46ff-b1cc-08aa4bb0f1c8",
+      "2001343e-536b-4c9b-8bf5-dde63febcf5d",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
+    ],
+    "best hot dog": [
+      "9368db6f-71d4-4279-92c1-65d9c0bd44b0",
+      "99f80119-be3f-43f7-b064-ca2ad78a02e0",
+      "8092ae72-d4f1-4231-9e13-1f901a7be928",
+      "9b5e885b-7967-4d0d-b1e5-34e3a0651351",
+      "1cc4a387-7b17-412a-8f4a-4c73af1d734b"
+    ],
+    "best ice cream": [
+      "9402dcc8-1290-4971-b6d9-4b791de6d8a3",
+      "61f03718-d62c-4608-ade9-36c8461e187d",
+      "28a2a43b-957d-4727-8e57-b2ee4ff3e07d",
+      "41d28225-413c-48a7-9c6f-5e1645e40681",
+      "52a8ee18-48be-4b61-97b1-b55971e8e0db"
+    ],
+    "best indian food": [
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "70e4b943-6380-4e48-b608-c322b099c953",
+      "c5e819c3-1b9b-425f-93a2-cd6e50250d14"
+    ],
+    "best italian beef": [
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
+      "9402dcc8-1290-4971-b6d9-4b791de6d8a3",
+      "7f994f20-5d90-48f3-9592-2d8ecf2e7a94",
+      "9368db6f-71d4-4279-92c1-65d9c0bd44b0"
+    ],
+    "best italian restaurant": [
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "9f75f685-0b83-43db-a9d5-e5e21ab84701"
+    ],
+    "best jamaican food": [
+      "9dbbbc0a-903a-4ce2-b1e2-afc2b49cfc8a",
+      "7fdb5731-29b0-42df-aadb-de04fe153eeb",
+      "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209"
+    ],
+    "best japanese food": [
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "c0867d79-2a79-4f89-828f-1175334fd397",
+      "d2c94510-decc-425d-ba3d-f40300123963",
+      "370ce82e-10b0-46b0-9db9-fb05b5f02104",
+      "1b9806f3-554b-4604-a0c7-b63d724aa999"
+    ],
     "best jerk chicken": [
-      "1ad3bafa-7b9f-4ec8-a13f-0ca51255b03b",
-      "59e1ec0e-0f16-47e6-bbc6-974c7dfb7aa7",
-      "66fa273b-d822-4cd2-80be-dad95b0399c0"
+      "0c972ff1-4fc4-4afa-9735-7e8554570aa5",
+      "df498f60-dd24-4356-a163-ec369cb2eabb",
+      "59e1ec0e-0f16-47e6-bbc6-974c7dfb7aa7"
     ],
     "best kept": [
       "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
@@ -357,12 +730,19 @@
       "8c4901e7-6bd2-4c48-b360-7a318ad5d915",
       "86d36142-974e-42d1-be6f-dd1bb591c6cc"
     ],
+    "best laotian food": [
+      "484d7b45-e939-4ef2-8baf-db693ac3e2f7",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18"
+    ],
     "best late night food": [
-      "94b8d054-0b86-4b8a-a8ed-c5af43ca782d",
-      "29525f40-3602-4ea1-878d-0841b471ee7f",
-      "526c4d9c-d1d0-4748-8925-6d20e79d08a2",
-      "172f50fe-40f0-4012-9cb6-3bdac7818908",
-      "6db7c61b-555d-4a1e-b384-d624dd19f590"
+      "9402dcc8-1290-4971-b6d9-4b791de6d8a3",
+      "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
+      "7f994f20-5d90-48f3-9592-2d8ecf2e7a94",
+      "3a81734e-dce4-4ee3-a7ec-379f3265f1d0"
     ],
     "best lebanese food": [
       "2ee0dbd6-cd02-4a70-a74c-44f7e4b1c58a",
@@ -370,6 +750,26 @@
       "a7e219eb-d859-45b2-acb4-bf688b35db12",
       "014cb37a-d992-4113-9f63-9360b20e501f",
       "444151dc-012b-4e30-97f5-50e649303bff"
+    ],
+    "best little village mexican": [
+      "cf284235-49af-4e54-aea6-e9f0c6eb9c77",
+      "197eb49c-bd49-43dc-9840-a5f366c4ffa8",
+      "f5aa36d3-524b-4374-a9a3-b368ecab5509",
+      "d60f03e3-d013-47d9-b0e3-47d87438ec8c",
+      "558a92cd-660f-4532-9591-ea4a5ecb1421"
+    ],
+    "best lobster roll": [
+      "cafb4e51-4eec-450d-bdd4-4a27c50b14df",
+      "181d70d6-7257-478e-8cee-9c2d4fd47003",
+      "e195d6bc-9991-44b5-b1d0-cdb15cdceb5e",
+      "f5a74311-d01b-4414-93c6-589ef7962e92"
+    ],
+    "best michelin star restaurant": [
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18"
     ],
     "best moroccan food": [
       "482d0824-c49f-47e6-b56d-7bfc064d36c7",
@@ -396,6 +796,13 @@
       "a673ed77-8a29-4077-8924-c15cf286da1f",
       "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd"
     ],
+    "best omakase": [
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "c0867d79-2a79-4f89-828f-1175334fd397",
+      "d2c94510-decc-425d-ba3d-f40300123963",
+      "1b9806f3-554b-4604-a0c7-b63d724aa999",
+      "961caf60-065c-48dd-b99d-815ae38991d5"
+    ],
     "best outdoor dining": [
       "4ff9dc21-fc53-468a-9704-fd90a7b0311b",
       "78b648a7-9ccc-4752-9823-42618ee64a5f",
@@ -410,27 +817,65 @@
       "cac354a4-eca2-41b6-9022-43b62453f3f4",
       "aabee827-aa8f-4c85-a654-6b72bec1a379"
     ],
+    "best peruvian food": [
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209",
+      "b4e1b793-0801-46bf-9fde-08680413dd2b",
+      "72beeb2f-6417-4003-b0e6-714b180b8a16",
+      "9d1826c7-b722-407f-82d6-863878a69e00",
+      "e1f387da-57e0-4f91-99ed-0237eff01707"
+    ],
+    "best pho": [
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "bc392b73-3039-42cb-ae24-575b23532b39",
+      "a747f2da-d6e9-4d59-9123-cd938c7900ce"
+    ],
     "best pierogi": [
       "8031cbb2-a86c-4921-8e68-a8a9ae983414",
       "77265d50-5a38-4ce4-8f41-face50d6e915"
+    ],
+    "best poke bowl": [
+      "13f832b6-7016-4f9f-a224-41812f123595",
+      "6688b96e-b211-4817-bc8a-b0fdcab251e7",
+      "07fc1855-5611-4056-86d3-329e4bdfb896"
     ],
     "best polish food": [
       "8031cbb2-a86c-4921-8e68-a8a9ae983414",
       "77265d50-5a38-4ce4-8f41-face50d6e915"
     ],
     "best private dining": [
-      "aabee827-aa8f-4c85-a654-6b72bec1a379",
       "66f8e3b7-0ef5-4ae0-85c2-8a89d265d48c",
-      "cac354a4-eca2-41b6-9022-43b62453f3f4",
-      "c5478690-8eb8-4af5-b99c-a7224e58b6db",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "30ce808a-6c0a-4919-a43d-4b94af41c135",
       "9a978039-930a-4646-8d52-ceea03dfe827"
     ],
+    "best prix fixe": [
+      "c5478690-8eb8-4af5-b99c-a7224e58b6db",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "bf676e24-7352-430c-af3b-41b6d9e07dd8",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670"
+    ],
+    "best pupusa": [
+      "1a4b280a-6004-43d8-a414-87133296b8d1",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "30ce808a-6c0a-4919-a43d-4b94af41c135",
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209"
+    ],
+    "best quiet restaurant for conversation": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5"
+    ],
     "best ramen": [
+      "b4a71162-df13-4774-bd77-29945550abc6",
       "a26b0204-d7b5-4f0b-8a17-0d27b89bdd3a",
-      "8e6b189e-48f4-4cfe-8d07-348e645997e9",
-      "943db1dc-f921-4573-b5b4-3c6ce0b54f99",
-      "e4338a74-7fc4-44d5-ab80-524564f4c809",
-      "a617e37f-5ade-459b-a7aa-cc5d8a543e78"
+      "626bd70a-dcb9-408a-95b7-cd56f1a2b77a",
+      "ecef49bb-3706-4239-b2a6-3a6a53701da7",
+      "8e6b189e-48f4-4cfe-8d07-348e645997e9"
     ],
     "best restaurant": [
       "f69605de-88d7-4cd0-97ae-6b970b52c462",
@@ -453,6 +898,20 @@
       "f69605de-88d7-4cd0-97ae-6b970b52c462",
       "cac354a4-eca2-41b6-9022-43b62453f3f4"
     ],
+    "best restaurant in albany park": [
+      "2d8865e8-051c-4caa-bacf-2645f011dd56"
+    ],
+    "best restaurant in andersonville": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "d5b5f9a9-ecba-4e0b-9488-2892039b31fa"
+    ],
+    "best restaurant in bridgeport": [
+      "03ace4f8-bb00-476e-8112-dc5e580b56dd"
+    ],
+    "best restaurant in bronzeville": [
+      "8236ece5-17dc-40bb-a55a-37e3632a3afb"
+    ],
     "best restaurant in chicago": [
       "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
       "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
@@ -460,20 +919,72 @@
       "f69605de-88d7-4cd0-97ae-6b970b52c462",
       "cac354a4-eca2-41b6-9022-43b62453f3f4"
     ],
+    "best restaurant in chinatown": [
+      "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "a20e281f-6e78-4a42-ada4-06f579a2e91f"
+    ],
     "best restaurant in edgewater": [
-      "13c7942f-70a1-4c44-8ec5-6f06147e61fd",
-      "63d41650-f69f-4ceb-a60a-7a676e8f2b83"
+      "fae01c07-0a29-445b-8415-c43a0747e654",
+      "a08580bb-e489-4f91-9c25-6e46b548f86b",
+      "da48aa3c-e71a-426d-a9c1-dff175431a95",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
     ],
     "best restaurant in humboldt park": [
       "065a8aa9-d449-410b-b0ef-39b94c8dc156",
       "183d2c5b-8f5c-40e0-a555-068aae6f050b"
     ],
+    "best restaurant in hyde park": [
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925"
+    ],
+    "best restaurant in irving park": [
+      "2d8865e8-051c-4caa-bacf-2645f011dd56"
+    ],
+    "best restaurant in lincoln park": [
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8"
+    ],
     "best restaurant in little italy": [
       "e17891a7-6478-45bd-8744-5b45810d9dca",
       "32555199-e383-45f1-8b22-a68980b38a9b"
     ],
+    "best restaurant in logan square": [
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "a673ed77-8a29-4077-8924-c15cf286da1f"
+    ],
+    "best restaurant in north center": [
+      "711c4973-963a-4d5f-a71d-54bd6788d0a3"
+    ],
+    "best restaurant in old town": [
+      "88a83b85-a3a4-495e-86a0-95565b9992dc",
+      "193b3fce-8f4f-4176-b7e5-e11f74a5410a",
+      "a5f0c788-06fb-4280-bda1-ab3c2a5bb819"
+    ],
     "best restaurant in pilsen": [
       "93f435da-c523-4fa1-bdd2-b62b43477c17"
+    ],
+    "best restaurant in ravenswood": [
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "714d061d-48fc-45fa-8744-e10ce9807b21"
+    ],
+    "best restaurant in river north": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "9a978039-930a-4646-8d52-ceea03dfe827"
+    ],
+    "best restaurant in rogers park": [
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "47d903b3-751d-4e60-90db-21d6e770eb25",
+      "115c17fd-f4b2-4c23-9e2f-9b3a9600e6de",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
+    ],
+    "best restaurant in ukrainian village": [
+      "8fd7f488-03a9-46de-a2c9-5fead2353725"
     ],
     "best restaurant in uptown": [
       "86d36142-974e-42d1-be6f-dd1bb591c6cc"
@@ -483,6 +994,18 @@
       "30ce808a-6c0a-4919-a43d-4b94af41c135",
       "9f75f685-0b83-43db-a9d5-e5e21ab84701",
       "207151a9-b7ff-4fdf-b676-4ce3a52b1420"
+    ],
+    "best restaurant in wicker park": [
+      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+      "d2c94510-decc-425d-ba3d-f40300123963",
+      "fbfba1ab-cebe-4d77-9705-fa37919f7eaa"
+    ],
+    "best restaurant with a view": [
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "4ff9dc21-fc53-468a-9704-fd90a7b0311b",
+      "72beeb2f-6417-4003-b0e6-714b180b8a16",
+      "3a81734e-dce4-4ee3-a7ec-379f3265f1d0",
+      "adfbe950-c6bd-4467-8c06-067ebe407746"
     ],
     "best restaurant with live music": [
       "e1bcc212-c00b-4447-9363-24437c75ecf8",
@@ -509,6 +1032,28 @@
       "3a81734e-dce4-4ee3-a7ec-379f3265f1d0",
       "adfbe950-c6bd-4467-8c06-067ebe407746"
     ],
+    "best senegalese food": [
+      "027b814c-4395-4009-b544-408e638d1b53",
+      "e7c47126-a661-4ee7-b9b4-211f01022b70",
+      "29f16b77-fd63-42ef-a2e3-8f017f71ed1e",
+      "e7c51734-fb66-41b0-be7a-d8aad1f478f5"
+    ],
+    "best shawarma": [
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+      "44930717-af9d-460b-b442-a909b9594277",
+      "9af35db2-3920-457d-b0b9-29f588324a5d"
+    ],
+    "best slice of pizza": [
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "edee9af3-a349-46e4-99b1-bed2e90ca23f",
+      "44a444c0-2a9f-4eaa-a164-535630a175eb"
+    ],
+    "best soul food": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925",
+      "1781953b-66ba-4639-87cf-1c645535f565"
+    ],
     "best speakeasy": [
       "5826ea42-cae1-44ed-995c-58a0d7bfbaa0",
       "fed6c5d4-7ba5-44c6-98d4-45dabb4abc29",
@@ -516,9 +1061,43 @@
       "4ff9dc21-fc53-468a-9704-fd90a7b0311b",
       "690969ad-9bfd-4677-9233-dddf6eef72a6"
     ],
+    "best splurge-worthy restaurant": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379"
+    ],
     "best sri lankan food": [
       "70e4b943-6380-4e48-b608-c322b099c953",
       "c5e819c3-1b9b-425f-93a2-cd6e50250d14"
+    ],
+    "best steakhouse": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "fed6c5d4-7ba5-44c6-98d4-45dabb4abc29",
+      "cafb4e51-4eec-450d-bdd4-4a27c50b14df",
+      "9c9f1ebb-c075-43db-bc76-f5cadc7ef45d",
+      "6a1ae0e5-ed0d-4f80-b677-a88fb3f3c3bf"
+    ],
+    "best sunday brunch": [
+      "207151a9-b7ff-4fdf-b676-4ce3a52b1420",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "f69605de-88d7-4cd0-97ae-6b970b52c462",
+      "adaeb395-ffb5-4abb-b809-6b5da137a656",
+      "64933aab-e3cc-4526-92c6-5ada43e62074"
+    ],
+    "best sushi": [
+      "1b9806f3-554b-4604-a0c7-b63d724aa999",
+      "370ce82e-10b0-46b0-9db9-fb05b5f02104",
+      "d4df5d57-b346-42ba-a6b8-bfd75d168063",
+      "59809638-0596-4a8a-ad9a-49ab8cb50d6a",
+      "be11a92f-8073-467f-bbeb-67eb6fe7e010"
+    ],
+    "best tacos": [
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "dccb3ad6-2819-42db-90ff-2b65651752a9",
+      "558a92cd-660f-4532-9591-ea4a5ecb1421"
     ],
     "best taiwanese food": [
       "390a7b12-023d-49c4-aa7b-a0e1c0d3bd20",
@@ -530,6 +1109,13 @@
       "cf284235-49af-4e54-aea6-e9f0c6eb9c77",
       "010c222c-f871-408e-a9d5-37cbee120284",
       "4349eadb-49ed-4304-ac2d-00c692cbb55e"
+    ],
+    "best tasting menu": [
+      "c5478690-8eb8-4af5-b99c-a7224e58b6db",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "bf676e24-7352-430c-af3b-41b6d9e07dd8",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670"
     ],
     "best tasting menu chicago": [
       "a5691f01-c23d-414d-be19-4e2fafb4528b",
@@ -549,6 +1135,67 @@
       "842ec73e-5b8d-4e0e-9117-f4bc267c5ce2",
       "7930c30b-b4df-4afe-875a-4c9980b5c216"
     ],
+    "best tibetan food": [
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "70e4b943-6380-4e48-b608-c322b099c953",
+      "7a0911d9-a4eb-4ae1-910b-d3cfcc90c4b3",
+      "fa7f20cb-2fcf-40d1-80c9-836a86ad8482",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17"
+    ],
+    "best torta": [
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "577a6345-2cf5-4ea5-a131-db51f245990b",
+      "28f219a4-b48d-4d76-a7da-e477c5a7ca5d",
+      "56b00697-6b77-4f10-b50f-73e3904d200b"
+    ],
+    "best trinidadian food": [
+      "9dbbbc0a-903a-4ce2-b1e2-afc2b49cfc8a",
+      "7fdb5731-29b0-42df-aadb-de04fe153eeb",
+      "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40"
+    ],
+    "best uzbek food": [
+      "c3dd43bb-469f-49e0-ab10-4f5dd3834dcb",
+      "06295efa-6c58-4bcb-83c8-9dfd7aadc198",
+      "d7dce491-41c6-4dad-a95e-b6d7876e4e40",
+      "3ab00ccd-c337-429e-845f-a2abcb1051d1",
+      "467b3c87-5829-41b2-91fc-6cd077f77613"
+    ],
+    "best vegan restaurant": [
+      "00dba57a-e925-4787-8cc6-1926d98ad4c6",
+      "450accf1-dc63-4dce-a64a-a19b903530e4",
+      "e42b7d22-0727-4f6b-9ea1-68af80062c34",
+      "9d125e57-70f4-45bf-a844-b6f5721c3da7",
+      "d93ed189-398f-46b6-baf8-7262d55729a2"
+    ],
+    "best vegetarian friendly": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8"
+    ],
+    "best venezuelan food": [
+      "fec1369d-29b4-4700-857f-b4385389b0a5",
+      "57fe5e6e-71d1-4ff6-9236-84dd17a61a5c",
+      "91c95323-6c4c-437c-a8d8-620b23789b16",
+      "c7ab8834-52a7-48e4-bef6-8f4148cce095",
+      "9a978039-930a-4646-8d52-ceea03dfe827"
+    ],
+    "best vietnamese food": [
+      "7fb2782a-fd03-4e08-9651-9fd9101b4676",
+      "02b06659-2824-4561-a397-16880639128b",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17"
+    ],
+    "best waterfront restaurant": [
+      "adfbe950-c6bd-4467-8c06-067ebe407746",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5"
+    ],
     "bestie": [
       "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
       "e1bcc212-c00b-4447-9363-24437c75ecf8",
@@ -564,11 +1211,9 @@
       "9368db6f-71d4-4279-92c1-65d9c0bd44b0"
     ],
     "bibimbap": [
-      "651df180-39a8-47ac-a4bb-ef0ddbdddf63",
-      "b759969a-c2cd-4dac-8af7-0c6a907e5d4a",
-      "8c4901e7-6bd2-4c48-b360-7a318ad5d915",
-      "86d36142-974e-42d1-be6f-dd1bb591c6cc",
-      "a939f5ce-6cf2-42db-bb30-abb6de842eaa"
+      "9775705e-3ec1-44ed-aa79-a5b716981087",
+      "a939f5ce-6cf2-42db-bb30-abb6de842eaa",
+      "571914b4-b1f9-40f6-9cb0-5bbf3dd7e6f1"
     ],
     "birria": [
       "1d36a77d-6d33-4116-a297-67af2bd84392",
@@ -597,6 +1242,13 @@
       "f716e828-6427-41b8-87d8-49f634d38f41",
       "2247d52b-93a9-4db9-916b-623c5bfec5f0",
       "989ff6ee-7838-4c9b-a22f-86870da5e5a5"
+    ],
+    "birthday dinner": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "30ce808a-6c0a-4919-a43d-4b94af41c135"
     ],
     "birthday dinner for 8": [
       "2c2581d7-8309-4017-8b5c-9b7ccdcfc8cb",
@@ -682,12 +1334,15 @@
       "35bf9a58-4882-4c9d-ac9b-0157eb8711f7",
       "f4f9991b-dd6a-4a9f-831e-c87502e40cee"
     ],
+    "breakfast spot": [
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "adaeb395-ffb5-4abb-b809-6b5da137a656",
+      "64933aab-e3cc-4526-92c6-5ada43e62074",
+      "6383d580-9941-46ee-bc6b-c412ac073001",
+      "8c613356-7cfa-4b2f-9e22-789cab534478"
+    ],
     "bridgeport": [
-      "81efd970-8bec-47c5-9803-f14d77d0346c",
-      "20a999cf-a941-4292-9b4b-f46a3c8215c7",
-      "9d0df6d1-395c-402d-a2a3-8cb9978a411f",
-      "bc392b73-3039-42cb-ae24-575b23532b39",
-      "af4f5e07-231d-4d50-a0c6-99c6dec5993d"
+      "03ace4f8-bb00-476e-8112-dc5e580b56dd"
     ],
     "brisket": [
       "538c8099-f428-42bb-abf0-5b159e8e1e36",
@@ -697,18 +1352,14 @@
       "c6438a76-b363-4e91-9343-ed37d7638655"
     ],
     "bronzeville": [
-      "29f16b77-fd63-42ef-a2e3-8f017f71ed1e",
-      "0c972ff1-4fc4-4afa-9735-7e8554570aa5",
-      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
-      "ca5bc486-b0ac-4272-a1f8-b0a973d575a6",
-      "d8e3c9f0-9b73-41c7-9637-58c03c9039bd"
+      "8236ece5-17dc-40bb-a55a-37e3632a3afb"
     ],
     "brunch": [
-      "88f270c9-33f8-4f03-8512-2a7aa515a795",
-      "ea1ccf92-6db2-4c3c-9387-69cf11a5f4d1",
-      "4ca45bb1-bcef-49fb-a69c-640192209f64",
-      "b5faafb2-dbba-4df0-8e05-89a971a8ca1e",
-      "e039f4b6-452d-4440-b1f9-43ad0f48f6c6"
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "f69605de-88d7-4cd0-97ae-6b970b52c462",
+      "64933aab-e3cc-4526-92c6-5ada43e62074",
+      "adaeb395-ffb5-4abb-b809-6b5da137a656",
+      "a81f31c3-6d39-4d32-9f7c-736fd30b1076"
     ],
     "brunch champagne": [
       "04f426fe-0419-4780-8c40-8010789fbf2a",
@@ -794,12 +1445,38 @@
       "9132b647-b257-4e2b-8d9c-3af98ad8c9b2",
       "7b7e66d1-ef58-4338-b9dd-419d48d5372b"
     ],
+    "burmese": [
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "70e4b943-6380-4e48-b608-c322b099c953"
+    ],
+    "burmese food": [
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "70e4b943-6380-4e48-b608-c322b099c953"
+    ],
+    "burmese place": [
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "70e4b943-6380-4e48-b608-c322b099c953"
+    ],
     "business": [
       "370ce82e-10b0-46b0-9db9-fb05b5f02104",
       "e5622ae5-9995-490d-8888-a1a3b3777877",
       "1b9806f3-554b-4604-a0c7-b63d724aa999",
       "961caf60-065c-48dd-b99d-815ae38991d5",
       "7cad2cf1-b19f-4480-8585-ae8c93cf0688"
+    ],
+    "business lunch downtown": [
+      "dccb3ad6-2819-42db-90ff-2b65651752a9",
+      "d4df5d57-b346-42ba-a6b8-bfd75d168063",
+      "e5622ae5-9995-490d-8888-a1a3b3777877"
     ],
     "business lunch steakhouse private room": [
       "3778e68a-a800-442a-8515-5772b032d97b",
@@ -857,6 +1534,27 @@
       "8031cbb2-a86c-4921-8e68-a8a9ae983414",
       "91988d28-8a7f-4900-b279-1e2e09372443"
     ],
+    "cambodian": [
+      "47d903b3-751d-4e60-90db-21d6e770eb25",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "70e4b943-6380-4e48-b608-c322b099c953",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a"
+    ],
+    "cambodian food": [
+      "47d903b3-751d-4e60-90db-21d6e770eb25",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "70e4b943-6380-4e48-b608-c322b099c953",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a"
+    ],
+    "cambodian place": [
+      "47d903b3-751d-4e60-90db-21d6e770eb25",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "70e4b943-6380-4e48-b608-c322b099c953",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a"
+    ],
     "caribbean": [
       "127e8cd1-6ebe-4079-bf31-ad7373ccf5be",
       "0c972ff1-4fc4-4afa-9735-7e8554570aa5",
@@ -898,6 +1596,13 @@
       "4e557059-b7c1-4e01-ab16-74748370e3ae",
       "aa213e45-6a85-44cd-97be-9023b809f3cc",
       "3a9729e8-1a4b-46a3-a1ed-cb8ee52637df"
+    ],
+    "casual brunch with outdoor seating": [
+      "64933aab-e3cc-4526-92c6-5ada43e62074",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "adaeb395-ffb5-4abb-b809-6b5da137a656",
+      "71c762bb-6db7-40df-bcbb-1f8890fe8ceb",
+      "f69605de-88d7-4cd0-97ae-6b970b52c462"
     ],
     "casual mexican outdoor seating byob": [
       "01901119-9bec-4f8b-8b8e-35ee363f16a9",
@@ -963,11 +1668,9 @@
       "c5478690-8eb8-4af5-b99c-a7224e58b6db"
     ],
     "ceviche": [
-      "010c222c-f871-408e-a9d5-37cbee120284",
-      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
-      "9a978039-930a-4646-8d52-ceea03dfe827",
-      "e4174e17-ac10-46ae-aaba-40d0d3db73cf",
-      "92e96527-0d1a-4b68-9111-b8e181ec2ac7"
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209",
+      "b4e1b793-0801-46bf-9fde-08680413dd2b",
+      "4aba89b8-c5c7-4564-af15-e42622779d35"
     ],
     "champagne": [
       "04f426fe-0419-4780-8c40-8010789fbf2a",
@@ -989,6 +1692,27 @@
       "8cdc9574-3afd-44b8-9eab-8091288463ad",
       "636f696b-d560-45df-b1a5-c92f07a2a764",
       "c1391b64-c682-4a19-93fa-8beab5c6eb24"
+    ],
+    "cheap eats": [
+      "cf284235-49af-4e54-aea6-e9f0c6eb9c77",
+      "2d8865e8-051c-4caa-bacf-2645f011dd56",
+      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
+      "9368db6f-71d4-4279-92c1-65d9c0bd44b0",
+      "dccb3ad6-2819-42db-90ff-2b65651752a9"
+    ],
+    "cheap eats in chicago": [
+      "cf284235-49af-4e54-aea6-e9f0c6eb9c77",
+      "2d8865e8-051c-4caa-bacf-2645f011dd56",
+      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
+      "9368db6f-71d4-4279-92c1-65d9c0bd44b0",
+      "dccb3ad6-2819-42db-90ff-2b65651752a9"
+    ],
+    "cheap late night tacos": [
+      "30ce808a-6c0a-4919-a43d-4b94af41c135",
+      "558a92cd-660f-4532-9591-ea4a5ecb1421",
+      "d140a3e8-0b8b-4cec-b7da-2ebbbc3f9ce2",
+      "736081d8-4119-44cf-bb86-6274bb76e9c2",
+      "ae80604d-83df-4770-9a23-4ce92209dcc8"
     ],
     "chef": [
       "9a978039-930a-4646-8d52-ceea03dfe827",
@@ -1061,18 +1785,22 @@
       "e039f4b6-452d-4440-b1f9-43ad0f48f6c6"
     ],
     "chinatown": [
-      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
-      "aabee827-aa8f-4c85-a654-6b72bec1a379",
-      "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
-      "cd668c78-e4d2-4ba9-95e6-e308ffa50c99",
-      "20a999cf-a941-4292-9b4b-f46a3c8215c7"
+      "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "a20e281f-6e78-4a42-ada4-06f579a2e91f"
+    ],
+    "chinatown dim sum": [
+      "6db7c61b-555d-4a1e-b384-d624dd19f590",
+      "a592173f-baf2-492e-a1e9-650ac9b5f142",
+      "6a75caec-8f62-428b-888a-4ddb7ae8c6b3",
+      "4612b3d7-8420-42ab-bf11-73d3c774c701"
     ],
     "chinese": [
-      "1997b64f-adf0-4941-b95e-2a1bb015973d",
-      "2561b00d-255d-4d94-b7e4-7eb305689bb9",
-      "6db7c61b-555d-4a1e-b384-d624dd19f590",
-      "dffebeae-d3c6-4784-b171-56a28acbb33f",
-      "ce0d96e0-77de-4819-a5eb-cb61c46e728d"
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5f168511-2560-4a6b-80a0-0544c1d355b4",
+      "a3886539-39be-4470-a086-f49428f423e3",
+      "a20e281f-6e78-4a42-ada4-06f579a2e91f",
+      "6db7c61b-555d-4a1e-b384-d624dd19f590"
     ],
     "chinese dim sum": [
       "1997b64f-adf0-4941-b95e-2a1bb015973d",
@@ -1080,6 +1808,20 @@
       "6db7c61b-555d-4a1e-b384-d624dd19f590",
       "dffebeae-d3c6-4784-b171-56a28acbb33f",
       "ce0d96e0-77de-4819-a5eb-cb61c46e728d"
+    ],
+    "chinese food": [
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5f168511-2560-4a6b-80a0-0544c1d355b4",
+      "a3886539-39be-4470-a086-f49428f423e3",
+      "a20e281f-6e78-4a42-ada4-06f579a2e91f",
+      "6db7c61b-555d-4a1e-b384-d624dd19f590"
+    ],
+    "chinese place": [
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "5f168511-2560-4a6b-80a0-0544c1d355b4",
+      "a3886539-39be-4470-a086-f49428f423e3",
+      "a20e281f-6e78-4a42-ada4-06f579a2e91f",
+      "6db7c61b-555d-4a1e-b384-d624dd19f590"
     ],
     "choice": [
       "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
@@ -1158,6 +1900,21 @@
       "e1bcc212-c00b-4447-9363-24437c75ecf8",
       "7f994f20-5d90-48f3-9592-2d8ecf2e7a94"
     ],
+    "colombian": [
+      "40d5a483-0aca-4385-ad1f-d7f0178313a0",
+      "5e94686b-48a6-445d-b6bf-8a94ad984b3e",
+      "a08e8dd4-b712-4100-b2b5-142b551d7d91"
+    ],
+    "colombian food": [
+      "40d5a483-0aca-4385-ad1f-d7f0178313a0",
+      "5e94686b-48a6-445d-b6bf-8a94ad984b3e",
+      "a08e8dd4-b712-4100-b2b5-142b551d7d91"
+    ],
+    "colombian place": [
+      "40d5a483-0aca-4385-ad1f-d7f0178313a0",
+      "5e94686b-48a6-445d-b6bf-8a94ad984b3e",
+      "a08e8dd4-b712-4100-b2b5-142b551d7d91"
+    ],
     "comfort": [
       "65d31bb9-b3d0-4e04-803c-a07b68ecc925",
       "29f16b77-fd63-42ef-a2e3-8f017f71ed1e",
@@ -1179,12 +1936,19 @@
       "e7abfe57-4df8-4f0c-bbab-70bdedf13ae3",
       "98dee7c6-ba19-4917-92a4-5dbd0fef2670"
     ],
+    "cookie": [
+      "5def94ee-eb26-495c-9e2d-47ec8c2c0067",
+      "7598d294-fb2f-4901-bd0f-fbd21c474fd3",
+      "5022a833-b38f-452f-b235-824f80fc3c5c",
+      "c872345e-6a4c-4238-905d-e7333be55dc5",
+      "f3f4ae32-8a1b-44d3-8dcd-b651d351bf96"
+    ],
     "cozy": [
-      "c123b8cb-67ef-45e9-8b85-c3531e0ee021",
-      "b2159361-eb31-4505-b661-1e679ef567e4",
-      "8c4d0977-93a7-4a2d-a726-f5b7a8029acd",
-      "04a33e95-e647-49ff-81b2-3b2c04ed18a1",
-      "7fdb5731-29b0-42df-aadb-de04fe153eeb"
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad"
     ],
     "cozy date": [
       "858a2d5d-e106-42af-b239-fce5250f105c",
@@ -1227,6 +1991,13 @@
       "207151a9-b7ff-4fdf-b676-4ce3a52b1420",
       "78b648a7-9ccc-4752-9823-42618ee64a5f",
       "86de1c95-3dbd-4a38-9382-d190e097efe5"
+    ],
+    "cozy restaurant": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad"
     ],
     "cozy winter": [
       "09520ec8-4cf1-4f52-b45a-b9073519ed98",
@@ -1298,6 +2069,11 @@
       "aabee827-aa8f-4c85-a654-6b72bec1a379",
       "c5478690-8eb8-4af5-b99c-a7224e58b6db"
     ],
+    "croissant": [
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "52454c47-242c-4f58-aaca-49fffb0115d6",
+      "62821d69-e8ca-4bf5-ada0-a62637e0ae1e"
+    ],
     "cuban": [
       "127e8cd1-6ebe-4079-bf31-ad7373ccf5be",
       "fbe57f23-62af-47af-9950-ee38022f7099",
@@ -1311,6 +2087,11 @@
       "3a0af69a-b59b-4545-b9da-d55aa28b43c0",
       "e97d9c70-d446-4a3e-a7af-71f7d05f41cc",
       "d62dc1ce-f495-45dd-97e6-608be2d7a3b0"
+    ],
+    "cuban place": [
+      "fbe57f23-62af-47af-9950-ee38022f7099",
+      "127e8cd1-6ebe-4079-bf31-ad7373ccf5be",
+      "3a0af69a-b59b-4545-b9da-d55aa28b43c0"
     ],
     "dark": [
       "e44d1151-b2f7-40ce-80eb-29e96e12fca3",
@@ -1417,6 +2198,20 @@
       "81efd970-8bec-47c5-9803-f14d77d0346c",
       "8bb36a2c-b9f4-460c-a3a8-5a7a10f4324e"
     ],
+    "dessert": [
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b"
+    ],
+    "dessert restaurant": [
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b"
+    ],
     "destination": [
       "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
       "f716e828-6427-41b8-87d8-49f634d38f41",
@@ -1430,6 +2225,10 @@
       "aabee827-aa8f-4c85-a654-6b72bec1a379",
       "c5478690-8eb8-4af5-b99c-a7224e58b6db",
       "9a978039-930a-4646-8d52-ceea03dfe827"
+    ],
+    "devon avenue indian": [
+      "3cc86d87-23ba-41fa-bb31-57d1ad8e5176",
+      "8eb544cc-c9e4-4d44-aad2-a570585ba1bb"
     ],
     "different": [
       "f69605de-88d7-4cd0-97ae-6b970b52c462",
@@ -1501,6 +2300,13 @@
       "0ade050c-fac7-443f-93b3-e0876d0aa6c2",
       "31b758f2-5254-4902-9141-ce9789652bc7"
     ],
+    "donut": [
+      "010a46dc-8fa2-4d0a-aea0-715a1ce6160d",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "c5478690-8eb8-4af5-b99c-a7224e58b6db",
+      "adaeb395-ffb5-4abb-b809-6b5da137a656"
+    ],
     "dosa": [
       "cb1ad33e-905e-4e31-bb1a-4293a9395cdf",
       "bee8bb9e-75c6-465a-98eb-0d2934c6d2d8",
@@ -1523,11 +2329,9 @@
       "207151a9-b7ff-4fdf-b676-4ce3a52b1420"
     ],
     "dumplings": [
-      "978bfcd2-4d50-4fe7-aa89-d7067395409e",
-      "b3c6d652-1618-4bc5-a4b4-8988e8755474",
-      "29f1a46c-22bb-430e-b36f-d355f0c62fb0",
-      "42367f05-40d2-4320-9b2c-b7f27ade0c11",
-      "f8a5ec70-7168-4330-ade9-4bb6c7243637"
+      "a20e281f-6e78-4a42-ada4-06f579a2e91f",
+      "03ace4f8-bb00-476e-8112-dc5e580b56dd",
+      "f6262d7d-1689-4e6e-9067-e568864936ab"
     ],
     "eastern": [
       "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
@@ -1544,11 +2348,11 @@
       "7b7e66d1-ef58-4338-b9dd-419d48d5372b"
     ],
     "edgewater": [
-      "bf40d894-985e-40cc-b226-8b08f1d44032",
-      "cd668c78-e4d2-4ba9-95e6-e308ffa50c99",
-      "20a999cf-a941-4292-9b4b-f46a3c8215c7",
-      "6d8c2552-9daa-44c0-b927-482ef07ec5f7",
-      "c92a41d0-8aa2-4a3a-a571-09b670bf5657"
+      "fae01c07-0a29-445b-8415-c43a0747e654",
+      "a08580bb-e489-4f91-9c25-6e46b548f86b",
+      "da48aa3c-e71a-426d-a9c1-dff175431a95",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
     ],
     "elegant": [
       "9dbaea89-059d-4641-8b2e-b3e903082fca",
@@ -1570,6 +2374,20 @@
       "c5478690-8eb8-4af5-b99c-a7224e58b6db",
       "a5691f01-c23d-414d-be19-4e2fafb4528b",
       "70e4b943-6380-4e48-b608-c322b099c953"
+    ],
+    "elote": [
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "dccb3ad6-2819-42db-90ff-2b65651752a9",
+      "e102e7b5-a712-4557-bbbf-07b596018a6c",
+      "736081d8-4119-44cf-bb86-6274bb76e9c2",
+      "6dadd943-3afd-4580-b8e3-f35d90bb76fc"
+    ],
+    "empanadas": [
+      "8c613356-7cfa-4b2f-9e22-789cab534478",
+      "aea37b7c-8f13-4bc6-8675-567b7b2a789b",
+      "7e74e77d-9e1d-459d-ab36-ecdae38cc9fb",
+      "00154d0f-b258-495c-b71f-59c472eb7902",
+      "577a6345-2cf5-4ea5-a131-db51f245990b"
     ],
     "energy": [
       "46b87a25-98b6-406a-b963-28a56b631679",
@@ -1606,12 +2424,31 @@
       "467b3c87-5829-41b2-91fc-6cd077f77613",
       "a5f0c788-06fb-4280-bda1-ab3c2a5bb819"
     ],
+    "eritrean": [
+      "31731a30-4f2b-426b-9fbf-168dafcaed2c",
+      "7a8e7341-1fbe-494a-88d3-b3978c2d8d8c",
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8"
+    ],
+    "eritrean food": [
+      "31731a30-4f2b-426b-9fbf-168dafcaed2c",
+      "7a8e7341-1fbe-494a-88d3-b3978c2d8d8c",
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8"
+    ],
+    "eritrean place": [
+      "31731a30-4f2b-426b-9fbf-168dafcaed2c",
+      "7a8e7341-1fbe-494a-88d3-b3978c2d8d8c",
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8"
+    ],
     "ethiopian": [
-      "0b24fe2c-533c-49b4-ac2a-bcf666307db4",
-      "213dcef1-6a9f-4a44-88c7-e9400463edd9",
-      "027b814c-4395-4009-b544-408e638d1b53",
-      "5875920c-1e1b-4fb5-ba42-57aa05fd2cd6",
-      "bb933c71-09bc-4e68-b83c-06adf8e156f0"
+      "31731a30-4f2b-426b-9fbf-168dafcaed2c",
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "7a8e7341-1fbe-494a-88d3-b3978c2d8d8c"
     ],
     "ethiopian cuisine": [
       "0b24fe2c-533c-49b4-ac2a-bcf666307db4",
@@ -1620,12 +2457,35 @@
       "5875920c-1e1b-4fb5-ba42-57aa05fd2cd6",
       "bb933c71-09bc-4e68-b83c-06adf8e156f0"
     ],
+    "ethiopian food": [
+      "31731a30-4f2b-426b-9fbf-168dafcaed2c",
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "7a8e7341-1fbe-494a-88d3-b3978c2d8d8c"
+    ],
+    "ethiopian place": [
+      "31731a30-4f2b-426b-9fbf-168dafcaed2c",
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "7a8e7341-1fbe-494a-88d3-b3978c2d8d8c"
+    ],
+    "falafel": [
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+      "b5ed4916-6bf2-475a-8dd0-3ce7045c155d",
+      "696d262d-3707-41f9-984f-d5dbf3533123",
+      "16cc349e-16f1-4232-b899-a0695a5eef08"
+    ],
     "family": [
       "829cc1d1-10f9-4e59-9114-f89c95a6368e",
       "ed8669d3-6f50-440b-9fe4-cf44911fd04a",
       "7463cd8c-29de-4ba4-9cf0-934911e142c6",
       "a14c51ad-da0a-4059-969d-0729ec55c677",
       "31731a30-4f2b-426b-9fbf-168dafcaed2c"
+    ],
+    "family friendly": [
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "5101cd1c-f928-453b-923b-94ebc268de40",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "64933aab-e3cc-4526-92c6-5ada43e62074",
+      "cf284235-49af-4e54-aea6-e9f0c6eb9c77"
     ],
     "family friendly indian vegetarian options": [
       "f90aba3b-a844-4f3c-aefe-fef9e5740326",
@@ -1640,6 +2500,20 @@
       "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
       "7a0911d9-a4eb-4ae1-910b-d3cfcc90c4b3",
       "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8"
+    ],
+    "family friendly italian near lincoln park": [
+      "edee9af3-a349-46e4-99b1-bed2e90ca23f",
+      "1695fce5-fc78-40c1-934e-f26e0f643adb",
+      "0a410e21-72da-4a4d-8b86-b89457958b32",
+      "addb374f-8553-4956-8119-52d8a00ec848",
+      "c30bf2f0-e94e-469e-8535-372c9822c313"
+    ],
+    "family friendly restaurant": [
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "5101cd1c-f928-453b-923b-94ebc268de40",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "64933aab-e3cc-4526-92c6-5ada43e62074",
+      "cf284235-49af-4e54-aea6-e9f0c6eb9c77"
     ],
     "family indian vegetarian options": [
       "f90aba3b-a844-4f3c-aefe-fef9e5740326",
@@ -1697,6 +2571,21 @@
       "0f47b1e4-785f-4e34-b4f0-f6a25f33e543",
       "8f0daf9c-3616-4fac-8263-fe925a16cc5f"
     ],
+    "filipino": [
+      "f69605de-88d7-4cd0-97ae-6b970b52c462",
+      "1d931ad0-07a8-47f7-8190-b61a7f3d56c3",
+      "8f1fe3e3-2e7c-49db-b8e1-f6748f89a6da"
+    ],
+    "filipino food": [
+      "f69605de-88d7-4cd0-97ae-6b970b52c462",
+      "1d931ad0-07a8-47f7-8190-b61a7f3d56c3",
+      "8f1fe3e3-2e7c-49db-b8e1-f6748f89a6da"
+    ],
+    "filipino place": [
+      "f69605de-88d7-4cd0-97ae-6b970b52c462",
+      "1d931ad0-07a8-47f7-8190-b61a7f3d56c3",
+      "8f1fe3e3-2e7c-49db-b8e1-f6748f89a6da"
+    ],
     "fine": [
       "9dbaea89-059d-4641-8b2e-b3e903082fca",
       "b1a81a36-2ea8-413a-9762-a94c1ce8c185",
@@ -1710,6 +2599,13 @@
       "c5478690-8eb8-4af5-b99c-a7224e58b6db",
       "a5691f01-c23d-414d-be19-4e2fafb4528b",
       "70e4b943-6380-4e48-b608-c322b099c953"
+    ],
+    "fine dining experience": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379"
     ],
     "fireplace": [
       "27449dcd-81a3-4474-a42b-948e9c44074c"
@@ -1730,6 +2626,11 @@
       "9f75f685-0b83-43db-a9d5-e5e21ab84701",
       "4496ab73-9264-4869-8d54-8876d39c06c1",
       "f69605de-88d7-4cd0-97ae-6b970b52c462"
+    ],
+    "fish tacos": [
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "cafb4e51-4eec-450d-bdd4-4a27c50b14df"
     ],
     "fixe": [
       "f69605de-88d7-4cd0-97ae-6b970b52c462",
@@ -1816,11 +2717,10 @@
       "0d08fc73-070d-4a9d-ac6a-8f62586221db"
     ],
     "fried chicken": [
-      "e55527d2-7266-4344-9124-3402da2cf97f",
-      "1781953b-66ba-4639-87cf-1c645535f565",
-      "91c95323-6c4c-437c-a8d8-620b23789b16",
-      "ef601578-b74b-470e-bf8b-cdf7e1856cda",
-      "0c19c811-5dbe-4ffc-bebc-51d6aef20605"
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "207151a9-b7ff-4fdf-b676-4ce3a52b1420"
     ],
     "friendly": [
       "bc392b73-3039-42cb-ae24-575b23532b39",
@@ -1835,6 +2735,13 @@
       "031bc963-0920-498c-9c6d-c3eeb62b1b10",
       "0ac78c55-46bc-4ba0-b014-0da713a3a0ad",
       "6aa5d56a-0ee2-493d-b1a5-730d79c4df17"
+    ],
+    "fun group dinner spot": [
+      "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+      "5101cd1c-f928-453b-923b-94ebc268de40",
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "30ce808a-6c0a-4919-a43d-4b94af41c135"
     ],
     "funky": [
       "f98d7372-7f5c-461e-8a6e-af8284f474d8",
@@ -1879,11 +2786,11 @@
       "29f16b77-fd63-42ef-a2e3-8f017f71ed1e"
     ],
     "gluten free": [
-      "c5478690-8eb8-4af5-b99c-a7224e58b6db",
+      "59a76549-2cac-4331-8bad-eba51ea9f483",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
       "cac354a4-eca2-41b6-9022-43b62453f3f4",
-      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
-      "54ba6fd5-d5c4-4aeb-846c-d19edf81afa6",
-      "29f16b77-fd63-42ef-a2e3-8f017f71ed1e"
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
     ],
     "gluten free options": [
       "c5478690-8eb8-4af5-b99c-a7224e58b6db",
@@ -1891,6 +2798,13 @@
       "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
       "54ba6fd5-d5c4-4aeb-846c-d19edf81afa6",
       "29f16b77-fd63-42ef-a2e3-8f017f71ed1e"
+    ],
+    "gluten free restaurant": [
+      "59a76549-2cac-4331-8bad-eba51ea9f483",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
     ],
     "gold coast": [
       "c5478690-8eb8-4af5-b99c-a7224e58b6db",
@@ -1941,6 +2855,16 @@
       "8510aa08-20bf-4e74-b4e9-0d0a0aa713c1",
       "cd612012-826d-44b9-a703-0e34db8f9887"
     ],
+    "greek food": [
+      "5174edec-1317-427e-8e22-2a222c5a8eaa",
+      "c3083e48-50e1-4612-9009-24cc355b23fb",
+      "b55306fe-dfb5-440b-9261-02f93cee2948"
+    ],
+    "greek place": [
+      "5174edec-1317-427e-8e22-2a222c5a8eaa",
+      "c3083e48-50e1-4612-9009-24cc355b23fb",
+      "b55306fe-dfb5-440b-9261-02f93cee2948"
+    ],
     "greek restaurant": [
       "5174edec-1317-427e-8e22-2a222c5a8eaa",
       "c3083e48-50e1-4612-9009-24cc355b23fb",
@@ -1976,12 +2900,19 @@
       "031bc963-0920-498c-9c6d-c3eeb62b1b10",
       "7b9b9084-5775-48c2-bb73-57b08a9344a7"
     ],
+    "gyoza": [
+      "1b9806f3-554b-4604-a0c7-b63d724aa999",
+      "943db1dc-f921-4573-b5b4-3c6ce0b54f99",
+      "da8a2b59-56e2-4c05-8f4a-ffd5c5c92965",
+      "6ff38dd8-3d87-430d-9420-f56efaaea1c6",
+      "73c60e5a-43d8-4660-ad94-4db030a5bf3e"
+    ],
     "gyro": [
-      "e0f660f7-a836-463f-806c-7b2842c99064",
-      "5888a4bf-f9c4-4238-b2ee-7152555daac0",
-      "e7e2aa3d-e72c-4df5-8d81-c5617aefacfe",
-      "58cbf5d4-3f60-46e6-aabd-b8d5b450c3cc",
-      "a5475098-e6d9-45c4-b50a-5314eb48d75c"
+      "c3083e48-50e1-4612-9009-24cc355b23fb",
+      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
+      "98a7729d-ad0c-4475-b51c-65ad7c6eca86",
+      "bbc91090-9444-4d80-86d0-c95d61fe3432",
+      "7286be49-7949-4d9c-8486-216e4b24e4a0"
     ],
     "haitian": [
       "7fdb5731-29b0-42df-aadb-de04fe153eeb",
@@ -1990,6 +2921,13 @@
     "haitian food": [
       "7fdb5731-29b0-42df-aadb-de04fe153eeb",
       "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e"
+    ],
+    "haitian place": [
+      "9dbbbc0a-903a-4ce2-b1e2-afc2b49cfc8a",
+      "7fdb5731-29b0-42df-aadb-de04fe153eeb",
+      "0c972ff1-4fc4-4afa-9735-7e8554570aa5",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e"
     ],
     "halal": [
       "3bc6bbac-31e3-4630-ac6f-37e82e3f5252",
@@ -2027,11 +2965,11 @@
       "a24f2f71-260b-4aca-a099-9b2093965c93"
     ],
     "happy hour": [
-      "91a90179-0453-465f-bb19-1d689e16e7f6",
-      "c0fbea65-6a52-4d4f-8e97-0db7b494d40a",
-      "d653449e-5321-420c-a968-8ebbf645c048",
-      "3bcad754-be94-4764-adc7-3db827d2750b",
-      "a24f2f71-260b-4aca-a099-9b2093965c93"
+      "dccb3ad6-2819-42db-90ff-2b65651752a9",
+      "41dd73c7-e9c3-4804-b0d7-6c3fe966001b",
+      "fd9ecfe0-8cd4-46ff-b1cc-08aa4bb0f1c8",
+      "2001343e-536b-4c9b-8bf5-dde63febcf5d",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
     ],
     "haven't": [
       "f69605de-88d7-4cd0-97ae-6b970b52c462",
@@ -2083,11 +3021,18 @@
       "7116fca0-3b48-48ed-9f04-6928cfd02d0e"
     ],
     "hidden gem": [
-      "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b",
-      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
-      "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
-      "87338807-f9f2-483f-a997-2bd205e52321",
-      "7116fca0-3b48-48ed-9f04-6928cfd02d0e"
+      "03ace4f8-bb00-476e-8112-dc5e580b56dd",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "b759969a-c2cd-4dac-8af7-0c6a907e5d4a",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8"
+    ],
+    "hidden gem restaurant": [
+      "03ace4f8-bb00-476e-8112-dc5e580b56dd",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "b759969a-c2cd-4dac-8af7-0c6a907e5d4a",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8"
     ],
     "hip": [
       "ca494bec-0948-49a5-a03e-b5525c34a298",
@@ -2159,6 +3104,13 @@
       "50000952-442d-4765-ae1f-55f18f7f5304",
       "a2c7f85e-859d-4d7a-8872-fd1c9ed24bef"
     ],
+    "hot dog": [
+      "9368db6f-71d4-4279-92c1-65d9c0bd44b0",
+      "99f80119-be3f-43f7-b064-ca2ad78a02e0",
+      "8092ae72-d4f1-4231-9e13-1f901a7be928",
+      "9b5e885b-7967-4d0d-b1e5-34e3a0651351",
+      "1cc4a387-7b17-412a-8f4a-4c73af1d734b"
+    ],
     "hour": [
       "91a90179-0453-465f-bb19-1d689e16e7f6",
       "c0fbea65-6a52-4d4f-8e97-0db7b494d40a",
@@ -2167,18 +3119,22 @@
       "a24f2f71-260b-4aca-a099-9b2093965c93"
     ],
     "humboldt park": [
-      "e17891a7-6478-45bd-8744-5b45810d9dca",
-      "1781953b-66ba-4639-87cf-1c645535f565",
-      "9a978039-930a-4646-8d52-ceea03dfe827",
-      "1c391dbd-eae5-4009-9c95-2008dd48e978",
-      "5826ea42-cae1-44ed-995c-58a0d7bfbaa0"
+      "065a8aa9-d449-410b-b0ef-39b94c8dc156",
+      "96134e56-e7b6-44c2-b903-15289ac6c6d3",
+      "0b70bbdf-7b99-4ce3-b960-fc079f497c1e",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
     ],
     "hyde park": [
-      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
-      "aabee827-aa8f-4c85-a654-6b72bec1a379",
-      "7f994f20-5d90-48f3-9592-2d8ecf2e7a94",
-      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
-      "fdcf51d0-ba44-453d-91ec-36bc6a61f166"
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925"
+    ],
+    "ice cream": [
+      "9402dcc8-1290-4971-b6d9-4b791de6d8a3",
+      "61f03718-d62c-4608-ade9-36c8461e187d",
+      "28a2a43b-957d-4727-8e57-b2ee4ff3e07d",
+      "41d28225-413c-48a7-9c6f-5e1645e40681",
+      "52a8ee18-48be-4b61-97b1-b55971e8e0db"
     ],
     "iconic": [
       "aabee827-aa8f-4c85-a654-6b72bec1a379",
@@ -2201,6 +3157,110 @@
       "4496ab73-9264-4869-8d54-8876d39c06c1",
       "f69605de-88d7-4cd0-97ae-6b970b52c462"
     ],
+    "in albany park": [
+      "2d8865e8-051c-4caa-bacf-2645f011dd56"
+    ],
+    "in andersonville": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "d5b5f9a9-ecba-4e0b-9488-2892039b31fa"
+    ],
+    "in bridgeport": [
+      "03ace4f8-bb00-476e-8112-dc5e580b56dd"
+    ],
+    "in bronzeville": [
+      "8236ece5-17dc-40bb-a55a-37e3632a3afb"
+    ],
+    "in chinatown": [
+      "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "a20e281f-6e78-4a42-ada4-06f579a2e91f"
+    ],
+    "in edgewater": [
+      "fae01c07-0a29-445b-8415-c43a0747e654",
+      "a08580bb-e489-4f91-9c25-6e46b548f86b",
+      "da48aa3c-e71a-426d-a9c1-dff175431a95",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
+    ],
+    "in humboldt park": [
+      "065a8aa9-d449-410b-b0ef-39b94c8dc156",
+      "96134e56-e7b6-44c2-b903-15289ac6c6d3",
+      "0b70bbdf-7b99-4ce3-b960-fc079f497c1e",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
+    ],
+    "in hyde park": [
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925"
+    ],
+    "in irving park": [
+      "2d8865e8-051c-4caa-bacf-2645f011dd56"
+    ],
+    "in lincoln park": [
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8"
+    ],
+    "in little italy": [
+      "e17891a7-6478-45bd-8744-5b45810d9dca",
+      "ce21a7fb-771e-46ac-af18-ad2582ece223",
+      "5d2713c0-f4af-4359-9345-017fc9ea9d44",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
+    ],
+    "in logan square": [
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "a673ed77-8a29-4077-8924-c15cf286da1f"
+    ],
+    "in north center": [
+      "711c4973-963a-4d5f-a71d-54bd6788d0a3"
+    ],
+    "in old town": [
+      "88a83b85-a3a4-495e-86a0-95565b9992dc",
+      "193b3fce-8f4f-4176-b7e5-e11f74a5410a",
+      "a5f0c788-06fb-4280-bda1-ab3c2a5bb819"
+    ],
+    "in pilsen": [
+      "cf284235-49af-4e54-aea6-e9f0c6eb9c77",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17"
+    ],
+    "in ravenswood": [
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "714d061d-48fc-45fa-8744-e10ce9807b21"
+    ],
+    "in river north": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "9a978039-930a-4646-8d52-ceea03dfe827"
+    ],
+    "in rogers park": [
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "47d903b3-751d-4e60-90db-21d6e770eb25",
+      "115c17fd-f4b2-4c23-9e2f-9b3a9600e6de",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
+    ],
+    "in ukrainian village": [
+      "8fd7f488-03a9-46de-a2c9-5fead2353725"
+    ],
+    "in uptown": [
+      "31731a30-4f2b-426b-9fbf-168dafcaed2c",
+      "86d36142-974e-42d1-be6f-dd1bb591c6cc"
+    ],
+    "in west loop": [
+      "207151a9-b7ff-4fdf-b676-4ce3a52b1420",
+      "30ce808a-6c0a-4919-a43d-4b94af41c135",
+      "9f75f685-0b83-43db-a9d5-e5e21ab84701",
+      "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+      "c5478690-8eb8-4af5-b99c-a7224e58b6db"
+    ],
+    "in wicker park": [
+      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+      "d2c94510-decc-425d-ba3d-f40300123963",
+      "fbfba1ab-cebe-4d77-9705-fa37919f7eaa"
+    ],
     "indian": [
       "70e4b943-6380-4e48-b608-c322b099c953",
       "53ec9f33-2886-48de-a8b8-cfe67be1fed2",
@@ -2214,6 +3274,11 @@
       "51275957-4a3c-406b-8384-f8a6918ed37d",
       "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
       "57d3cbab-3173-4790-a3c2-73a17d623ced"
+    ],
+    "indian place": [
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "70e4b943-6380-4e48-b608-c322b099c953",
+      "c5e819c3-1b9b-425f-93a2-cd6e50250d14"
     ],
     "institution": [
       "65d31bb9-b3d0-4e04-803c-a07b68ecc925",
@@ -2237,11 +3302,7 @@
       "543261ca-3c4a-4bd7-82f6-c5dbea230c5c"
     ],
     "irving park": [
-      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
-      "66f8e3b7-0ef5-4ae0-85c2-8a89d265d48c",
-      "bf40d894-985e-40cc-b226-8b08f1d44032",
-      "cd668c78-e4d2-4ba9-95e6-e308ffa50c99",
-      "9e842080-a54c-48ce-8a83-61e71c27616d"
+      "2d8865e8-051c-4caa-bacf-2645f011dd56"
     ],
     "italian": [
       "e1bcc212-c00b-4447-9363-24437c75ecf8",
@@ -2249,6 +3310,13 @@
       "93ee73b8-7f7c-46da-af70-7cb6a07cf8a9",
       "66f8e3b7-0ef5-4ae0-85c2-8a89d265d48c",
       "91988d28-8a7f-4900-b279-1e2e09372443"
+    ],
+    "italian beef": [
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
+      "9402dcc8-1290-4971-b6d9-4b791de6d8a3",
+      "7f994f20-5d90-48f3-9592-2d8ecf2e7a94",
+      "9368db6f-71d4-4279-92c1-65d9c0bd44b0"
     ],
     "italian cocktails": [
       "4a9b0956-7658-47af-aabb-d12c3a66e733",
@@ -2271,6 +3339,12 @@
       "66f8e3b7-0ef5-4ae0-85c2-8a89d265d48c",
       "91988d28-8a7f-4900-b279-1e2e09372443"
     ],
+    "italian restaurant": [
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "9f75f685-0b83-43db-a9d5-e5e21ab84701"
+    ],
     "italian with cocktails": [
       "4a9b0956-7658-47af-aabb-d12c3a66e733",
       "1ad9f24c-209f-4e80-af5e-5adf7a2317a5",
@@ -2279,11 +3353,25 @@
       "8277a8d3-9184-47c5-89e1-58e5c5dd11a4"
     ],
     "jamaican": [
-      "0c972ff1-4fc4-4afa-9735-7e8554570aa5",
-      "ca5bc486-b0ac-4272-a1f8-b0a973d575a6",
-      "1ad3bafa-7b9f-4ec8-a13f-0ca51255b03b",
-      "ef7b6c6b-38fb-4b44-980c-f97c60781777",
-      "59e1ec0e-0f16-47e6-bbc6-974c7dfb7aa7"
+      "9dbbbc0a-903a-4ce2-b1e2-afc2b49cfc8a",
+      "7fdb5731-29b0-42df-aadb-de04fe153eeb",
+      "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209"
+    ],
+    "jamaican food": [
+      "9dbbbc0a-903a-4ce2-b1e2-afc2b49cfc8a",
+      "7fdb5731-29b0-42df-aadb-de04fe153eeb",
+      "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209"
+    ],
+    "jamaican place": [
+      "9dbbbc0a-903a-4ce2-b1e2-afc2b49cfc8a",
+      "7fdb5731-29b0-42df-aadb-de04fe153eeb",
+      "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209"
     ],
     "james": [
       "010c222c-f871-408e-a9d5-37cbee120284",
@@ -2327,12 +3415,26 @@
       "961caf60-065c-48dd-b99d-815ae38991d5",
       "7cad2cf1-b19f-4480-8585-ae8c93cf0688"
     ],
+    "japanese food": [
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "c0867d79-2a79-4f89-828f-1175334fd397",
+      "d2c94510-decc-425d-ba3d-f40300123963",
+      "370ce82e-10b0-46b0-9db9-fb05b5f02104",
+      "1b9806f3-554b-4604-a0c7-b63d724aa999"
+    ],
     "japanese for business dinner": [
       "370ce82e-10b0-46b0-9db9-fb05b5f02104",
       "e5622ae5-9995-490d-8888-a1a3b3777877",
       "1b9806f3-554b-4604-a0c7-b63d724aa999",
       "961caf60-065c-48dd-b99d-815ae38991d5",
       "7cad2cf1-b19f-4480-8585-ae8c93cf0688"
+    ],
+    "japanese place": [
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "c0867d79-2a79-4f89-828f-1175334fd397",
+      "d2c94510-decc-425d-ba3d-f40300123963",
+      "370ce82e-10b0-46b0-9db9-fb05b5f02104",
+      "1b9806f3-554b-4604-a0c7-b63d724aa999"
     ],
     "jazz": [
       "6e470c4e-f0b5-45fb-8802-0a132d2bd8dd",
@@ -2356,9 +3458,9 @@
       "59e1ec0e-0f16-47e6-bbc6-974c7dfb7aa7"
     ],
     "jerk chicken": [
-      "1ad3bafa-7b9f-4ec8-a13f-0ca51255b03b",
-      "59e1ec0e-0f16-47e6-bbc6-974c7dfb7aa7",
-      "66fa273b-d822-4cd2-80be-dad95b0399c0"
+      "0c972ff1-4fc4-4afa-9735-7e8554570aa5",
+      "df498f60-dd24-4356-a163-ec369cb2eabb",
+      "59e1ec0e-0f16-47e6-bbc6-974c7dfb7aa7"
     ],
     "joint": [
       "2091d2e8-f2f3-415f-a3da-36a8297bc74a",
@@ -2452,6 +3554,11 @@
       "35c8f29e-611f-4b7b-a9c9-70b120f9705b",
       "0d08fc73-070d-4a9d-ac6a-8f62586221db"
     ],
+    "korean place": [
+      "b759969a-c2cd-4dac-8af7-0c6a907e5d4a",
+      "8c4901e7-6bd2-4c48-b360-7a318ad5d915",
+      "86d36142-974e-42d1-be6f-dd1bb591c6cc"
+    ],
     "kosher": [
       "c1391b64-c682-4a19-93fa-8beab5c6eb24",
       "538c8099-f428-42bb-abf0-5b159e8e1e36",
@@ -2486,6 +3593,27 @@
       "15b3807b-1039-46ba-a1ee-1224bbe6903a",
       "abe06450-1f3c-4ce8-abc6-3c51bebce5e4",
       "c123b8cb-67ef-45e9-8b85-c3531e0ee021"
+    ],
+    "laotian": [
+      "484d7b45-e939-4ef2-8baf-db693ac3e2f7",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18"
+    ],
+    "laotian food": [
+      "484d7b45-e939-4ef2-8baf-db693ac3e2f7",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18"
+    ],
+    "laotian place": [
+      "484d7b45-e939-4ef2-8baf-db693ac3e2f7",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18"
     ],
     "large": [
       "b5e9578e-366a-4d2f-9f58-e708a9993661",
@@ -2530,18 +3658,18 @@
       "6db7c61b-555d-4a1e-b384-d624dd19f590"
     ],
     "late night": [
-      "94b8d054-0b86-4b8a-a8ed-c5af43ca782d",
-      "29525f40-3602-4ea1-878d-0841b471ee7f",
-      "526c4d9c-d1d0-4748-8925-6d20e79d08a2",
-      "172f50fe-40f0-4012-9cb6-3bdac7818908",
-      "6db7c61b-555d-4a1e-b384-d624dd19f590"
+      "9402dcc8-1290-4971-b6d9-4b791de6d8a3",
+      "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
+      "7f994f20-5d90-48f3-9592-2d8ecf2e7a94",
+      "3a81734e-dce4-4ee3-a7ec-379f3265f1d0"
     ],
     "late night food": [
-      "94b8d054-0b86-4b8a-a8ed-c5af43ca782d",
-      "29525f40-3602-4ea1-878d-0841b471ee7f",
-      "526c4d9c-d1d0-4748-8925-6d20e79d08a2",
-      "172f50fe-40f0-4012-9cb6-3bdac7818908",
-      "6db7c61b-555d-4a1e-b384-d624dd19f590"
+      "9402dcc8-1290-4971-b6d9-4b791de6d8a3",
+      "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
+      "7f994f20-5d90-48f3-9592-2d8ecf2e7a94",
+      "3a81734e-dce4-4ee3-a7ec-379f3265f1d0"
     ],
     "late night korean after a concert": [
       "9775705e-3ec1-44ed-aa79-a5b716981087",
@@ -2564,6 +3692,13 @@
       "6e3c0172-f7fa-4ca2-8869-9bfa3d5d6025",
       "7c116b0b-c34c-43db-bb05-b50993ee5985"
     ],
+    "late night place": [
+      "9402dcc8-1290-4971-b6d9-4b791de6d8a3",
+      "7b7e66d1-ef58-4338-b9dd-419d48d5372b",
+      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
+      "7f994f20-5d90-48f3-9592-2d8ecf2e7a94",
+      "3a81734e-dce4-4ee3-a7ec-379f3265f1d0"
+    ],
     "lebanese": [
       "2ee0dbd6-cd02-4a70-a74c-44f7e4b1c58a",
       "2c4aef6b-ed46-43f4-9bc7-5325ae0df45e",
@@ -2577,6 +3712,13 @@
       "a7e219eb-d859-45b2-acb4-bf688b35db12",
       "014cb37a-d992-4113-9f63-9360b20e501f",
       "444151dc-012b-4e30-97f5-50e649303bff"
+    ],
+    "lebanese place": [
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+      "2ee0dbd6-cd02-4a70-a74c-44f7e4b1c58a",
+      "2c4aef6b-ed46-43f4-9bc7-5325ae0df45e",
+      "444151dc-012b-4e30-97f5-50e649303bff",
+      "a7e219eb-d859-45b2-acb4-bf688b35db12"
     ],
     "legendary": [
       "467b3c87-5829-41b2-91fc-6cd077f77613",
@@ -2593,11 +3735,9 @@
       "9a850db4-9ac3-45c9-a65e-8f320496b1a2"
     ],
     "lincoln park": [
-      "1bf35f38-4e46-42f1-80a3-4f8eaf4f0aba",
-      "ea1ccf92-6db2-4c3c-9387-69cf11a5f4d1",
-      "3bc6bbac-31e3-4630-ac6f-37e82e3f5252",
-      "bf40d894-985e-40cc-b226-8b08f1d44032",
-      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40"
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8"
     ],
     "lincoln square": [
       "4ff9dc21-fc53-468a-9704-fd90a7b0311b",
@@ -2614,11 +3754,18 @@
       "c5478690-8eb8-4af5-b99c-a7224e58b6db"
     ],
     "little italy": [
-      "72f2c293-d395-4a27-bd07-6f6ff5fdf365",
-      "1bf35f38-4e46-42f1-80a3-4f8eaf4f0aba",
-      "0c972ff1-4fc4-4afa-9735-7e8554570aa5",
-      "6b5a7e05-dffa-4e00-bc8d-34f9a59b145a",
-      "e17891a7-6478-45bd-8744-5b45810d9dca"
+      "e17891a7-6478-45bd-8744-5b45810d9dca",
+      "ce21a7fb-771e-46ac-af18-ad2582ece223",
+      "5d2713c0-f4af-4359-9345-017fc9ea9d44",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
+    ],
+    "little village mexican": [
+      "cf284235-49af-4e54-aea6-e9f0c6eb9c77",
+      "197eb49c-bd49-43dc-9840-a5f366c4ffa8",
+      "f5aa36d3-524b-4374-a9a3-b368ecab5509",
+      "d60f03e3-d013-47d9-b0e3-47d87438ec8c",
+      "558a92cd-660f-4532-9591-ea4a5ecb1421"
     ],
     "live music": [
       "e1bcc212-c00b-4447-9363-24437c75ecf8",
@@ -2655,6 +3802,20 @@
       "90a87ef6-f3f0-40fa-bb81-d076d2b9d6e1",
       "9531de7c-5b1e-4bfe-a055-973f956bb39c"
     ],
+    "lively sports bar with good": [
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a"
+    ],
+    "lively sports bar with good food": [
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a"
+    ],
     "lobster": [
       "abe06450-1f3c-4ce8-abc6-3c51bebce5e4",
       "ffa27e40-2016-44c2-b2f2-6cdc28147a88",
@@ -2670,11 +3831,10 @@
       "26ecfd35-23c4-4792-b898-81aefbf17388"
     ],
     "lobster roll": [
-      "79ba7593-91fe-49e6-9bcf-f2b41504284f",
-      "4fcffb57-7d8c-4d76-b212-6f97f7c2e5b1",
-      "ffa27e40-2016-44c2-b2f2-6cdc28147a88",
+      "cafb4e51-4eec-450d-bdd4-4a27c50b14df",
       "181d70d6-7257-478e-8cee-9c2d4fd47003",
-      "6b784476-8e60-46cc-acb4-b3fac7388a29"
+      "e195d6bc-9991-44b5-b1d0-cdb15cdceb5e",
+      "f5a74311-d01b-4414-93c6-589ef7962e92"
     ],
     "local": [
       "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
@@ -2782,18 +3942,18 @@
       "9dbaea89-059d-4641-8b2e-b3e903082fca"
     ],
     "michelin star": [
-      "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
-      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
-      "f69605de-88d7-4cd0-97ae-6b970b52c462",
       "a5691f01-c23d-414d-be19-4e2fafb4528b",
-      "9dbaea89-059d-4641-8b2e-b3e903082fca"
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18"
     ],
     "michelin star restaurant": [
-      "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
       "a5691f01-c23d-414d-be19-4e2fafb4528b",
-      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
-      "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
-      "70e4b943-6380-4e48-b608-c322b099c953"
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18"
     ],
     "middle": [
       "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
@@ -2872,6 +4032,13 @@
     "moroccan food": [
       "482d0824-c49f-47e6-b56d-7bfc064d36c7",
       "da4ea06f-7c8c-41e8-9baa-1007d36d8eef"
+    ],
+    "moroccan place": [
+      "63b59a0c-ce7b-4b37-851f-13bc31eefd33",
+      "da4ea06f-7c8c-41e8-9baa-1007d36d8eef",
+      "482d0824-c49f-47e6-b56d-7bfc064d36c7",
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad"
     ],
     "most awarded restaurant": [
       "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
@@ -3000,11 +4167,7 @@
       "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40"
     ],
     "north center": [
-      "ea1ccf92-6db2-4c3c-9387-69cf11a5f4d1",
-      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
-      "3bc6bbac-31e3-4630-ac6f-37e82e3f5252",
-      "15b3807b-1039-46ba-a1ee-1224bbe6903a",
-      "6e470c4e-f0b5-45fb-8802-0a132d2bd8dd"
+      "711c4973-963a-4d5f-a71d-54bd6788d0a3"
     ],
     "off beaten path": [
       "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b",
@@ -3021,18 +4184,16 @@
       "7116fca0-3b48-48ed-9f04-6928cfd02d0e"
     ],
     "old town": [
-      "3bc6bbac-31e3-4630-ac6f-37e82e3f5252",
-      "e74c16e5-3f68-4a69-8fdd-ecc34c86183c",
-      "31749258-4217-4d42-9a2b-77f94cce8516",
-      "2e27c604-528d-471c-8be7-f2dd8d8affe3",
-      "97dd2c3f-1f90-40fa-bd72-06896ef50305"
+      "88a83b85-a3a4-495e-86a0-95565b9992dc",
+      "193b3fce-8f4f-4176-b7e5-e11f74a5410a",
+      "a5f0c788-06fb-4280-bda1-ab3c2a5bb819"
     ],
     "omakase": [
-      "c195508b-4fa3-4962-bbbb-e9df20d55d6f",
-      "5a1c010e-6a48-4057-8167-a33c2f859cf6",
-      "64b1e9ce-54ef-467f-95e3-d11ca6384ca2",
-      "d875b102-a00b-4c05-9ed9-2c773fd4a592",
-      "be11a92f-8073-467f-bbeb-67eb6fe7e010"
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "c0867d79-2a79-4f89-828f-1175334fd397",
+      "d2c94510-decc-425d-ba3d-f40300123963",
+      "1b9806f3-554b-4604-a0c7-b63d724aa999",
+      "961caf60-065c-48dd-b99d-815ae38991d5"
     ],
     "only": [
       "fdcf51d0-ba44-453d-91ec-36bc6a61f166",
@@ -3196,11 +4357,11 @@
       "7116fca0-3b48-48ed-9f04-6928cfd02d0e"
     ],
     "patio": [
-      "e63ac7e2-3a50-45ba-b1ea-83a35fd4ae3d",
-      "addb374f-8553-4956-8119-52d8a00ec848",
-      "67546019-3e88-4a61-9060-867abc777866",
-      "0ade050c-fac7-443f-93b3-e0876d0aa6c2",
-      "31b758f2-5254-4902-9141-ce9789652bc7"
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b"
     ],
     "patio restaurant": [
       "467b3c87-5829-41b2-91fc-6cd077f77613",
@@ -3224,18 +4385,30 @@
       "fbe57f23-62af-47af-9950-ee38022f7099"
     ],
     "peruvian": [
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209",
       "b4e1b793-0801-46bf-9fde-08680413dd2b",
-      "a317ac75-c951-426a-af0f-76306e7311c0",
-      "4aba89b8-c5c7-4564-af15-e42622779d35",
-      "092617a5-3003-412b-898c-b4c561b507f5",
-      "8d89f0e4-a227-4dfc-820a-d633fd218eb5"
+      "72beeb2f-6417-4003-b0e6-714b180b8a16",
+      "9d1826c7-b722-407f-82d6-863878a69e00",
+      "e1f387da-57e0-4f91-99ed-0237eff01707"
+    ],
+    "peruvian food": [
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209",
+      "b4e1b793-0801-46bf-9fde-08680413dd2b",
+      "72beeb2f-6417-4003-b0e6-714b180b8a16",
+      "9d1826c7-b722-407f-82d6-863878a69e00",
+      "e1f387da-57e0-4f91-99ed-0237eff01707"
+    ],
+    "peruvian place": [
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209",
+      "b4e1b793-0801-46bf-9fde-08680413dd2b",
+      "72beeb2f-6417-4003-b0e6-714b180b8a16",
+      "9d1826c7-b722-407f-82d6-863878a69e00",
+      "e1f387da-57e0-4f91-99ed-0237eff01707"
     ],
     "pho": [
-      "25750901-f85f-431e-ab94-88b3febbac27",
-      "408628a7-8a76-4e01-afd8-e371193fb777",
-      "b412b5fa-76ac-4b6f-a9d3-b10a3482b60c",
-      "a747f2da-d6e9-4d59-9123-cd938c7900ce",
-      "814d5d3b-9ba4-445a-870f-0fd41c3bcf90"
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "bc392b73-3039-42cb-ae24-575b23532b39",
+      "a747f2da-d6e9-4d59-9123-cd938c7900ce"
     ],
     "pho bo": [
       "25750901-f85f-431e-ab94-88b3febbac27",
@@ -3256,11 +4429,8 @@
       "77265d50-5a38-4ce4-8f41-face50d6e915"
     ],
     "pilsen": [
-      "9f75f685-0b83-43db-a9d5-e5e21ab84701",
-      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
-      "fdcf51d0-ba44-453d-91ec-36bc6a61f166",
-      "127e8cd1-6ebe-4079-bf31-ad7373ccf5be",
-      "6df3e0b0-931f-4043-ae7d-508a8c00833d"
+      "cf284235-49af-4e54-aea6-e9f0c6eb9c77",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17"
     ],
     "pizza": [
       "15b3807b-1039-46ba-a1ee-1224bbe6903a",
@@ -3276,11 +4446,21 @@
       "bfc5cc4d-ed59-4954-b7c8-22459dc68983",
       "7b9b9084-5775-48c2-bb73-57b08a9344a7"
     ],
+    "poke bowl": [
+      "13f832b6-7016-4f9f-a224-41812f123595",
+      "6688b96e-b211-4817-bc8a-b0fdcab251e7",
+      "07fc1855-5611-4056-86d3-329e4bdfb896"
+    ],
     "polish": [
       "8031cbb2-a86c-4921-8e68-a8a9ae983414",
       "77265d50-5a38-4ce4-8f41-face50d6e915"
     ],
     "polish food": [
+      "8031cbb2-a86c-4921-8e68-a8a9ae983414",
+      "77265d50-5a38-4ce4-8f41-face50d6e915"
+    ],
+    "polish place": [
+      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
       "8031cbb2-a86c-4921-8e68-a8a9ae983414",
       "77265d50-5a38-4ce4-8f41-face50d6e915"
     ],
@@ -3404,10 +4584,10 @@
       "6910492c-fe77-496e-9c63-c88015b99a1f"
     ],
     "private dining": [
-      "aabee827-aa8f-4c85-a654-6b72bec1a379",
       "66f8e3b7-0ef5-4ae0-85c2-8a89d265d48c",
-      "cac354a4-eca2-41b6-9022-43b62453f3f4",
-      "c5478690-8eb8-4af5-b99c-a7224e58b6db",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "30ce808a-6c0a-4919-a43d-4b94af41c135",
       "9a978039-930a-4646-8d52-ceea03dfe827"
     ],
     "private dining room": [
@@ -3432,11 +4612,11 @@
       "c5478690-8eb8-4af5-b99c-a7224e58b6db"
     ],
     "prix fixe": [
-      "f69605de-88d7-4cd0-97ae-6b970b52c462",
+      "c5478690-8eb8-4af5-b99c-a7224e58b6db",
       "a5691f01-c23d-414d-be19-4e2fafb4528b",
-      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
-      "66f8e3b7-0ef5-4ae0-85c2-8a89d265d48c",
-      "c5478690-8eb8-4af5-b99c-a7224e58b6db"
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "bf676e24-7352-430c-af3b-41b6d9e07dd8",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670"
     ],
     "prix fixe dinner": [
       "f69605de-88d7-4cd0-97ae-6b970b52c462",
@@ -3479,6 +4659,13 @@
       "207151a9-b7ff-4fdf-b676-4ce3a52b1420",
       "78b648a7-9ccc-4752-9823-42618ee64a5f",
       "86de1c95-3dbd-4a38-9382-d190e097efe5"
+    ],
+    "pupusa": [
+      "1a4b280a-6004-43d8-a414-87133296b8d1",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "30ce808a-6c0a-4919-a43d-4b94af41c135",
+      "98c1ca4d-842e-416b-aca2-ae3548ff9209"
     ],
     "quick": [
       "b2bef051-5971-4c4b-91ec-818665147ed0",
@@ -3536,6 +4723,13 @@
       "29f79ecb-843c-4bb1-9a66-e9b094f6d2fa",
       "7286be49-7949-4d9c-8486-216e4b24e4a0"
     ],
+    "quiet coffee shop for work": [
+      "02757447-738f-44af-b180-d6319f772681",
+      "21f0cce3-cbcc-4dd0-aed4-2dd1c9c89497",
+      "77080bcb-7618-43d3-8c38-d19bd26c8144",
+      "7d82aa82-0ff9-4754-9dbd-8c0ad6f134de",
+      "4b52f1d8-0b71-48e3-bb6d-c6348d6ea2f0"
+    ],
     "quiet enough conversation": [
       "a5691f01-c23d-414d-be19-4e2fafb4528b",
       "aabee827-aa8f-4c85-a654-6b72bec1a379",
@@ -3564,6 +4758,20 @@
       "e9195214-f68b-4c13-9caa-01b5851470b7",
       "13c7942f-70a1-4c44-8ec5-6f06147e61fd"
     ],
+    "quiet restaurant": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5"
+    ],
+    "quiet restaurant for conversation": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5"
+    ],
     "quiet work": [
       "8f916127-c8ab-4b69-ab0c-3098f4095707",
       "a7e9759d-e993-4f84-9aec-d63700ccc3a2",
@@ -3579,11 +4787,11 @@
       "7286be49-7949-4d9c-8486-216e4b24e4a0"
     ],
     "ramen": [
+      "b4a71162-df13-4774-bd77-29945550abc6",
       "a26b0204-d7b5-4f0b-8a17-0d27b89bdd3a",
-      "8e6b189e-48f4-4cfe-8d07-348e645997e9",
-      "943db1dc-f921-4573-b5b4-3c6ce0b54f99",
-      "e4338a74-7fc4-44d5-ab80-524564f4c809",
-      "a617e37f-5ade-459b-a7aa-cc5d8a543e78"
+      "626bd70a-dcb9-408a-95b7-cd56f1a2b77a",
+      "ecef49bb-3706-4239-b2a6-3a6a53701da7",
+      "8e6b189e-48f4-4cfe-8d07-348e645997e9"
     ],
     "rated": [
       "aabee827-aa8f-4c85-a654-6b72bec1a379",
@@ -3593,11 +4801,8 @@
       "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd"
     ],
     "ravenswood": [
-      "c195508b-4fa3-4962-bbbb-e9df20d55d6f",
-      "5a1c010e-6a48-4057-8167-a33c2f859cf6",
-      "64b1e9ce-54ef-467f-95e3-d11ca6384ca2",
-      "d875b102-a00b-4c05-9ed9-2c773fd4a592",
-      "be11a92f-8073-467f-bbeb-67eb6fe7e010"
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "714d061d-48fc-45fa-8744-e10ce9807b21"
     ],
     "recommendation": [
       "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
@@ -3628,26 +4833,90 @@
       "fec1369d-29b4-4700-857f-b4385389b0a5"
     ],
     "restaurant": [
-      "010c222c-f871-408e-a9d5-37cbee120284",
-      "9a978039-930a-4646-8d52-ceea03dfe827",
-      "70e4b943-6380-4e48-b608-c322b099c953",
-      "bf676e24-7352-430c-af3b-41b6d9e07dd8",
-      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40"
+      "88a83b85-a3a4-495e-86a0-95565b9992dc",
+      "193b3fce-8f4f-4176-b7e5-e11f74a5410a",
+      "a5f0c788-06fb-4280-bda1-ab3c2a5bb819"
+    ],
+    "restaurant in albany park": [
+      "2d8865e8-051c-4caa-bacf-2645f011dd56"
+    ],
+    "restaurant in andersonville": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "d5b5f9a9-ecba-4e0b-9488-2892039b31fa"
+    ],
+    "restaurant in bridgeport": [
+      "03ace4f8-bb00-476e-8112-dc5e580b56dd"
+    ],
+    "restaurant in bronzeville": [
+      "8236ece5-17dc-40bb-a55a-37e3632a3afb"
+    ],
+    "restaurant in chinatown": [
+      "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad",
+      "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
+      "a20e281f-6e78-4a42-ada4-06f579a2e91f"
     ],
     "restaurant in edgewater": [
-      "13c7942f-70a1-4c44-8ec5-6f06147e61fd",
-      "63d41650-f69f-4ceb-a60a-7a676e8f2b83"
+      "fae01c07-0a29-445b-8415-c43a0747e654",
+      "a08580bb-e489-4f91-9c25-6e46b548f86b",
+      "da48aa3c-e71a-426d-a9c1-dff175431a95",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
     ],
     "restaurant in humboldt park": [
       "065a8aa9-d449-410b-b0ef-39b94c8dc156",
       "183d2c5b-8f5c-40e0-a555-068aae6f050b"
     ],
+    "restaurant in hyde park": [
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925"
+    ],
+    "restaurant in irving park": [
+      "2d8865e8-051c-4caa-bacf-2645f011dd56"
+    ],
+    "restaurant in lincoln park": [
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8"
+    ],
     "restaurant in little italy": [
       "e17891a7-6478-45bd-8744-5b45810d9dca",
       "32555199-e383-45f1-8b22-a68980b38a9b"
     ],
+    "restaurant in logan square": [
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670",
+      "a673ed77-8a29-4077-8924-c15cf286da1f"
+    ],
+    "restaurant in north center": [
+      "711c4973-963a-4d5f-a71d-54bd6788d0a3"
+    ],
+    "restaurant in old town": [
+      "88a83b85-a3a4-495e-86a0-95565b9992dc",
+      "193b3fce-8f4f-4176-b7e5-e11f74a5410a",
+      "a5f0c788-06fb-4280-bda1-ab3c2a5bb819"
+    ],
     "restaurant in pilsen": [
       "93f435da-c523-4fa1-bdd2-b62b43477c17"
+    ],
+    "restaurant in ravenswood": [
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "714d061d-48fc-45fa-8744-e10ce9807b21"
+    ],
+    "restaurant in river north": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "9a978039-930a-4646-8d52-ceea03dfe827"
+    ],
+    "restaurant in rogers park": [
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "47d903b3-751d-4e60-90db-21d6e770eb25",
+      "115c17fd-f4b2-4c23-9e2f-9b3a9600e6de",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
+    ],
+    "restaurant in ukrainian village": [
+      "8fd7f488-03a9-46de-a2c9-5fead2353725"
     ],
     "restaurant in uptown": [
       "86d36142-974e-42d1-be6f-dd1bb591c6cc"
@@ -3657,6 +4926,18 @@
       "30ce808a-6c0a-4919-a43d-4b94af41c135",
       "9f75f685-0b83-43db-a9d5-e5e21ab84701",
       "207151a9-b7ff-4fdf-b676-4ce3a52b1420"
+    ],
+    "restaurant in wicker park": [
+      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+      "d2c94510-decc-425d-ba3d-f40300123963",
+      "fbfba1ab-cebe-4d77-9705-fa37919f7eaa"
+    ],
+    "restaurant with a view": [
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "4ff9dc21-fc53-468a-9704-fd90a7b0311b",
+      "72beeb2f-6417-4003-b0e6-714b180b8a16",
+      "3a81734e-dce4-4ee3-a7ec-379f3265f1d0",
+      "adfbe950-c6bd-4467-8c06-067ebe407746"
     ],
     "restaurant with free wifi": [
       "e2af6c6d-6a3a-4f80-8d9f-989736dd17f3",
@@ -3750,11 +5031,11 @@
       "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40"
     ],
     "rogers park": [
-      "7f994f20-5d90-48f3-9592-2d8ecf2e7a94",
-      "b2b8ae7f-ad99-4acb-b455-56ef4aeaf4d6",
-      "b5faafb2-dbba-4df0-8e05-89a971a8ca1e",
-      "284ad0aa-ac30-4270-98fa-caff3e770cd3",
-      "169603a3-5419-4a53-8382-334cd822d3a3"
+      "a491755e-4942-4da5-9ba4-4388b79debb4",
+      "47d903b3-751d-4e60-90db-21d6e770eb25",
+      "115c17fd-f4b2-4c23-9e2f-9b3a9600e6de",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f"
     ],
     "roll": [
       "79ba7593-91fe-49e6-9bcf-f2b41504284f",
@@ -3776,6 +5057,13 @@
       "12bbfe3b-6bd0-4305-ac29-be838bd550f2",
       "951dbb4a-9a06-426b-8778-212321c1cf52",
       "543261ca-3c4a-4bd7-82f6-c5dbea230c5c"
+    ],
+    "romantic dinner": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "031bc963-0920-498c-9c6d-c3eeb62b1b10"
     ],
     "romantic italian near river north with cocktails": [
       "4a9b0956-7658-47af-aabb-d12c3a66e733",
@@ -3805,12 +5093,19 @@
       "c195508b-4fa3-4962-bbbb-e9df20d55d6f",
       "7cad2cf1-b19f-4480-8585-ae8c93cf0688"
     ],
+    "romantic wine bar": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "04f426fe-0419-4780-8c40-8010789fbf2a",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad"
+    ],
     "rooftop": [
-      "ce608e25-a99e-4612-9b40-afefc03b13b2",
-      "d653449e-5321-420c-a968-8ebbf645c048",
-      "d468793c-39b4-46eb-8cd2-cf53f4c229a9",
-      "e05d7df5-89da-4245-a0f2-d5076fe8aaa3",
-      "7c3907c6-8ec5-4650-abc0-8c92506aded8"
+      "4ff9dc21-fc53-468a-9704-fd90a7b0311b",
+      "3a81734e-dce4-4ee3-a7ec-379f3265f1d0",
+      "adfbe950-c6bd-4467-8c06-067ebe407746",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8"
     ],
     "rooftop brunch": [
       "ce608e25-a99e-4612-9b40-afefc03b13b2",
@@ -3907,12 +5202,41 @@
       "d2c94510-decc-425d-ba3d-f40300123963",
       "28f9811a-07e2-4b37-a7cb-c83b7bec3dad"
     ],
+    "senegalese": [
+      "027b814c-4395-4009-b544-408e638d1b53",
+      "e7c47126-a661-4ee7-b9b4-211f01022b70",
+      "29f16b77-fd63-42ef-a2e3-8f017f71ed1e",
+      "e7c51734-fb66-41b0-be7a-d8aad1f478f5"
+    ],
+    "senegalese food": [
+      "027b814c-4395-4009-b544-408e638d1b53",
+      "e7c47126-a661-4ee7-b9b4-211f01022b70",
+      "29f16b77-fd63-42ef-a2e3-8f017f71ed1e",
+      "e7c51734-fb66-41b0-be7a-d8aad1f478f5"
+    ],
+    "senegalese place": [
+      "027b814c-4395-4009-b544-408e638d1b53",
+      "e7c47126-a661-4ee7-b9b4-211f01022b70",
+      "29f16b77-fd63-42ef-a2e3-8f017f71ed1e",
+      "e7c51734-fb66-41b0-be7a-d8aad1f478f5"
+    ],
     "service": [
       "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
       "00dba57a-e925-4787-8cc6-1926d98ad4c6",
       "8d89f0e4-a227-4dfc-820a-d633fd218eb5",
       "9531de7c-5b1e-4bfe-a055-973f956bb39c",
       "adaeb395-ffb5-4abb-b809-6b5da137a656"
+    ],
+    "shawarma": [
+      "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
+      "44930717-af9d-460b-b442-a909b9594277",
+      "9af35db2-3920-457d-b0b9-29f588324a5d"
+    ],
+    "slice of pizza": [
+      "e1bcc212-c00b-4447-9363-24437c75ecf8",
+      "87338807-f9f2-483f-a997-2bd205e52321",
+      "edee9af3-a349-46e4-99b1-bed2e90ca23f",
+      "44a444c0-2a9f-4eaa-a164-535630a175eb"
     ],
     "small": [
       "031bc963-0920-498c-9c6d-c3eeb62b1b10",
@@ -3955,6 +5279,13 @@
       "cac354a4-eca2-41b6-9022-43b62453f3f4",
       "c5478690-8eb8-4af5-b99c-a7224e58b6db",
       "9a978039-930a-4646-8d52-ceea03dfe827"
+    ],
+    "solo dining": [
+      "6dadd943-3afd-4580-b8e3-f35d90bb76fc",
+      "b759969a-c2cd-4dac-8af7-0c6a907e5d4a",
+      "2d8865e8-051c-4caa-bacf-2645f011dd56",
+      "776c9c94-e122-46cb-bb98-7685fc4e1e55",
+      "467b3c87-5829-41b2-91fc-6cd077f77613"
     ],
     "solo lunch affordable sushi": [
       "1679eca3-79b1-49c0-9d5f-6c257ab9ff35",
@@ -4033,6 +5364,21 @@
       "6dadd943-3afd-4580-b8e3-f35d90bb76fc",
       "368a3201-cc45-485b-9bba-3b52d6462348"
     ],
+    "soul": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925",
+      "1781953b-66ba-4639-87cf-1c645535f565"
+    ],
+    "soul food": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925",
+      "1781953b-66ba-4639-87cf-1c645535f565"
+    ],
+    "soul place": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "65d31bb9-b3d0-4e04-803c-a07b68ecc925",
+      "1781953b-66ba-4639-87cf-1c645535f565"
+    ],
     "soup": [
       "978bfcd2-4d50-4fe7-aa89-d7067395409e",
       "b3c6d652-1618-4bc5-a4b4-8988e8755474",
@@ -4096,6 +5442,20 @@
       "bfc5cc4d-ed59-4954-b7c8-22459dc68983",
       "64d39ce0-0fb4-4a26-8349-50e354bdfbc7"
     ],
+    "splurge-worthy": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379"
+    ],
+    "splurge-worthy restaurant": [
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379"
+    ],
     "sports": [
       "9d0df6d1-395c-402d-a2a3-8cb9978a411f",
       "e89d8692-e4d9-4c9b-8af0-424f237dbb4e",
@@ -4139,6 +5499,13 @@
       "70e4b943-6380-4e48-b608-c322b099c953",
       "c5e819c3-1b9b-425f-93a2-cd6e50250d14"
     ],
+    "sri lankan place": [
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "70e4b943-6380-4e48-b608-c322b099c953",
+      "c5e819c3-1b9b-425f-93a2-cd6e50250d14",
+      "f3233c46-8fee-40c9-b740-0e4fc20c247f",
+      "d9737fd8-3e4c-4d1f-b8d6-577e104d9911"
+    ],
     "star": [
       "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
       "ef2a9292-3743-4e63-b0b0-2ed4d0290b18",
@@ -4161,11 +5528,11 @@
       "256ec2f5-e5cf-423f-bb00-156c606e5f40"
     ],
     "steakhouse": [
-      "b06195b4-ad43-4b93-9069-8a1e3018746a",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "fed6c5d4-7ba5-44c6-98d4-45dabb4abc29",
+      "cafb4e51-4eec-450d-bdd4-4a27c50b14df",
       "9c9f1ebb-c075-43db-bc76-f5cadc7ef45d",
-      "c0ba99d2-a6d5-4add-829b-01f61a6b4216",
-      "35bf9a58-4882-4c9d-ac9b-0157eb8711f7",
-      "f4f9991b-dd6a-4a9f-831e-c87502e40cee"
+      "6a1ae0e5-ed0d-4f80-b677-a88fb3f3c3bf"
     ],
     "streeterville": [
       "4ff9dc21-fc53-468a-9704-fd90a7b0311b",
@@ -4194,6 +5561,13 @@
       "9a978039-930a-4646-8d52-ceea03dfe827",
       "1c391dbd-eae5-4009-9c95-2008dd48e978",
       "5826ea42-cae1-44ed-995c-58a0d7bfbaa0"
+    ],
+    "sunday brunch": [
+      "207151a9-b7ff-4fdf-b676-4ce3a52b1420",
+      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
+      "f69605de-88d7-4cd0-97ae-6b970b52c462",
+      "adaeb395-ffb5-4abb-b809-6b5da137a656",
+      "64933aab-e3cc-4526-92c6-5ada43e62074"
     ],
     "sunday family brunch kids": [
       "cbfe5faa-be09-4d6a-a949-58f48f7000bb",
@@ -4238,11 +5612,11 @@
       "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad"
     ],
     "sushi": [
-      "951aecd6-c1da-4521-a53c-43560ee077a5",
       "1b9806f3-554b-4604-a0c7-b63d724aa999",
-      "f7cdb372-0574-42b2-b2a4-4073cd919a4f",
-      "961caf60-065c-48dd-b99d-815ae38991d5",
-      "4519942c-650d-48a5-a03b-d94ecb6020b1"
+      "370ce82e-10b0-46b0-9db9-fb05b5f02104",
+      "d4df5d57-b346-42ba-a6b8-bfd75d168063",
+      "59809638-0596-4a8a-ad9a-49ab8cb50d6a",
+      "be11a92f-8073-467f-bbeb-67eb6fe7e010"
     ],
     "sushi omakase": [
       "951aecd6-c1da-4521-a53c-43560ee077a5",
@@ -4259,11 +5633,10 @@
       "444d72af-a4c3-4384-aece-ed4041925334"
     ],
     "tacos": [
-      "1d36a77d-6d33-4116-a297-67af2bd84392",
-      "736081d8-4119-44cf-bb86-6274bb76e9c2",
-      "444d72af-a4c3-4384-aece-ed4041925334",
-      "0c1494fb-5285-4c66-97ca-9a576aa0f711",
-      "33535cc7-b5a4-4435-8609-5479fe146176"
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "dccb3ad6-2819-42db-90ff-2b65651752a9",
+      "558a92cd-660f-4532-9591-ea4a5ecb1421"
     ],
     "taiwanese": [
       "390a7b12-023d-49c4-aa7b-a0e1c0d3bd20",
@@ -4272,6 +5645,13 @@
     "taiwanese food": [
       "390a7b12-023d-49c4-aa7b-a0e1c0d3bd20",
       "4b7a3acc-7437-4460-b045-bc7906ce0fd6"
+    ],
+    "taiwanese place": [
+      "978bfcd2-4d50-4fe7-aa89-d7067395409e",
+      "404b7e8b-a359-41ec-9ef8-4c7b83258a59",
+      "390a7b12-023d-49c4-aa7b-a0e1c0d3bd20",
+      "4b7a3acc-7437-4460-b045-bc7906ce0fd6",
+      "0c3efdc5-5dd8-483c-bf69-747de87c1a18"
     ],
     "tamales": [
       "9a978039-930a-4646-8d52-ceea03dfe827",
@@ -4302,11 +5682,11 @@
       "66f8e3b7-0ef5-4ae0-85c2-8a89d265d48c"
     ],
     "tasting menu": [
-      "a5691f01-c23d-414d-be19-4e2fafb4528b",
-      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
       "c5478690-8eb8-4af5-b99c-a7224e58b6db",
-      "f69605de-88d7-4cd0-97ae-6b970b52c462",
-      "66f8e3b7-0ef5-4ae0-85c2-8a89d265d48c"
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "aabee827-aa8f-4c85-a654-6b72bec1a379",
+      "bf676e24-7352-430c-af3b-41b6d9e07dd8",
+      "98dee7c6-ba19-4917-92a4-5dbd0fef2670"
     ],
     "team": [
       "1bf35f38-4e46-42f1-80a3-4f8eaf4f0aba",
@@ -4337,12 +5717,38 @@
       "842ec73e-5b8d-4e0e-9117-f4bc267c5ce2",
       "7930c30b-b4df-4afe-875a-4c9980b5c216"
     ],
+    "thai place": [
+      "c096f6ad-62a4-4286-b6cb-3f2a0c2e2b88",
+      "98de82c6-220b-4e3c-980a-8243dfc3e0a3",
+      "7930c30b-b4df-4afe-875a-4c9980b5c216"
+    ],
     "thai restaurant": [
       "aea8c27c-52c8-4300-9c1e-062c23a541bb",
       "67aa8a08-be6d-44f2-93e9-fcd32286aa5d",
       "3bc6bbac-31e3-4630-ac6f-37e82e3f5252",
       "06bd6004-abb1-4354-9de9-624d54e6edc7",
       "f6c16145-1353-4e46-90bc-9488983abfba"
+    ],
+    "tibetan": [
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "70e4b943-6380-4e48-b608-c322b099c953",
+      "7a0911d9-a4eb-4ae1-910b-d3cfcc90c4b3",
+      "fa7f20cb-2fcf-40d1-80c9-836a86ad8482",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17"
+    ],
+    "tibetan food": [
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "70e4b943-6380-4e48-b608-c322b099c953",
+      "7a0911d9-a4eb-4ae1-910b-d3cfcc90c4b3",
+      "fa7f20cb-2fcf-40d1-80c9-836a86ad8482",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17"
+    ],
+    "tibetan place": [
+      "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
+      "70e4b943-6380-4e48-b608-c322b099c953",
+      "7a0911d9-a4eb-4ae1-910b-d3cfcc90c4b3",
+      "fa7f20cb-2fcf-40d1-80c9-836a86ad8482",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17"
     ],
     "tiki": [
       "64d39ce0-0fb4-4a26-8349-50e354bdfbc7",
@@ -4364,6 +5770,13 @@
       "9a978039-930a-4646-8d52-ceea03dfe827",
       "f716e828-6427-41b8-87d8-49f634d38f41",
       "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd"
+    ],
+    "torta": [
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
+      "7116fca0-3b48-48ed-9f04-6928cfd02d0e",
+      "577a6345-2cf5-4ea5-a131-db51f245990b",
+      "28f219a4-b48d-4d76-a7da-e477c5a7ca5d",
+      "56b00697-6b77-4f10-b50f-73e3904d200b"
     ],
     "town": [
       "aabee827-aa8f-4c85-a654-6b72bec1a379",
@@ -4400,12 +5813,47 @@
       "94b8d054-0b86-4b8a-a8ed-c5af43ca782d",
       "333c2e0c-e1b2-4181-843a-752396002a65"
     ],
+    "trendy new": [
+      "d3fc8604-45fd-40ca-9542-af89ac35f93b",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "5101cd1c-f928-453b-923b-94ebc268de40",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8"
+    ],
+    "trendy new restaurant": [
+      "d3fc8604-45fd-40ca-9542-af89ac35f93b",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17",
+      "5101cd1c-f928-453b-923b-94ebc268de40",
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8"
+    ],
     "tried": [
       "f69605de-88d7-4cd0-97ae-6b970b52c462",
       "98c1ca4d-842e-416b-aca2-ae3548ff9209",
       "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8",
       "089617a7-2cc1-4bbb-9b60-5f79af8504c5",
       "0648cd00-97b2-423a-8c9a-62792f47ac93"
+    ],
+    "trinidadian": [
+      "9dbbbc0a-903a-4ce2-b1e2-afc2b49cfc8a",
+      "7fdb5731-29b0-42df-aadb-de04fe153eeb",
+      "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40"
+    ],
+    "trinidadian food": [
+      "9dbbbc0a-903a-4ce2-b1e2-afc2b49cfc8a",
+      "7fdb5731-29b0-42df-aadb-de04fe153eeb",
+      "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40"
+    ],
+    "trinidadian place": [
+      "9dbbbc0a-903a-4ce2-b1e2-afc2b49cfc8a",
+      "7fdb5731-29b0-42df-aadb-de04fe153eeb",
+      "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40"
     ],
     "truffle": [
       "e638b943-2cb4-4dee-ae6c-fdfb253a1d5f",
@@ -4422,11 +5870,7 @@
       "6181fc8e-6c79-4c1f-8abb-4e1900b1a1cd"
     ],
     "ukrainian village": [
-      "010c222c-f871-408e-a9d5-37cbee120284",
-      "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
-      "9d0df6d1-395c-402d-a2a3-8cb9978a411f",
-      "e89d8692-e4d9-4c9b-8af0-424f237dbb4e",
-      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616"
+      "8fd7f488-03a9-46de-a2c9-5fead2353725"
     ],
     "under": [
       "72f2c293-d395-4a27-bd07-6f6ff5fdf365",
@@ -4533,12 +5977,37 @@
       "107f782b-8fd8-409f-845e-7f47a992731d",
       "adfbe950-c6bd-4467-8c06-067ebe407746"
     ],
+    "upscale sushi for a date": [
+      "370ce82e-10b0-46b0-9db9-fb05b5f02104",
+      "961caf60-065c-48dd-b99d-815ae38991d5",
+      "d4df5d57-b346-42ba-a6b8-bfd75d168063",
+      "193b3fce-8f4f-4176-b7e5-e11f74a5410a",
+      "a6f801dc-6deb-4c2d-8448-8af336252586"
+    ],
     "uptown": [
-      "e74c16e5-3f68-4a69-8fdd-ecc34c86183c",
-      "b2b8ae7f-ad99-4acb-b455-56ef4aeaf4d6",
-      "6e470c4e-f0b5-45fb-8802-0a132d2bd8dd",
-      "64d39ce0-0fb4-4a26-8349-50e354bdfbc7",
-      "6b5a7e05-dffa-4e00-bc8d-34f9a59b145a"
+      "31731a30-4f2b-426b-9fbf-168dafcaed2c",
+      "86d36142-974e-42d1-be6f-dd1bb591c6cc"
+    ],
+    "uzbek": [
+      "c3dd43bb-469f-49e0-ab10-4f5dd3834dcb",
+      "06295efa-6c58-4bcb-83c8-9dfd7aadc198",
+      "d7dce491-41c6-4dad-a95e-b6d7876e4e40",
+      "3ab00ccd-c337-429e-845f-a2abcb1051d1",
+      "467b3c87-5829-41b2-91fc-6cd077f77613"
+    ],
+    "uzbek food": [
+      "c3dd43bb-469f-49e0-ab10-4f5dd3834dcb",
+      "06295efa-6c58-4bcb-83c8-9dfd7aadc198",
+      "d7dce491-41c6-4dad-a95e-b6d7876e4e40",
+      "3ab00ccd-c337-429e-845f-a2abcb1051d1",
+      "467b3c87-5829-41b2-91fc-6cd077f77613"
+    ],
+    "uzbek place": [
+      "c3dd43bb-469f-49e0-ab10-4f5dd3834dcb",
+      "06295efa-6c58-4bcb-83c8-9dfd7aadc198",
+      "d7dce491-41c6-4dad-a95e-b6d7876e4e40",
+      "3ab00ccd-c337-429e-845f-a2abcb1051d1",
+      "467b3c87-5829-41b2-91fc-6cd077f77613"
     ],
     "valet": [
       "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd",
@@ -4556,10 +6025,10 @@
     ],
     "vegan": [
       "00dba57a-e925-4787-8cc6-1926d98ad4c6",
-      "f716e828-6427-41b8-87d8-49f634d38f41",
-      "031bc963-0920-498c-9c6d-c3eeb62b1b10",
-      "28f9811a-07e2-4b37-a7cb-c83b7bec3dad",
-      "adaeb395-ffb5-4abb-b809-6b5da137a656"
+      "450accf1-dc63-4dce-a64a-a19b903530e4",
+      "e42b7d22-0727-4f6b-9ea1-68af80062c34",
+      "9d125e57-70f4-45bf-a844-b6f5721c3da7",
+      "d93ed189-398f-46b6-baf8-7262d55729a2"
     ],
     "vegan dinner": [
       "00dba57a-e925-4787-8cc6-1926d98ad4c6",
@@ -4589,12 +6058,47 @@
       "af07f959-3d9c-4249-9d28-4229c3cd3ae7",
       "bbea4575-6b74-487c-8e58-02ade2e11b03"
     ],
+    "vegan restaurant": [
+      "00dba57a-e925-4787-8cc6-1926d98ad4c6",
+      "450accf1-dc63-4dce-a64a-a19b903530e4",
+      "e42b7d22-0727-4f6b-9ea1-68af80062c34",
+      "9d125e57-70f4-45bf-a844-b6f5721c3da7",
+      "d93ed189-398f-46b6-baf8-7262d55729a2"
+    ],
     "vegetarian": [
       "f90aba3b-a844-4f3c-aefe-fef9e5740326",
       "089617a7-2cc1-4bbb-9b60-5f79af8504c5",
       "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a",
       "7a0911d9-a4eb-4ae1-910b-d3cfcc90c4b3",
       "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8"
+    ],
+    "vegetarian friendly": [
+      "78b648a7-9ccc-4752-9823-42618ee64a5f",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "9a978039-930a-4646-8d52-ceea03dfe827",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5",
+      "e1bcc212-c00b-4447-9363-24437c75ecf8"
+    ],
+    "venezuelan": [
+      "fec1369d-29b4-4700-857f-b4385389b0a5",
+      "57fe5e6e-71d1-4ff6-9236-84dd17a61a5c",
+      "91c95323-6c4c-437c-a8d8-620b23789b16",
+      "c7ab8834-52a7-48e4-bef6-8f4148cce095",
+      "9a978039-930a-4646-8d52-ceea03dfe827"
+    ],
+    "venezuelan food": [
+      "fec1369d-29b4-4700-857f-b4385389b0a5",
+      "57fe5e6e-71d1-4ff6-9236-84dd17a61a5c",
+      "91c95323-6c4c-437c-a8d8-620b23789b16",
+      "c7ab8834-52a7-48e4-bef6-8f4148cce095",
+      "9a978039-930a-4646-8d52-ceea03dfe827"
+    ],
+    "venezuelan place": [
+      "fec1369d-29b4-4700-857f-b4385389b0a5",
+      "57fe5e6e-71d1-4ff6-9236-84dd17a61a5c",
+      "91c95323-6c4c-437c-a8d8-620b23789b16",
+      "c7ab8834-52a7-48e4-bef6-8f4148cce095",
+      "9a978039-930a-4646-8d52-ceea03dfe827"
     ],
     "vibe": [
       "0d96e77c-c363-4074-88bf-0bc0576a4917",
@@ -4604,11 +6108,14 @@
       "64d39ce0-0fb4-4a26-8349-50e354bdfbc7"
     ],
     "vietnamese": [
-      "25750901-f85f-431e-ab94-88b3febbac27",
-      "408628a7-8a76-4e01-afd8-e371193fb777",
-      "a747f2da-d6e9-4d59-9123-cd938c7900ce",
-      "814d5d3b-9ba4-445a-870f-0fd41c3bcf90",
-      "6145fcb6-8d4b-4762-be9d-98b8bf3a49eb"
+      "7fb2782a-fd03-4e08-9651-9fd9101b4676",
+      "02b06659-2824-4561-a397-16880639128b",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17"
+    ],
+    "vietnamese food": [
+      "7fb2782a-fd03-4e08-9651-9fd9101b4676",
+      "02b06659-2824-4561-a397-16880639128b",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17"
     ],
     "vietnamese pho": [
       "25750901-f85f-431e-ab94-88b3febbac27",
@@ -4616,6 +6123,11 @@
       "a747f2da-d6e9-4d59-9123-cd938c7900ce",
       "814d5d3b-9ba4-445a-870f-0fd41c3bcf90",
       "6145fcb6-8d4b-4762-be9d-98b8bf3a49eb"
+    ],
+    "vietnamese place": [
+      "7fb2782a-fd03-4e08-9651-9fd9101b4676",
+      "02b06659-2824-4561-a397-16880639128b",
+      "93f435da-c523-4fa1-bdd2-b62b43477c17"
     ],
     "view": [
       "78b648a7-9ccc-4752-9823-42618ee64a5f",
@@ -4736,6 +6248,20 @@
       "4733ab19-87e7-4106-9b7b-3c834a555688",
       "5174edec-1317-427e-8e22-2a222c5a8eaa"
     ],
+    "waterfront": [
+      "adfbe950-c6bd-4467-8c06-067ebe407746",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5"
+    ],
+    "waterfront restaurant": [
+      "adfbe950-c6bd-4467-8c06-067ebe407746",
+      "467b3c87-5829-41b2-91fc-6cd077f77613",
+      "cac354a4-eca2-41b6-9022-43b62453f3f4",
+      "a5691f01-c23d-414d-be19-4e2fafb4528b",
+      "93bba72c-8738-4f7d-a663-4f907a06fae5"
+    ],
     "weekend": [
       "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40",
       "e1bcc212-c00b-4447-9363-24437c75ecf8",
@@ -4765,11 +6291,11 @@
       "437ce574-8ad9-4ae3-9c9c-e92ef5e044f4"
     ],
     "west loop": [
-      "adbf5e72-ccae-46ac-a056-9d1fa412c116",
-      "00dba57a-e925-4787-8cc6-1926d98ad4c6",
-      "94b8d054-0b86-4b8a-a8ed-c5af43ca782d",
-      "467b3c87-5829-41b2-91fc-6cd077f77613",
-      "1bf35f38-4e46-42f1-80a3-4f8eaf4f0aba"
+      "207151a9-b7ff-4fdf-b676-4ce3a52b1420",
+      "30ce808a-6c0a-4919-a43d-4b94af41c135",
+      "9f75f685-0b83-43db-a9d5-e5e21ab84701",
+      "031bc963-0920-498c-9c6d-c3eeb62b1b10",
+      "c5478690-8eb8-4af5-b99c-a7224e58b6db"
     ],
     "west loop restaurants": [
       "c5478690-8eb8-4af5-b99c-a7224e58b6db",
@@ -4821,11 +6347,9 @@
       "b2159361-eb31-4505-b661-1e679ef567e4"
     ],
     "wicker park": [
-      "5a648925-813a-4a82-aa76-dac0525877bb",
-      "4ff9dc21-fc53-468a-9704-fd90a7b0311b",
-      "9a978039-930a-4646-8d52-ceea03dfe827",
-      "c1391b64-c682-4a19-93fa-8beab5c6eb24",
-      "207151a9-b7ff-4fdf-b676-4ce3a52b1420"
+      "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616",
+      "d2c94510-decc-425d-ba3d-f40300123963",
+      "fbfba1ab-cebe-4d77-9705-fa37919f7eaa"
     ],
     "wifi": [
       "e2af6c6d-6a3a-4f80-8d9f-989736dd17f3",
@@ -4950,15 +6474,15 @@
   "consistent_winners": {
     "1bf35f38-4e46-42f1-80a3-4f8eaf4f0aba": {
       "name": "Chicago Mama's Kitchen - Catering, Mixology & Culinary Experiences",
-      "appearances": 3,
+      "appearances": 11,
       "avg_score": 97.7,
       "avg_rank": 1.7
     },
     "65d31bb9-b3d0-4e04-803c-a07b68ecc925": {
       "name": "Virtue Restaurant",
-      "appearances": 3,
+      "appearances": 22,
       "avg_score": 95.7,
-      "avg_rank": 2.0
+      "avg_rank": 2
     },
     "25750901-f85f-431e-ab94-88b3febbac27": {
       "name": "Ocean Grill & Bar",
@@ -4968,27 +6492,747 @@
     },
     "94b8d054-0b86-4b8a-a8ed-c5af43ca782d": {
       "name": "Diego Chicago Restaurant | Dinner, Late Night, Weekend Brunch",
-      "appearances": 3,
-      "avg_score": 93.0,
-      "avg_rank": 2.0
+      "appearances": 7,
+      "avg_score": 93,
+      "avg_rank": 2
     },
     "00dba57a-e925-4787-8cc6-1926d98ad4c6": {
       "name": "PLANTA Queen",
-      "appearances": 3,
-      "avg_score": 93.0,
+      "appearances": 14,
+      "avg_score": 93,
       "avg_rank": 1.3
     },
     "bf676e24-7352-430c-af3b-41b6d9e07dd8": {
       "name": "Brindille",
-      "appearances": 3,
-      "avg_score": 92.0,
-      "avg_rank": 2.0
+      "appearances": 16,
+      "avg_score": 92,
+      "avg_rank": 2
     },
     "2c2581d7-8309-4017-8b5c-9b7ccdcfc8cb": {
       "name": "Formento's",
-      "appearances": 3,
+      "appearances": 8,
       "avg_score": 91.3,
       "avg_rank": 1.7
+    },
+    "9f75f685-0b83-43db-a9d5-e5e21ab84701": {
+      "name": "Monteverde Restaurant & Pastificio",
+      "avg_score": 0,
+      "appearances": 56
+    },
+    "93f435da-c523-4fa1-bdd2-b62b43477c17": {
+      "name": "HaiSous Vietnamese Kitchen",
+      "avg_score": 0,
+      "appearances": 32
+    },
+    "031bc963-0920-498c-9c6d-c3eeb62b1b10": {
+      "name": "avec Restaurant",
+      "avg_score": 0,
+      "appearances": 39
+    },
+    "a673ed77-8a29-4077-8924-c15cf286da1f": {
+      "name": "Akahoshi Ramen",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd": {
+      "name": "Alinea",
+      "avg_score": 0,
+      "appearances": 65
+    },
+    "9c9f1ebb-c075-43db-bc76-f5cadc7ef45d": {
+      "name": "Brazilian Bowl",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "a5691f01-c23d-414d-be19-4e2fafb4528b": {
+      "name": "goosefoot®",
+      "avg_score": 0,
+      "appearances": 77
+    },
+    "aabee827-aa8f-4c85-a654-6b72bec1a379": {
+      "name": "North Pond",
+      "avg_score": 0,
+      "appearances": 79
+    },
+    "cac354a4-eca2-41b6-9022-43b62453f3f4": {
+      "name": "The Aviary",
+      "avg_score": 0,
+      "appearances": 52
+    },
+    "207151a9-b7ff-4fdf-b676-4ce3a52b1420": {
+      "name": "The Publican",
+      "avg_score": 0,
+      "appearances": 51
+    },
+    "c5478690-8eb8-4af5-b99c-a7224e58b6db": {
+      "name": "Ever Restaurant",
+      "avg_score": 0,
+      "appearances": 67
+    },
+    "9a978039-930a-4646-8d52-ceea03dfe827": {
+      "name": "Topolobampo",
+      "avg_score": 0,
+      "appearances": 83
+    },
+    "f69605de-88d7-4cd0-97ae-6b970b52c462": {
+      "name": "Kasama",
+      "avg_score": 0,
+      "appearances": 59
+    },
+    "98c1ca4d-842e-416b-aca2-ae3548ff9209": {
+      "name": "Tanta Cocina Peruana",
+      "avg_score": 0,
+      "appearances": 24
+    },
+    "089617a7-2cc1-4bbb-9b60-5f79af8504c5": {
+      "name": "Superkhana International",
+      "avg_score": 0,
+      "appearances": 15
+    },
+    "a1a05d19-80c2-4120-8f58-862663de1d5c": {
+      "name": "Cabra",
+      "avg_score": 0,
+      "appearances": 12
+    },
+    "a696496a-9403-4d10-b764-aec906e8619e": {
+      "name": "Duck Duck Goat",
+      "avg_score": 0,
+      "appearances": 16
+    },
+    "d2c94510-decc-425d-ba3d-f40300123963": {
+      "name": "KAI ZAN CHICAGO",
+      "avg_score": 0,
+      "appearances": 22
+    },
+    "2ee0dbd6-cd02-4a70-a74c-44f7e4b1c58a": {
+      "name": "Rotisserie Ema",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "2c4aef6b-ed46-43f4-9bc7-5325ae0df45e": {
+      "name": "The Gundis Kurdish Kitchen",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "a7e219eb-d859-45b2-acb4-bf688b35db12": {
+      "name": "Sayat Nova Armenian Restaurant",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "444151dc-012b-4e30-97f5-50e649303bff": {
+      "name": "Avaspi",
+      "avg_score": 0,
+      "appearances": 11
+    },
+    "014cb37a-d992-4113-9f63-9360b20e501f": {
+      "name": "Suda's",
+      "avg_score": 0,
+      "appearances": 16
+    },
+    "0d08fc73-070d-4a9d-ac6a-8f62586221db": {
+      "name": "Bonchon",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "b759969a-c2cd-4dac-8af7-0c6a907e5d4a": {
+      "name": "Jeong",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "368a3201-cc45-485b-9bba-3b52d6462348": {
+      "name": "Mercadito",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "9402dcc8-1290-4971-b6d9-4b791de6d8a3": {
+      "name": "Au Cheval",
+      "avg_score": 0,
+      "appearances": 18
+    },
+    "19bbbfe7-cc53-4bf5-8bbc-b0fcc7d5aa40": {
+      "name": "XOCO",
+      "avg_score": 0,
+      "appearances": 68
+    },
+    "7116fca0-3b48-48ed-9f04-6928cfd02d0e": {
+      "name": "Mi Tocaya Antojería",
+      "avg_score": 0,
+      "appearances": 38
+    },
+    "dccb3ad6-2819-42db-90ff-2b65651752a9": {
+      "name": "Cantina on Madison, Casual Mexican Restaurant & Bar, Voted #1 Tacos",
+      "avg_score": 0,
+      "appearances": 14
+    },
+    "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b": {
+      "name": "Giant",
+      "avg_score": 0,
+      "appearances": 26
+    },
+    "15b3807b-1039-46ba-a1ee-1224bbe6903a": {
+      "name": "Giordano's Pizza Rogers Park",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "78b648a7-9ccc-4752-9823-42618ee64a5f": {
+      "name": "Big Jones",
+      "avg_score": 0,
+      "appearances": 74
+    },
+    "87338807-f9f2-483f-a997-2bd205e52321": {
+      "name": "Spacca Napoli Pizzeria",
+      "avg_score": 0,
+      "appearances": 30
+    },
+    "a8c44566-1db6-485d-9547-397b8372fc8d": {
+      "name": "Gavroche",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "f716e828-6427-41b8-87d8-49f634d38f41": {
+      "name": "Girl & The Goat",
+      "avg_score": 0,
+      "appearances": 64
+    },
+    "77d7b4a2-3ce7-4fab-abb6-f66ceaa21616": {
+      "name": "Schwa Restaurant",
+      "avg_score": 0,
+      "appearances": 52
+    },
+    "66f8e3b7-0ef5-4ae0-85c2-8a89d265d48c": {
+      "name": "Trattoria RNB Private Dining & Events",
+      "avg_score": 0,
+      "appearances": 22
+    },
+    "ea1ccf92-6db2-4c3c-9387-69cf11a5f4d1": {
+      "name": "Early Morning Delight",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "72f2c293-d395-4a27-bd07-6f6ff5fdf365": {
+      "name": "La Cocina De Don Ramón",
+      "avg_score": 0,
+      "appearances": 11
+    },
+    "978bfcd2-4d50-4fe7-aa89-d7067395409e": {
+      "name": "Legend Dumpling + Bao",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "e7abfe57-4df8-4f0c-bbab-70bdedf13ae3": {
+      "name": "Kumiko",
+      "avg_score": 0,
+      "appearances": 27
+    },
+    "64d39ce0-0fb4-4a26-8349-50e354bdfbc7": {
+      "name": "The Bamboo Room at Three Dots and a Dash",
+      "avg_score": 0,
+      "appearances": 13
+    },
+    "4ff9dc21-fc53-468a-9704-fd90a7b0311b": {
+      "name": "Broken Shaker at Freehand Chicago",
+      "avg_score": 0,
+      "appearances": 27
+    },
+    "bfc5cc4d-ed59-4954-b7c8-22459dc68983": {
+      "name": "Three Dots and a Dash",
+      "avg_score": 0,
+      "appearances": 19
+    },
+    "989ff6ee-7838-4c9b-a22f-86870da5e5a5": {
+      "name": "Sunda New Asian",
+      "avg_score": 0,
+      "appearances": 12
+    },
+    "e63ac7e2-3a50-45ba-b1ea-83a35fd4ae3d": {
+      "name": "Lucky Dorr Patio & Tap",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "a81f31c3-6d39-4d32-9f7c-736fd30b1076": {
+      "name": "Ann Sather Restaurant",
+      "avg_score": 0,
+      "appearances": 10
+    },
+    "a747f2da-d6e9-4d59-9123-cd938c7900ce": {
+      "name": "Phodega",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "bc392b73-3039-42cb-ae24-575b23532b39": {
+      "name": "4 Seasons",
+      "avg_score": 0,
+      "appearances": 13
+    },
+    "2d8865e8-051c-4caa-bacf-2645f011dd56": {
+      "name": "Smoque BBQ",
+      "avg_score": 0,
+      "appearances": 15
+    },
+    "010c222c-f871-408e-a9d5-37cbee120284": {
+      "name": "Frontera Grill",
+      "avg_score": 0,
+      "appearances": 28
+    },
+    "28f9811a-07e2-4b37-a7cb-c83b7bec3dad": {
+      "name": "Daisies",
+      "avg_score": 0,
+      "appearances": 46
+    },
+    "7b7e66d1-ef58-4338-b9dd-419d48d5372b": {
+      "name": "Longman & Eagle",
+      "avg_score": 0,
+      "appearances": 37
+    },
+    "86de1c95-3dbd-4a38-9382-d190e097efe5": {
+      "name": "The Loyalist",
+      "avg_score": 0,
+      "appearances": 14
+    },
+    "ea45ab08-0b54-4e2b-a2c9-ec10ebf4e8b6": {
+      "name": "Green Street Smoked Meats",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "7f994f20-5d90-48f3-9592-2d8ecf2e7a94": {
+      "name": "Exchequer Restaurant & Pub",
+      "avg_score": 0,
+      "appearances": 16
+    },
+    "9368db6f-71d4-4279-92c1-65d9c0bd44b0": {
+      "name": "Billy Goat Tavern (The Original)",
+      "avg_score": 0,
+      "appearances": 14
+    },
+    "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8": {
+      "name": "Galit",
+      "avg_score": 0,
+      "appearances": 42
+    },
+    "5a7e8ebc-6ef6-414b-a3f0-6eee23e3990a": {
+      "name": "Thattu",
+      "avg_score": 0,
+      "appearances": 36
+    },
+    "e1bcc212-c00b-4447-9363-24437c75ecf8": {
+      "name": "Nella Pizza e Pasta",
+      "avg_score": 0,
+      "appearances": 42
+    },
+    "04f426fe-0419-4780-8c40-8010789fbf2a": {
+      "name": "RPM Italian",
+      "avg_score": 0,
+      "appearances": 26
+    },
+    "7fdb5731-29b0-42df-aadb-de04fe153eeb": {
+      "name": "14 Parish",
+      "avg_score": 0,
+      "appearances": 18
+    },
+    "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e": {
+      "name": "Caribella",
+      "avg_score": 0,
+      "appearances": 11
+    },
+    "961878b7-f7c8-4ed3-8664-deac3fb76528": {
+      "name": "mfk. Restaurant",
+      "avg_score": 0,
+      "appearances": 9
+    },
+    "86d36142-974e-42d1-be6f-dd1bb591c6cc": {
+      "name": "Kimchi Pop 2 by Chef Son",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "adbf5e72-ccae-46ac-a056-9d1fa412c116": {
+      "name": "Jim's Original",
+      "avg_score": 0,
+      "appearances": 12
+    },
+    "3a81734e-dce4-4ee3-a7ec-379f3265f1d0": {
+      "name": "Big Star Wicker Park",
+      "avg_score": 0,
+      "appearances": 11
+    },
+    "da4ea06f-7c8c-41e8-9baa-1007d36d8eef": {
+      "name": "Fiya",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "467b3c87-5829-41b2-91fc-6cd077f77613": {
+      "name": "Bavette's Bar & Boeuf",
+      "avg_score": 0,
+      "appearances": 72
+    },
+    "adfbe950-c6bd-4467-8c06-067ebe407746": {
+      "name": "The J. Parker",
+      "avg_score": 0,
+      "appearances": 13
+    },
+    "8031cbb2-a86c-4921-8e68-a8a9ae983414": {
+      "name": "Staropolska Restaurant",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "30ce808a-6c0a-4919-a43d-4b94af41c135": {
+      "name": "Leña Brava",
+      "avg_score": 0,
+      "appearances": 16
+    },
+    "f8ee2d4a-405e-4bec-8c0a-7ea28a02b4ad": {
+      "name": "Moody Tongue",
+      "avg_score": 0,
+      "appearances": 32
+    },
+    "da48aa3c-e71a-426d-a9c1-dff175431a95": {
+      "name": "Royal Africana Lounge",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "e17891a7-6478-45bd-8744-5b45810d9dca": {
+      "name": "Sunshine’s Place",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "5101cd1c-f928-453b-923b-94ebc268de40": {
+      "name": "Twin Anchors Restaurant & Tavern",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "5826ea42-cae1-44ed-995c-58a0d7bfbaa0": {
+      "name": "Hawksmoor Chicago",
+      "avg_score": 0,
+      "appearances": 12
+    },
+    "fed6c5d4-7ba5-44c6-98d4-45dabb4abc29": {
+      "name": "El Che Steakhouse & Bar",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "70e4b943-6380-4e48-b608-c322b099c953": {
+      "name": "Indienne",
+      "avg_score": 0,
+      "appearances": 40
+    },
+    "cf284235-49af-4e54-aea6-e9f0c6eb9c77": {
+      "name": "La Esperanza Restaurant Pilsen",
+      "avg_score": 0,
+      "appearances": 13
+    },
+    "29f16b77-fd63-42ef-a2e3-8f017f71ed1e": {
+      "name": "CMB Catering",
+      "avg_score": 0,
+      "appearances": 19
+    },
+    "64933aab-e3cc-4526-92c6-5ada43e62074": {
+      "name": "Lou Mitchell's",
+      "avg_score": 0,
+      "appearances": 16
+    },
+    "8d89f0e4-a227-4dfc-820a-d633fd218eb5": {
+      "name": "The Dearborn",
+      "avg_score": 0,
+      "appearances": 16
+    },
+    "d3e6a0cf-4e97-4cb0-a950-c7c8661126c4": {
+      "name": "Cindy's Rooftop",
+      "avg_score": 0,
+      "appearances": 9
+    },
+    "2247d52b-93a9-4db9-916b-623c5bfec5f0": {
+      "name": "Quartino Ristorante",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "6aa5d56a-0ee2-493d-b1a5-730d79c4df17": {
+      "name": "Cafe Ba-Ba-Reeba!",
+      "avg_score": 0,
+      "appearances": 20
+    },
+    "54ba6fd5-d5c4-4aeb-846c-d19edf81afa6": {
+      "name": "La Crêperie Chicago Restaurant",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "e40aca51-42ec-48dc-9699-044ef991f5fb": {
+      "name": "Le Colonial Chicago",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "fa7f20cb-2fcf-40d1-80c9-836a86ad8482": {
+      "name": "Alpana",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "c1391b64-c682-4a19-93fa-8beab5c6eb24": {
+      "name": "Barrel cheese & wine | cocktails | Event Space",
+      "avg_score": 0,
+      "appearances": 12
+    },
+    "9531de7c-5b1e-4bfe-a055-973f956bb39c": {
+      "name": "Bandit",
+      "avg_score": 0,
+      "appearances": 17
+    },
+    "03ace4f8-bb00-476e-8112-dc5e580b56dd": {
+      "name": "Han 202 Restaurant",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "adaeb395-ffb5-4abb-b809-6b5da137a656": {
+      "name": "Lula Cafe",
+      "avg_score": 0,
+      "appearances": 34
+    },
+    "28a2a43b-957d-4727-8e57-b2ee4ff3e07d": {
+      "name": "Gilt Bar",
+      "avg_score": 0,
+      "appearances": 15
+    },
+    "b097e932-4a4c-40d6-bda7-38f2db3655be": {
+      "name": "RPM Seafood",
+      "avg_score": 0,
+      "appearances": 10
+    },
+    "fbe57f23-62af-47af-9950-ee38022f7099": {
+      "name": "Deborincuba Restaurant",
+      "avg_score": 0,
+      "appearances": 10
+    },
+    "6910492c-fe77-496e-9c63-c88015b99a1f": {
+      "name": "Mart Anthony's Italian Restaurant",
+      "avg_score": 0,
+      "appearances": 9
+    },
+    "370ce82e-10b0-46b0-9db9-fb05b5f02104": {
+      "name": "Roka Akor - Chicago",
+      "avg_score": 0,
+      "appearances": 11
+    },
+    "1b9806f3-554b-4604-a0c7-b63d724aa999": {
+      "name": "Momotaro",
+      "avg_score": 0,
+      "appearances": 20
+    },
+    "961caf60-065c-48dd-b99d-815ae38991d5": {
+      "name": "Mako",
+      "avg_score": 0,
+      "appearances": 10
+    },
+    "90a87ef6-f3f0-40fa-bb81-d076d2b9d6e1": {
+      "name": "Soul Vibez - Chicago",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "fdcf51d0-ba44-453d-91ec-36bc6a61f166": {
+      "name": "Calumet Fisheries",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "ad1e5fd1-e2b5-404d-aa65-95d17fa546d0": {
+      "name": "Martin's Corner",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "01901119-9bec-4f8b-8b8e-35ee363f16a9": {
+      "name": "Puebla Restaurant & Taquería",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "29f79ecb-843c-4bb1-9a66-e9b094f6d2fa": {
+      "name": "Shaw's Crab House",
+      "avg_score": 0,
+      "appearances": 13
+    },
+    "f14ed695-f84b-4f0e-88ee-a0966eecef98": {
+      "name": "Ema",
+      "avg_score": 0,
+      "appearances": 9
+    },
+    "7b9b9084-5775-48c2-bb73-57b08a9344a7": {
+      "name": "Boqueria Fulton Market",
+      "avg_score": 0,
+      "appearances": 9
+    },
+    "ae50d9d1-a003-4c8e-a1ff-051b8cbcf2c0": {
+      "name": "Smyth",
+      "avg_score": 0,
+      "appearances": 9
+    },
+    "ef2a9292-3743-4e63-b0b0-2ed4d0290b18": {
+      "name": "MCCB Chicago",
+      "avg_score": 0,
+      "appearances": 29
+    },
+    "98dee7c6-ba19-4917-92a4-5dbd0fef2670": {
+      "name": "Kyōten",
+      "avg_score": 0,
+      "appearances": 37
+    },
+    "a20e281f-6e78-4a42-ada4-06f579a2e91f": {
+      "name": "Yao Yao",
+      "avg_score": 0,
+      "appearances": 10
+    },
+    "6db7c61b-555d-4a1e-b384-d624dd19f590": {
+      "name": "Triple Crown Restaurant",
+      "avg_score": 0,
+      "appearances": 10
+    },
+    "a5f0c788-06fb-4280-bda1-ab3c2a5bb819": {
+      "name": "Maple & Ash",
+      "avg_score": 0,
+      "appearances": 9
+    },
+    "6dadd943-3afd-4580-b8e3-f35d90bb76fc": {
+      "name": "Bar Sótano",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "1781953b-66ba-4639-87cf-1c645535f565": {
+      "name": "Brown's Soul Food",
+      "avg_score": 0,
+      "appearances": 12
+    },
+    "b2159361-eb31-4505-b661-1e679ef567e4": {
+      "name": "Antico",
+      "avg_score": 0,
+      "appearances": 16
+    },
+    "c123b8cb-67ef-45e9-8b85-c3531e0ee021": {
+      "name": "Cal's Corner",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "fec1369d-29b4-4700-857f-b4385389b0a5": {
+      "name": "Q'bo Latin Cafe Inc.",
+      "avg_score": 0,
+      "appearances": 17
+    },
+    "edee9af3-a349-46e4-99b1-bed2e90ca23f": {
+      "name": "DeNucci's Lincoln Park",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "81efd970-8bec-47c5-9803-f14d77d0346c": {
+      "name": "Levant Coffee Lakeview (Takeout Only)",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "9dbaea89-059d-4641-8b2e-b3e903082fca": {
+      "name": "Boka",
+      "avg_score": 0,
+      "appearances": 11
+    },
+    "31731a30-4f2b-426b-9fbf-168dafcaed2c": {
+      "name": "Demera Restaurant",
+      "avg_score": 0,
+      "appearances": 14
+    },
+    "a491755e-4942-4da5-9ba4-4388b79debb4": {
+      "name": "Mama’s African kitchen restaurant bar",
+      "avg_score": 0,
+      "appearances": 12
+    },
+    "7a8e7341-1fbe-494a-88d3-b3978c2d8d8c": {
+      "name": "Ethiopian Diamond Restaurant & Bar",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "7a0911d9-a4eb-4ae1-910b-d3cfcc90c4b3": {
+      "name": "ROOP Chicago Innovative Indian Restaurant & Cocktail Bar",
+      "avg_score": 0,
+      "appearances": 10
+    },
+    "4496ab73-9264-4869-8d54-8876d39c06c1": {
+      "name": "Aba",
+      "avg_score": 0,
+      "appearances": 11
+    },
+    "5bfade07-cba4-475e-a978-12cc46a6c306": {
+      "name": "Pizzeria Aroma",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "0cb79f3c-ee19-4a3e-a97a-3241dbb79c76": {
+      "name": "Robert's Pizza and Dough Company",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "da2bf472-5fe2-4d0a-9f86-60a13ca9258d": {
+      "name": "Outdoor Grill Chicago",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "5174edec-1317-427e-8e22-2a222c5a8eaa": {
+      "name": "Ithaki Estiatorio",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "c3083e48-50e1-4612-9009-24cc355b23fb": {
+      "name": "Athenian Room",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "7286be49-7949-4d9c-8486-216e4b24e4a0": {
+      "name": "Sila's mediterranean Restaurant #2",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "0648cd00-97b2-423a-8c9a-62792f47ac93": {
+      "name": "Taxim",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "9dbbbc0a-903a-4ce2-b1e2-afc2b49cfc8a": {
+      "name": "Caribbean American Baking Co",
+      "avg_score": 0,
+      "appearances": 9
+    },
+    "cafb4e51-4eec-450d-bdd4-4a27c50b14df": {
+      "name": "Joe's Seafood, Prime Steak & Stone Crab",
+      "avg_score": 0,
+      "appearances": 8
+    },
+    "93bba72c-8738-4f7d-a663-4f907a06fae5": {
+      "name": "Floriole Cafe & Bakery",
+      "avg_score": 0,
+      "appearances": 20
+    },
+    "437ce574-8ad9-4ae3-9c9c-e92ef5e044f4": {
+      "name": "Bazaar Meat",
+      "avg_score": 0,
+      "appearances": 9
+    },
+    "0aba415a-630c-487e-9813-e1afcfabc631": {
+      "name": "La Cueva Del Indio Cafe",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "78797b47-5035-4cc4-8b4e-2d57a83fa8ec": {
+      "name": "Pierogi Kitchen",
+      "avg_score": 0,
+      "appearances": 10
+    },
+    "8f916127-c8ab-4b69-ab0c-3098f4095707": {
+      "name": "Grill on 21",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "5619ed80-b5d8-4d75-9999-c54e39916718": {
+      "name": "Gibsons Italia",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "1a1a7478-c92d-4568-972d-017c86048980": {
+      "name": "Ocean Prime",
+      "avg_score": 0,
+      "appearances": 7
+    },
+    "47d903b3-751d-4e60-90db-21d6e770eb25": {
+      "name": "Khmai",
+      "avg_score": 0,
+      "appearances": 8
     }
   },
   "direct_boost": 5,

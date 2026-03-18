@@ -106,11 +106,16 @@ Make targeted fixes in `scoring-v9.ts` (or related files):
 - Each fix should address a specific root cause
 - Document fixes with V-version comments (e.g., `// V20: Fix for...`)
 
-### Step 7: Deploy and Retest
+### Step 7: Commit, Push, and Retest
 
 ```bash
-# Deploy
-supabase functions deploy recommend
+# Commit and push via claude/ branch (CI auto-merges + auto-deploys)
+git add supabase/functions/recommend/_shared/
+git commit -m "V<N>: Subjective testing fixes — <description>"
+git push -u origin claude/<branch-name>
+
+# Wait for CI deploy (~45s)
+sleep 45 && gh run list --workflow="deploy-edge-function.yml" --limit 1
 
 # Retest all 25 queries
 # Compare before/after for each query
@@ -133,10 +138,10 @@ Verify no regression vs baseline (184P/0F/4W or better).
 When CEO specifies "X rounds of testing":
 
 ```
-Round 1: Generate 25 queries → Test → Fix → Retest → Report
-Round 2: Generate NEW 25 queries → Test → Fix → Retest → Report
+Round 1: Generate 25 queries → Test → Fix → Retest → ML Training Data → Report
+Round 2: Generate NEW 25 queries → Test → Fix → Retest → ML Training Data → Report
 ...
-Round X: Generate NEW 25 queries → Test → Fix → Retest → Report
+Round X: Generate NEW 25 queries → Test → Fix → Retest → ML Training Data → Report
 ```
 
 Each round uses DIFFERENT queries to maximize coverage. Track cumulative stats:
@@ -144,6 +149,65 @@ Each round uses DIFFERENT queries to maximize coverage. Track cumulative stats:
 - Cumulative pass rate improvement
 - Total fixes applied
 - Regression count (should be 0)
+
+## Step 9 (MANDATORY): ML Training Data Enrichment
+
+After EVERY round of testing, you MUST update ML training data and the boost table. This step is non-optional.
+
+### 9a: Generate Training Data Batch
+
+For each query tested in this round, create a training data entry using the POST-FIX engine output as ground truth:
+
+```json
+{
+  "query_id": <next_sequential>,
+  "test_id": "SUB-R<round>-<seq>",
+  "category": "<cuisine|dish|vibe|neighborhood|occasion|concept|dietary|format>",
+  "query": "<the query>",
+  "occasion": "Any",
+  "expected_cuisines": ["<correct cuisine(s)>"],
+  "ideal_ranking": [
+    {
+      "rank": 1,
+      "restaurant_id": "<uuid from engine>",
+      "restaurant_name": "<name>",
+      "cuisine_type": "<cuisine>",
+      "neighborhood": "<neighborhood>",
+      "price_level": "<price>",
+      "score": <donde_match>,
+      "reasoning": "<why this is the correct #1>"
+    }
+    // ... top 5
+  ]
+}
+```
+
+Save to `scripts/ml/training-data-subjective-r<round>.json`.
+
+### 9b: Update Boost Table
+
+Read `supabase/functions/recommend/_shared/boost-table.json` and for each query:
+
+1. **Compute canonical key**: lowercase, trim, remove "best" prefix if present
+2. **Check existing entries**: If a key exists, verify the restaurant IDs still match V25+ engine output. Replace stale IDs (wrong cuisine, no longer top-5).
+3. **Add missing entries**: Create new entries for queries with no boost key. Include both canonical form AND "best X" alias.
+4. **Cuisine-filter all entries**: Only include restaurant IDs whose cuisine_type matches the query's target cuisine. Never boost wrong-cuisine restaurants.
+5. **Skip empty results**: If the engine returns DM < 30 for all results (DB coverage gap), skip the boost entry entirely.
+
+### 9c: Verify Boost Table Integrity
+
+After updating, verify:
+- No duplicate keys
+- All restaurant IDs are valid UUIDs
+- No entry has more than 5 restaurant IDs
+- JSON is valid
+
+### 9d: Update Documentation
+
+Append this round's fixes to `docs/SUBJECTIVE-TEST-FIXES.md`:
+- Add row to summary table
+- Document each fix with file/line, failure addressed, before/after behavior
+- Update "Remaining Issues" section
 
 ## Report Format
 
@@ -172,7 +236,13 @@ Summary: X CORRECT, Y ACCEPTABLE, Z WRONG, W CATASTROPHIC
 Pass rate: improved from A% to B%
 Regressions: 0
 
-### Golden Dataset: 184P/0F/4W (no regression)
+### ML Training Data
+- New training entries: N
+- Boost table keys added: N
+- Boost table keys updated: N
+- Stale entries removed: N
+
+### Golden Dataset: 181P/0F/7W (no regression)
 ```
 
 ## Environment Variables
@@ -184,9 +254,13 @@ Read from `/home/aacrit/projects/dondeBackend/.env`:
 ## Key Scoring Engine Facts
 
 - Formula: DondeScore = Relevance(0-1) x Quality(0-100) + OccasionBonus(+-5)
-- Relevance hierarchy: dish > cuisine > reputation > vibe > semantic > open_ended
-- CRITICAL: "best X" triggers reputation path which ignores cuisine. V20 added cuisine-gating.
+- Relevance hierarchy: dish > cuisine > vibe > semantic > reputation > open_ended
+- CRITICAL: "best X" triggers reputation path which ignores cuisine. V20+ added cuisine-gating, price gates, dietary gates, format gates, structural checks.
 - Weight profiles: cuisine (food 0.35), reputation (food 0.15, rep 0.55), vibe (vibe 0.45)
 - Reputation keywords: "best", "michelin", "james beard", "top rated", etc.
-- ML boost: +5 direct teacher picks, +2 consistent winners (boost-only, never penalizes)
+- ML boost: +5 direct teacher picks, +2 consistent winners (boost-only, never penalizes). 726 keys in boost-table.json.
+- Training data: `scripts/ml/training-data-*.json` — batches of teacher-ranked queries with ideal_ranking (top 5 per query)
+- Boost table: `supabase/functions/recommend/_shared/boost-table.json` — query_boosts (canonical_query → [restaurant_ids]) + consistent_winners
 - All tests use skip_claude=true + skip_google=true for $0 cost
+- Git workflow: always use `claude/` branch prefix (CI auto-merges to main)
+- Documentation: always update `docs/SUBJECTIVE-TEST-FIXES.md` with cumulative fixes after each round
