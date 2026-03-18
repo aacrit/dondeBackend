@@ -1,6 +1,7 @@
 ---
 name: update-docs
-description: "Scans the DondeAI backend codebase for changes and updates all markdown documentation files (CLAUDE.md, docs/*.md) to reflect the current state. Auto-trigger when changes are significant enough to cause documentation drift."
+description: "MUST BE USED after significant code changes. Scans codebase, updates CLAUDE.md and docs/*.md to reflect current state. Read+write."
+model: sonnet
 allowed-tools: [Read, Grep, Glob, Bash, Edit, Write]
 ---
 
@@ -91,3 +92,5 @@ For each discrepancy, update the relevant MD file. Always update `Last updated` 
 ## Companion Agent
 
 The frontend repo (`dondeAI`) has a matching update-docs agent. When major changes span both repos, run both.
+
+Output: Return findings to the main session. Do not attempt to spawn other agents.

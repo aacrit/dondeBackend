@@ -61,35 +61,72 @@ Frontend agents (in `../dondeAI/.claude/agents/`): `frontend-builder` (component
 
 All backend agents in `.claude/agents/`. Spawn via the Agent tool or `/agents` dialog.
 
-## Agent Hierarchy
+## Agent Routing Rules
 
-The COO (`donde-coo`) orchestrates all agents across **7 divisions**. Every agent reports to the COO, and the COO reports directly to the CEO.
+Claude Code subagents CANNOT spawn other subagents. Do NOT attempt hierarchical delegation through the COO. Instead, invoke agents directly by name based on the task type below.
 
-```
-CEO (Aacrit)
-  └── COO (donde-coo)
-        ├── Quality ———— analytics-expert, bug-fixer, gen-test-queries, continuous-tester
-        ├── Infrastructure — perf-optimizer, db-reviewer, update-docs, prod-sentinel
-        ├── Frontend ———— frontend-builder, frontend-fixer, css-theme-specialist, uat-tester, frontenddesign
-        ├── Product ————— ceo-advisor, donde-premium-advisor
-        ├── Security ———— donde-ciso
-        ├── Integrations — reservation-integration-specialist, payments-ordering-specialist, maps-location-specialist, social-reviews-specialist
-        └── R&I —————————— motion-physics-designer, spatial-map-innovator, social-community-designer,
-                           personalization-ai-architect, gamification-engagement-designer,
-                           micro-interaction-designer, accessibility-inclusivity-lead,
-                           data-storytelling-designer, voice-conversational-designer,
-                           premium-experience-architect
-```
+### Direct invocation (default — use this for all tasks)
 
-**Escalation:** CRITICAL findings auto-escalate to COO → CEO with "The Bottom Line" summary.
+Match the task to the right agent and invoke it by name:
 
-**Team Orchestration:** COO uses `TeamCreate` + `SendMessage` + `TaskCreate` for real-time multi-agent coordination. See `docs/TEAM-OPERATIONS.md` for full protocol. CEO guide: `docs/CEO-QUICK-REFERENCE.md`.
+| Task pattern | Agent to invoke | Division |
+|---|---|---|
+| Scoring engine bugs, test failures, FAIL/WARN results | `bug-fixer` | Quality |
+| Run golden dataset, regression guard, post-deploy verification | `continuous-tester` | Quality |
+| Benchmark scoring, DondeMatch calibration, ranking audit | `analytics-expert` | Quality |
+| Generate test queries, expand test corpus | `gen-test-queries` | Quality |
+| Subjective quality audit, expert consensus comparison | `subjective-engine-tester` | Quality |
+| Response time profiling, timeout prevention, latency | `perf-optimizer` | Infrastructure |
+| Restaurant data accuracy, NULL audits, freshness | `db-reviewer` | Infrastructure |
+| Sync markdown docs with code changes | `update-docs` | Infrastructure |
+| API error rates, cache health, production anomalies | `prod-sentinel` | Infrastructure |
+| Build UI components, implement features, new pages | `frontend-builder` (frontend repo) | Frontend |
+| Fix UI bugs, theme breaks, visual regressions | `frontend-fixer` (frontend repo) | Frontend |
+| Theme coverage audit, token verification, wash transition | `css-theme-specialist` (frontend repo) | Frontend |
+| Browser testing, click-through QA, accessibility audit | `uat-tester` | Frontend |
+| Strategic product advice, priority ranking, roadmap | `ceo-advisor` | Product |
+| Premium quality assessment, $50B polish audit | `donde-premium-advisor` | Product |
+| Security audit, secrets scan, RLS review, OWASP | `donde-ciso` | Security |
+| Reservation deep links (Resy, OpenTable, Tock) | `reservation-integration-specialist` | Integrations |
+| Ordering/delivery (Toast, DoorDash, Square) | `payments-ordering-specialist` | Integrations |
+| Maps, directions, location APIs | `maps-location-specialist` | Integrations |
+| Reviews, social proof, Yelp/Instagram/TikTok | `social-reviews-specialist` | Integrations |
+| Spring physics, gesture design, haptic feedback | `motion-physics-designer` | R&I |
+| Map innovation, spatial discovery, AR wayfinding | `spatial-map-innovator` | R&I |
+| Social dining, food circles, shared lists | `social-community-designer` | R&I |
+| Taste fingerprints, personalization, learning loops | `personalization-ai-architect` | R&I |
+| Badges, streaks, challenges, progression | `gamification-engagement-designer` | R&I |
+| Easter eggs, celebrations, micro-animations | `micro-interaction-designer` | R&I |
+| WCAG compliance, a11y, i18n, cultural sensitivity | `accessibility-inclusivity-lead` | R&I |
+| Dining Wrapped, data narratives, taste maps | `data-storytelling-designer` | R&I |
+| Voice search, conversational UX, NLU flows | `voice-conversational-designer` | R&I |
+| VIP tiers, concierge, luxury quality | `premium-experience-architect` | R&I |
+
+### System health check (use donde-coo)
+
+Invoke `donde-coo` ONLY for system-wide health assessments. It reads both repos, runs diagnostics, and returns a structured CEO briefing with RAG status per division. It does NOT delegate to other agents — it reports what needs attention, and you invoke the appropriate agents yourself.
+
+### Parallel-safe agents (can run simultaneously via Agent Teams)
+
+These agents are read-only and never modify files. Safe to run in parallel:
+`analytics-expert`, `db-reviewer`, `donde-ciso`, `perf-optimizer`, `prod-sentinel`, `ceo-advisor`, `donde-premium-advisor`, and all 10 R&I division agents.
+
+### Sequential chains (run in order, pass results between steps)
+
+**Quality cycle:** `continuous-tester` → (review results) → `bug-fixer` → `continuous-tester` (retest)
+**Subjective audit:** `gen-test-queries` → `subjective-engine-tester` → `bug-fixer` → `continuous-tester`
+**Frontend build:** `frontend-builder` → `css-theme-specialist` → `uat-tester` → `frontend-fixer`
+**Cross-repo deploy:** (code change) → `update-docs` → `continuous-tester` → `prod-sentinel`
+
+### NEVER do this
+
+- Do NOT spawn `donde-coo` and expect it to delegate to other agents. Subagents cannot spawn subagents.
+- Do NOT route all tasks through the COO. Invoke specialists directly.
+- Do NOT run two write-capable agents on the same files simultaneously.
+
+See Agent Routing Rules above for how to invoke agents.
 
 **Projects:** Alpha (quality automation) | Bravo (cross-repo sync) | Charlie (cache intelligence) | Delta (competitive intel) | Echo (launch readiness) | Foxtrot (reservation integration) | Golf (R&I innovation). All $0 cost.
-
-**CEO task trigger:** All CEO tasks should trigger an agentic team response — spawn the COO (`donde-coo`) to orchestrate the appropriate division agents for the task. The COO triages, assigns agents, and reports back.
-
-**Change notification:** COO should be spawned after significant code changes to run a quality cycle.
 
 ## Tests
 

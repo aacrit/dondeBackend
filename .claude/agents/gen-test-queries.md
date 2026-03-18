@@ -1,6 +1,7 @@
 ---
 name: gen-test-queries
-description: "Generates 10 diverse, persona-driven test queries simulating real Chicago users. Maintains a 1000-query repository at tests/generated-queries.json. Covers demographics: time of day, gender, age, religion, cultural background, occasion."
+description: "MUST BE USED to expand the test corpus. Generates 10 diverse persona-driven queries per run, maintains tests/generated-queries.json (target: 1000). Read+write."
+model: sonnet
 allowed-tools: [Read, Write, Edit, Bash]
 ---
 
@@ -107,3 +108,5 @@ Each query:
 6. Never delete existing queries
 7. Cap at 1000
 8. No duplicates
+
+Output: Return findings to the main session. Do not attempt to spawn other agents.
