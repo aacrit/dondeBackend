@@ -1161,7 +1161,11 @@ export function computeRelevance(
           // Right cuisine but dish not found — capped lower than before
           // V21: Lowered cap from 0.70 to 0.55 so restaurants without the dish
           // don't beat actual dish specialists (e.g., North Pond for "best burger")
-          const cappedScore = Math.min(0.55, Math.max(repRelevance.score * 0.55, cuisineRel * 0.60));
+          // V25: Lowered cap from 0.55 to 0.40 — even 0.55 was too high for specialty
+          // food items (donuts, bagels, ice cream, cookies). With 0.55 and quality 100,
+          // DM = 55 (after decompression ~46). With 0.40, DM = 40, ensuring dish
+          // specialists always rank higher than generic restaurants of the same cuisine.
+          const cappedScore = Math.min(0.40, Math.max(repRelevance.score * 0.40, cuisineRel * 0.45));
           return { score: cappedScore, type: "cuisine", details: `Reputation+CuisineOnly (no dish): rep=${repRelevance.score.toFixed(2)} cuisine=${cuisineRel.toFixed(2)}` };
         }
         // Wrong cuisine AND wrong dish — hard cap

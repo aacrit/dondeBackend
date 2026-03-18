@@ -331,7 +331,10 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   // --- Drinks ---
   "drinks": { tags: ["craft cocktails", "byob"] },
   "cocktail": { tags: ["craft cocktails"] },
-  "wine": { tags: ["romantic"], cuisines: ["Italian", "French"] },
+  // V25: Removed cuisines from "wine" — "romantic wine bar" is a vibe/venue query,
+  // not a cuisine query. Having cuisines: ["Italian", "French"] caused Nella Pizza (Italian)
+  // to win "romantic wine bar" over actual wine bars.
+  "wine": { tags: ["romantic"] },
   "beer": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
   "craft beer": { cuisines: ["Brewery/Beer Bar"], tags: ["craft beer"] },
   "brewery": { cuisines: ["Brewery/Beer Bar"] },
@@ -794,8 +797,19 @@ export const INTENT_MAP: Record<string, IntentSignal> = {
   "donuts": { cuisines: ["American", "Coffee/Cafe"] },
   "matcha desserts": { cuisines: ["Japanese"] },
   "bread bakery": { cuisines: ["Coffee/Cafe"] },
-  "ice cream": { tags: ["great value"] },
-  "ice cream shop": { tags: ["great value"] },
+  // V25: Added cuisines to ice cream so dish_level_intent fires and dish-gated reputation
+  // can verify the restaurant actually serves/specializes in ice cream.
+  "ice cream": { cuisines: ["American"], tags: ["great value"] },
+  "ice cream shop": { cuisines: ["American"], tags: ["great value"] },
+  // V25: Added missing dish intents — these previously had no INTENT_MAP entry,
+  // so "best bagel", "best cookie", "best torta" fell to pure reputation (Big Jones/Bavette's).
+  "bagel": { cuisines: ["American", "Coffee/Cafe"] },
+  "bagels": { cuisines: ["American", "Coffee/Cafe"] },
+  "bagel shop": { cuisines: ["American", "Coffee/Cafe"] },
+  "cookie": { cuisines: ["American", "Coffee/Cafe"] },
+  "cookies": { cuisines: ["American", "Coffee/Cafe"] },
+  "torta": { cuisines: ["Mexican"] },
+  "tortas": { cuisines: ["Mexican"] },
 
   // --- Missing Vibe/Occasion Intents ---
   "dive bar": { tags: ["great value", "hidden gem"] },

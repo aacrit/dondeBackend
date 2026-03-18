@@ -549,7 +549,8 @@ export async function classifyIntentV5(
   const matchedFoodItems = matchedKeywordStrings.filter(
     (kw) => !cuisineNamesLower.has(kw) && !NON_DISH_WORDS.has(kw),
   );
-  const dishLevelIntent: string | null =
+  // V25: Changed from const to let so INTENT_MAP food items can set dish_level_intent
+  let dishLevelIntent: string | null =
     matchedFoodItems.length > 0 ? input : null;
 
   // V6: cuisine_importance — any CUISINE_KEYWORDS match → "high"
@@ -705,6 +706,48 @@ export async function classifyIntentV5(
   // This ensures the cuisine hard filter fires for all dish-level queries.
   if (cuisineImportance === "low" && intentMapCuisines.size > 0) {
     cuisineImportance = "high";
+  }
+
+  // V25: Set dish_level_intent for INTENT_MAP food items that aren't already detected
+  // by CUISINE_KEYWORDS. Items like "donut", "bagel", "cookie", "torta", "ice cream"
+  // only exist in INTENT_MAP (not CUISINE_KEYWORDS), so the CUISINE_KEYWORDS-based
+  // dish detection at line ~549 doesn't fire. Without this, "best donut" hits
+  // cuisine-gated reputation (American = match), giving North Pond DM 92.
+  // With dish_level_intent set, the dish-gated path verifies the restaurant actually
+  // has the dish in its dish_catalog/popular_dishes.
+  // Note: Only set if not already set by CUISINE_KEYWORDS detection.
+  if (!dishLevelIntent && intentMapCuisines.size > 0) {
+    // Check which INTENT_MAP tokens matched and had cuisines — those are food items
+    const INTENT_NON_FOOD = new Set([
+      // Venue types that have cuisines in INTENT_MAP but aren't food items
+      "wine", "wine bar", "natural wine", "natural wine bar", "beer", "craft beer",
+      "brewery", "brewpub", "tap room", "taproom", "dive bar", "jazz bar", "jazz",
+      "blues bar", "blues", "karaoke", "karaoke bar", "sports bar", "arcade bar",
+      "tiki bar", "piano bar", "comedy club", "wine cellar", "cocktail", "drinks",
+      "pub", "steakhouse", "izakaya", "brasserie", "bistro", "cafe", "coffee",
+      "diner", "food truck", "buffet",
+      // Meal periods / occasions
+      "brunch", "breakfast", "lunch", "dinner", "happy hour", "late night",
+      "dessert", "bottomless brunch", "bottomless mimosas",
+    ]);
+    for (const token of tokens) {
+      if (matchedPhrases.has(token)) continue;
+      const signal = INTENT_MAP[token];
+      if (signal?.cuisines?.length && !INTENT_NON_FOOD.has(token) && !NON_DISH_WORDS.has(token)) {
+        dishLevelIntent = input;
+        break;
+      }
+    }
+    // Also check multi-word phrases
+    if (!dishLevelIntent) {
+      for (const phrase of matchedPhrases) {
+        const signal = INTENT_MAP[phrase];
+        if (signal?.cuisines?.length && !INTENT_NON_FOOD.has(phrase) && !NON_DISH_WORDS.has(phrase)) {
+          dishLevelIntent = input;
+          break;
+        }
+      }
+    }
   }
 
   // -----------------------------------------------------------------------
