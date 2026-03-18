@@ -1465,34 +1465,33 @@ export function computeRelevance(
         }
 
         // Dedicated dietary: vegan, gluten-free — "best vegan restaurant" wants a
-        // DEDICATED vegan/GF spot, not just any restaurant with an option in dietary_options.
-        // V25: Check cuisine_type, name, oneliner, and tags — but EXCLUDE tags that merely
-        // say "options" (e.g., "gluten-free options" or "vegan options"). A dedicated restaurant
-        // would have tags like "vegan", "vegan friendly", "gluten free" (without "options").
+        // DEDICATED vegan/GF spot, not just any restaurant that accommodates the diet.
+        // V25: Only cuisine_type or restaurant name determines "dedicated" status.
+        // Tags like "gluten-free" and dietary_options like "Gluten-Free" are too broad —
+        // many steakhouses and fine dining restaurants list these as accommodations.
+        // A dedicated restaurant has the dietary type IN its cuisine_type (e.g., "Vegan")
+        // or IN its name (e.g., "Wheat's End Cafe", "PLANTA Queen", "Chicago Diner").
         const DEDICATED_DIETARY: [string, string[]][] = [
-          ["vegan", ["vegan"]],
-          ["gluten free", ["gluten-free", "gluten free"]],
-          ["gluten-free", ["gluten-free", "gluten free"]],
+          ["vegan", ["vegan", "plant-based", "plant based"]],
+          ["gluten free", ["gluten-free", "gluten free", "celiac"]],
+          ["gluten-free", ["gluten-free", "gluten free", "celiac"]],
         ];
         for (const [queryKw, dietaryTerms] of DEDICATED_DIETARY) {
           if (specialLower.includes(queryKw)) {
             const nameL = (candidate.name || "").toLowerCase();
-            // V25: Tag check excludes "options" suffix to avoid false-positive dedication.
-            // "gluten-free options" → NOT dedicated. "gluten-free" or "vegan friendly" → dedicated.
-            const hasDedicatedTag = tagStrs.some(t => {
-              for (const dt of dietaryTerms) {
-                if (t.includes(dt) && !t.includes("option")) return true;
-                const stem = dt.split("-")[0]; // "gluten" from "gluten-free"
-                if (t.includes(stem + " friendly") && !t.includes("option")) return true;
-              }
-              return false;
-            });
             const isDedicated =
-              cuisineType.includes(queryKw) ||
+              // Cuisine type IS the dietary type (strongest signal)
               dietaryTerms.some(dt => cuisineType.includes(dt)) ||
+              // Restaurant name signals dedication
               nameL.includes(dietaryTerms[0].split("-")[0]) || // "gluten" in name, "vegan" in name
-              hasDedicatedTag ||
-              dietaryTerms.some(dt => oneliner.includes(dt));
+              nameL.includes("plant") || // plant-based restaurants
+              // Oneliner makes dietary identity a PRIMARY feature (not just an option)
+              dietaryTerms.some(dt => {
+                // Oneliner must contain the term as a PRIMARY descriptor, not just "offers X options"
+                const inOneliner = oneliner.includes(dt);
+                const isJustOption = oneliner.includes(dt + " option") || oneliner.includes(dt + " menu");
+                return inOneliner && !isJustOption;
+              });
             if (!isDedicated) {
               // Not a dedicated dietary restaurant — cap hard
               const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
