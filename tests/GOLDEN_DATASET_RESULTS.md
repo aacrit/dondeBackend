@@ -1,6 +1,6 @@
 # Golden Dataset Test Results
 
-**Date:** 2026-03-17T17:40:48Z
+**Date:** 2026-03-17T22:45:48Z
 **Endpoint:** https://vwbzkgsxmgwcvmvuxnbe.supabase.co/functions/v1/recommend
 **Tests:** 50 | **Checks:** 188
 
@@ -8,20 +8,20 @@
 
 | Metric | Value |
 |--------|-------|
-| PASSED | 183 |
+| PASSED | 181 |
 | FAILED | 0 |
-| WARNED | 5 |
-| Pass Rate | 97% |
+| WARNED | 7 |
+| Pass Rate | 96% |
 
 ## Category Averages
 
 | Category | Avg DondeMatch | Tests |
 |----------|---------------|-------|
-| Food | 81 | 15 |
+| Food | 80 | 15 |
 | Vibe | 81 | 10 |
 | Service | 84 | 10 |
 | Reputation | 86 | 5 |
-| Convenience | 84 | 10 |
+| Convenience | 85 | 10 |
 | **Overall** | **83** | **50** |
 
 ## Detailed Results
@@ -80,11 +80,11 @@
 - **PASS** [GD-F11] blurb_quality >= B- (got B-/85)
 - **PASS** [GD-F11] cuisine match (Seafood)
 - **PASS** [GD-F11] food_score >= 5 (got 9.7)
-- **PASS** [GD-F12] donde_match >= 50 (got 91)
-- **PASS** [GD-F12] score_fit >= B- (got A/100)
-- **PASS** [GD-F12] blurb_quality >= B- (got B-/80)
-- **PASS** [GD-F12] cuisine match (Chinese)
-- **PASS** [GD-F12] food_score >= 5 (got 10)
+- **PASS** [GD-F12] donde_match >= 50 (got 79)
+- **WARN** [GD-F12] score_fit near threshold — got C/75, want >= B-/80
+- **PASS** [GD-F12] blurb_quality >= B- (got B-/85)
+- **WARN** [GD-F12] cuisine match — expected one of [Taiwanese|Chinese], got Vietnamese
+- **PASS** [GD-F12] food_score >= 5 (got 9.7)
 - **PASS** [GD-F13] donde_match >= 50 (got 77)
 - **PASS** [GD-F13] score_fit >= B- (got A/100)
 - **PASS** [GD-F13] blurb_quality >= B- (got B-/80)
@@ -172,7 +172,7 @@
 - **PASS** [GD-R01] donde_match >= 60 (got 96)
 - **PASS** [GD-R01] score_fit >= B- (got B-/80)
 - **PASS** [GD-R01] blurb_quality >= B- (got B-/85)
-- **PASS** [GD-R02] donde_match >= 65 (got 95)
+- **PASS** [GD-R02] donde_match >= 65 (got 93)
 - **PASS** [GD-R02] score_fit >= B- (got B-/80)
 - **PASS** [GD-R02] blurb_quality >= B- (got B-/80)
 - **PASS** [GD-R03] donde_match >= 55 (got 84)
@@ -184,7 +184,7 @@
 - **PASS** [GD-R05] donde_match >= 60 (got 85)
 - **PASS** [GD-R05] score_fit >= B- (got B-/80)
 - **PASS** [GD-R05] blurb_quality >= B- (got B-/80)
-- **PASS** [GD-C01] donde_match >= 50 (got 78)
+- **PASS** [GD-C01] donde_match >= 50 (got 81)
 - **PASS** [GD-C01] score_fit >= B- (got B-/80)
 - **PASS** [GD-C01] blurb_quality >= B- (got B-/80)
 - **PASS** [GD-C02] donde_match >= 55 (got 81)
@@ -208,9 +208,9 @@
 - **PASS** [GD-C08] donde_match >= 50 (got 89)
 - **PASS** [GD-C08] score_fit >= B- (got B-/80)
 - **PASS** [GD-C08] blurb_quality >= B- (got B-/85)
-- **PASS** [GD-C09] donde_match >= 55 (got 88)
+- **PASS** [GD-C09] donde_match >= 55 (got 93)
 - **PASS** [GD-C09] score_fit >= B- (got B-/80)
 - **PASS** [GD-C09] blurb_quality >= B- (got B-/80)
-- **PASS** [GD-C10] donde_match >= 55 (got 86)
+- **PASS** [GD-C10] donde_match >= 55 (got 89)
 - **PASS** [GD-C10] score_fit >= B- (got B-/80)
 - **PASS** [GD-C10] blurb_quality >= B- (got B-/85)
