@@ -129,7 +129,7 @@ Each group must have:
 ```bash
 git checkout main
 git pull origin main
-git checkout -b fix/golden-dataset-$(date +%Y%m%d)
+git checkout -b claude/fix-golden-$(date +%Y%m%d)
 ```
 
 ### Phase 5: Implement Fixes
@@ -158,7 +158,7 @@ git checkout -b fix/golden-dataset-$(date +%Y%m%d)
    ```
 2. Commit with descriptive message:
    ```
-   Fix golden dataset failures: <N> root causes, <M> queries affected
+   V<N>: Fix golden dataset failures: <N> root causes, <M> queries affected
 
    Root causes:
    - <cause 1>: <files changed>
@@ -166,10 +166,10 @@ git checkout -b fix/golden-dataset-$(date +%Y%m%d)
 
    Expected improvement: <N> FAIL/WARN -> PASS
    ```
-3. Push: `git push -u origin fix/golden-dataset-<date>`
-4. `deploy-edge-function.yml` GitHub Action auto-deploys on push. Wait for it:
+3. Push: `git push -u origin claude/fix-golden-<date>`
+4. CI auto-merges `claude/` branches to `main` and `deploy-edge-function.yml` auto-deploys. Wait for it:
    ```bash
-   sleep 35 && gh run list --workflow="deploy-edge-function.yml" --limit 1
+   sleep 45 && gh run list --workflow="deploy-edge-function.yml" --limit 1
    ```
 5. **Spot-check** 3-5 previously failing queries via API to verify fixes worked:
    ```bash
@@ -187,7 +187,7 @@ git checkout -b fix/golden-dataset-$(date +%Y%m%d)
 
 ```
 BUG FIXER REPORT — DondeAI Scoring Engine
-Date: <today>    Branch: fix/golden-dataset-<date>
+Date: <today>    Branch: claude/fix-golden-<date>
 ----------------------------------------------
 
 BEFORE (baseline from test run):

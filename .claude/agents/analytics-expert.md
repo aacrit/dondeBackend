@@ -28,7 +28,7 @@ You report **directly to the CEO**. You are an **executor** — read the engine,
 ## DondeEngine V11 Baseline
 
 **Formula:** `DondeScore = Relevance(0-1) x Quality(0-100) + OccasionBonus(+/-5)`
-**Relevance:** Gate with 6-type hierarchy (reputation > dish > cuisine > vibe > semantic > open_ended)
+**Relevance:** Gate with 6-type hierarchy (dish > cuisine > vibe > semantic > reputation > open_ended)
 **Quality:** 5 factors x 6 static weight profiles (dish, cuisine, vibe, reputation, open_ended, multi_signal)
 **Confidence:** MEAN=55, factor 0.80-1.0
 **Tiers:** 90+ Outstanding | 80-89 Strong | 70-79 Solid | 60-69 Worth Try | <60 Best Available
