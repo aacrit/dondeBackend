@@ -1,6 +1,6 @@
 # Golden Dataset Test Results
 
-**Date:** 2026-03-17T22:45:48Z
+**Date:** 2026-03-18T04:43:48Z
 **Endpoint:** https://vwbzkgsxmgwcvmvuxnbe.supabase.co/functions/v1/recommend
 **Tests:** 50 | **Checks:** 188
 
@@ -20,7 +20,7 @@
 | Food | 80 | 15 |
 | Vibe | 81 | 10 |
 | Service | 84 | 10 |
-| Reputation | 86 | 5 |
+| Reputation | 88 | 5 |
 | Convenience | 85 | 10 |
 | **Overall** | **83** | **50** |
 
@@ -82,7 +82,7 @@
 - **PASS** [GD-F11] food_score >= 5 (got 9.7)
 - **PASS** [GD-F12] donde_match >= 50 (got 79)
 - **WARN** [GD-F12] score_fit near threshold — got C/75, want >= B-/80
-- **PASS** [GD-F12] blurb_quality >= B- (got B-/85)
+- **PASS** [GD-F12] blurb_quality >= B- (got B-/80)
 - **WARN** [GD-F12] cuisine match — expected one of [Taiwanese|Chinese], got Vietnamese
 - **PASS** [GD-F12] food_score >= 5 (got 9.7)
 - **PASS** [GD-F13] donde_match >= 50 (got 77)
@@ -175,9 +175,9 @@
 - **PASS** [GD-R02] donde_match >= 65 (got 93)
 - **PASS** [GD-R02] score_fit >= B- (got B-/80)
 - **PASS** [GD-R02] blurb_quality >= B- (got B-/80)
-- **PASS** [GD-R03] donde_match >= 55 (got 84)
+- **PASS** [GD-R03] donde_match >= 55 (got 95)
 - **PASS** [GD-R03] score_fit >= B- (got B-/80)
-- **PASS** [GD-R03] blurb_quality >= B- (got B-/85)
+- **PASS** [GD-R03] blurb_quality >= B- (got B-/80)
 - **PASS** [GD-R04] donde_match >= 55 (got 72)
 - **PASS** [GD-R04] score_fit >= B- (got B-/80)
 - **PASS** [GD-R04] blurb_quality >= B- (got B-/80)
