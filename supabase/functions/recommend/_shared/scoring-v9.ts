@@ -1073,6 +1073,64 @@ export function computeRelevance(
 ): V9Relevance {
   let weakVibeScore: number | null = null;
 
+  // === V26: UNIVERSAL STRUCTURAL PRE-CHECKS ===
+  // These checks apply to ALL relevance paths (reputation, cuisine, vibe, open_ended).
+  // Previously, checks like dietary (halal/kosher), tasting menu, and farm-to-table
+  // only existed in the reputation path, so non-reputation queries like
+  // "farm-to-table tasting menu" or "kosher friendly business lunch" bypassed them.
+  const specialLowerUniv = specialRequest.toLowerCase();
+  {
+    // V26: Halal/kosher universal check — "halal" or "kosher" in query must verify
+    // the restaurant actually offers that dietary option, regardless of relevance path.
+    const tagStrs = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+    const cuisineType = (candidate.cuisine_type || "").toLowerCase();
+    const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+    const dietaryOptions = (candidate.dietary_options || []).map((o: string) => o.toLowerCase());
+
+    if (specialLowerUniv.includes("halal") || specialLowerUniv.includes("kosher")) {
+      const dietary = specialLowerUniv.includes("halal") ? "halal" : "kosher";
+      const hasMatch =
+        cuisineType.includes(dietary) ||
+        tagStrs.some(t => t.includes(dietary)) ||
+        oneliner.includes(dietary) ||
+        dietaryOptions.some((o: string) => o.includes(dietary));
+      if (!hasMatch) {
+        return { score: 0.15, type: "vibe", details: `Universal ${dietary} mismatch — restaurant lacks ${dietary} signal` };
+      }
+    }
+
+    // V26: Tasting menu universal check — "tasting menu" in query must verify
+    // restaurant actually offers a tasting menu, not just fine dining.
+    if (specialLowerUniv.includes("tasting menu") && !specialLowerUniv.includes("best")) {
+      const dp = candidate.deep_profile;
+      const serviceStyle = (dp?.service_style || "").toLowerCase();
+      const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+      const hasTastingMenu =
+        tagStrs.some(t => t.includes("tasting menu") || t.includes("tasting")) ||
+        oneliner.includes("tasting menu") || oneliner.includes("multi-course") || oneliner.includes("omakase") ||
+        serviceStyle.includes("tasting") || serviceStyle.includes("omakase") ||
+        wowFactors.some(w => w.includes("tasting menu") || w.includes("multi-course") || w.includes("omakase"));
+      if (!hasTastingMenu) {
+        return { score: 0.25, type: "vibe", details: "Universal tasting menu mismatch — restaurant has no tasting menu signal" };
+      }
+    }
+
+    // V26: Upscale/quiet check for business dining — "upscale" + "business" in query
+    // must verify restaurant is NOT casual/cheap. Prevents Cantina on Madison ($, casual Mexican)
+    // from winning "quiet upscale restaurant for a business dinner in the Loop".
+    if ((specialLowerUniv.includes("upscale") || specialLowerUniv.includes("fine dining")) &&
+        (specialLowerUniv.includes("business") || specialLowerUniv.includes("client"))) {
+      const priceLevel = candidate.price_level || "";
+      if (priceLevel === "$") {
+        return { score: 0.20, type: "vibe", details: `Universal upscale+business mismatch — restaurant is ${priceLevel}` };
+      }
+      const dressCode = (candidate.dress_code || "").toLowerCase();
+      if (dressCode === "casual" && priceLevel === "$$") {
+        return { score: 0.30, type: "vibe", details: "Universal upscale+business mismatch — restaurant is casual/$$" };
+      }
+    }
+  }
+
   // V10: Reputation-focused queries — check FIRST, unconditionally.
   // Reputation keywords ("michelin", "james beard", "best") are an explicit signal
   // that should override any cuisine/dish classification from Claude.

@@ -1,0 +1,326 @@
+[
+  {
+    "query_id": 1,
+    "test_id": "SUB-R7-01",
+    "category": "compound",
+    "query": "romantic Italian dinner with outdoor seating near River North",
+    "occasion": "Date Night",
+    "neighborhood": "River North",
+    "expected_cuisines": ["Italian"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "RPM Italian", "cuisine_type": "Italian", "neighborhood": "River North", "reasoning": "Top Italian in River North, romantic ambiance, expert consensus"},
+      {"rank": 2, "restaurant_name": "Ciccio Mio", "cuisine_type": "Italian", "neighborhood": "River North", "reasoning": "Romantic Italian supper club feel, dimly lit, expert-recommended"},
+      {"rank": 3, "restaurant_name": "Osteria Via Stato", "cuisine_type": "Italian", "neighborhood": "River North", "reasoning": "Italian with outdoor seating, warm atmosphere"}
+    ]
+  },
+  {
+    "query_id": 2,
+    "test_id": "SUB-R7-02",
+    "category": "compound",
+    "query": "cheap authentic tacos open late in Pilsen",
+    "occasion": "Any",
+    "neighborhood": "Pilsen",
+    "expected_cuisines": ["Mexican"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "5 Rabanitos", "cuisine_type": "Mexican", "neighborhood": "Pilsen", "reasoning": "Expert consensus best tacos in Pilsen"},
+      {"rank": 2, "restaurant_name": "Don Pedro Carnitas", "cuisine_type": "Mexican", "neighborhood": "Pilsen", "reasoning": "30+ years in Pilsen, classic carnitas tacos"},
+      {"rank": 3, "restaurant_name": "Taqueria El Mezquite", "cuisine_type": "Mexican", "neighborhood": "Pilsen", "reasoning": "Affordable authentic taqueria on 18th St"},
+      {"rank": 4, "restaurant_name": "Taqueria Los Comales Pilsen", "cuisine_type": "Mexican", "neighborhood": "Pilsen", "reasoning": "No-nonsense lunch tacos spot"}
+    ]
+  },
+  {
+    "query_id": 3,
+    "test_id": "SUB-R7-03",
+    "category": "compound",
+    "query": "upscale Japanese restaurant with private dining for a birthday",
+    "occasion": "Birthday Celebration",
+    "expected_cuisines": ["Japanese"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Momotaro", "cuisine_type": "Japanese", "neighborhood": "West Loop", "reasoning": "Michelin-recognized Japanese, private dining, stunning space"},
+      {"rank": 2, "restaurant_name": "Juno", "cuisine_type": "Japanese", "neighborhood": "Lincoln Park", "reasoning": "Top omakase, intimate, expert favorite"},
+      {"rank": 3, "restaurant_name": "KAI ZAN CHICAGO", "cuisine_type": "Japanese", "neighborhood": "Wicker Park", "reasoning": "Michelin-level omakase, BYOB"}
+    ]
+  },
+  {
+    "query_id": 4,
+    "test_id": "SUB-R7-04",
+    "category": "compound",
+    "query": "casual BYOB with good vegetarian options in Logan Square",
+    "occasion": "Any",
+    "neighborhood": "Logan Square",
+    "expected_cuisines": [],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "The Spice Room", "cuisine_type": "Indian", "neighborhood": "Logan Square", "reasoning": "BYOB Indian with excellent vegetarian options, expert consensus"},
+      {"rank": 2, "restaurant_name": "Casa Yari", "cuisine_type": "Latin American", "neighborhood": "Logan Square", "reasoning": "BYOB Latin American with seitan/jackfruit options"},
+      {"rank": 3, "restaurant_name": "Chicago Diner", "cuisine_type": "Vegan", "neighborhood": "Logan Square", "reasoning": "Meat-free since 83, fully vegetarian/vegan"}
+    ]
+  },
+  {
+    "query_id": 5,
+    "test_id": "SUB-R7-05",
+    "category": "compound",
+    "query": "Michelin star restaurant under $100 per person",
+    "occasion": "Any",
+    "expected_cuisines": [],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Thattu", "cuisine_type": "Indian", "neighborhood": "Avondale", "reasoning": "Michelin Bib Gourmand, affordable Indian"},
+      {"rank": 2, "restaurant_name": "Nella Pizza e Pasta", "cuisine_type": "Italian", "neighborhood": "Hyde Park", "reasoning": "Michelin Bib Gourmand, wood-fired pizza under $100"},
+      {"rank": 3, "restaurant_name": "Daisies", "cuisine_type": "American", "neighborhood": "Logan Square", "reasoning": "Michelin-recognized, $$ price point"}
+    ]
+  },
+  {
+    "query_id": 6,
+    "test_id": "SUB-R7-06",
+    "category": "compound",
+    "query": "family friendly brunch with a patio in Lincoln Park",
+    "occasion": "Family",
+    "neighborhood": "Lincoln Park",
+    "expected_cuisines": [],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Floriole Cafe & Bakery", "cuisine_type": "French", "neighborhood": "Lincoln Park", "reasoning": "Perfect brunch spot, in Lincoln Park, family-friendly"},
+      {"rank": 2, "restaurant_name": "Ann Sather Restaurant", "cuisine_type": "Brunch", "neighborhood": "Lincoln Park", "reasoning": "Iconic Chicago brunch, cinnamon rolls, family-friendly"}
+    ]
+  },
+  {
+    "query_id": 7,
+    "test_id": "SUB-R7-07",
+    "category": "compound",
+    "query": "quiet upscale restaurant for a business dinner in the Loop",
+    "occasion": "Business",
+    "neighborhood": "Loop",
+    "expected_cuisines": [],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Miru", "cuisine_type": "Japanese", "neighborhood": "Loop", "reasoning": "$$$$, quiet, upscale Japanese in St Regis, perfect for business"},
+      {"rank": 2, "restaurant_name": "Cherry Circle Room", "cuisine_type": "American", "neighborhood": "Loop", "reasoning": "Upscale, quiet, Chicago Athletic Association Hotel"}
+    ]
+  },
+  {
+    "query_id": 8,
+    "test_id": "SUB-R7-08",
+    "category": "compound",
+    "query": "lively Mexican restaurant with margaritas and live music",
+    "occasion": "Any",
+    "expected_cuisines": ["Mexican"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Mi Tocaya Antojeria", "cuisine_type": "Mexican", "neighborhood": "Logan Square", "reasoning": "Creative Mexican, lively atmosphere, cocktails"},
+      {"rank": 2, "restaurant_name": "Topolobampo", "cuisine_type": "Mexican", "neighborhood": "River North", "reasoning": "Award-winning Mexican, margarita program"}
+    ]
+  },
+  {
+    "query_id": 9,
+    "test_id": "SUB-R7-09",
+    "category": "scenario",
+    "query": "taking my parents who love seafood to somewhere special for their anniversary",
+    "occasion": "Anniversary",
+    "expected_cuisines": ["Seafood"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "RPM Seafood", "cuisine_type": "Seafood", "neighborhood": "River North", "reasoning": "Upscale seafood, riverfront, perfect for special occasions"},
+      {"rank": 2, "restaurant_name": "Joe's Seafood, Prime Steak & Stone Crab", "cuisine_type": "Seafood", "neighborhood": "River North", "reasoning": "Classic upscale seafood, stone crab, anniversary-worthy"},
+      {"rank": 3, "restaurant_name": "Bar Mar", "cuisine_type": "Seafood", "neighborhood": "River North", "reasoning": "Luxe seafood-centric, impressive for special occasions"}
+    ]
+  },
+  {
+    "query_id": 10,
+    "test_id": "SUB-R7-10",
+    "category": "scenario",
+    "query": "first date spot thats not too expensive but has great cocktails",
+    "occasion": "Date Night",
+    "expected_cuisines": [],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Daisies", "cuisine_type": "American", "neighborhood": "Logan Square", "reasoning": "$$, Michelin-recognized, great for dates, cocktail program"},
+      {"rank": 2, "restaurant_name": "Nella Pizza e Pasta", "cuisine_type": "Italian", "neighborhood": "Hyde Park", "reasoning": "$$, romantic, date night vibe, wine/cocktails"},
+      {"rank": 3, "restaurant_name": "Big Jones", "cuisine_type": "Southern/Soul Food", "neighborhood": "Andersonville", "reasoning": "$$, warm atmosphere, craft cocktails, date-friendly"}
+    ]
+  },
+  {
+    "query_id": 11,
+    "test_id": "SUB-R7-11",
+    "category": "scenario",
+    "query": "where to take out-of-town visitors who want deep dish and a Chicago experience",
+    "occasion": "Any",
+    "expected_cuisines": ["Italian"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Lou Malnati's", "cuisine_type": "Italian", "neighborhood": "River North", "reasoning": "Iconic Chicago deep dish, expert consensus #1 for visitors"},
+      {"rank": 2, "restaurant_name": "Pequod's", "cuisine_type": "Italian", "neighborhood": "Lincoln Park", "reasoning": "Caramelized crust deep dish, local favorite"},
+      {"rank": 3, "restaurant_name": "Giordano's", "cuisine_type": "Italian", "neighborhood": "Loop", "reasoning": "Classic deep dish, multiple locations, tourist-friendly"}
+    ]
+  },
+  {
+    "query_id": 12,
+    "test_id": "SUB-R7-12",
+    "category": "scenario",
+    "query": "post-concert late night food near United Center",
+    "occasion": "Any",
+    "expected_cuisines": [],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Harold's Chicken", "cuisine_type": "American", "neighborhood": "West Loop", "reasoning": "Late night fried chicken near United Center, expert pick"},
+      {"rank": 2, "restaurant_name": "Dawson", "cuisine_type": "American", "neighborhood": "West Loop", "reasoning": "Late night bar food, close to United Center"}
+    ]
+  },
+  {
+    "query_id": 13,
+    "test_id": "SUB-R7-13",
+    "category": "scenario",
+    "query": "group of 8 celebrating a promotion somewhere fun and loud",
+    "occasion": "Celebration",
+    "expected_cuisines": [],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Girl & The Goat", "cuisine_type": "American", "neighborhood": "West Loop", "reasoning": "Fun, loud, group-friendly, celebration vibe"},
+      {"rank": 2, "restaurant_name": "The Publican", "cuisine_type": "American", "neighborhood": "West Loop", "reasoning": "Loud, communal, great for groups and celebrations"},
+      {"rank": 3, "restaurant_name": "Bavette's Bar & Boeuf", "cuisine_type": "Steak", "neighborhood": "River North", "reasoning": "Celebration-worthy, lively, great food"}
+    ]
+  },
+  {
+    "query_id": 14,
+    "test_id": "SUB-R7-14",
+    "category": "cultural",
+    "query": "authentic dim sum cart service like Hong Kong style",
+    "occasion": "Any",
+    "expected_cuisines": ["Chinese"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Triple Crown Restaurant", "cuisine_type": "Chinese", "neighborhood": "Chinatown", "reasoning": "Classic Chinatown dim sum, busy crowds, fresh carts"},
+      {"rank": 2, "restaurant_name": "MingHin Cuisine", "cuisine_type": "Chinese", "neighborhood": "Chinatown", "reasoning": "Most recognizable dim sum name, all-day service"},
+      {"rank": 3, "restaurant_name": "Imperial Restaurant", "cuisine_type": "Chinese", "neighborhood": "Chinatown", "reasoning": "Huge space, lazy Susan tables, all-day dim sum"}
+    ]
+  },
+  {
+    "query_id": 15,
+    "test_id": "SUB-R7-15",
+    "category": "cultural",
+    "query": "real Neapolitan pizza with a wood-fired oven",
+    "occasion": "Any",
+    "expected_cuisines": ["Italian"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Spacca Napoli Pizzeria", "cuisine_type": "Italian", "neighborhood": "Andersonville", "reasoning": "Expert consensus #1 Neapolitan, custom oak-stoked oven, world-ranked"},
+      {"rank": 2, "restaurant_name": "Nella Pizza e Pasta", "cuisine_type": "Italian", "neighborhood": "Hyde Park", "reasoning": "Wood-burning oven, Michelin Bib Gourmand Neapolitan"},
+      {"rank": 3, "restaurant_name": "Forno Rosso", "cuisine_type": "Italian", "neighborhood": "Various", "reasoning": "Owner trained in Naples, wood-burning oven"},
+      {"rank": 4, "restaurant_name": "Forno Mauri", "cuisine_type": "Italian", "neighborhood": "South Loop", "reasoning": "Serious Neapolitan pizza maker"}
+    ]
+  },
+  {
+    "query_id": 16,
+    "test_id": "SUB-R7-16",
+    "category": "cultural",
+    "query": "hole in the wall Mexican that locals love",
+    "occasion": "Any",
+    "expected_cuisines": ["Mexican"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "XOCO", "cuisine_type": "Mexican", "neighborhood": "River North", "reasoning": "Rick Bayless casual spot, local favorite, authentic"},
+      {"rank": 2, "restaurant_name": "La Esperanza Restaurant Pilsen", "cuisine_type": "Mexican", "neighborhood": "Pilsen", "reasoning": "Pilsen institution, mole champion, locals love it"},
+      {"rank": 3, "restaurant_name": "Topolobampo", "cuisine_type": "Mexican", "neighborhood": "River North", "reasoning": "Not exactly hole-in-wall but peak authentic Mexican"}
+    ]
+  },
+  {
+    "query_id": 17,
+    "test_id": "SUB-R7-17",
+    "category": "cultural",
+    "query": "old school Chicago steakhouse with tableside Caesar",
+    "occasion": "Any",
+    "expected_cuisines": ["Steak"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Gene & Georgetti", "cuisine_type": "Steak", "neighborhood": "River North", "reasoning": "Chicago's oldest steakhouse since 1944, old-school classic"},
+      {"rank": 2, "restaurant_name": "Fioretta", "cuisine_type": "Steak", "neighborhood": "West Loop", "reasoning": "Tableside Caesar, Italian steakhouse glamour"},
+      {"rank": 3, "restaurant_name": "Bavette's Bar & Boeuf", "cuisine_type": "Steak", "neighborhood": "River North", "reasoning": "Old-world steakhouse atmosphere"}
+    ]
+  },
+  {
+    "query_id": 18,
+    "test_id": "SUB-R7-18",
+    "category": "cultural",
+    "query": "farm-to-table tasting menu thats not pretentious",
+    "occasion": "Any",
+    "expected_cuisines": [],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "North Pond", "cuisine_type": "American", "neighborhood": "Lincoln Park", "reasoning": "Seasonal tasting menu, Arts & Crafts space, not pretentious"},
+      {"rank": 2, "restaurant_name": "Elske", "cuisine_type": "American", "neighborhood": "West Loop", "reasoning": "Farm-to-table tasting menu, approachable"},
+      {"rank": 3, "restaurant_name": "goosefoot", "cuisine_type": "American", "neighborhood": "Lincoln Square", "reasoning": "Michelin tasting menu, neighborhood setting, unpretentious"}
+    ]
+  },
+  {
+    "query_id": 19,
+    "test_id": "SUB-R7-19",
+    "category": "dietary",
+    "query": "gluten free pasta restaurant for date night",
+    "occasion": "Date Night",
+    "expected_cuisines": ["Italian"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Monteverde Restaurant & Pastificio", "cuisine_type": "Italian", "neighborhood": "West Loop", "reasoning": "Handmade pasta, GF options available, date night ambiance"},
+      {"rank": 2, "restaurant_name": "RPM Italian", "cuisine_type": "Italian", "neighborhood": "River North", "reasoning": "GF-friendly, upscale Italian, date night vibe"}
+    ]
+  },
+  {
+    "query_id": 20,
+    "test_id": "SUB-R7-20",
+    "category": "dietary",
+    "query": "halal fine dining for Eid celebration",
+    "occasion": "Celebration",
+    "expected_cuisines": ["Middle Eastern", "Indian", "Turkish"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Galit", "cuisine_type": "Middle Eastern", "neighborhood": "Lincoln Park", "reasoning": "Fine-dining Middle Eastern, may accommodate halal"},
+      {"rank": 2, "restaurant_name": "Indienne", "cuisine_type": "Indian", "neighborhood": "River North", "reasoning": "Fine-dining Indian, may have halal options"}
+    ]
+  },
+  {
+    "query_id": 21,
+    "test_id": "SUB-R7-21",
+    "category": "dietary",
+    "query": "vegan brunch with good coffee",
+    "occasion": "Any",
+    "expected_cuisines": ["Vegan", "Coffee/Cafe"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Chicago Diner", "cuisine_type": "Vegan", "neighborhood": "Logan Square", "reasoning": "Expert consensus #1 vegan brunch, meat-free since 83"},
+      {"rank": 2, "restaurant_name": "Kalish", "cuisine_type": "Vegan", "neighborhood": "Wicker Park", "reasoning": "Vegan brunch favorites, plant-based classics"},
+      {"rank": 3, "restaurant_name": "m.henry", "cuisine_type": "Coffee/Cafe", "neighborhood": "Andersonville", "reasoning": "Inventive brunch, vegan options, good coffee"}
+    ]
+  },
+  {
+    "query_id": 22,
+    "test_id": "SUB-R7-22",
+    "category": "dietary",
+    "query": "kosher friendly restaurant for a business lunch",
+    "occasion": "Business",
+    "expected_cuisines": [],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Galit", "cuisine_type": "Middle Eastern", "neighborhood": "Lincoln Park", "reasoning": "Middle Eastern fine dining, may accommodate kosher-style"},
+      {"rank": 2, "restaurant_name": "Milt's BBQ for the Perplexed", "cuisine_type": "BBQ", "neighborhood": "Lakeview", "reasoning": "Certified kosher BBQ restaurant"}
+    ]
+  },
+  {
+    "query_id": 23,
+    "test_id": "SUB-R7-23",
+    "category": "edge",
+    "query": "I want something like Girl and the Goat but less crowded",
+    "occasion": "Any",
+    "expected_cuisines": ["American"],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Duck Duck Goat", "cuisine_type": "Chinese", "neighborhood": "West Loop", "reasoning": "Same chef (Stephanie Izard), less crowded, creative food"},
+      {"rank": 2, "restaurant_name": "Little Goat Diner", "cuisine_type": "Coffee/Cafe", "neighborhood": "Lakeview", "reasoning": "Same Izard brand, smaller Lakeview location, less hectic"},
+      {"rank": 3, "restaurant_name": "The Publican", "cuisine_type": "American", "neighborhood": "West Loop", "reasoning": "Similar creative approach, group-friendly, less reservation pressure"}
+    ]
+  },
+  {
+    "query_id": 24,
+    "test_id": "SUB-R7-24",
+    "category": "edge",
+    "query": "best restaurant that opened in 2025",
+    "occasion": "Any",
+    "expected_cuisines": [],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "Feld", "cuisine_type": "American", "neighborhood": "West Loop", "reasoning": "2025 opening, farm-to-table, named best new restaurant by Bon Appetit"},
+      {"rank": 2, "restaurant_name": "Mirra", "cuisine_type": "Fusion", "neighborhood": "Bucktown", "reasoning": "2025 Michelin Bib Gourmand new addition"}
+    ]
+  },
+  {
+    "query_id": 25,
+    "test_id": "SUB-R7-25",
+    "category": "edge",
+    "query": "restaurant with a Michelin star that does takeout",
+    "occasion": "Any",
+    "expected_cuisines": [],
+    "ideal_ranking": [
+      {"rank": 1, "restaurant_name": "XOCO", "cuisine_type": "Mexican", "neighborhood": "River North", "reasoning": "Michelin-recognized (Bib Gourmand), does takeout"},
+      {"rank": 2, "restaurant_name": "Nella Pizza e Pasta", "cuisine_type": "Italian", "neighborhood": "Hyde Park", "reasoning": "Michelin Bib Gourmand, pizza takeout"},
+      {"rank": 3, "restaurant_name": "goosefoot", "cuisine_type": "American", "neighborhood": "Lincoln Square", "reasoning": "Michelin-starred, may offer some takeout options"}
+    ]
+  }
+]
