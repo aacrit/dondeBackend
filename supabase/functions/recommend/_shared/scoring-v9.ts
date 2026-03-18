@@ -515,6 +515,13 @@ export const NEIGHBORHOOD_ALIASES: Record<string, string> = {
   "near magnificent mile": "River North",
   "near chicago neighborhoods": "Loop",
   "near chicago family attractions": "Loop",
+  // V25: Missing neighborhood aliases from DB — "best restaurant in Bronzeville" etc.
+  // Note: "fulton market", "greektown", "ravenswood" are defined earlier mapping to West Loop/Lincoln Square.
+  // JS objects use last-defined value, so these override the earlier entries with correct DB neighborhoods.
+  // Greektown has 0 restaurants in DB, so we keep it mapping to West Loop (no override needed).
+  "bronzeville": "Bronzeville",
+  "back of the yards": "Back of the Yards",
+  "woodlawn": "Woodlawn",
 };
 
 // ==========================================
@@ -1379,10 +1386,253 @@ export function computeRelevance(
         }
       }
 
+      // === V24: PRICE-SENSITIVE REPUTATION GATE ===
+      // "best cheap eats" / "best affordable" should NOT return $$$/$$$$ restaurants.
+      // "best splurge-worthy" / "best fine dining" should NOT return $ restaurants.
+      // V25: Tightened — "cheap eats" means $ only (not $$). "Fine dining"/"splurge" means $$$/$$$$
+      // (not $$). Split into VERY_CHEAP (blocks $$+) and AFFORDABLE (blocks $$$+).
+      // Split upscale into FINE_DINING (blocks $/$$) and general upscale (blocks $ only).
+      {
+        const VERY_CHEAP_KEYWORDS = ["cheap eats", "cheap food", "under $10", "under $15", "dollar menu"];
+        const AFFORDABLE_KEYWORDS = ["affordable", "budget", "inexpensive", "bang for buck", "value"];
+        const FINE_DINING_KEYWORDS = ["fine dining", "splurge", "luxury", "tasting menu"];
+        const UPSCALE_KEYWORDS = ["upscale", "fancy", "high end", "high-end", "prix fixe"];
+        const priceLevel = candidate.price_level || "";
+        const isVeryCheapQuery = VERY_CHEAP_KEYWORDS.some(kw => specialLower.includes(kw));
+        const isAffordableQuery = AFFORDABLE_KEYWORDS.some(kw => specialLower.includes(kw));
+        const isFineDiningQuery = FINE_DINING_KEYWORDS.some(kw => specialLower.includes(kw));
+        const isUpscaleQuery = UPSCALE_KEYWORDS.some(kw => specialLower.includes(kw));
+        // "cheap eats" → only $ restaurants pass
+        if (isVeryCheapQuery && (priceLevel === "$$$$" || priceLevel === "$$$" || priceLevel === "$$")) {
+          const cappedScore = Math.min(0.25, repRelevance.score * 0.25);
+          return { score: cappedScore, type: "reputation", details: `Reputation (cheap eats vs ${priceLevel} restaurant)` };
+        }
+        // "affordable" → $/$$, block $$$+
+        if (isAffordableQuery && (priceLevel === "$$$$" || priceLevel === "$$$")) {
+          const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
+          return { score: cappedScore, type: "reputation", details: `Reputation (affordable query vs ${priceLevel} restaurant)` };
+        }
+        // "fine dining"/"splurge"/"tasting menu" → only $$$/$$$$
+        if (isFineDiningQuery && (priceLevel === "$" || priceLevel === "$$")) {
+          const cappedScore = Math.min(0.35, repRelevance.score * 0.35);
+          return { score: cappedScore, type: "reputation", details: `Reputation (fine dining query vs ${priceLevel} restaurant)` };
+        }
+        // "upscale"/"fancy" → block $ only
+        if (isUpscaleQuery && priceLevel === "$") {
+          const cappedScore = Math.min(0.40, repRelevance.score * 0.40);
+          return { score: cappedScore, type: "reputation", details: `Reputation (upscale query vs ${priceLevel} restaurant)` };
+        }
+      }
+
+      // === V24: DIETARY CONSTRAINT REPUTATION GATE ===
+      // "best halal restaurant" / "best vegan restaurant" etc. must verify the restaurant
+      // actually has those dietary options. Without this, reputation returns Bavette's/Big Jones
+      // for "best halal restaurant" even though they aren't halal.
+      // V25: Split into STRICT and LOOSE dietary checks.
+      // STRICT: halal, kosher — restaurant must have explicit certification/signal in tags/cuisine.
+      //   Checking dietary_options alone is insufficient (many restaurants list "Halal" loosely).
+      // DEDICATED: vegan, gluten-free — when query says "best vegan restaurant" or "best gluten free
+      //   restaurant", the restaurant should be DEDICATED to that diet (cuisine_type matches or
+      //   tags explicitly say "vegan friendly" etc.), not merely offering a few options.
+      // LOOSE: vegetarian friendly — many restaurants can be vegetarian-friendly without being dedicated.
+      {
+        // Strict dietary: halal, kosher — must be in cuisine_type, tags, or oneliner
+        const STRICT_DIETARY: [string, string[]][] = [
+          ["halal", ["halal"]],
+          ["kosher", ["kosher"]],
+        ];
+        const tagStrs = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+        const cuisineType = (candidate.cuisine_type || "").toLowerCase();
+        const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+        const dietaryOptions = (candidate.dietary_options || []).map((o: string) => o.toLowerCase());
+        for (const [queryKw, dietaryTerms] of STRICT_DIETARY) {
+          if (specialLower.includes(queryKw)) {
+            const hasStrictMatch = dietaryTerms.some(dt =>
+              cuisineType.includes(dt) ||
+              tagStrs.some(t => t.includes(dt)) ||
+              oneliner.includes(dt) ||
+              dietaryOptions.some((o: string) => o.includes(dt))
+            );
+            if (!hasStrictMatch) {
+              const cappedScore = Math.min(0.25, repRelevance.score * 0.25);
+              return { score: cappedScore, type: "reputation", details: `Reputation (no ${queryKw} cap)` };
+            }
+          }
+        }
+
+        // Dedicated dietary: vegan, gluten-free — "best vegan restaurant" wants a
+        // DEDICATED vegan spot (cuisine_type=Vegan, or tagged as "vegan friendly"/"100% vegan"),
+        // not just any restaurant with a vegan option in dietary_options.
+        // V25: Check cuisine_type first (dedicated), then tags (labeled), then dietary_options
+        // only if it's the PRIMARY dietary identity (more than 1 match or in name/oneliner).
+        const DEDICATED_DIETARY: [string, string[]][] = [
+          ["vegan", ["vegan"]],
+          ["gluten free", ["gluten-free", "gluten free"]],
+          ["gluten-free", ["gluten-free", "gluten free"]],
+        ];
+        for (const [queryKw, dietaryTerms] of DEDICATED_DIETARY) {
+          if (specialLower.includes(queryKw)) {
+            const nameL = (candidate.name || "").toLowerCase();
+            const isDedicated = dietaryTerms.some(dt =>
+              cuisineType.includes(dt) ||
+              nameL.includes(dt.split("-")[0]) || // "gluten" in name, "vegan" in name
+              tagStrs.some(t => t.includes(dt) || t.includes(dt.split("-")[0] + " friendly")) ||
+              oneliner.includes(dt)
+            );
+            if (!isDedicated) {
+              // Not a dedicated dietary restaurant — even if dietary_options lists it,
+              // cap hard since user wants a restaurant KNOWN for this diet.
+              const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
+              return { score: cappedScore, type: "reputation", details: `Reputation (not dedicated ${queryKw} cap)` };
+            }
+          }
+        }
+
+        // Loose dietary: "vegetarian friendly" — broader, check dietary_options is enough
+        if (specialLower.includes("vegetarian") && !specialLower.includes("vegan")) {
+          const hasVegetarian =
+            dietaryOptions.some((o: string) => o.includes("vegetarian")) ||
+            tagStrs.some(t => t.includes("vegetarian")) ||
+            cuisineType.includes("vegetarian");
+          if (!hasVegetarian) {
+            const cappedScore = Math.min(0.35, repRelevance.score * 0.35);
+            return { score: cappedScore, type: "reputation", details: `Reputation (no vegetarian cap)` };
+          }
+        }
+      }
+
+      // === V24: TIME-OF-DAY / CONCEPT REPUTATION GATE ===
+      // "best breakfast spot" should verify restaurant serves breakfast.
+      // "best dessert restaurant" should verify restaurant is dessert-focused.
+      // "best food truck" / "best buffet" should verify the format.
+      {
+        const bestTimes = (candidate.best_times || []).map((bt: string) => bt.toLowerCase());
+        const tagStrs = (candidate.tags || []).map(t => tagToString(t).toLowerCase());
+        const cuisineType = (candidate.cuisine_type || "").toLowerCase();
+        const oneliner = (candidate.best_for_oneliner || "").toLowerCase();
+
+        // Breakfast check
+        if (specialLower.includes("breakfast") && !specialLower.includes("brunch")) {
+          const servesBreakfast = bestTimes.some(bt => bt.includes("breakfast")) ||
+            tagStrs.some(t => t.includes("breakfast")) ||
+            oneliner.includes("breakfast");
+          if (!servesBreakfast) {
+            const cappedScore = Math.min(0.35, repRelevance.score * 0.35);
+            return { score: cappedScore, type: "reputation", details: `Reputation (no breakfast cap)` };
+          }
+        }
+
+        // Dessert check
+        if (specialLower.includes("dessert") || specialLower.includes("pastry") || specialLower.includes("bakery")) {
+          const hasDessert = cuisineType.includes("dessert") || cuisineType.includes("bakery") ||
+            cuisineType.includes("pastry") || cuisineType.includes("ice cream") ||
+            tagStrs.some(t => t.includes("dessert") || t.includes("bakery") || t.includes("pastry")) ||
+            oneliner.includes("dessert") || oneliner.includes("pastry") || oneliner.includes("bakery");
+          if (!hasDessert) {
+            const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
+            return { score: cappedScore, type: "reputation", details: `Reputation (no dessert cap)` };
+          }
+        }
+
+        // Food truck check
+        if (specialLower.includes("food truck")) {
+          const isFoodTruck = cuisineType.includes("food truck") ||
+            tagStrs.some(t => t.includes("food truck")) ||
+            oneliner.includes("food truck");
+          if (!isFoodTruck) {
+            const cappedScore = Math.min(0.25, repRelevance.score * 0.25);
+            return { score: cappedScore, type: "reputation", details: `Reputation (not food truck cap)` };
+          }
+        }
+
+        // Buffet check
+        if (specialLower.includes("buffet")) {
+          const isBuffet = cuisineType.includes("buffet") ||
+            tagStrs.some(t => t.includes("buffet")) ||
+            oneliner.includes("buffet") ||
+            (candidate.deep_profile?.service_style || "").toLowerCase().includes("buffet");
+          if (!isBuffet) {
+            const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
+            return { score: cappedScore, type: "reputation", details: `Reputation (not buffet cap)` };
+          }
+        }
+
+        // Brunch check — "best Sunday brunch" etc.
+        if (specialLower.includes("brunch")) {
+          const servesBrunch = bestTimes.some(bt => bt.includes("brunch")) ||
+            tagStrs.some(t => t.includes("brunch")) ||
+            oneliner.includes("brunch");
+          if (!servesBrunch) {
+            const cappedScore = Math.min(0.40, repRelevance.score * 0.40);
+            return { score: cappedScore, type: "reputation", details: `Reputation (no brunch cap)` };
+          }
+        }
+
+        // Happy hour check
+        if (specialLower.includes("happy hour")) {
+          const hasHappyHour = tagStrs.some(t => t.includes("happy hour")) ||
+            oneliner.includes("happy hour") ||
+            (candidate.deep_profile?.wow_factors || []).some((w: string) => w.toLowerCase().includes("happy hour"));
+          if (!hasHappyHour) {
+            const cappedScore = Math.min(0.40, repRelevance.score * 0.40);
+            return { score: cappedScore, type: "reputation", details: `Reputation (no happy hour cap)` };
+          }
+        }
+
+        // V25: Tasting menu check — "best tasting menu" must verify restaurant has one
+        if (specialLower.includes("tasting menu") && !specialLower.includes("prix fixe")) {
+          const dp = candidate.deep_profile;
+          const serviceStyle = (dp?.service_style || "").toLowerCase();
+          const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+          const hasTastingMenu =
+            tagStrs.some(t => t.includes("tasting menu") || t.includes("tasting")) ||
+            oneliner.includes("tasting menu") || oneliner.includes("multi-course") ||
+            serviceStyle.includes("tasting") || serviceStyle.includes("omakase") ||
+            wowFactors.some(w => w.includes("tasting menu") || w.includes("multi-course"));
+          if (!hasTastingMenu) {
+            const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
+            return { score: cappedScore, type: "reputation", details: `Reputation (no tasting menu cap)` };
+          }
+        }
+
+        // V25: Prix fixe check — "best prix fixe" must verify restaurant offers prix fixe
+        if (specialLower.includes("prix fixe") || specialLower.includes("pre fixe") || specialLower.includes("pre-fixe")) {
+          const dp = candidate.deep_profile;
+          const serviceStyle = (dp?.service_style || "").toLowerCase();
+          const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+          const hasPrixFixe =
+            tagStrs.some(t => t.includes("prix fixe") || t.includes("tasting menu") || t.includes("tasting")) ||
+            oneliner.includes("prix fixe") || oneliner.includes("tasting menu") || oneliner.includes("multi-course") ||
+            serviceStyle.includes("tasting") || serviceStyle.includes("prix fixe") || serviceStyle.includes("omakase") ||
+            wowFactors.some(w => w.includes("prix fixe") || w.includes("tasting") || w.includes("multi-course"));
+          if (!hasPrixFixe) {
+            const cappedScore = Math.min(0.30, repRelevance.score * 0.30);
+            return { score: cappedScore, type: "reputation", details: `Reputation (no prix fixe cap)` };
+          }
+        }
+
+        // V25: After-work drinks check — "after-work drinks" / "drinks and food" should prefer
+        // bars, cocktail bars, and restaurants known for their bar program
+        if ((specialLower.includes("after-work drinks") || specialLower.includes("after work drinks")) && !specialLower.includes("happy hour")) {
+          const dp = candidate.deep_profile;
+          const wowFactors = (dp?.wow_factors || []).map((w: string) => w.toLowerCase());
+          const hasDrinksProgram =
+            cuisineType.includes("bar") || cuisineType.includes("cocktail") || cuisineType.includes("brewery") ||
+            tagStrs.some(t => t.includes("craft cocktails") || t.includes("happy hour") || t.includes("bar")) ||
+            oneliner.includes("cocktail") || oneliner.includes("bar") || oneliner.includes("drinks") ||
+            wowFactors.some(w => w.includes("cocktail") || w.includes("bar program") || w.includes("happy hour"));
+          if (!hasDrinksProgram) {
+            const cappedScore = Math.min(0.45, repRelevance.score * 0.45);
+            return { score: cappedScore, type: "reputation", details: `Reputation (no drinks program cap)` };
+          }
+        }
+      }
+
       // V18: Only apply vibe blending/penalty when the QUERY itself contains vibe-specific words.
       // Concept-expanded vibes from CONCEPT_MAP shouldn't trigger the penalty for generic
       // reputation queries like "best restaurant Chicago".
-      const REPUTATION_VIBE_TRIGGERS = /rooftop|cocktail|speakeasy|tiki|dive|jazz|karaoke|sports|outdoor|patio|romantic|cozy|upscale|lounge|wine bar|craft beer|happy hour|late night|bottomless/i;
+      // V25: Added "date night", "date", "brunch" to vibe triggers so reputation+vibe blending fires
+      const REPUTATION_VIBE_TRIGGERS = /rooftop|cocktail|speakeasy|tiki|dive|jazz|karaoke|sports|outdoor|patio|romantic|cozy|upscale|lounge|wine bar|craft beer|happy hour|late night|bottomless|date night|date|brunch/i;
       const queryHasVibeWords = REPUTATION_VIBE_TRIGGERS.test(specialRequest);
       const hasVibeSignals = queryHasVibeWords && ((intent.vibe_keywords?.length ?? 0) > 0 || (intent.target_tags?.length ?? 0) > 0);
       const hasConstraintSignals = (intent.practical_constraints?.length ?? 0) > 0;
