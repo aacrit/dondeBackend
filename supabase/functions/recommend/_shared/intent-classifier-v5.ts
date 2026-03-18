@@ -730,10 +730,16 @@ export async function classifyIntentV5(
       "brunch", "breakfast", "lunch", "dinner", "happy hour", "late night",
       "dessert", "bottomless brunch", "bottomless mimosas",
     ]);
+    // V25: Suffixes that indicate a cuisine query, not a dish query.
+    // "eritrean food", "venezuelan food", "trinidadian food" are cuisines, not dishes.
+    const CUISINE_QUERY_SUFFIXES = ["food", "cuisine", "restaurant", "place", "spot", "dining"];
+
     for (const token of tokens) {
       if (matchedPhrases.has(token)) continue;
       const signal = INTENT_MAP[token];
       if (signal?.cuisines?.length && !INTENT_NON_FOOD.has(token) && !NON_DISH_WORDS.has(token)) {
+        // V25: Skip tokens that are also cuisine names (e.g., "american" from CUISINE_KEYWORDS)
+        if (cuisineNamesLower.has(token)) continue;
         dishLevelIntent = input;
         break;
       }
@@ -743,6 +749,13 @@ export async function classifyIntentV5(
       for (const phrase of matchedPhrases) {
         const signal = INTENT_MAP[phrase];
         if (signal?.cuisines?.length && !INTENT_NON_FOOD.has(phrase) && !NON_DISH_WORDS.has(phrase)) {
+          // V25: Skip phrases that end with cuisine-query suffixes (e.g., "eritrean food",
+          // "venezuelan food"). These are cuisine queries, not dish queries.
+          const phraseWords = phrase.split(/\s+/);
+          const lastWord = phraseWords[phraseWords.length - 1];
+          if (CUISINE_QUERY_SUFFIXES.includes(lastWord)) continue;
+          // V25: Skip phrases where any word is a known sub-cuisine from NON_DISH_WORDS
+          if (phraseWords.some(w => NON_DISH_WORDS.has(w))) continue;
           dishLevelIntent = input;
           break;
         }
