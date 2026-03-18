@@ -1,6 +1,6 @@
 # Golden Dataset Test Results
 
-**Date:** 2026-03-18T04:43:48Z
+**Date:** 2026-03-18T05:25:06Z
 **Endpoint:** https://vwbzkgsxmgwcvmvuxnbe.supabase.co/functions/v1/recommend
 **Tests:** 50 | **Checks:** 188
 
@@ -18,7 +18,7 @@
 | Category | Avg DondeMatch | Tests |
 |----------|---------------|-------|
 | Food | 80 | 15 |
-| Vibe | 81 | 10 |
+| Vibe | 82 | 10 |
 | Service | 84 | 10 |
 | Reputation | 88 | 5 |
 | Convenience | 85 | 10 |
@@ -82,7 +82,7 @@
 - **PASS** [GD-F11] food_score >= 5 (got 9.7)
 - **PASS** [GD-F12] donde_match >= 50 (got 79)
 - **WARN** [GD-F12] score_fit near threshold — got C/75, want >= B-/80
-- **PASS** [GD-F12] blurb_quality >= B- (got B-/80)
+- **PASS** [GD-F12] blurb_quality >= B- (got B-/85)
 - **WARN** [GD-F12] cuisine match — expected one of [Taiwanese|Chinese], got Vietnamese
 - **PASS** [GD-F12] food_score >= 5 (got 9.7)
 - **PASS** [GD-F13] donde_match >= 50 (got 77)
@@ -103,7 +103,7 @@
 - **PASS** [GD-V01] score_fit >= B- (got B+/90)
 - **PASS** [GD-V01] blurb_quality >= B- (got B-/85)
 - **PASS** [GD-V01] vibe_score >= 5 (got 8.7)
-- **PASS** [GD-V02] donde_match >= 50 (got 79)
+- **PASS** [GD-V02] donde_match >= 50 (got 82)
 - **PASS** [GD-V02] score_fit >= B- (got A/100)
 - **PASS** [GD-V02] blurb_quality >= B- (got B-/85)
 - **PASS** [GD-V02] vibe_score >= 5 (got 9.7)
@@ -111,7 +111,7 @@
 - **PASS** [GD-V03] score_fit >= B- (got B+/90)
 - **PASS** [GD-V03] blurb_quality >= B- (got B-/85)
 - **PASS** [GD-V03] vibe_score >= 5 (got 8.7)
-- **PASS** [GD-V04] donde_match >= 45 (got 76)
+- **PASS** [GD-V04] donde_match >= 45 (got 77)
 - **PASS** [GD-V04] score_fit >= B- (got A/100)
 - **PASS** [GD-V04] blurb_quality >= B- (got B-/80)
 - **PASS** [GD-V04] vibe_score >= 5 (got 9.4)
@@ -157,7 +157,7 @@
 - **PASS** [GD-S06] donde_match >= 55 (got 85)
 - **PASS** [GD-S06] score_fit >= B- (got B+/90)
 - **PASS** [GD-S06] blurb_quality >= B- (got B-/85)
-- **PASS** [GD-S07] donde_match >= 55 (got 92)
+- **PASS** [GD-S07] donde_match >= 55 (got 91)
 - **PASS** [GD-S07] score_fit >= B- (got B+/90)
 - **PASS** [GD-S07] blurb_quality >= B- (got B-/80)
 - **PASS** [GD-S08] donde_match >= 55 (got 89)

@@ -14,7 +14,7 @@ Last updated: 2026-03-18
 | R4 | 25 | 60% | 80% | 2 | 0 | V23 | claude/v23-round3-subjective-fixes |
 | R5 | 25 | 52% | 80% | 6 | 0 | V25 | claude/v25-subjective-round6-fixes |
 | R6 | 25 | 40% | 88% | 9 | 0 | V25 | claude/v25-subjective-round6-fixes |
-| R7 | 25 | 64% | TBD | 2 | TBD | V26 | claude/v26-subjective-round7-fixes |
+| R7 | 25 | 52% | 64% | 2 | 0 | V26 | claude/v26-subjective-round7-fixes |
 | **Total** | **175** | **55% avg** | **85% avg** | **31** | **0** | | |
 
 **Golden dataset (final):** 181P/0F/7W, avg DM 83 — NO REGRESSION vs V10 baseline (+137 passes, +13 DM).
