@@ -620,8 +620,19 @@ export async function classifyIntentV5(
   }
 
   // Step 3b: Token-level INTENT_MAP scanning (for unigram/bigram/trigram matches)
+  // V25: bug-fixer — Build set of sub-words from matched phrases so we skip
+  // INTENT_MAP lookups for individual tokens that are part of a matched phrase.
+  // Without this, "soup dumplings" (phrase → Chinese) also triggers
+  // INTENT_MAP["soup"] → Japanese/Vietnamese, polluting target_cuisines.
+  const phraseSubWords = new Set<string>();
+  for (const phrase of matchedPhrases) {
+    for (const word of phrase.split(/\s+/)) {
+      phraseSubWords.add(word);
+    }
+  }
   for (const token of tokens) {
     if (matchedPhrases.has(token)) continue; // Already matched as a phrase
+    if (phraseSubWords.has(token)) continue; // V25: Skip sub-words of matched phrases
     const signal = INTENT_MAP[token];
     if (signal) {
       intentMapMatchCount++;

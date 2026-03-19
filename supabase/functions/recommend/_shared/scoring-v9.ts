@@ -2065,10 +2065,6 @@ function computeDishRelevance(
         const directMatch = ri.dish_catalog.some(d =>
           d.toLowerCase().includes(dish)
         );
-        // V25: debug — log cross-cuisine dish relevance computation for diagnosis
-        if (dish.includes("soup dumpling") || dish.includes("dumpling")) {
-          console.log(`[V25-DEBUG] computeDishRelevance: restaurant=${candidate.name} cuisine=${restaurantCuisine} dish="${dish}" variant="${variant}" crossCuisinePenalty=${crossCuisinePenalty} directMatch=${directMatch} targetCuisines=${JSON.stringify(targetCuisines)} catalogSample=${JSON.stringify(ri.dish_catalog.slice(0, 5))}`);
-        }
         if (crossCuisinePenalty && !directMatch) {
           return 0.50; // Synonym matched but wrong cuisine
         }
