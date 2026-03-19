@@ -21,6 +21,10 @@ const ORGANIC_TTL_MS = 3 * 24 * 60 * 60 * 1000;  // 3 days
 const PREWARM_TTL_MS = 7 * 24 * 60 * 60 * 1000;  // 7 days
 const QUALITY_GATE = 80;  // B- minimum
 
+// V24: Engine version for cache invalidation. Cache entries from older engine
+// versions are ignored on read, ensuring scoring changes take effect immediately.
+const CACHE_ENGINE_VERSION = "11.1.0";
+
 /** Synonym map for query normalization — "cheap" and "budget" produce the same canonical form */
 const QUERY_SYNONYM_MAP: Record<string, string> = {
   "cheap": "budget",
@@ -306,10 +310,12 @@ async function _lookupPersistentCacheInternal(
   canonicalForm: string,
 ): Promise<CacheHitResult | null> {
   // L1: Try exact match first (fastest path)
+  // V24: Filter by engine_version to auto-invalidate stale scoring data
   const { data: exactMatch } = await supabase
     .from("query_cache")
     .select("id, response_body, ranked_queue")
     .eq("cache_key", exactKey)
+    .eq("engine_version", CACHE_ENGINE_VERSION)
     .gt("expires_at", new Date().toISOString())
     .limit(1)
     .single();
@@ -332,6 +338,7 @@ async function _lookupPersistentCacheInternal(
   }
 
   // L2 + L3: Run fingerprint and canonical lookups in parallel
+  // V24: All levels filter by engine_version to prevent serving stale scores
   const [fpResult, canonResult] = await Promise.all([
     // L2: fingerprint match
     fingerprint
@@ -339,6 +346,7 @@ async function _lookupPersistentCacheInternal(
           .from("query_cache")
           .select("id, response_body, ranked_queue")
           .eq("intent_fingerprint", fingerprint)
+          .eq("engine_version", CACHE_ENGINE_VERSION)
           .gt("expires_at", new Date().toISOString())
           .order("hit_count", { ascending: false })
           .limit(1)
@@ -350,6 +358,7 @@ async function _lookupPersistentCacheInternal(
           .from("query_cache")
           .select("id, response_body, ranked_queue")
           .eq("canonical_form", canonicalForm)
+          .eq("engine_version", CACHE_ENGINE_VERSION)
           .gt("expires_at", new Date().toISOString())
           .order("hit_count", { ascending: false })
           .limit(1)
@@ -458,7 +467,7 @@ export async function populateCache(
       score_fit_score: scoreFit,
       blurb_quality_score: blurbQuality,
       source,
-      engine_version: "11.0.0",
+      engine_version: CACHE_ENGINE_VERSION,
       expires_at: expiresAt,
     }, {
       onConflict: "cache_key",
