@@ -2986,8 +2986,15 @@ function computeServiceQuality(
 
   const confidence: "high" | "medium" | "low" = (dp?.service_style && dp?.kid_friendliness != null) ? "high" : dp?.service_style ? "medium" : "low";
   // Service floor: 5.0 for restaurants WITHOUT service_style data (cold-start protection).
-  // Restaurants WITH service_style compute naturally — no floor needed since they have real signals.
-  const serviceFloor = dp?.service_style ? 0 : 5.0;
+  // V24: bug-fixer — Raised floor from 0 to 6.0 for restaurants WITH service_style data
+  // when occasion is "Any". The RI blending formula (line 2898) pulls scores below 6.0
+  // when review_service_quality is moderate (7-8), but the bash grading cliff at
+  // service>=6 means 5.7 gets +5 pts while 6.0 gets +25 pts. This floor ensures
+  // well-run restaurants with service data don't get penalized by the grading cliff.
+  // Old: serviceFloor = 0 for service_style restaurants. New: 6.0 when occasion="Any".
+  const serviceFloor = dp?.service_style
+    ? (occasion === "Any" ? 6.0 : 0)
+    : 5.0;
   return { score: Math.min(10, Math.max(serviceFloor, score)), details, confidence };
 }
 
