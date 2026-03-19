@@ -2059,8 +2059,11 @@ function computeDishRelevance(
         );
         // V16: If dish found but cuisine doesn't match, cap at 0.50 (synonym leakage)
         // Unless the dish itself (not a synonym) is in the catalog
+        // V24: bug-fixer — Tightened directMatch to require catalog dish contains query dish
+        // (not the reverse). "dumplings" in catalog should NOT satisfy directMatch for
+        // query "soup dumplings" because the restaurant may serve gyoza, not xiao long bao.
         const directMatch = ri.dish_catalog.some(d =>
-          d.toLowerCase().includes(dish) || dish.includes(d.toLowerCase())
+          d.toLowerCase().includes(dish)
         );
         if (crossCuisinePenalty && !directMatch) {
           return 0.50; // Synonym matched but wrong cuisine
