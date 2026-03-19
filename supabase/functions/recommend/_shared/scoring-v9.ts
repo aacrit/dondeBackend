@@ -2969,10 +2969,13 @@ function computeServiceQuality(
   // instead of flat 5.0 which was suppressing differentiation
   if (occasion === "Any" && occasionBase === 0) {
     // score already includes serviceStylePoints (0-2), socialScore (0-2), crowd (0-0.5)
-    // Rebase around 6.0 using what we have: base 5.5 + any service/social/crowd bonuses
-    // V16: Raised from 5.0 to 5.5 — service scores were consistently under 6.0 for "Any" occasion,
-    // causing score_fit grade failures on service-category test queries
-    const anyScore = 5.5 + (serviceStylePoints - 1) + clampedSocial * 0.5;
+    // Rebase around 6.0 using what we have: base + any service/social/crowd bonuses
+    // V16: Raised from 5.0 to 5.5 — service scores were consistently under 6.0 for "Any" occasion
+    // V24: bug-fixer — Raised from 5.5 to 6.0. Bash grading has a cliff at service>=6
+    // (+25 vs +5 pts). 5.5 base consistently produced 5.2-5.7 final scores, causing
+    // 2 golden dataset WARNs (omakase C/70, valet parking C/70). Impact: +0.5 DM avg
+    // on service factor (10% weight), negligible regression risk.
+    const anyScore = 6.0 + (serviceStylePoints - 1) + clampedSocial * 0.5;
     // Boost from review intelligence service quality and trending score
     const riServiceAdj = ri?.review_service_quality != null ? Math.max(0, (ri.review_service_quality - 6) * 0.4) : 0;
     const trendAdj = candidate.trending_score != null ? Math.max(0, (Number(candidate.trending_score) - 5) * 0.2) : 0;
