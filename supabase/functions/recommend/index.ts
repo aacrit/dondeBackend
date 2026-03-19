@@ -69,7 +69,7 @@ import { buildReservationLinks, checkResyAvailability } from "./_shared/reservat
 import type { ReservationRow, ReservationLinks as ReservationLinksType } from "./_shared/reservation-links.ts";
 import { isMLModelLoaded, computeTargetedBoost } from "./_shared/ml-adjustment.ts";
 
-const API_VERSION = "11.1.0"; // V24: bumped for cache invalidation (score inflation fix)
+const API_VERSION = "11.1.1"; // V25: bumped for soup dumplings cross-cuisine fix
 
 // --- In-memory response cache (stale-while-revalidate) ---
 interface CacheEntry {
