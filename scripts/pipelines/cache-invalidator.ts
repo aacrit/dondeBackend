@@ -12,7 +12,7 @@
 
 import { createAdminClient } from '../lib/supabase.js';
 
-const CURRENT_ENGINE_VERSION = '11.0.0';
+const CURRENT_ENGINE_VERSION = '11.1.0'; // V24: bumped for score inflation fix
 
 async function main() {
   const sb = createAdminClient();
