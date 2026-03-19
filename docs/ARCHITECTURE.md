@@ -1,6 +1,6 @@
 # Backend Architecture
 
-Last updated: 2026-03-17 (final)
+Last updated: 2026-03-19
 
 ## System Overview
 
@@ -8,13 +8,13 @@ Last updated: 2026-03-17 (final)
 |-------|-----------|
 | API | Supabase Edge Function (Deno/TS), V11 scoring engine (V19+ tuning) |
 | AI | Claude Haiku 4.5 (recommendations, enrichment, intent classification) |
-| ML | Targeted boost (654 keys, 7 winners, 100% traffic, 0 regressions) + per-factor models, `ml-adjustment.ts` |
+| ML | Targeted boost (654 keys, 57 consistent winners, 100% traffic, 0 regressions, v1.1.0 boost table) + per-factor models, `ml-adjustment.ts` |
 | DB | Supabase PostgreSQL (21 tables, 74 migrations, pgvector extension) |
-| Cache | DondeCache — persistent 3-level fuzzy query cache (exact/fingerprint/canonical) |
+| Cache | DondeCache — persistent 3-level fuzzy query cache (exact/fingerprint/canonical), engine_version 11.1.0 |
 | Vectors | pgvector HNSW indexes on `restaurant_embeddings` + `query_embeddings` (384-dim) |
 | Data | Google Places API (live fetch per request; only `google_place_id` stored per ToS §3.2.3) |
 | Reservations | Resy + OpenTable deep links via `restaurant_reservations` table |
-| Pipelines | Node.js 20 + tsx scripts (35 pipelines), GitHub Actions cron |
+| Pipelines | Node.js 20 + tsx scripts (36 pipelines), GitHub Actions cron |
 | ML Training | `scripts/ml/` — 24 files: Python XGBoost + TS inference, ~3,050 training pairs (7 batches, 610 queries), per-factor models |
 | CI/CD | 17 GitHub Actions workflows |
 
@@ -35,7 +35,7 @@ supabase/
       grading.ts                  # Score fit + blurb quality grading (mirrors cc-grading.js)
       query-cache.ts              # DondeCache — 3-level persistent cache (exact/fingerprint/canonical)
       circuit-breaker.ts          # 3-state circuit breaker for Claude API (CLOSED/OPEN/HALF_OPEN)
-      ml-adjustment.ts            # ML scoring layer — 22-feature extraction + linear/tree + targeted boost + A/B
+      ml-adjustment.ts            # ML scoring layer — targeted boost (v1.1.0, applied before decompression) + A/B
       ml-model.json               # Pre-trained ML model weights (linear v1.0)
       boost-table.json            # Targeted boost table — teacher-validated per-query restaurant boosts
       factor-models.json          # Per-factor linear adjustment models (5 factors, deployed not yet wired)
@@ -52,7 +52,7 @@ supabase/
 scripts/
   lib/                            # 6 shared pipeline libraries
     config.ts, claude.ts, google-places.ts, supabase.ts, batch.ts, types.ts
-  pipelines/                      # 35 pipeline scripts (see API-WORKFLOWS.md)
+  pipelines/                      # 36 pipeline scripts (see API-WORKFLOWS.md)
   ml/                             # 24 ML training files (Python + TS + JSON datasets)
     train-model.py                # XGBoost LambdaMART + GroupKFold
     train-simple.py               # Zero-dep linear fallback
@@ -105,7 +105,7 @@ tests/
 | `grading.ts` | Server-side score fit + blurb quality grading (mirrors cc-grading.js) | **Active** |
 | `query-cache.ts` | DondeCache — 3-level persistent cache with fuzzy matching + quality gate | **Active** |
 | `circuit-breaker.ts` | 3-state circuit breaker for Claude API calls (CLOSED/OPEN/HALF_OPEN, 60s cooldown) | **Active** |
-| `ml-adjustment.ts` | ML scoring layer — targeted boost (654 keys, 7 winners, +5/+2), A/B at 100% (0 regressions) | **Active** |
+| `ml-adjustment.ts` | ML scoring layer — targeted boost (v1.1.0: 654 keys, 57 consistent winners, +3 direct/+1 winner, applied before decompression, inflation cap +8) | **Active** |
 | `ml-model.json` | Pre-trained linear model weights | **Active (data)** |
 | `boost-table.json` | Targeted boost table — teacher-validated per-query restaurant boosts | **Active (data)** |
 | `factor-models.json` | Per-factor linear adjustment models (5 factors, deployed not yet wired) | **Staged (data)** |

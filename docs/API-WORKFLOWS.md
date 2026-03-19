@@ -1,6 +1,6 @@
 # API & Workflows
 
-Last updated: 2026-03-17 (final)
+Last updated: 2026-03-19
 
 ## Edge Function Request Flow (V11)
 
@@ -18,7 +18,7 @@ index.ts orchestration — single POST /recommend endpoint
 8. **Concept expansion** — V17/V18: Merge concept constraints, tags, and vibes into intent for scoring. Track `_originalVibeCount` before merging.
 9. **RPC candidates** — `get_candidates_v11` (composite scoring with `p_semantic_tags`, fallback to V10 → V9 RPC). Dynamic candidate pool: standard 100, complex/semantic 150.
 10. **Dietary filter** — Safety-critical hard filter on dietary restrictions (never relaxed). No other hard filters — V11 relevance gating handles cuisine/dish/vibe/semantic.
-11. **V11 scoring** (`reRankV9`) — Relevance(0-1) x Quality(0-100) + OccasionBonus(+/-5). V18+ quality floors. 6 weight profiles.
+11. **V11 scoring** (`reRankV9`) — Relevance(0-1) x Quality(0-100) + OccasionBonus(+/-5). V24 quality floors (cuisine >=70, neighborhood >=72, reputation >=68). 6 weight profiles.
 12. **Post-scoring filters** — `applyPostScoringFilters()`: neighborhood + price hard filters with 3-phase graceful expansion (exact -> adjacent -> best available). Bypassed for "Anywhere"/"Any".
 13. **Diversity filter** — `ensureDiversity()` max 2 same cuisine in top results
 14. **Google Places fetch** — Top 5 candidates, 1.5s timeout, parallel
@@ -31,8 +31,8 @@ index.ts orchestration — single POST /recommend endpoint
 21. **Cuisine mismatch cap** — If high-importance cuisine mismatch: cap DondeMatch at 65 post-Claude.
 22. **Quality guardrails** — Slop detection (67 banned patterns), em dash stripping, word count check (100-120), "we/our" voice mandate.
 23. **Shadow personalization** — `computeShadowPersonalization()` computes boost from `user_taste_profiles` (cuisine/neighborhood/vibe affinity). Logged but not applied to score. Response field: `personalization`.
-24. **ML scoring** — Targeted boost via `boost-table.json` (654 keys, +5 direct / +2 winner, boost-only). A/B at 100% (0 regressions). Legacy `applyMLAdjustments()` available as fallback. Response field: `ml_scoring`.
-25. **Score decompression** — `decompressScore()` piecewise linear mapping. Widens 72-86 DM band. Applied AFTER grading so grading uses raw scores.
+24. **ML scoring** — Targeted boost via `boost-table.json` (v1.1.0, 654 keys, +3 direct / +1 winner, boost-only). V24: ML boost applied BEFORE decompression to prevent compounding. Inflation cap of +8 from pre-boost raw (STEP 9.3). A/B at 100% (0 regressions). Response field: `ml_scoring`.
+25. **Score decompression** — `decompressScore()` piecewise linear mapping. V24: [78,88]→[78,89] (slope 1.1, was 1.4). Applied AFTER grading and ML boost.
 26. **Response build** — `buildV9SuccessResponse()` with `scoring_v9`, `match_narrative`, `ranked_queue`, `circuit_breaker`, `personalization`, `ml_scoring`, `response_time_ms`. Cache result. Fire-and-forget query log + score validation grading.
 27. **Telemetry header** — `X-Donde-Timing` header with per-component timing breakdown (9 markers).
 28. **Persistent cache write-through** — Quality-gated (score fit >= 80 AND blurb quality >= 80). Stores response with intent fingerprint + canonical form for L2/L3 future hits.
@@ -47,7 +47,7 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 
 **Relevance** classifies match type using review intelligence + semantic matching:
 - **dish** (R=1.0): Exact dish found in `dish_catalog` or `popular_dishes` (150+ synonyms)
-- **cuisine** (R=0.85-1.0): Cuisine matches `cuisine_signals` or `cuisine_type`
+- **cuisine** (R=0.75-1.0): Cuisine matches `cuisine_signals` or `cuisine_type`. V24: RI-only match capped at 0.75 when `cuisine_type` contradicts target.
 - **vibe** (R=0.45-0.75): Vibe/occasion match, dynamic floor based on signal count
 - **semantic** (R=0.50-0.80): Semantic tag matching via `computeSemanticRelevance()`
 - **reputation** (R=0.45-0.70): Chef/award/reputation match, blended with vibe/constraint signals
@@ -60,10 +60,10 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | Food | Review intelligence cuisine signals, dish catalog, menu highlights, dietary fit, dish synonyms, signature_dishes count, menu_depth |
 | Vibe | Noise, lighting_ambiance, dress_code, decor_style, energy, music, vibe keywords, crowd_profile, wow_factors |
 | Service | Occasion base, service style, meal_pacing, group_size_sweet_spot, review_service_quality, social dynamics, crowd matching |
-| Reputation | Composite 4 RI scores (food/service/ambiance/value), stretched Google rating (3.5->0, 5.0->10), review count, awards, chef_notable |
+| Reputation | Composite 4 RI scores (food/service/ambiance/value), stretched Google rating (3.5->0, 5.0->10), review count, awards (Michelin/Beard +1.5, bonus cap 3.0), chef_notable (+0.7) |
 | Convenience | Timing, reservation, wait time, parking, transit_accessibility, seasonal_relevance, payment_notes (cash-only penalty), practical constraints |
 
-**Quality floors (V18):** cuisine/dish >=74 (rel>=0.90), >=68 (rel>=0.70); neighborhood >=80 (rel>=0.90); vibe >=68 (rel>=0.75); reputation >=72 (rel>=0.80).
+**Quality floors (V24):** cuisine/dish >=70 (rel>=0.90), >=64 (rel>=0.70); neighborhood >=72 (rel>=0.90); vibe >=64 (rel>=0.75); reputation >=68 (rel>=0.80). V24 lowered from V18 values (74/80/72) to restore score differentiation below 70.
 
 **Self-healing:** When `cuisine_type` is NULL (29/2,719 restaurants — down from 1,806 after cuisine taxonomy fixes), V11 falls back to `cuisine_signals` from review intelligence.
 
@@ -75,7 +75,8 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 
 | Version | Tests | Pass | Notes |
 |---------|-------|------|-------|
-| V19+ + ML boost (current) | 188 checks | 184P/0F/4W | Golden dataset, avg DM 82, avg SF 91, $0 cost |
+| V24 inflation fix (current) | 188 checks | — | Score inflation fixed; API_VERSION 11.1.0; cache migrated 1,794 entries avg -1.0pt |
+| V19+ + ML boost | 188 checks | 184P/0F/4W | Golden dataset, avg DM 82, avg SF 91, $0 cost |
 | V19+ (pre-boost) | 188 checks | 188P/0F/0W | Golden dataset, avg DM 80, 100% pass rate, $0 cost |
 | V18 | 188 checks | 177P/0F/11W | Golden dataset, avg DM 77, avg SF 88, avg BQ 79 |
 | V16 | 188 checks | 177P/0F/11W | First pass of V16 fixes |
@@ -84,7 +85,7 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | V9.0 | 95 | 95/95 | Relevance x Quality, review intelligence, self-healing |
 | V7.3b (archived) | 88 | 67/88 | Geometric mean, V5 weights |
 
-## Pipeline Inventory (35 scripts in `scripts/pipelines/`)
+## Pipeline Inventory (36 scripts in `scripts/pipelines/`)
 
 ### Scheduled (GitHub Actions cron)
 
@@ -101,6 +102,7 @@ Score range: 0-99 (clamped). Relevance is a GATE — low relevance = low score r
 | `maintenance-worker.ts` | Every 5 min (GH Actions) | Cron worker for CEO Command Center pipeline triggers |
 | `cache-warmer.ts` | Daily midnight Chicago (06:00 UTC) | DondeCache pre-warming (3 sources: popular/golden/manual, budget-gated) |
 | `cache-invalidator.ts` | Daily (with cache-warmer) | Cleanup expired/stale cache entries, engine version invalidation |
+| `cache-score-migration.ts` | Manual (one-time per engine version bump) | Migrate cached scores in-place when scoring changes (V24: 1,794 entries, avg delta -1.0pt) |
 
 ### Manual Dispatch
 

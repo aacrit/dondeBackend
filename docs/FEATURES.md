@@ -1,6 +1,6 @@
 # Backend Features
 
-Last updated: 2026-03-17 (final)
+Last updated: 2026-03-19
 
 ## Edge Function (V11 — active, V19+ tuning, files retain V9 naming)
 
@@ -25,16 +25,16 @@ Last updated: 2026-03-17 (final)
 - [x] V17: Concept constraint/tag merging into intent for scoring
 - [x] V17: Neighborhood relevance check before open_ended return
 - [x] V18: Neighborhood detection from special_request (auto-sets RPC filter)
-- [x] V18: Quality floor hierarchy (cuisine >=74, neighborhood >=80, reputation >=72)
+- [x] V18: Quality floor hierarchy (V24 updated: cuisine >=70, neighborhood >=72, reputation >=68)
 - [x] V18: _originalVibeCount for reputation vibe penalty guard
 - [x] V18: Skip vibe blending for high cuisine relevance (>=0.93)
 - [x] V18: Cross-cuisine synonym guard strengthened for dish queries
 - [x] V19+: MMR diversity re-ranking for queue positions #2-5 (Lambda=0.7)
-- [x] V19+: Score decompression (piecewise linear, widens 72-86 band, feature flag)
+- [x] V19+: Score decompression (piecewise linear, widens 72-86 band, feature flag). V24: [78,88]→[78,89] slope tightened 1.4→1.1
 - [x] V19+: Post-scoring neighborhood + price filters with 3-phase graceful expansion
 - [x] V19+: Circuit breaker for Claude API (3-state, 60s cooldown, deterministic fallback)
 - [x] V19+: Shadow personalization from user_taste_profiles (logged, not applied)
-- [x] V19+: ML targeted boost at 100% traffic (654 keys, 7 winners, 550 restaurants, +5 direct / +2 winner, 0 regressions)
+- [x] V19+: ML targeted boost at 100% traffic (654 keys, 57 consistent winners, 550 restaurants, +3 direct / +1 winner, 0 regressions, v1.1.0)
 - [x] V19+: Per-factor ML models trained on 2,127 gauntlet results (deployed, not yet wired)
 - [x] V19+: ~3,050 teacher-ranked training pairs from 610 queries (7 batches, $0 cost)
 - [x] V19+: 700-query test corpus (210 original + 490 hard: cuisine, dish, compound, neighborhood, vibe, occasion, group, time, edge)
@@ -42,6 +42,13 @@ Last updated: 2026-03-17 (final)
 - [x] V19+: Performance telemetry (9-marker X-Donde-Timing header + response_time_ms)
 - [x] V19+: Reservation deep links in API response (Resy + OpenTable, Project Foxtrot)
 - [x] V19+: Security hardening (CORS, headers, RLS, error sanitization, SECURITY DEFINER)
+- [x] V24: Score inflation fix — ML boost before decompression, inflation cap +8, boost amounts +3/+1, consistent winners pruned 151→57
+- [x] V24: Decompression slope tightened [78,88]→[78,89] (slope 1.1, was 1.4→[78,92])
+- [x] V24: Quality floors lowered to restore score differentiation below 70 (cuisine 74→70, neighborhood 80→72, reputation 72→68)
+- [x] V24: Cache engine version 11.1.0 with version filter on all cache lookups (L1/L2/L3)
+- [x] V24: Cache score migration pipeline (`cache-score-migration.ts`) — 1,794 entries migrated in-place
+- [x] V24: Cuisine-type vs RI mismatch guard — RI-only cuisine relevance capped at 0.75 when cuisine_type contradicts target
+- [x] V24: Award signal strengthened — Michelin/James Beard +1.5 (was +0.5-0.8), chef_notable +0.7, bonus cap 3.0 (was 2.5)
 
 ### Blurb Generation
 - [x] Claude Haiku 4.5 blurb generation (100-120 words, single API call)
@@ -61,6 +68,7 @@ Last updated: 2026-03-17 (final)
 - [x] DondeCache persistent query cache (3-level: exact/fingerprint/canonical; quality gate B-/80; TTL 3d/7d)
 - [x] Cache pre-warming pipeline (popular/golden/manual sources, budget-gated, 3-worker pool)
 - [x] Cache invalidation (TTL expiry + engine version + DB trigger on restaurant/enrichment changes)
+- [x] Cache score migration (`cache-score-migration.ts`) — in-place score recalculation for engine version bumps
 - [x] Server-side score fit + blurb quality grading (grading.ts, mirrors cc-grading.js)
 - [x] 30/min/IP rate limiting (soft enforcement)
 - [x] Input sanitization + prompt injection defense
