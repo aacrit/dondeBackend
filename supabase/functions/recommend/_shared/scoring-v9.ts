@@ -2068,6 +2068,14 @@ function computeDishRelevance(
         if (crossCuisinePenalty && !directMatch) {
           return 0.50; // Synonym matched but wrong cuisine
         }
+        // V25: bug-fixer — Cross-cuisine cap even for directMatch.
+        // A Japanese restaurant with "soup dumplings" in its catalog should NOT
+        // beat a Chinese restaurant for "soup dumplings" query. Cuisine-specific
+        // dishes belong to their origin cuisine. Cap at 0.80 so it stays in the
+        // queue but doesn't win over correctly-matched restaurants.
+        if (crossCuisinePenalty && directMatch) {
+          return 0.80; // Dish in catalog but wrong cuisine — capped
+        }
         return isPopular ? 1.0 : 0.90;
       }
     }
