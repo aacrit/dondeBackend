@@ -2166,11 +2166,27 @@ function computeCuisineRelevance(
 
   // Review intelligence cuisine signals (NEW in V9)
   // Evidence-based: what reviewers actually say about the cuisine
+  // V24: When cuisine_type exists and CONTRADICTS the target, cap RI-based
+  // relevance at 0.75 instead of 0.95. A restaurant typed as "Coffee/Cafe"
+  // shouldn't get 0.95 for "Thai" just because reviewers mention Thai food.
   if (ri?.cuisine_signals?.length) {
     const riMatch = targets.some(t =>
       ri.cuisine_signals.some(s => s.toLowerCase() === t.toLowerCase())
     );
-    if (riMatch) return 0.95; // Reviews confirm this cuisine
+    if (riMatch) {
+      // If cuisine_type exists and doesn't match any target, cap at 0.75
+      if (candidate.cuisine_type) {
+        const cl = candidate.cuisine_type.toLowerCase();
+        const typeMatchesAnyTarget = targets.some(t => {
+          const tl = t.toLowerCase();
+          return cl.includes(tl) || tl.includes(cl);
+        });
+        if (!typeMatchesAnyTarget) {
+          return 0.75; // RI says yes but cuisine_type disagrees — reduced confidence
+        }
+      }
+      return 0.95; // Reviews confirm this cuisine (no cuisine_type contradiction)
+    }
   }
 
   // V14: RI family-level matching — when target is a family/umbrella cuisine,
@@ -2650,16 +2666,29 @@ function computeReputationQuality(
     confidence = "high";
   }
 
-  // Awards and community bonus (0-2.5) — raised cap from 1.5 to better differentiate acclaimed restaurants
+  // V24: Awards and community bonus (0-3.0) — strengthened to meaningfully
+  // differentiate Michelin/James Beard restaurants from unrecognized ones.
+  // Previously max was 2.5 with awards worth only 0.5-0.8, which was too
+  // small to move the needle in rankings (e.g., Ghin Khao Michelin Bib
+  // Gourmand scored the same as unrecognized Krung Thep).
   let bonus = 0;
   if (dp?.awards_recognition?.length) {
-    // Scale by number of awards: 1 award = 0.5, 2+ = 0.8
-    bonus += dp.awards_recognition.length >= 2 ? 0.8 : 0.5;
-    details.awards = { score: bonus, max: 0.8, signal: dp.awards_recognition[0] };
+    const awardText = dp.awards_recognition.join(" ").toLowerCase();
+    const hasMichelin = awardText.includes("michelin");
+    const hasBeard = awardText.includes("james beard") || awardText.includes("beard");
+    if (hasMichelin || hasBeard) {
+      // Michelin/James Beard: +1.5 (was +0.5-0.8)
+      bonus += 1.5;
+      details.awards = { score: 1.5, max: 1.5, signal: dp.awards_recognition[0] };
+    } else {
+      // Other awards: scale by count
+      bonus += dp.awards_recognition.length >= 2 ? 1.0 : 0.7;
+      details.awards = { score: bonus, max: 1.0, signal: dp.awards_recognition[0] };
+    }
   }
   if (dp?.chef_notable) {
-    bonus += 0.5;
-    details.chef = { score: 0.5, max: 0.5, signal: "Notable chef" };
+    bonus += 0.7;
+    details.chef = { score: 0.7, max: 0.7, signal: "Notable chef" };
   }
   if (dp?.cultural_authenticity != null && dp.cultural_authenticity >= 8) bonus += 0.3;
   if (dp?.neighborhood_integration === "institution") bonus += 0.3;
@@ -2669,7 +2698,7 @@ function computeReputationQuality(
     details.trending = { score: 0.3, max: 0.3, signal: "Currently trending" };
   }
 
-  score += Math.min(2.5, bonus);
+  score += Math.min(3.0, bonus); // V24: raised cap from 2.5 to 3.0
 
   return { score: Math.min(10, Math.max(0, score)), details, confidence };
 }
