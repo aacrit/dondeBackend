@@ -1,11 +1,13 @@
 /**
  * Cache Score Migration — V24 Score Inflation Fix
  *
- * Recalculates donde_match scores in existing cache entries using the
- * new V24 decompression curve and inflation cap, then stamps them with
- * engine_version 11.1.0 so they're visible to the updated Edge Function.
+ * Strategy: Reverse the OLD pipeline to recover raw scores, then apply
+ * the NEW V24 pipeline. This preserves Claude blurbs while correcting
+ * the inflated donde_match numbers.
  *
- * Preserves Claude-generated blurbs — only touches score fields.
+ * Old pipeline: raw → old_decompress → +ML_boost(+5/+2) = cached_dm
+ * Recovery:     cached_dm - old_ML = old_decompressed → inverse_decompress = raw
+ * New pipeline: raw → +new_ML(+3/+1) → new_decompress → inflation_cap = new_dm
  *
  * Usage:
  *   npx tsx pipelines/cache-score-migration.ts          # dry run
@@ -17,7 +19,37 @@ import { createAdminClient } from '../lib/supabase.js';
 const NEW_ENGINE_VERSION = '11.1.0';
 const MAX_INFLATE = 8;
 
-// V24 decompression — must match scoring-v9.ts exactly
+// ============================================================================
+// OLD decompression (pre-V24) — for reversing cached scores
+// ============================================================================
+const OLD_SEGMENTS = [
+  { inLow: 0,  inHigh: 60, outLow: 0,  outHigh: 50 },
+  { inLow: 60, inHigh: 70, outLow: 50, outHigh: 70 },
+  { inLow: 70, inHigh: 78, outLow: 70, outHigh: 78 },
+  { inLow: 78, inHigh: 88, outLow: 78, outHigh: 92 },
+  { inLow: 88, inHigh: 99, outLow: 92, outHigh: 99 },
+];
+
+/** Inverse of old decompression: given decompressed value, recover raw score */
+function inverseOldDecompress(decompressed: number): number {
+  if (decompressed <= 0) return 0;
+  if (decompressed >= 99) return 99;
+
+  // Inverse: swap in/out ranges
+  for (const seg of OLD_SEGMENTS) {
+    if (decompressed >= seg.outLow && decompressed <= seg.outHigh) {
+      const range = seg.outHigh - seg.outLow;
+      if (range === 0) return seg.inLow;
+      const t = (decompressed - seg.outLow) / range;
+      return Math.round(seg.inLow + t * (seg.inHigh - seg.inLow));
+    }
+  }
+  return Math.round(decompressed);
+}
+
+// ============================================================================
+// NEW V24 decompression — must match scoring-v9.ts exactly
+// ============================================================================
 function decompressScoreV24(rawScore: number): number {
   if (rawScore <= 0) return 0;
   if (rawScore >= 99) return 99;
@@ -26,8 +58,8 @@ function decompressScoreV24(rawScore: number): number {
     { inLow: 0,  inHigh: 60, outLow: 0,  outHigh: 50 },
     { inLow: 60, inHigh: 70, outLow: 50, outHigh: 70 },
     { inLow: 70, inHigh: 78, outLow: 70, outHigh: 78 },
-    { inLow: 78, inHigh: 88, outLow: 78, outHigh: 89 },  // V24: was [78,92]
-    { inLow: 88, inHigh: 99, outLow: 89, outHigh: 99 },  // V24: adjusted
+    { inLow: 78, inHigh: 88, outLow: 78, outHigh: 89 },
+    { inLow: 88, inHigh: 99, outLow: 89, outHigh: 99 },
   ];
 
   for (const seg of segments) {
@@ -39,52 +71,76 @@ function decompressScoreV24(rawScore: number): number {
   return Math.round(rawScore);
 }
 
-// Recalculate a single score from scoring_v9 components
-function recalculateScore(
-  scoringV9: Record<string, unknown>,
-  oldMlAdjustment: number,
-): { rawDM: number; newDM: number } {
-  const relevance = Number(scoringV9.relevance_score || 0);
-  const quality = Number(scoringV9.quality_score || 0);
-  const occasion = Number(scoringV9.occasion_bonus || 0);
+// ============================================================================
+// Migration logic: reverse old pipeline → apply new pipeline
+// ============================================================================
 
-  // Raw DM = round(relevance × quality) + occasion
-  const rawDM = Math.min(99, Math.max(0, Math.round(relevance * quality) + occasion));
+function migrateScore(oldFinalDM: number, oldMlAdjustment: number): {
+  rawDM: number;
+  newDM: number;
+} {
+  // Step 1: Reverse old ML boost (was applied AFTER decompression)
+  const oldDecompressed = Math.max(0, oldFinalDM - oldMlAdjustment);
 
-  // Apply scaled ML boost: old +5 → new +3, old +2 → new +1
+  // Step 2: Reverse old decompression to recover raw score
+  const rawDM = inverseOldDecompress(oldDecompressed);
+
+  // Step 3: Apply new ML boost (scaled: +5→+3, +2→+1) BEFORE decompression
   let newMlBoost = 0;
   if (oldMlAdjustment >= 5) newMlBoost = 3;
   else if (oldMlAdjustment >= 2) newMlBoost = 1;
   const mlBoosted = Math.min(99, rawDM + newMlBoost);
 
-  // Decompress with V24 curve
-  const decompressed = decompressScoreV24(mlBoosted);
+  // Step 4: Apply new V24 decompression
+  const newDecompressed = decompressScoreV24(mlBoosted);
 
-  // Inflation cap: max +8 from raw (pre-boost)
-  const capped = Math.min(rawDM + MAX_INFLATE, decompressed);
+  // Step 5: Apply inflation cap (max +8 from raw)
+  const newDM = Math.min(rawDM + MAX_INFLATE, newDecompressed);
 
-  return { rawDM, newDM: capped };
+  return { rawDM, newDM };
 }
+
+// ============================================================================
+// Main
+// ============================================================================
 
 async function main() {
   const applyMode = process.argv.includes('--apply');
   const sb = createAdminClient();
 
   console.log(`Cache Score Migration — V24 Score Inflation Fix`);
+  console.log(`Strategy: Reverse old pipeline → apply new V24 pipeline`);
   console.log(`Mode: ${applyMode ? 'APPLY' : 'DRY RUN'}\n`);
 
-  // Fetch all cache entries with old engine version
-  const { data: entries, error } = await sb
-    .from('query_cache')
-    .select('id, cache_key, special_request, donde_match, response_body, ranked_queue, engine_version')
-    .neq('engine_version', NEW_ENGINE_VERSION);
+  // Fetch cache entries in pages to avoid statement timeout
+  const PAGE_SIZE = 100;
+  let entries: Record<string, unknown>[] = [];
+  let offset = 0;
+  let hasMore = true;
 
-  if (error) {
-    console.error('Failed to fetch cache entries:', error.message);
-    process.exit(1);
+  while (hasMore) {
+    const { data: page, error } = await sb
+      .from('query_cache')
+      .select('id, special_request, donde_match, response_body, ranked_queue, engine_version')
+      .neq('engine_version', NEW_ENGINE_VERSION)
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) {
+      console.error('Failed to fetch cache entries:', error.message);
+      process.exit(1);
+    }
+
+    if (!page || page.length === 0) {
+      hasMore = false;
+    } else {
+      entries = entries.concat(page as Record<string, unknown>[]);
+      offset += PAGE_SIZE;
+      if (page.length < PAGE_SIZE) hasMore = false;
+      console.log(`  Fetched ${entries.length} entries so far...`);
+    }
   }
 
-  if (!entries || entries.length === 0) {
+  if (entries.length === 0) {
     console.log('No cache entries to migrate. All entries are already on v11.1.0.');
     return;
   }
@@ -94,30 +150,29 @@ async function main() {
   let migrated = 0;
   let skipped = 0;
   let totalDelta = 0;
-  const deltas: { query: string; old: number; new: number; delta: number }[] = [];
+  const deltas: { query: string; old: number; new: number; raw: number; delta: number }[] = [];
 
   for (const entry of entries) {
     const body = entry.response_body as Record<string, unknown> | null;
     if (!body) { skipped++; continue; }
 
-    const scoringV9 = body.scoring_v9 as Record<string, unknown> | null;
-    if (!scoringV9) { skipped++; continue; }
-
     const oldDM = Number(entry.donde_match || body.donde_match || 0);
+    if (oldDM === 0) { skipped++; continue; }
 
     // Get old ML adjustment from response
     const mlScoring = body.ml_scoring as Record<string, unknown> | null;
     const adjustments = (mlScoring?.adjustments || []) as Record<string, unknown>[];
     const primaryAdj = adjustments.length > 0 ? Number(adjustments[0].ml_adjustment || 0) : 0;
 
-    // Recalculate primary score
-    const { rawDM, newDM } = recalculateScore(scoringV9, primaryAdj);
+    // Migrate primary score
+    const { rawDM, newDM } = migrateScore(oldDM, primaryAdj);
     const delta = newDM - oldDM;
 
     deltas.push({
       query: String(entry.special_request || '').slice(0, 40),
       old: oldDM,
       new: newDM,
+      raw: rawDM,
       delta,
     });
     totalDelta += delta;
@@ -128,16 +183,16 @@ async function main() {
     // Update ranked_queue scores
     const queue = (entry.ranked_queue || body.ranked_queue || []) as Record<string, unknown>[];
     for (const item of queue) {
-      const itemScoringV9 = item.scoring_v9 as Record<string, unknown> | null;
-      if (!itemScoringV9) continue;
       const itemOldDM = Number(item.donde_match || 0);
-      // Check if this queue item had an ML adjustment
-      const itemMlAdj = adjustments.find((a) => {
-        const restId = String((item.restaurant as Record<string, unknown>)?.id || '');
-        return String(a.restaurant_id || '') === restId;
-      });
+      if (itemOldDM === 0) continue;
+
+      // Find ML adjustment for this queue item
+      const restId = String((item.restaurant as Record<string, unknown>)?.id || '');
+      const itemMlAdj = adjustments.find((a) =>
+        String(a.restaurant_id || '') === restId
+      );
       const itemOldMl = itemMlAdj ? Number(itemMlAdj.ml_adjustment || 0) : 0;
-      const { newDM: itemNewDM } = recalculateScore(itemScoringV9, itemOldMl);
+      const { newDM: itemNewDM } = migrateScore(itemOldDM, itemOldMl);
       item.donde_match = itemNewDM;
     }
 
@@ -168,25 +223,34 @@ async function main() {
   console.log(`Skipped:  ${skipped}`);
   console.log(`Avg delta: ${(totalDelta / Math.max(migrated, 1)).toFixed(1)} points`);
 
-  // Show biggest changes
+  // Show sample migrations
   deltas.sort((a, b) => a.delta - b.delta);
   console.log(`\nBiggest score decreases:`);
   for (const d of deltas.slice(0, 10)) {
-    console.log(`  ${d.old} → ${d.new} (${d.delta >= 0 ? '+' : ''}${d.delta})  "${d.query}"`);
+    console.log(`  ${d.old} → ${d.new} (raw=${d.raw}, ${d.delta >= 0 ? '+' : ''}${d.delta})  "${d.query}"`);
+  }
+  console.log(`\nSmallest changes (near zero):`);
+  const nearZero = deltas.filter(d => Math.abs(d.delta) <= 1).slice(0, 5);
+  for (const d of nearZero) {
+    console.log(`  ${d.old} → ${d.new} (raw=${d.raw}, ${d.delta >= 0 ? '+' : ''}${d.delta})  "${d.query}"`);
   }
 
   // Distribution of deltas
-  const buckets: Record<string, number> = { '<-5': 0, '-5to-3': 0, '-2to0': 0, '+1to+3': 0, '>+3': 0 };
+  const buckets: Record<string, number> = {
+    '<-8': 0, '-8to-5': 0, '-4to-3': 0, '-2to-1': 0, '0': 0, '+1to+2': 0, '>+2': 0,
+  };
   for (const d of deltas) {
-    if (d.delta < -5) buckets['<-5']++;
-    else if (d.delta < -2) buckets['-5to-3']++;
-    else if (d.delta <= 0) buckets['-2to0']++;
-    else if (d.delta <= 3) buckets['+1to+3']++;
-    else buckets['>+3']++;
+    if (d.delta < -8) buckets['<-8']++;
+    else if (d.delta < -4) buckets['-8to-5']++;
+    else if (d.delta < -2) buckets['-4to-3']++;
+    else if (d.delta < 0) buckets['-2to-1']++;
+    else if (d.delta === 0) buckets['0']++;
+    else if (d.delta <= 2) buckets['+1to+2']++;
+    else buckets['>+2']++;
   }
   console.log(`\nDelta distribution:`);
   for (const [k, v] of Object.entries(buckets)) {
-    const bar = '#'.repeat(v);
+    const bar = '#'.repeat(Math.min(v, 80));
     console.log(`  ${k.padEnd(8)} ${bar} (${v})`);
   }
 
