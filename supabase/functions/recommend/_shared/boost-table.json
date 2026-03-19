@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "created": "2026-03-17",
   "description": "Teacher-validated boost table mapping query patterns to top-ranked restaurant IDs. Generated from 210 Opus-ranked + 150 subjective test training queries. Updated 2026-03-18 with post-V25 engine results.",
   "query_boosts": {
@@ -6472,47 +6472,17 @@
     ]
   },
   "consistent_winners": {
-    "1bf35f38-4e46-42f1-80a3-4f8eaf4f0aba": {
-      "name": "Chicago Mama's Kitchen - Catering, Mixology & Culinary Experiences",
-      "appearances": 11,
-      "avg_score": 97.7,
-      "avg_rank": 1.7
-    },
     "65d31bb9-b3d0-4e04-803c-a07b68ecc925": {
       "name": "Virtue Restaurant",
       "appearances": 22,
       "avg_score": 95.7,
       "avg_rank": 2
     },
-    "25750901-f85f-431e-ab94-88b3febbac27": {
-      "name": "Ocean Grill & Bar",
-      "appearances": 3,
-      "avg_score": 93.7,
-      "avg_rank": 1.3
-    },
-    "94b8d054-0b86-4b8a-a8ed-c5af43ca782d": {
-      "name": "Diego Chicago Restaurant | Dinner, Late Night, Weekend Brunch",
-      "appearances": 7,
-      "avg_score": 93,
-      "avg_rank": 2
-    },
-    "00dba57a-e925-4787-8cc6-1926d98ad4c6": {
-      "name": "PLANTA Queen",
-      "appearances": 14,
-      "avg_score": 93,
-      "avg_rank": 1.3
-    },
     "bf676e24-7352-430c-af3b-41b6d9e07dd8": {
       "name": "Brindille",
       "appearances": 16,
       "avg_score": 92,
       "avg_rank": 2
-    },
-    "2c2581d7-8309-4017-8b5c-9b7ccdcfc8cb": {
-      "name": "Formento's",
-      "appearances": 8,
-      "avg_score": 91.3,
-      "avg_rank": 1.7
     },
     "9f75f685-0b83-43db-a9d5-e5e21ab84701": {
       "name": "Monteverde Restaurant & Pastificio",
@@ -6529,23 +6499,13 @@
       "avg_score": 0,
       "appearances": 39
     },
-    "a673ed77-8a29-4077-8924-c15cf286da1f": {
-      "name": "Akahoshi Ramen",
-      "avg_score": 0,
-      "appearances": 7
-    },
     "1176a80d-20f2-4d35-b6a7-56ba62a9b7dd": {
       "name": "Alinea",
       "avg_score": 0,
       "appearances": 65
     },
-    "9c9f1ebb-c075-43db-bc76-f5cadc7ef45d": {
-      "name": "Brazilian Bowl",
-      "avg_score": 0,
-      "appearances": 7
-    },
     "a5691f01-c23d-414d-be19-4e2fafb4528b": {
-      "name": "goosefoot®",
+      "name": "goosefoot\u00ae",
       "avg_score": 0,
       "appearances": 77
     },
@@ -6589,11 +6549,6 @@
       "avg_score": 0,
       "appearances": 15
     },
-    "a1a05d19-80c2-4120-8f58-862663de1d5c": {
-      "name": "Cabra",
-      "avg_score": 0,
-      "appearances": 12
-    },
     "a696496a-9403-4d10-b764-aec906e8619e": {
       "name": "Duck Duck Goat",
       "avg_score": 0,
@@ -6604,45 +6559,10 @@
       "avg_score": 0,
       "appearances": 22
     },
-    "2ee0dbd6-cd02-4a70-a74c-44f7e4b1c58a": {
-      "name": "Rotisserie Ema",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "2c4aef6b-ed46-43f4-9bc7-5325ae0df45e": {
-      "name": "The Gundis Kurdish Kitchen",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "a7e219eb-d859-45b2-acb4-bf688b35db12": {
-      "name": "Sayat Nova Armenian Restaurant",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "444151dc-012b-4e30-97f5-50e649303bff": {
-      "name": "Avaspi",
-      "avg_score": 0,
-      "appearances": 11
-    },
     "014cb37a-d992-4113-9f63-9360b20e501f": {
       "name": "Suda's",
       "avg_score": 0,
       "appearances": 16
-    },
-    "0d08fc73-070d-4a9d-ac6a-8f62586221db": {
-      "name": "Bonchon",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "b759969a-c2cd-4dac-8af7-0c6a907e5d4a": {
-      "name": "Jeong",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "368a3201-cc45-485b-9bba-3b52d6462348": {
-      "name": "Mercadito",
-      "avg_score": 0,
-      "appearances": 8
     },
     "9402dcc8-1290-4971-b6d9-4b791de6d8a3": {
       "name": "Au Cheval",
@@ -6655,24 +6575,14 @@
       "appearances": 68
     },
     "7116fca0-3b48-48ed-9f04-6928cfd02d0e": {
-      "name": "Mi Tocaya Antojería",
+      "name": "Mi Tocaya Antojer\u00eda",
       "avg_score": 0,
       "appearances": 38
-    },
-    "dccb3ad6-2819-42db-90ff-2b65651752a9": {
-      "name": "Cantina on Madison, Casual Mexican Restaurant & Bar, Voted #1 Tacos",
-      "avg_score": 0,
-      "appearances": 14
     },
     "a76bbfeb-539d-4b67-bee8-bb0f0ef6e42b": {
       "name": "Giant",
       "avg_score": 0,
       "appearances": 26
-    },
-    "15b3807b-1039-46ba-a1ee-1224bbe6903a": {
-      "name": "Giordano's Pizza Rogers Park",
-      "avg_score": 0,
-      "appearances": 7
     },
     "78b648a7-9ccc-4752-9823-42618ee64a5f": {
       "name": "Big Jones",
@@ -6683,11 +6593,6 @@
       "name": "Spacca Napoli Pizzeria",
       "avg_score": 0,
       "appearances": 30
-    },
-    "a8c44566-1db6-485d-9547-397b8372fc8d": {
-      "name": "Gavroche",
-      "avg_score": 0,
-      "appearances": 8
     },
     "f716e828-6427-41b8-87d8-49f634d38f41": {
       "name": "Girl & The Goat",
@@ -6704,30 +6609,10 @@
       "avg_score": 0,
       "appearances": 22
     },
-    "ea1ccf92-6db2-4c3c-9387-69cf11a5f4d1": {
-      "name": "Early Morning Delight",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "72f2c293-d395-4a27-bd07-6f6ff5fdf365": {
-      "name": "La Cocina De Don Ramón",
-      "avg_score": 0,
-      "appearances": 11
-    },
-    "978bfcd2-4d50-4fe7-aa89-d7067395409e": {
-      "name": "Legend Dumpling + Bao",
-      "avg_score": 0,
-      "appearances": 8
-    },
     "e7abfe57-4df8-4f0c-bbab-70bdedf13ae3": {
       "name": "Kumiko",
       "avg_score": 0,
       "appearances": 27
-    },
-    "64d39ce0-0fb4-4a26-8349-50e354bdfbc7": {
-      "name": "The Bamboo Room at Three Dots and a Dash",
-      "avg_score": 0,
-      "appearances": 13
     },
     "4ff9dc21-fc53-468a-9704-fd90a7b0311b": {
       "name": "Broken Shaker at Freehand Chicago",
@@ -6738,31 +6623,6 @@
       "name": "Three Dots and a Dash",
       "avg_score": 0,
       "appearances": 19
-    },
-    "989ff6ee-7838-4c9b-a22f-86870da5e5a5": {
-      "name": "Sunda New Asian",
-      "avg_score": 0,
-      "appearances": 12
-    },
-    "e63ac7e2-3a50-45ba-b1ea-83a35fd4ae3d": {
-      "name": "Lucky Dorr Patio & Tap",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "a81f31c3-6d39-4d32-9f7c-736fd30b1076": {
-      "name": "Ann Sather Restaurant",
-      "avg_score": 0,
-      "appearances": 10
-    },
-    "a747f2da-d6e9-4d59-9123-cd938c7900ce": {
-      "name": "Phodega",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "bc392b73-3039-42cb-ae24-575b23532b39": {
-      "name": "4 Seasons",
-      "avg_score": 0,
-      "appearances": 13
     },
     "2d8865e8-051c-4caa-bacf-2645f011dd56": {
       "name": "Smoque BBQ",
@@ -6784,25 +6644,10 @@
       "avg_score": 0,
       "appearances": 37
     },
-    "86de1c95-3dbd-4a38-9382-d190e097efe5": {
-      "name": "The Loyalist",
-      "avg_score": 0,
-      "appearances": 14
-    },
-    "ea45ab08-0b54-4e2b-a2c9-ec10ebf4e8b6": {
-      "name": "Green Street Smoked Meats",
-      "avg_score": 0,
-      "appearances": 8
-    },
     "7f994f20-5d90-48f3-9592-2d8ecf2e7a94": {
       "name": "Exchequer Restaurant & Pub",
       "avg_score": 0,
       "appearances": 16
-    },
-    "9368db6f-71d4-4279-92c1-65d9c0bd44b0": {
-      "name": "Billy Goat Tavern (The Original)",
-      "avg_score": 0,
-      "appearances": 14
     },
     "eb834f1c-8e38-4f4d-8bda-d5bbfcf106b8": {
       "name": "Galit",
@@ -6829,53 +6674,13 @@
       "avg_score": 0,
       "appearances": 18
     },
-    "4e062d32-96fc-4781-b5b2-f23ccc8a3f5e": {
-      "name": "Caribella",
-      "avg_score": 0,
-      "appearances": 11
-    },
-    "961878b7-f7c8-4ed3-8664-deac3fb76528": {
-      "name": "mfk. Restaurant",
-      "avg_score": 0,
-      "appearances": 9
-    },
-    "86d36142-974e-42d1-be6f-dd1bb591c6cc": {
-      "name": "Kimchi Pop 2 by Chef Son",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "adbf5e72-ccae-46ac-a056-9d1fa412c116": {
-      "name": "Jim's Original",
-      "avg_score": 0,
-      "appearances": 12
-    },
-    "3a81734e-dce4-4ee3-a7ec-379f3265f1d0": {
-      "name": "Big Star Wicker Park",
-      "avg_score": 0,
-      "appearances": 11
-    },
-    "da4ea06f-7c8c-41e8-9baa-1007d36d8eef": {
-      "name": "Fiya",
-      "avg_score": 0,
-      "appearances": 7
-    },
     "467b3c87-5829-41b2-91fc-6cd077f77613": {
       "name": "Bavette's Bar & Boeuf",
       "avg_score": 0,
       "appearances": 72
     },
-    "adfbe950-c6bd-4467-8c06-067ebe407746": {
-      "name": "The J. Parker",
-      "avg_score": 0,
-      "appearances": 13
-    },
-    "8031cbb2-a86c-4921-8e68-a8a9ae983414": {
-      "name": "Staropolska Restaurant",
-      "avg_score": 0,
-      "appearances": 7
-    },
     "30ce808a-6c0a-4919-a43d-4b94af41c135": {
-      "name": "Leña Brava",
+      "name": "Le\u00f1a Brava",
       "avg_score": 0,
       "appearances": 16
     },
@@ -6884,40 +6689,10 @@
       "avg_score": 0,
       "appearances": 32
     },
-    "da48aa3c-e71a-426d-a9c1-dff175431a95": {
-      "name": "Royal Africana Lounge",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "e17891a7-6478-45bd-8744-5b45810d9dca": {
-      "name": "Sunshine’s Place",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "5101cd1c-f928-453b-923b-94ebc268de40": {
-      "name": "Twin Anchors Restaurant & Tavern",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "5826ea42-cae1-44ed-995c-58a0d7bfbaa0": {
-      "name": "Hawksmoor Chicago",
-      "avg_score": 0,
-      "appearances": 12
-    },
-    "fed6c5d4-7ba5-44c6-98d4-45dabb4abc29": {
-      "name": "El Che Steakhouse & Bar",
-      "avg_score": 0,
-      "appearances": 8
-    },
     "70e4b943-6380-4e48-b608-c322b099c953": {
       "name": "Indienne",
       "avg_score": 0,
       "appearances": 40
-    },
-    "cf284235-49af-4e54-aea6-e9f0c6eb9c77": {
-      "name": "La Esperanza Restaurant Pilsen",
-      "avg_score": 0,
-      "appearances": 13
     },
     "29f16b77-fd63-42ef-a2e3-8f017f71ed1e": {
       "name": "CMB Catering",
@@ -6934,50 +6709,15 @@
       "avg_score": 0,
       "appearances": 16
     },
-    "d3e6a0cf-4e97-4cb0-a950-c7c8661126c4": {
-      "name": "Cindy's Rooftop",
-      "avg_score": 0,
-      "appearances": 9
-    },
-    "2247d52b-93a9-4db9-916b-623c5bfec5f0": {
-      "name": "Quartino Ristorante",
-      "avg_score": 0,
-      "appearances": 8
-    },
     "6aa5d56a-0ee2-493d-b1a5-730d79c4df17": {
       "name": "Cafe Ba-Ba-Reeba!",
       "avg_score": 0,
       "appearances": 20
     },
-    "54ba6fd5-d5c4-4aeb-846c-d19edf81afa6": {
-      "name": "La Crêperie Chicago Restaurant",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "e40aca51-42ec-48dc-9699-044ef991f5fb": {
-      "name": "Le Colonial Chicago",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "fa7f20cb-2fcf-40d1-80c9-836a86ad8482": {
-      "name": "Alpana",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "c1391b64-c682-4a19-93fa-8beab5c6eb24": {
-      "name": "Barrel cheese & wine | cocktails | Event Space",
-      "avg_score": 0,
-      "appearances": 12
-    },
     "9531de7c-5b1e-4bfe-a055-973f956bb39c": {
       "name": "Bandit",
       "avg_score": 0,
       "appearances": 17
-    },
-    "03ace4f8-bb00-476e-8112-dc5e580b56dd": {
-      "name": "Han 202 Restaurant",
-      "avg_score": 0,
-      "appearances": 8
     },
     "adaeb395-ffb5-4abb-b809-6b5da137a656": {
       "name": "Lula Cafe",
@@ -6989,75 +6729,10 @@
       "avg_score": 0,
       "appearances": 15
     },
-    "b097e932-4a4c-40d6-bda7-38f2db3655be": {
-      "name": "RPM Seafood",
-      "avg_score": 0,
-      "appearances": 10
-    },
-    "fbe57f23-62af-47af-9950-ee38022f7099": {
-      "name": "Deborincuba Restaurant",
-      "avg_score": 0,
-      "appearances": 10
-    },
-    "6910492c-fe77-496e-9c63-c88015b99a1f": {
-      "name": "Mart Anthony's Italian Restaurant",
-      "avg_score": 0,
-      "appearances": 9
-    },
-    "370ce82e-10b0-46b0-9db9-fb05b5f02104": {
-      "name": "Roka Akor - Chicago",
-      "avg_score": 0,
-      "appearances": 11
-    },
     "1b9806f3-554b-4604-a0c7-b63d724aa999": {
       "name": "Momotaro",
       "avg_score": 0,
       "appearances": 20
-    },
-    "961caf60-065c-48dd-b99d-815ae38991d5": {
-      "name": "Mako",
-      "avg_score": 0,
-      "appearances": 10
-    },
-    "90a87ef6-f3f0-40fa-bb81-d076d2b9d6e1": {
-      "name": "Soul Vibez - Chicago",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "fdcf51d0-ba44-453d-91ec-36bc6a61f166": {
-      "name": "Calumet Fisheries",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "ad1e5fd1-e2b5-404d-aa65-95d17fa546d0": {
-      "name": "Martin's Corner",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "01901119-9bec-4f8b-8b8e-35ee363f16a9": {
-      "name": "Puebla Restaurant & Taquería",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "29f79ecb-843c-4bb1-9a66-e9b094f6d2fa": {
-      "name": "Shaw's Crab House",
-      "avg_score": 0,
-      "appearances": 13
-    },
-    "f14ed695-f84b-4f0e-88ee-a0966eecef98": {
-      "name": "Ema",
-      "avg_score": 0,
-      "appearances": 9
-    },
-    "7b9b9084-5775-48c2-bb73-57b08a9344a7": {
-      "name": "Boqueria Fulton Market",
-      "avg_score": 0,
-      "appearances": 9
-    },
-    "ae50d9d1-a003-4c8e-a1ff-051b8cbcf2c0": {
-      "name": "Smyth",
-      "avg_score": 0,
-      "appearances": 9
     },
     "ef2a9292-3743-4e63-b0b0-2ed4d0290b18": {
       "name": "MCCB Chicago",
@@ -7065,178 +6740,28 @@
       "appearances": 29
     },
     "98dee7c6-ba19-4917-92a4-5dbd0fef2670": {
-      "name": "Kyōten",
+      "name": "Ky\u014dten",
       "avg_score": 0,
       "appearances": 37
-    },
-    "a20e281f-6e78-4a42-ada4-06f579a2e91f": {
-      "name": "Yao Yao",
-      "avg_score": 0,
-      "appearances": 10
-    },
-    "6db7c61b-555d-4a1e-b384-d624dd19f590": {
-      "name": "Triple Crown Restaurant",
-      "avg_score": 0,
-      "appearances": 10
-    },
-    "a5f0c788-06fb-4280-bda1-ab3c2a5bb819": {
-      "name": "Maple & Ash",
-      "avg_score": 0,
-      "appearances": 9
-    },
-    "6dadd943-3afd-4580-b8e3-f35d90bb76fc": {
-      "name": "Bar Sótano",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "1781953b-66ba-4639-87cf-1c645535f565": {
-      "name": "Brown's Soul Food",
-      "avg_score": 0,
-      "appearances": 12
     },
     "b2159361-eb31-4505-b661-1e679ef567e4": {
       "name": "Antico",
       "avg_score": 0,
       "appearances": 16
     },
-    "c123b8cb-67ef-45e9-8b85-c3531e0ee021": {
-      "name": "Cal's Corner",
-      "avg_score": 0,
-      "appearances": 8
-    },
     "fec1369d-29b4-4700-857f-b4385389b0a5": {
       "name": "Q'bo Latin Cafe Inc.",
       "avg_score": 0,
       "appearances": 17
     },
-    "edee9af3-a349-46e4-99b1-bed2e90ca23f": {
-      "name": "DeNucci's Lincoln Park",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "81efd970-8bec-47c5-9803-f14d77d0346c": {
-      "name": "Levant Coffee Lakeview (Takeout Only)",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "9dbaea89-059d-4641-8b2e-b3e903082fca": {
-      "name": "Boka",
-      "avg_score": 0,
-      "appearances": 11
-    },
-    "31731a30-4f2b-426b-9fbf-168dafcaed2c": {
-      "name": "Demera Restaurant",
-      "avg_score": 0,
-      "appearances": 14
-    },
-    "a491755e-4942-4da5-9ba4-4388b79debb4": {
-      "name": "Mama’s African kitchen restaurant bar",
-      "avg_score": 0,
-      "appearances": 12
-    },
-    "7a8e7341-1fbe-494a-88d3-b3978c2d8d8c": {
-      "name": "Ethiopian Diamond Restaurant & Bar",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "7a0911d9-a4eb-4ae1-910b-d3cfcc90c4b3": {
-      "name": "ROOP Chicago Innovative Indian Restaurant & Cocktail Bar",
-      "avg_score": 0,
-      "appearances": 10
-    },
-    "4496ab73-9264-4869-8d54-8876d39c06c1": {
-      "name": "Aba",
-      "avg_score": 0,
-      "appearances": 11
-    },
-    "5bfade07-cba4-475e-a978-12cc46a6c306": {
-      "name": "Pizzeria Aroma",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "0cb79f3c-ee19-4a3e-a97a-3241dbb79c76": {
-      "name": "Robert's Pizza and Dough Company",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "da2bf472-5fe2-4d0a-9f86-60a13ca9258d": {
-      "name": "Outdoor Grill Chicago",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "5174edec-1317-427e-8e22-2a222c5a8eaa": {
-      "name": "Ithaki Estiatorio",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "c3083e48-50e1-4612-9009-24cc355b23fb": {
-      "name": "Athenian Room",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "7286be49-7949-4d9c-8486-216e4b24e4a0": {
-      "name": "Sila's mediterranean Restaurant #2",
-      "avg_score": 0,
-      "appearances": 8
-    },
-    "0648cd00-97b2-423a-8c9a-62792f47ac93": {
-      "name": "Taxim",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "9dbbbc0a-903a-4ce2-b1e2-afc2b49cfc8a": {
-      "name": "Caribbean American Baking Co",
-      "avg_score": 0,
-      "appearances": 9
-    },
-    "cafb4e51-4eec-450d-bdd4-4a27c50b14df": {
-      "name": "Joe's Seafood, Prime Steak & Stone Crab",
-      "avg_score": 0,
-      "appearances": 8
-    },
     "93bba72c-8738-4f7d-a663-4f907a06fae5": {
       "name": "Floriole Cafe & Bakery",
       "avg_score": 0,
       "appearances": 20
-    },
-    "437ce574-8ad9-4ae3-9c9c-e92ef5e044f4": {
-      "name": "Bazaar Meat",
-      "avg_score": 0,
-      "appearances": 9
-    },
-    "0aba415a-630c-487e-9813-e1afcfabc631": {
-      "name": "La Cueva Del Indio Cafe",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "78797b47-5035-4cc4-8b4e-2d57a83fa8ec": {
-      "name": "Pierogi Kitchen",
-      "avg_score": 0,
-      "appearances": 10
-    },
-    "8f916127-c8ab-4b69-ab0c-3098f4095707": {
-      "name": "Grill on 21",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "5619ed80-b5d8-4d75-9999-c54e39916718": {
-      "name": "Gibsons Italia",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "1a1a7478-c92d-4568-972d-017c86048980": {
-      "name": "Ocean Prime",
-      "avg_score": 0,
-      "appearances": 7
-    },
-    "47d903b3-751d-4e60-90db-21d6e770eb25": {
-      "name": "Khmai",
-      "avg_score": 0,
-      "appearances": 8
     }
   },
-  "direct_boost": 5,
-  "winner_boost": 2,
+  "direct_boost": 3,
+  "winner_boost": 1,
   "stats": {
     "total_queries": 204,
     "total_training_pairs": 1020,

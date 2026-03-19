@@ -2,8 +2,9 @@
  * ML Adjustment Layer — Targeted Boost (Version Alpha)
  *
  * Boost-only strategy from boost-table.json — teacher-validated per-query
- * boosts (+5) and cross-query consistent winner boosts (+2).
- * 0% regression risk (never penalizes).
+ * boosts (+3) and cross-query consistent winner boosts (+1).
+ * V24: Reduced from +5/+2 to +3/+1 to prevent score inflation when
+ * combined with decompression. 0% regression risk (never penalizes).
  *
  * Performance: boost table loaded once at module init (Edge Function cold start).
  * Lookup is O(1) per restaurant — no measurable request latency impact.
@@ -45,9 +46,9 @@ try {
 /**
  * Compute targeted boost for a restaurant based on teacher-validated data.
  *
- * Strategy 1: Direct teacher boost (+5) — If this restaurant was in teacher's
+ * Strategy 1: Direct teacher boost (+3) — If this restaurant was in teacher's
  *   top-5 for a matching query pattern.
- * Strategy 2: Cross-query winner boost (+2) — If this restaurant is a
+ * Strategy 2: Cross-query winner boost (+1) — If this restaurant is a
  *   consistent winner across many teacher rankings.
  *
  * Returns 0 if no boost applies. NEVER penalizes (boost-only strategy).
@@ -55,7 +56,7 @@ try {
  * @param restaurantId - UUID of the restaurant
  * @param queryFingerprint - Canonical form of the query (from computeCanonicalForm)
  * @param queryText - Raw query text for fuzzy matching
- * @returns Boost amount (0, 2, or 5)
+ * @returns Boost amount (0, 1, or 3)
  */
 export function computeTargetedBoost(
   restaurantId: string,
@@ -79,24 +80,24 @@ export function computeTargetedBoost(
     }
   }
 
-  // Strategy 1: Direct teacher boost (+5)
+  // Strategy 1: Direct teacher boost (+3, reduced from +5 in V24)
   // If this restaurant was in teacher's top-5 for a matching query
   const directBoostIds = boostTable.query_boosts[queryFingerprint] || [];
   if (directBoostIds.includes(restaurantId)) {
-    return boostTable.direct_boost || 5;
+    return Math.min(boostTable.direct_boost || 3, 3);
   }
 
   // Also try normalized query text as key (lowercase, trimmed)
   const normalizedQuery = queryText.toLowerCase().trim();
   const altBoostIds = boostTable.query_boosts[normalizedQuery] || [];
   if (altBoostIds.includes(restaurantId)) {
-    return boostTable.direct_boost || 5;
+    return Math.min(boostTable.direct_boost || 3, 3);
   }
 
-  // Strategy 2: Cross-query winner boost (+2)
+  // Strategy 2: Cross-query winner boost (+1, reduced from +2 in V24)
   // If this restaurant is a consistent winner across many teacher rankings
   if (restaurantId in (boostTable.consistent_winners || {})) {
-    return boostTable.winner_boost || 2;
+    return Math.min(boostTable.winner_boost || 1, 1);
   }
 
   // No boost — never penalize (boost-only strategy)

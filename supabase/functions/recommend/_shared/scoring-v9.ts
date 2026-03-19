@@ -55,12 +55,16 @@ import {
  *
  * Key invariant: raw scores >= 70 always map to >= 70 (grading safety).
  *
+ * V24: Tightened the [78,88] segment from slope 1.4 to 1.1 to reduce inflation
+ * in the critical "good-to-great" band. Also adjusted the [88,99] segment
+ * to match the new breakpoint.
+ *
  * The function maps via 5 segments:
  *   [0, 60]   -> [0, 50]    push weak matches lower (slope 0.83)
  *   [60, 70]  -> [50, 70]   steep ramp to grading threshold (slope 2.0)
  *   [70, 78]  -> [70, 78]   preserve core band around current mean (slope 1.0)
- *   [78, 88]  -> [78, 92]   amplify good-to-great spread (slope 1.4)
- *   [88, 99]  -> [92, 99]   excellent matches shine (slope 0.64)
+ *   [78, 88]  -> [78, 89]   mild amplification of good-to-great (slope 1.1, was 1.4)
+ *   [88, 99]  -> [89, 99]   excellent matches shine (slope 0.91)
  *
  * Examples:
  *   50 -> 42 (weak match pushed down)
@@ -68,23 +72,24 @@ import {
  *   65 -> 60 (approaching threshold)
  *   70 -> 70 (grading anchor preserved)
  *   78 -> 78 (current mean preserved)
- *   80 -> 81 (good match gets mild boost)
- *   85 -> 88 (great match stands out)
- *   88 -> 92 (excellent match amplified)
- *   90 -> 93 (outstanding match clearly visible)
- *   95 -> 96 (near-perfect shines)
+ *   80 -> 80 (good match preserved)
+ *   85 -> 86 (great match mild boost)
+ *   88 -> 89 (excellent match mild boost)
+ *   90 -> 91 (outstanding visible)
+ *   95 -> 95 (near-perfect preserved)
  */
 export function decompressScore(rawScore: number): number {
   if (rawScore <= 0) return 0;
   if (rawScore >= 99) return 99;
 
   // Piecewise linear segments: [inLow, inHigh] -> [outLow, outHigh]
+  // V24: Tightened [78,88]->[78,89] (was [78,92]) to reduce inflation
   const segments = [
     { inLow: 0,  inHigh: 60, outLow: 0,  outHigh: 50 },
     { inLow: 60, inHigh: 70, outLow: 50, outHigh: 70 },
     { inLow: 70, inHigh: 78, outLow: 70, outHigh: 78 },
-    { inLow: 78, inHigh: 88, outLow: 78, outHigh: 92 },
-    { inLow: 88, inHigh: 99, outLow: 92, outHigh: 99 },
+    { inLow: 78, inHigh: 88, outLow: 78, outHigh: 89 },
+    { inLow: 88, inHigh: 99, outLow: 89, outHigh: 99 },
   ];
 
   for (const seg of segments) {
@@ -3395,20 +3400,24 @@ export function computeV9Score(
   //   - Raised quality floor from 60 to 65 for exact cuisine/dish matches
   //   - Added quality floor for neighborhood matches (type "open_ended" with neighborhood detail)
   //   - Added quality floor for vibe matches with high relevance
+  // V24: Lowered quality floors to restore score differentiation.
+  // Previous V18 floors were too aggressive (74/80/72), eliminating the <70 tier entirely.
+  // New floors still protect sparse-data restaurants from being crushed, but allow
+  // meaningful score spread across tiers.
   let finalQuality = adjustedQuality;
   if (relevance.score >= 0.90 && (relevance.type === "cuisine" || relevance.type === "dish")) {
-    // V18: High-relevance exact cuisine/dish → quality floor 74 (ensures DM≥70 for ethnic cuisines)
-    finalQuality = Math.max(adjustedQuality, 74);
+    // V24: Reduced from 74 to 70 — still ensures DM≥63 for exact ethnic cuisine matches
+    finalQuality = Math.max(adjustedQuality, 70);
   } else if (relevance.score >= 0.70 && (relevance.type === "cuisine" || relevance.type === "dish")) {
-    finalQuality = Math.max(adjustedQuality, 68);
+    finalQuality = Math.max(adjustedQuality, 64);
   } else if (relevance.score >= 0.90 && relevance.details?.includes("Neighborhood match")) {
-    // V18: Raised neighborhood quality floor from 65 to 80 so DM≥80 for location queries
-    finalQuality = Math.max(adjustedQuality, 80);
-  } else if (relevance.score >= 0.75 && relevance.type === "vibe") {
-    finalQuality = Math.max(adjustedQuality, 68);
-  } else if (relevance.score >= 0.80 && relevance.type === "reputation") {
-    // V18: Raised reputation quality floor from 65 to 72
+    // V24: Reduced from 80 to 72 — neighborhood queries no longer guaranteed DM≥80
     finalQuality = Math.max(adjustedQuality, 72);
+  } else if (relevance.score >= 0.75 && relevance.type === "vibe") {
+    finalQuality = Math.max(adjustedQuality, 64);
+  } else if (relevance.score >= 0.80 && relevance.type === "reputation") {
+    // V24: Reduced from 72 to 68
+    finalQuality = Math.max(adjustedQuality, 68);
   }
 
   // Step 3b: V9 Score = Relevance × Quality (now confidence-adjusted)

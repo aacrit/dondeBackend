@@ -1835,11 +1835,100 @@ Deno.serve(async (req: Request) => {
     const scoreFitResult = computeScoreFitGrade(special_request, responseBody as Record<string, unknown>);
     const blurbQualityResult = computeBlurbQualityGrade(special_request, responseBody as Record<string, unknown>);
 
+    // V24: Capture raw scores before any post-processing for inflation cap
+    const preBoostRawDM = responseBody.donde_match as number;
+    const preBoostQueueDMs = new Map<string, number>();
+    {
+      const q = (responseBody.ranked_queue || []) as Record<string, unknown>[];
+      for (const item of q) {
+        const qRest = (item.restaurant || item) as Record<string, unknown>;
+        const qId = String(qRest.id || "");
+        if (typeof item.donde_match === "number") {
+          preBoostQueueDMs.set(qId, item.donde_match);
+        }
+      }
+    }
+
     // ================================================================
-    // STEP 9.1: Score Decompression (post-grading)
+    // STEP 9.1: ML Scoring — Targeted Boost (applied BEFORE decompression)
+    // V24: Moved ML boost before decompression to prevent compounding inflation.
+    // Previously ML boost was applied after decompression, causing a raw 85 to
+    // become 88 (decompressed) then 93 (boosted) — a +8 total inflate.
+    // Now: raw 85 + boost 3 = 88 → decompress to 89 — a +4 total inflate.
     // ================================================================
-    // Apply decompression AFTER grading so grading uses raw scores.
-    // The user sees decompressed scores that spread the 70-90 band wider.
+    const mlAppliedAdjustments: { restaurant_id: string; restaurant_name: string; rule_dm: number; ml_adjustment: number; ml_dm: number }[] = [];
+    {
+      const boostCanonical = computeCanonicalForm(special_request, intent);
+
+      // Apply targeted boost to primary recommendation
+      const primaryRestaurant = (rerankedScored[0] as Record<string, unknown>)?.profile
+        || (rerankedScored[0] as Record<string, unknown>)?.restaurant
+        || rerankedScored[0] || {};
+      const primaryRestId = String((primaryRestaurant as Record<string, unknown>).id || "");
+      const primaryBoost = computeTargetedBoost(
+        primaryRestId, boostCanonical, special_request,
+        String((primaryRestaurant as Record<string, unknown>).cuisine_type || ""),
+        intent?.target_cuisines || null,
+      );
+
+      if (primaryBoost > 0) {
+        const ruleDM = responseBody.donde_match as number;
+        const boostedDM = Math.max(0, Math.min(99, ruleDM + primaryBoost));
+        responseBody.donde_match = boostedDM;
+        mlAppliedAdjustments.push({
+          restaurant_id: primaryRestId,
+          restaurant_name: String((primaryRestaurant as Record<string, unknown>).name || ""),
+          rule_dm: ruleDM,
+          ml_adjustment: primaryBoost,
+          ml_dm: boostedDM,
+        });
+      }
+
+      // Apply targeted boosts to queue items
+      const mlQueue = (responseBody.ranked_queue || []) as Record<string, unknown>[];
+      for (const item of mlQueue) {
+        const qRest = (item.restaurant || item) as Record<string, unknown>;
+        const qId = String(qRest.id || "");
+        const qBoost = computeTargetedBoost(
+          qId, boostCanonical, special_request,
+          String(qRest.cuisine_type || ""),
+          intent?.target_cuisines || null,
+        );
+        if (qBoost > 0) {
+          const qRuleDM = Number(item.donde_match || 0);
+          const qBoostedDM = Math.max(0, Math.min(99, qRuleDM + qBoost));
+          (item as Record<string, number>).donde_match = qBoostedDM;
+          mlAppliedAdjustments.push({
+            restaurant_id: qId,
+            restaurant_name: String(qRest.name || ""),
+            rule_dm: qRuleDM,
+            ml_adjustment: qBoost,
+            ml_dm: qBoostedDM,
+          });
+        }
+      }
+
+      (responseBody as Record<string, unknown>).ml_scoring = {
+        active: true,
+        ab_group: "ml",
+        model_loaded: isMLModelLoaded(),
+        adjustments: mlAppliedAdjustments,
+      };
+      if (mlAppliedAdjustments.length > 0) {
+        logInfo("ML scoring (pre-decompression)", {
+          model_loaded: isMLModelLoaded(),
+          adjustments: mlAppliedAdjustments
+            .map(s => ({ name: s.restaurant_name, rule_dm: s.rule_dm, adj: s.ml_adjustment, ml_dm: s.ml_dm })),
+        });
+      }
+    }
+
+    // ================================================================
+    // STEP 9.2: Score Decompression (post-grading, post-ML-boost)
+    // ================================================================
+    // Apply decompression AFTER grading and ML boost so grading uses raw scores.
+    // V24: ML boost now applied before decompression to prevent compounding.
+    // Also enforces max inflation cap of +8 from raw score.
     {
       const rawDM = responseBody.donde_match as number;
       const decompressedDM = decompressScore(rawDM);
@@ -1861,6 +1950,37 @@ Deno.serve(async (req: Request) => {
           decompressed: decompressedDM,
           delta: decompressedDM - rawDM,
         });
+      }
+    }
+
+    // ================================================================
+    // STEP 9.3: Inflation Cap (V24 safety net)
+    // No score should inflate more than MAX_INFLATE from its pre-boost raw value.
+    // This prevents the cumulative effect of ML boost + decompression + occasion
+    // + preference from pushing scores unreasonably high.
+    // ================================================================
+    {
+      const MAX_INFLATE = 8;
+      const finalDM = responseBody.donde_match as number;
+      if (finalDM > preBoostRawDM + MAX_INFLATE) {
+        responseBody.donde_match = preBoostRawDM + MAX_INFLATE;
+        logInfo("V24 inflation cap applied", {
+          preBoostRaw: preBoostRawDM,
+          wouldBe: finalDM,
+          capped: preBoostRawDM + MAX_INFLATE,
+          saved: finalDM - (preBoostRawDM + MAX_INFLATE),
+        });
+      }
+
+      // Cap queue items too
+      const capQueue = (responseBody.ranked_queue || []) as Record<string, unknown>[];
+      for (const item of capQueue) {
+        const qRest = (item.restaurant || item) as Record<string, unknown>;
+        const qId = String(qRest.id || "");
+        const qRawDM = preBoostQueueDMs.get(qId);
+        if (qRawDM != null && typeof item.donde_match === "number" && item.donde_match > qRawDM + MAX_INFLATE) {
+          item.donde_match = qRawDM + MAX_INFLATE;
+        }
       }
     }
 
@@ -1971,78 +2091,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // ================================================================
-    // STEP 9.8: ML Scoring — Targeted Boost (Version Alpha)
-    // Boost-only: (1) teacher-validated per-query boosts (+5)
-    //             (2) cross-query consistent winner boosts (+2)
-    // Applied AFTER grading but BEFORE decompression. 0% regression risk.
-    // ================================================================
-    const mlAppliedAdjustments: { restaurant_id: string; restaurant_name: string; rule_dm: number; ml_adjustment: number; ml_dm: number }[] = [];
-
-    // Compute canonical form for boost table lookup
-    const boostCanonical = computeCanonicalForm(special_request, intent);
-
-    // Apply targeted boost to the primary recommendation
-    const primaryRestaurant = (rerankedScored[0] as Record<string, unknown>)?.profile
-      || (rerankedScored[0] as Record<string, unknown>)?.restaurant
-      || rerankedScored[0] || {};
-    const primaryRestId = String((primaryRestaurant as Record<string, unknown>).id || "");
-    const primaryBoost = computeTargetedBoost(
-      primaryRestId, boostCanonical, special_request,
-      String((primaryRestaurant as Record<string, unknown>).cuisine_type || ""),
-      intent?.target_cuisines || null,
-    );
-
-    if (primaryBoost > 0) {
-      const ruleDM = responseBody.donde_match as number;
-      const boostedDM = Math.max(0, Math.min(99, ruleDM + primaryBoost));
-      responseBody.donde_match = boostedDM;
-      mlAppliedAdjustments.push({
-        restaurant_id: primaryRestId,
-        restaurant_name: String((primaryRestaurant as Record<string, unknown>).name || ""),
-        rule_dm: ruleDM,
-        ml_adjustment: primaryBoost,
-        ml_dm: boostedDM,
-      });
-    }
-
-    // Apply targeted boosts to queue items
-    const queue = (responseBody.ranked_queue || []) as Record<string, unknown>[];
-    for (const item of queue) {
-      const qRest = (item.restaurant || item) as Record<string, unknown>;
-      const qId = String(qRest.id || "");
-      const qBoost = computeTargetedBoost(
-        qId, boostCanonical, special_request,
-        String(qRest.cuisine_type || ""),
-        intent?.target_cuisines || null,
-      );
-      if (qBoost > 0) {
-        const qRuleDM = Number(item.donde_match || 0);
-        const qBoostedDM = Math.max(0, Math.min(99, qRuleDM + qBoost));
-        (item as Record<string, number>).donde_match = qBoostedDM;
-        mlAppliedAdjustments.push({
-          restaurant_id: qId,
-          restaurant_name: String(qRest.name || ""),
-          rule_dm: qRuleDM,
-          ml_adjustment: qBoost,
-          ml_dm: qBoostedDM,
-        });
-      }
-    }
-
-    (responseBody as Record<string, unknown>).ml_scoring = {
-      active: true,
-      ab_group: "ml",
-      model_loaded: isMLModelLoaded(),
-      adjustments: mlAppliedAdjustments,
-    };
-    if (mlAppliedAdjustments.length > 0) {
-      logInfo("ML scoring", {
-        model_loaded: isMLModelLoaded(),
-        adjustments: mlAppliedAdjustments
-          .map(s => ({ name: s.restaurant_name, rule_dm: s.rule_dm, adj: s.ml_adjustment, ml_dm: s.ml_dm })),
-      });
-    }
+    // V24: ML scoring block moved to STEP 9.1 (before decompression) to prevent
+    // compounding inflation. See STEP 9.1 above.
 
     // Attach Google API cost stats to every response
     (responseBody as Record<string, unknown>).google_api_cost = getGoogleCallStats();
